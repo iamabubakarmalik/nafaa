@@ -43,7 +43,7 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
   };
 
   if (isLoading) {
-    return <Card><div className="space-y-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />)}</div></Card>;
+    return <Card><div className="space-y-2">{[0, 1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />)}</div></Card>;
   }
   if (error || !data) {
     return <Banner tone="critical" title="Products nahi khule">{apiErrorMessage(error)}</Banner>;
@@ -59,13 +59,13 @@ export function ProductLinker({ channelId, siteName }: { channelId: string; site
         <div className="flex flex-wrap items-center gap-4">
           <div className="min-w-[220px] flex-1">
             <div className="flex items-baseline justify-between gap-2">
-              <div className="text-[0.875rem] font-semibold text-slate-900 dark:text-white">
+              <div className="text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">
                 {data.canFetch ? `${s.linked} / ${s.variants} jure hue` : 'Jore hue products'}
               </div>
               {data.canFetch && <div className="text-[0.78125rem] font-semibold tabular-nums text-slate-500">{pct}%</div>}
             </div>
             {data.canFetch && (
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800">
                 <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
               </div>
             )}
@@ -195,7 +195,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
       </div>
 
       {picked.size > 0 && (
-        <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-white sm:mx-5 dark:bg-slate-800">
+        <div className="mx-4 mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-white sm:mx-5 dark:bg-ink-800">
           <span className="text-[0.8125rem] font-semibold">{picked.size} chune</span>
           <span className="text-[0.75rem] text-white/70">— Nafaa me ban jayenge (naam, qeemat, tasveer, variants) aur jur jayenge · jo pehle se hai us se jurenge</span>
           <span className="flex-1" />
@@ -206,9 +206,9 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
         </div>
       )}
 
-      <div className="mt-3 border-t border-slate-100 dark:border-slate-800">
+      <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
         {/* sar-khat */}
-        <div className="hidden grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 md:grid sm:px-5">
+        <div className="hidden grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 md:grid sm:px-5">
           <input type="checkbox" aria-label="Sab jorne baqi chuno" className="h-4 w-4 rounded border-slate-300"
             checked={unlinkedIds.length > 0 && unlinkedIds.every((id) => picked.has(id))}
             onChange={(e) => setPicked(e.target.checked ? new Set(unlinkedIds) : new Set())} />
@@ -223,7 +223,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
             {products.length ? 'Filter badal kar dekhein.' : '"Nafaa ke products" tab se apne products website par bhej sakte hain.'}
           </EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {rows.map((p) => {
               const linkedCount = p.variants.filter((v) => v.link).length;
               const allLinked = linkedCount === p.variants.length;
@@ -239,7 +239,7 @@ function WebsiteList({ channelId, products, onDone }: { channelId: string; produ
                         {open.has(p.externalProductId) ? <ChevronDown className="h-4 w-4 shrink-0 text-slate-400" /> : <ChevronRight className="h-4 w-4 shrink-0 text-slate-400" />}
                         <Thumb src={p.image} />
                         <span className="min-w-0">
-                          <span className="block truncate text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{p.title}</span>
+                          <span className="block truncate text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{p.title}</span>
                           <span className="text-[0.75rem] text-slate-500">{p.variants.length} variants · {p.status}</span>
                         </span>
                       </button>
@@ -302,7 +302,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
 
   return (
     <div className={cn('grid grid-cols-[28px_minmax(0,1fr)] items-center gap-3 px-4 py-2.5 md:grid-cols-[28px_minmax(0,1.3fr)_minmax(0,0.7fr)_24px_minmax(0,1.4fr)] sm:px-5',
-      nested && 'bg-slate-50/50 dark:bg-slate-800/20')}>
+      nested && 'bg-slate-50/50 dark:bg-ink-800/20')}>
       {nested ? <span /> : (
         <input type="checkbox" disabled={!!v.link} checked={picked} onChange={onTogglePick}
           className="h-4 w-4 rounded border-slate-300 disabled:opacity-30" aria-label={`${product.title} chuno`} />
@@ -310,13 +310,13 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
       <div className={cn('flex min-w-0 items-center gap-2.5', nested && 'pl-6')}>
         {!nested && <Thumb src={v.image ?? product.image} />}
         <span className="min-w-0">
-          <span className={cn('block truncate text-slate-900 dark:text-white', nested ? 'text-[0.8125rem] font-medium' : 'text-[0.84375rem] font-semibold')}>
+          <span className={cn('block truncate text-slate-900 dark:text-ink-white', nested ? 'text-[0.8125rem] font-medium' : 'text-[0.84375rem] font-semibold')}>
             {nested ? v.title : product.title}
           </span>
           {!nested && <span className="text-[0.75rem] text-slate-500">{product.status}</span>}
         </span>
       </div>
-      <div className="col-start-2 text-[0.78125rem] text-slate-600 dark:text-slate-300 md:col-start-auto">
+      <div className="col-start-2 text-[0.78125rem] text-slate-600 dark:text-ink-300 md:col-start-auto">
         <span className="font-mono text-[0.75rem]">{v.sku || '— SKU nahi'}</span>
         <span className="text-slate-400"> · </span>{rs(v.price)}
         <span className="text-slate-400"> · </span>{v.stock === null ? 'stock track nahi' : `stock ${v.stock}`}
@@ -328,7 +328,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
           <div className="flex items-center gap-2">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15"><Check className="h-3.5 w-3.5" /></span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-white">
+              <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-ink-white">
                 {v.link.name}{v.link.variantName ? <span className="text-slate-500"> — {v.link.variantName}</span> : null}
               </span>
               <span className="text-[0.75rem] text-slate-500">
@@ -344,7 +344,7 @@ function VariantRow({ channelId, product, variant: v, nested, picked, onTogglePi
           <div className="flex flex-wrap items-center gap-2">
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1 text-[0.75rem] font-semibold text-amber-700 dark:text-amber-300"><Sparkles className="h-3.5 w-3.5" /> Salah ({v.suggestion.reason === 'sku' ? 'SKU mila' : 'naam mila'})</span>
-              <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-white">
+              <span className="block truncate text-[0.8125rem] font-medium text-slate-900 dark:text-ink-white">
                 {v.suggestion.name}{v.suggestion.variantName ? <span className="text-slate-500"> — {v.suggestion.variantName}</span> : null}
               </span>
             </span>
@@ -439,14 +439,14 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
       <p className="mt-2 px-4 text-[0.78125rem] text-slate-500 sm:px-5">
         Naam, qeemat, tasveerein, variants aur Nafaa ka stock website par ban jayega — aur har variant khud jur jayega.
       </p>
-      <div className="mt-3 border-t border-slate-100 dark:border-slate-800">
+      <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
         {isLoading ? (
-          <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />)}</div>
+          <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="h-10 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />)}</div>
         ) : items.length === 0 ? (
           <EmptyState icon={<Check className="h-5 w-5" />} title="Sab products website par hain">Nafaa ka har active product is website se jura hua hai.</EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
+          <ul className="divide-y divide-slate-100 dark:divide-ink-800">
+            <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 sm:px-5">
               <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={items.length > 0 && items.every((p) => picked.has(p.id))}
                 onChange={(e) => setPicked(e.target.checked ? new Set(items.map((p) => p.id)) : new Set())} aria-label="Sab chuno" />
               <span className="flex-1">Nafaa product</span>
@@ -455,18 +455,18 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
             </li>
             {items.map((p) => (
               <li key={p.id}>
-                <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 sm:px-5">
+                <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-ink-800/40 sm:px-5">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(p.id)} onChange={() => toggle(p.id)} />
                   <Thumb src={p.image} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[0.84375rem] font-medium text-slate-900 dark:text-white">{p.name}</span>
+                    <span className="block truncate text-[0.84375rem] font-medium text-slate-900 dark:text-ink-white">{p.name}</span>
                     <span className="text-[0.75rem] text-slate-500">
                       {p.sku ? `SKU ${p.sku}` : 'SKU nahi'}{p.category ? ` · ${p.category}` : ''}
                       {p.variants.length > 0 && ` · ${p.variants.length} variants (${p.variants.slice(0, 4).map((v) => v.name).join(', ')}${p.variants.length > 4 ? '…' : ''})`}
                     </span>
                   </span>
-                  <span className={cn('w-28 text-right text-[0.8125rem] tabular-nums', p.stock <= 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-200')}>{p.stock}</span>
-                  <span className="w-24 text-right text-[0.8125rem] font-medium tabular-nums text-slate-900 dark:text-white">{rs(p.price)}</span>
+                  <span className={cn('w-28 text-right text-[0.8125rem] tabular-nums', p.stock <= 0 ? 'text-rose-600' : 'text-slate-700 dark:text-ink-200')}>{p.stock}</span>
+                  <span className="w-24 text-right text-[0.8125rem] font-medium tabular-nums text-slate-900 dark:text-ink-white">{rs(p.price)}</span>
                 </label>
               </li>
             ))}
@@ -481,7 +481,7 @@ function NafaaUnlisted({ channelId, siteName, onDone }: { channelId: string; sit
 
 function Thumb({ src }: { src: string | null }) {
   return (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-800">
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-200 bg-slate-50 dark:border-ink-700 dark:bg-ink-800">
       {src ? <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" /> : <Package className="h-4 w-4 text-slate-400" />}
     </span>
   );
@@ -513,13 +513,13 @@ function CustomLinks({ channelId, links, onDone }: { channelId: string; links: {
       {links.length === 0 ? (
         <EmptyState icon={<Link2 className="h-5 w-5" />} title="Abhi koi link nahi">Website se order aaye ya CSV import karein — products khud jurte jayenge.</EmptyState>
       ) : (
-        <ul className="-my-2 divide-y divide-slate-100 dark:divide-slate-800">
+        <ul className="-my-2 divide-y divide-slate-100 dark:divide-ink-800">
           {links.map((l) => (
             <li key={l.mappingId} className="flex items-center gap-3 py-2">
               <span className="min-w-0 flex-1 text-[0.8125rem]">
-                <span className="font-medium text-slate-900 dark:text-white">{l.externalTitle ?? l.externalSku ?? l.externalProductId}</span>
+                <span className="font-medium text-slate-900 dark:text-ink-white">{l.externalTitle ?? l.externalSku ?? l.externalProductId}</span>
                 <span className="text-slate-400"> → </span>
-                <span className="text-slate-700 dark:text-slate-200">{l.name}{l.variantName ? ` — ${l.variantName}` : ''}</span>
+                <span className="text-slate-700 dark:text-ink-200">{l.name}{l.variantName ? ` — ${l.variantName}` : ''}</span>
                 <span className="text-slate-500"> · stock {l.stock}</span>
               </span>
               <Btn size="sm" variant="plain" loading={unlink.isPending && unlink.variables === l.mappingId} onClick={() => unlink.mutate(l.mappingId)} icon={<Link2Off className="h-3.5 w-3.5" />} />
@@ -556,7 +556,7 @@ function IndoljConnect({ channelId, onDone, connected }: { channelId: string; on
           <p className="text-[0.78125rem] text-slate-500">Indolj ki team ye deti hai: <b>activation token</b> aur <b>JWT secret key</b> (Merchant Menu API key). Merchant ID ho to wo bhi.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             {([['activationToken', 'Activation token'], ['merchantId', 'Merchant ID (optional)'], ['secret', 'JWT secret key'], ['branchId', 'Branch ID (optional)'], ['baseUrl', 'API URL (khali = console.indolj.io)']] as const).map(([k, label]) => (
-              <label key={k} className="block text-[0.78125rem] font-medium text-slate-700 dark:text-slate-200">
+              <label key={k} className="block text-[0.78125rem] font-medium text-slate-700 dark:text-ink-200">
                 {label}
                 <input type={k === 'secret' ? 'password' : 'text'} autoComplete="off" value={f[k]} onChange={(e) => setF((x) => ({ ...x, [k]: e.target.value }))} className={cn(inputCls, 'mt-1 font-mono')} />
               </label>

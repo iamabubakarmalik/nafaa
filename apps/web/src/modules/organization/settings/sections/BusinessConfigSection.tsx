@@ -259,7 +259,7 @@ export function BusinessConfigSection() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="h-10 w-10 text-violet-600 dark:text-violet-400 animate-spin" />
-        <p className="text-sm font-extrabold text-slate-500 dark:text-slate-400">Business config load ho rahi hai...</p>
+        <p className="text-sm font-extrabold text-slate-500 dark:text-ink-400">Business config load ho rahi hai...</p>
       </div>
     );
   }
@@ -267,7 +267,7 @@ export function BusinessConfigSection() {
   return (
     <div className="space-y-4">
       {/* ═══ HERO — Current business type ═══ */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-slate-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-5 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-5 shadow-2xl">
         <div className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-violet-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-fuchsia-400/20 blur-3xl pointer-events-none" />
 
@@ -365,12 +365,12 @@ export function BusinessConfigSection() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search features (IMEI, expiry, warranty, tailoring...)"
-              className="h-11 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition"
+              className="h-11 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition"
               >
                 <X className="h-4 w-4 text-slate-400" />
               </button>
@@ -385,13 +385,13 @@ export function BusinessConfigSection() {
                 'px-3 py-1.5 rounded-xl text-xs font-extrabold transition inline-flex items-center gap-1.5 active:scale-95',
                 activeGroup === null
                   ? 'bg-violet-600 text-white shadow-md'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700',
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:bg-slate-200 dark:hover:bg-ink-700',
               ].join(' ')}
             >
               All
               <span className={[
                 'px-1.5 py-0.5 rounded-md text-[0.6875rem] tabular-nums',
-                activeGroup === null ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700',
+                activeGroup === null ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700',
               ].join(' ')}>
                 {FEATURE_META.length}
               </span>
@@ -408,7 +408,7 @@ export function BusinessConfigSection() {
                     'px-3 py-1.5 rounded-xl text-xs font-extrabold transition inline-flex items-center gap-1.5 active:scale-95',
                     active
                       ? 'bg-violet-600 text-white shadow-md'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700',
+                      : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:bg-slate-200 dark:hover:bg-ink-700',
                   ].join(' ')}
                 >
                   {group}
@@ -418,7 +418,7 @@ export function BusinessConfigSection() {
                       ? 'bg-white/25'
                       : count.enabled > 0
                         ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-200 dark:bg-slate-700',
+                        : 'bg-slate-200 dark:bg-ink-700',
                   ].join(' ')}>
                     {count.enabled}/{count.total}
                   </span>
@@ -430,10 +430,10 @@ export function BusinessConfigSection() {
 
         {/* Feature grid */}
         {Object.keys(groupedFeatures).length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
-            <Search className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <div className="font-extrabold text-slate-900 dark:text-white">Kuch nahi mila</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+          <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
+            <Search className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+            <div className="font-extrabold text-slate-900 dark:text-ink-white">Kuch nahi mila</div>
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">
               "{search}" ke liye koi feature nahi
             </div>
             <button
@@ -449,15 +449,15 @@ export function BusinessConfigSection() {
               <div key={group}>
                 {!activeGroup && (
                   <div className="mb-3 flex items-center gap-2">
-                    <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">
+                    <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400">
                       {group}
                     </div>
-                    <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                    <div className="flex-1 h-px bg-slate-200 dark:bg-ink-700" />
                     <span className={[
                       'text-[0.6875rem] font-extrabold px-2 py-0.5 rounded-full tabular-nums',
                       groupCounts[group]?.enabled > 0
                         ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+                        : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400',
                     ].join(' ')}>
                       {groupCounts[group]?.enabled}/{groupCounts[group]?.total}
                     </span>
@@ -477,7 +477,7 @@ export function BusinessConfigSection() {
                           'text-left p-3.5 rounded-2xl border-2 transition-all active:scale-[0.98] disabled:opacity-60 relative overflow-hidden group',
                           enabled
                             ? `${cls.border} ${cls.bg} shadow-md ring-2 ${cls.ring}`
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm',
+                            : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-slate-300 dark:hover:border-ink-600 hover:shadow-sm',
                         ].join(' ')}
                       >
                         {enabled && (
@@ -486,18 +486,18 @@ export function BusinessConfigSection() {
                         <div className="relative flex items-start gap-3">
                           <div className={[
                             'h-9 w-9 rounded-xl flex items-center justify-center shrink-0',
-                            enabled ? cls.bg : 'bg-slate-100 dark:bg-slate-700',
+                            enabled ? cls.bg : 'bg-slate-100 dark:bg-ink-700',
                           ].join(' ')}>
                             <Icon className={[
                               'h-4 w-4',
-                              enabled ? cls.text : 'text-slate-500 dark:text-slate-400',
+                              enabled ? cls.text : 'text-slate-500 dark:text-ink-400',
                             ].join(' ')} />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
                               <div className={[
                                 'font-extrabold text-sm truncate',
-                                enabled ? cls.text : 'text-slate-900 dark:text-white',
+                                enabled ? cls.text : 'text-slate-900 dark:text-ink-white',
                               ].join(' ')}>
                                 {f.label}
                               </div>
@@ -509,7 +509,7 @@ export function BusinessConfigSection() {
                             </div>
                             <p className={[
                               'text-[0.6875rem] mt-1 font-semibold leading-snug line-clamp-2',
-                              enabled ? 'text-slate-700 dark:text-slate-200' : 'text-slate-500 dark:text-slate-400',
+                              enabled ? 'text-slate-700 dark:text-ink-200' : 'text-slate-500 dark:text-ink-400',
                             ].join(' ')}>
                               {f.description}
                             </p>
@@ -585,12 +585,12 @@ export function BusinessConfigSection() {
             {config.template.highlights.map((h, i) => (
               <div
                 key={i}
-                className="flex items-start gap-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-100 dark:border-slate-700"
+                className="flex items-start gap-2 p-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-100 dark:border-ink-700"
               >
                 <div className="h-6 w-6 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0">
                   <Check className="h-3.5 w-3.5" strokeWidth={3} />
                 </div>
-                <span className="text-xs text-slate-700 dark:text-slate-200 font-semibold leading-relaxed">{h}</span>
+                <span className="text-xs text-slate-700 dark:text-ink-200 font-semibold leading-relaxed">{h}</span>
               </div>
             ))}
           </div>

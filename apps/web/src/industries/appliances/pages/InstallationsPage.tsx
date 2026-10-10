@@ -274,12 +274,12 @@ export default function InstallationsPage() {
       )}
 
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
           <TabBtn active={tab === 'queue'} onClick={() => setTab('queue')} icon={ListChecks} label="Baqi" badge={summary?.open} />
           <TabBtn active={tab === 'today'} onClick={() => setTab('today')} icon={CalendarDays} label="Aaj" badge={summary?.todayJobs} />
           <TabBtn active={tab === 'all'} onClick={() => setTab('all')} icon={History} label="Poora Record" />
         </div>
-        <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
+        <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">
           {tab === 'all' ? `${listData?.meta?.total ?? 0} records` : `${rows.length} kaam`}
         </div>
       </div>
@@ -293,7 +293,7 @@ export default function InstallationsPage() {
                 placeholder="Installation #, customer, phone, pata, serial... (/)"
                 value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -302,7 +302,7 @@ export default function InstallationsPage() {
               className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                 showFilters || hasFilters
                   ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-cyan-300'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-cyan-300'
               }`}>
               <Filter className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
               {hasFilters && <span className="h-5 w-5 rounded-full bg-cyan-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">!</span>}
@@ -310,7 +310,7 @@ export default function InstallationsPage() {
             <button onClick={() => { setUnpaidOnly(!unpaidOnly); setPage(1); }}
               className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                 unpaidOnly ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-300'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-rose-300'
               }`} title="Sirf wo jin ka paisa baqi hai">
               <Banknote className="h-4 w-4" /> <span className="hidden sm:inline">Baqi paisa</span>
             </button>
@@ -319,13 +319,13 @@ export default function InstallationsPage() {
           {showFilters && (
             <Panel className="space-y-3">
               <div>
-                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Halat</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Halat</div>
                 <ChipRow
                   options={INSTALL_STATUS_ORDER.map((s) => ({ value: s, label: instStatusMeta(s).label, emoji: instStatusMeta(s).emoji }))}
                   value={status} onChange={(v) => { setStatus(v); setPage(1); }} />
               </div>
               <div>
-                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Kaam ki qism</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Kaam ki qism</div>
                 <ChipRow
                   options={SERVICE_TYPE_ORDER.map((s) => ({ value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji }))}
                   value={serviceType as any} onChange={(v) => { setServiceType(v); setPage(1); }} />
@@ -356,7 +356,7 @@ export default function InstallationsPage() {
 
       {loading ? (
         <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rows.length === 0 ? (
         <Empty
@@ -386,19 +386,19 @@ export default function InstallationsPage() {
       )}
 
       {tab === 'all' && listData && listData.meta.totalPages > 1 && (
-        <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-slate-900/80 rounded-2xl border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">
-            Page <strong className="text-slate-900 dark:text-white">{listData.meta.page}</strong> / <strong className="text-slate-900 dark:text-white">{listData.meta.totalPages}</strong>
+        <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-ink-900/80 rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4">
+          <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-400 font-bold">
+            Page <strong className="text-slate-900 dark:text-ink-white">{listData.meta.page}</strong> / <strong className="text-slate-900 dark:text-ink-white">{listData.meta.totalPages}</strong>
             <span className="opacity-50 mx-1">•</span>
-            <strong className="text-slate-900 dark:text-white tabular-nums">{listData.meta.total}</strong> records
+            <strong className="text-slate-900 dark:text-ink-white tabular-nums">{listData.meta.total}</strong> records
           </div>
           <div className="flex gap-2">
             <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
               <ChevronLeft className="h-4 w-4" /> Pehle
             </button>
             <button disabled={page >= listData.meta.totalPages} onClick={() => setPage((p) => p + 1)}
-              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
               Agla <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -412,10 +412,10 @@ function TabBtn({ active, onClick, icon: Icon, label, badge }: any) {
   return (
     <button onClick={onClick}
       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
-      {badge ? <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span> : null}
+      {badge ? <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700'}`}>{badge}</span> : null}
     </button>
   );
 }
@@ -439,9 +439,9 @@ function InstallCard({ r, onOpen }: { r: Installation; onOpen: () => void }) {
   };
 
   return (
-    <div className={`group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
+    <div className={`group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
       overdue ? 'border-rose-300 dark:border-rose-500/40'
-        : 'border-slate-200 dark:border-slate-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
+        : 'border-slate-200 dark:border-ink-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
     }`}>
       <button onClick={onOpen} className="block w-full text-left p-4">
         <div className="flex items-start justify-between gap-2">
@@ -451,29 +451,29 @@ function InstallCard({ r, onOpen }: { r: Installation; onOpen: () => void }) {
               {overdue && <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">LATE</span>}
               {r.demoGiven && <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">DEMO ✓</span>}
             </div>
-            <h3 className="mt-1 font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+            <h3 className="mt-1 font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
               {r.customerName}
             </h3>
-            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
               <Phone className="h-3 w-3" /> {r.customerPhone}
             </div>
           </div>
           <StatusBadge meta={st} />
         </div>
 
-        <div className="mt-2 flex items-start gap-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
+        <div className="mt-2 flex items-start gap-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">
           <MapPin className="h-3 w-3 mt-0.5 shrink-0" />
           <span className="line-clamp-2">{r.customerAddress}{r.landmark ? ` (${r.landmark})` : ''}</span>
         </div>
 
-        <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
-          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
+        <div className="mt-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
+          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200">
             <Package className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
             <span className="truncate">{r.productName}</span>
-            <span className="ml-auto shrink-0 text-[0.6875rem] text-slate-500 dark:text-slate-400">{ty.emoji} {ty.label}</span>
+            <span className="ml-auto shrink-0 text-[0.6875rem] text-slate-500 dark:text-ink-400">{ty.emoji} {ty.label}</span>
           </div>
           {r.serialNumber && (
-            <div className="mt-1 font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">SN: {r.serialNumber}</div>
+            <div className="mt-1 font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">SN: {r.serialNumber}</div>
           )}
         </div>
 
@@ -495,7 +495,7 @@ function InstallCard({ r, onOpen }: { r: Installation; onOpen: () => void }) {
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
           {r.scheduledDate && (
             <span className={`inline-flex items-center gap-1 ${overdue ? 'text-rose-600 dark:text-rose-400' : ''}`}>
               <CalendarDays className="h-3 w-3" />{fmtDate(r.scheduledDate)}{r.scheduledTimeSlot ? ` ${r.scheduledTimeSlot}` : ''}
@@ -513,7 +513,7 @@ function InstallCard({ r, onOpen }: { r: Installation; onOpen: () => void }) {
         </div>
       </button>
 
-      <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-2">
+      <div className="px-3 py-2 border-t border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between gap-2">
         <button onClick={(e) => { e.stopPropagation(); wa(); }}
           className="h-8 px-2.5 rounded-lg bg-green-100 dark:bg-green-500/15 hover:bg-green-200 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
           <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
@@ -625,7 +625,7 @@ function NewInstallModal({ technicians, onClose, onCreated }: any) {
             </button>
           </div>
           {note && (
-            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-200 whitespace-pre-line">
+            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-200 whitespace-pre-line">
               {note}
             </div>
           )}
@@ -894,7 +894,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
           {isOpen && (
             <>
               <button onClick={() => setMode('reschedule')}
-                className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
                 <CalendarDays className="h-4 w-4" /> Tareekh Badlein
               </button>
               <button onClick={() => setMode('assign')}
@@ -952,7 +952,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 )}
               </div>
             ) : (
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-xs font-bold text-slate-500 dark:text-ink-400">
                 {r.status === 'COMPLETED' ? '✅ Ye kaam mukammal ho chuka hai.' : 'Yahan se aage koi qadam nahi.'}
               </p>
             )}
@@ -1013,7 +1013,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                     {Array.from({ length: 5 }).map((_, i) => (
                       <Star key={i} className={`h-3.5 w-3.5 ${i < r.customerRating! ? 'fill-current' : 'opacity-25'}`} />
                     ))}
-                    {r.customerFeedback && <span className="text-slate-600 dark:text-slate-300 font-semibold ml-1">"{r.customerFeedback}"</span>}
+                    {r.customerFeedback && <span className="text-slate-600 dark:text-ink-300 font-semibold ml-1">"{r.customerFeedback}"</span>}
                   </div>
                 ) : null}
               </div>
@@ -1024,9 +1024,9 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
             <div className="space-y-2">
               {timeline.map((t, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
-                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDateTime(t.at)}</div>
+                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
+                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">{t.label}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 shrink-0">{fmtDateTime(t.at)}</div>
                 </div>
               ))}
             </div>
@@ -1036,13 +1036,13 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
             <Panel icon={History} title={`Isi customer ka purana kaam (${r.history.length})`} tone="slate">
               <div className="space-y-1.5">
                 {r.history.slice(0, 8).map((h) => (
-                  <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                  <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-2.5 py-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">{h.productName}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 truncate">{h.productName}</div>
                       <div className="text-[0.6875rem] font-bold text-slate-400">{h.installationNumber} • {fmtDate(h.completedAt || h.scheduledDate)}</div>
                     </div>
                     <StatusBadge meta={instStatusMeta(h.status)} size="xs" />
-                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(h.totalCharge)}</div>
+                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">{formatPKR(h.totalCharge)}</div>
                   </div>
                 ))}
               </div>
@@ -1051,7 +1051,7 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 
           {r.internalNotes && (
             <Panel icon={Pencil} title="Andaruni notes" tone="slate">
-              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{r.internalNotes}</pre>
+              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 whitespace-pre-wrap font-sans">{r.internalNotes}</pre>
             </Panel>
           )}
         </div>
@@ -1063,15 +1063,15 @@ function InstallDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
-      <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{value}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-ink-500">{label}</div>
+      <div className="text-xs font-semibold text-slate-800 dark:text-ink-100 whitespace-pre-wrap">{value}</div>
     </div>
   );
 }
 
 function MiniBox({ label, value, tone = 'slate' }: { label: string; value: string; tone?: 'slate' | 'cyan' | 'emerald' | 'rose' }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
     cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
@@ -1099,21 +1099,21 @@ function AssignPanel({ technicians, current, defaultDate, defaultSlot, pending, 
               className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border-2 transition text-left ${
                 technicianId === t.id
                   ? 'bg-blue-50 dark:bg-blue-500/15 border-blue-400 dark:border-blue-500/50'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-blue-300'
               }`}>
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0">
                 {t.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{t.name}</div>
-                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{t.name}</div>
+                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                   {t.employeeCode}{t.currentZone ? ` • ${t.currentZone}` : ''}{t.avgRating ? ` • ⭐ ${Number(t.avgRating).toFixed(1)}` : ''}
                 </div>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold shrink-0 ${
                 (t.openJobs ?? 0) === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                   : (t.openJobs ?? 0) > 5 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
               }`}>
                 {(t.openJobs ?? 0) === 0 ? 'Khali' : `${t.openJobs} kaam`}
               </span>
@@ -1199,7 +1199,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
             value={f.materialText} onChange={(e) => set('materialText', e.target.value)} />
         </Field>
 
-        <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3">
+        <div className="rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3">
           <div className="flex items-center justify-between text-sm font-extrabold">
             <span>Kul Bill</span>
             <span className="tabular-nums text-cyan-300">{formatPKR(total)}</span>
@@ -1227,16 +1227,16 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
             {CHECKS.map((c) => {
               const v = f[c.k] as boolean | null;
               return (
-                <div key={String(c.k)} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 px-3 py-2">
-                  <span className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">{c.label}</span>
+                <div key={String(c.k)} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 px-3 py-2">
+                  <span className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200">{c.label}</span>
                   <div className="flex gap-1 shrink-0">
                     <button type="button" onClick={() => set(c.k as string, v === true ? null : true)}
                       className={`h-7 px-2.5 rounded-lg text-[0.6875rem] font-extrabold transition ${
-                        v === true ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
+                        v === true ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-ink-700 text-slate-500 dark:text-ink-300 border border-slate-200 dark:border-ink-600'
                       }`}>Theek</button>
                     <button type="button" onClick={() => set(c.k as string, v === false ? null : false)}
                       className={`h-7 px-2.5 rounded-lg text-[0.6875rem] font-extrabold transition ${
-                        v === false ? 'bg-rose-500 text-white' : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
+                        v === false ? 'bg-rose-500 text-white' : 'bg-white dark:bg-ink-700 text-slate-500 dark:text-ink-300 border border-slate-200 dark:border-ink-600'
                       }`}>Masla</button>
                   </div>
                 </div>
@@ -1259,7 +1259,7 @@ function CompletePanel({ install, pending, onCancel, onSubmit }: any) {
           <div className="flex items-center gap-1.5">
             {[1, 2, 3, 4, 5].map((n) => (
               <button key={n} type="button" onClick={() => set('customerRating', f.customerRating === n ? 0 : n)} className="p-1 transition hover:scale-110">
-                <Star className={`h-7 w-7 ${n <= f.customerRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-600'}`} />
+                <Star className={`h-7 w-7 ${n <= f.customerRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-ink-600'}`} />
               </button>
             ))}
           </div>
@@ -1347,7 +1347,7 @@ function ReschedPanel({ pending, onCancel, onSubmit }: any) {
         <div className="flex gap-1.5 flex-wrap">
           {presets.map((p) => (
             <button key={p} type="button" onClick={() => setReason(p)}
-              className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-400 transition">
+              className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-violet-400 transition">
               {p}
             </button>
           ))}
@@ -1369,16 +1369,16 @@ function ToggleRow({ on, onChange, icon, title, sub }: any) {
     <button type="button" onClick={() => onChange(!on)}
       className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition text-left ${
         on ? 'bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-500/15 dark:to-teal-500/10 border-cyan-300 dark:border-cyan-500/40'
-           : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+           : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 hover:border-slate-300'
       }`}>
       <div className="flex items-center gap-2.5 min-w-0">
         {icon}
         <div className="min-w-0">
-          <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{title}</div>
-          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>
+          <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{title}</div>
+          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold truncate">{sub}</div>
         </div>
       </div>
-      <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${on ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+      <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${on ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-ink-600'}`}>
         <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
       </div>
     </button>

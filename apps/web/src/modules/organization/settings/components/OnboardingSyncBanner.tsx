@@ -56,10 +56,10 @@ export function OnboardingSyncBanner() {
                 <Sparkles className="h-3 w-3 text-amber-500" />
                 <span className="text-[0.6875rem] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">Setup Complete</span>
               </div>
-              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-ink-white">
                 Onboarding data yahan synced hai
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold leading-snug">
+              <p className="text-xs text-slate-600 dark:text-ink-300 mt-0.5 font-semibold leading-snug">
                 Business, shop, hours, payments — sab yahan edit karein. <span className="hidden sm:inline">Changes live ho jayenge.</span>
               </p>
             </div>
@@ -70,7 +70,7 @@ export function OnboardingSyncBanner() {
               variant="secondary"
               size="sm"
               onClick={() => setConfirmReset(true)}
-              className="bg-white/80 dark:bg-slate-900/60 backdrop-blur border-2 border-slate-200 dark:border-slate-700 font-extrabold"
+              className="bg-white/80 dark:bg-ink-900/60 backdrop-blur border-2 border-slate-200 dark:border-ink-700 font-extrabold"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Re-run Setup</span>
@@ -79,7 +79,7 @@ export function OnboardingSyncBanner() {
             <button
               onClick={handleDismiss}
               title="Chhupao (7 din ke liye)"
-              className="h-9 w-9 rounded-xl bg-white/60 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 backdrop-blur border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700 inline-flex items-center justify-center transition"
+              className="h-9 w-9 rounded-xl bg-white/60 dark:bg-ink-900/60 hover:bg-white dark:hover:bg-ink-800 text-slate-600 dark:text-ink-300 backdrop-blur border-2 border-transparent hover:border-slate-200 dark:hover:border-ink-700 inline-flex items-center justify-center transition"
             >
               <X className="h-4 w-4" />
             </button>
@@ -90,7 +90,7 @@ export function OnboardingSyncBanner() {
       {/* Reset confirm modal */}
       {confirmReset && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-800">
+          <div className="bg-white dark:bg-ink-900 rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-800">
             <div className="relative bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white overflow-hidden">
               <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
               <div className="relative">
@@ -122,7 +122,7 @@ export function OnboardingSyncBanner() {
                   Yes, Re-run
                 </Button>
               </div>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 text-center font-semibold inline-flex items-center gap-1 justify-center w-full">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 text-center font-semibold inline-flex items-center gap-1 justify-center w-full">
                 <Shield className="h-3 w-3" /> Data 100% safe hai — sirf wizard restart hoga
               </p>
             </div>

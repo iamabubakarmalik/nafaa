@@ -411,12 +411,12 @@ export default function AgriProfitReportPage() {
             className={`h-14 rounded-2xl border-2 font-black text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
               <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
-                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
               }`}>{count}</span>
             )}
           </button>
@@ -435,15 +435,15 @@ export default function AgriProfitReportPage() {
       ) : (
         <>
           {/* ═══ TOOLBAR ═══ */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
             <div className="relative">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Naam, category, brand, fasal… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -461,7 +461,7 @@ export default function AgriProfitReportPage() {
                 <button key={v} onClick={() => setKindFilter(v as KindFilter)}
                   className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition ${
                     kindFilter === v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>
                   <Icon className="h-3.5 w-3.5" /> {label}
                 </button>
@@ -470,7 +470,7 @@ export default function AgriProfitReportPage() {
               <button onClick={() => setPerPack((v) => !v)} title="Per kilo / per bori (K)"
                 className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition ${
                   perPack ? 'border-lime-500 bg-lime-50 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-lime-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-lime-400'
                 }`}>
                 <Scale className="h-3.5 w-3.5" /> {perPack ? 'Per kilo' : 'Per bori'}
               </button>
@@ -478,12 +478,12 @@ export default function AgriProfitReportPage() {
               <button onClick={() => setOnlyProblems((v) => !v)}
                 className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition ${
                   onlyProblems ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-rose-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-rose-400'
                 }`}>
                 <AlertTriangle className="h-3.5 w-3.5" /> Sirf masle
               </button>
 
-              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
                 {shown.length} cheezein
               </div>
             </div>
@@ -529,10 +529,10 @@ export default function AgriProfitReportPage() {
    ═════════════════════════════════════════════════════════════ */
 function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boolean; perPack: boolean }) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+          <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
             <tr>
               <Th>Cheez</Th>
               <Th>Qism</Th>
@@ -545,7 +545,7 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
               <Th className="text-center">Halat</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
             {rows.map((r) => {
               const profit = Number(r.profit || 0);
               const bad = r.losing || r.noCost;
@@ -558,11 +558,11 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                   }`}>
                   <td className="px-3 py-2.5">
                     <Link to={`/agri-products/${r.productId}`} className="group flex items-center gap-2.5">
-                      <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">
+                      <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-lg shrink-0">
                         {AGRI_KIND_EMOJI[r.kind as AgriKind]}
                       </span>
                       <span className="min-w-0">
-                        <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
+                        <span className="block font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-emerald-600">
                           {r.name}
                         </span>
                         <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -573,12 +573,12 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                     </Link>
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className="text-[0.6875rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <span className="text-[0.6875rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">
                       {prettyAgriKind(r.kind)}
                     </span>
                   </td>
                   <td className="px-3 py-2.5 text-right">
-                    <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                       {fmtQty(Number(r.quantitySold))} <span className="text-[0.6875rem] font-bold text-slate-500">{agriUnitLabel(r.unit)}</span>
                     </div>
                     {r.qtyPack !== null && (
@@ -587,11 +587,11 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                       </div>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">
+                  <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                     {formatPKR(Number(r.revenue))}
                   </td>
                   {!hideCost && (
-                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums">
                       {formatPKR(Number(r.cost))}
                     </td>
                   )}
@@ -621,7 +621,7 @@ function ProfitTable({ rows, hideCost, perPack }: { rows: any[]; hideCost: boole
                   <td className="px-3 py-2.5 text-right">
                     {r.bulkPrice > 0 ? (
                       <>
-                        <div className="font-extrabold text-slate-700 dark:text-slate-200 tabular-nums text-xs">
+                        <div className="font-extrabold text-slate-700 dark:text-ink-200 tabular-nums text-xs">
                           {formatPKR(r.bulkPrice)}
                         </div>
                         <div className={`text-[0.6875rem] font-black tabular-nums ${
@@ -794,8 +794,8 @@ function Analytics({ s, rows, hideCost, money, problems, topChart, kindPie, seas
       )}
 
       {s && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
-          <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
+          <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
             <Calculator className="h-4 w-4 text-emerald-600" /> Kul hisab
           </h3>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -819,22 +819,22 @@ function ListCard({ icon: Icon, tone, title, rows }: any) {
   const head = tone === 'emerald'
     ? 'text-emerald-600' : 'text-rose-600';
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
         <Icon className={`h-4 w-4 ${head}`} />
-        <h3 className="font-black text-slate-900 dark:text-white">{title}</h3>
+        <h3 className="font-black text-slate-900 dark:text-ink-white">{title}</h3>
       </div>
       {rows.length === 0 ? (
         <div className="p-8 text-center text-sm font-bold text-slate-400">Abhi kuch nahi</div>
       ) : (
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((r: any, i: number) => (
             <div key={r.productId} className="p-3 flex items-center gap-3">
-              <span className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
+              <span className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
                 {i + 1}
               </span>
               <Link to={`/agri-products/${r.productId}`} className="min-w-0 flex-1 hover:text-emerald-600">
-                <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.name}</span>
+                <span className="block font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.name}</span>
                 <span className="block text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                   {fmtQty(Number(r.quantitySold))} {agriUnitLabel(r.unit)} bika · {Number(r.margin).toFixed(1)}% margin
                 </span>
@@ -864,15 +864,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
-        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -887,7 +887,7 @@ function Box({ label, value, tone }: any) {
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200',
     lime: 'bg-lime-50 dark:bg-lime-500/10 border-lime-200 dark:border-lime-500/30 text-lime-900 dark:text-lime-200',
     amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200',
-    slate: 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white',
+    slate: 'bg-slate-50 dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white',
   };
   return (
     <div className={`rounded-2xl border-2 p-3 ${tones[tone] ?? tones.slate}`}>
@@ -899,8 +899,8 @@ function Box({ label, value, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -913,7 +913,7 @@ function EmptyBox({ text }: { text: string }) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>{children}</th>;
 }
 
 function Pill({ tone, children }: any) {
@@ -927,14 +927,14 @@ function Pill({ tone, children }: any) {
 
 function Empty({ onlyProblems, onClear }: { onlyProblems: boolean; onClear: () => void }) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         {onlyProblems ? <Award className="h-10 w-10 text-white" /> : <TrendingUp className="h-10 w-10 text-white" />}
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
         {onlyProblems ? 'Koi masla nahi mila' : 'Is muddat me koi bikri nahi'}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
         {onlyProblems
           ? 'Sab cheezon ki cost bhari hui hai, koi nuqsaan par nahi bik rahi, aur thok ki chhoot bhi theek hai.'
           : 'Ooper se koi doosri muddat chun kar dekhein.'}
@@ -949,18 +949,18 @@ function Empty({ onlyProblems, onClear }: { onlyProblems: boolean; onClear: () =
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye report kya batati hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Sirf "kitna bika" nahi — <strong>kis cheez se kitna bacha.</strong>
           </p>
           <Tip icon={Scale} title="Thok par munafa — sab se ahem">
@@ -986,13 +986,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Beej, khaad, dawa, feed, auzaar — kis se sab se zyada bacha. Aksar dawa ka margin
             khaad se kayi guna zyada hota hai; ye chart wohi batata hai.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">K</kbd> per kilo / bori</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">K</kbd> per kilo / bori</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1009,8 +1009,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

@@ -140,7 +140,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
     <>
       <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 print:hidden" onClick={onClose}>
         <div
-          className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl"
+          className="w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           {/* ═══ HEADER ═══ */}
@@ -161,7 +161,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                       {STATUS_LABELS[status]}
                     </span>
                   </div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-lg truncate">
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg truncate">
                     {editing ? `${form.brand} ${form.model}` : `${phone.brand} ${phone.model}`}
                   </h3>
                 </div>
@@ -175,8 +175,8 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                     <Pencil className="h-3.5 w-3.5" /> Edit
                   </button>
                 )}
-                <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition" title="Band karo (Esc)">
-                  <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition" title="Band karo (Esc)">
+                  <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
                 </button>
               </div>
             </div>
@@ -184,7 +184,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
 
           <div className="p-5 space-y-4">
             {/* ── Phone Info ── */}
-            <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4 space-y-3">
+            <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
               <SectionTitle icon={Smartphone} title="Phone Info" />
               {editing ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -209,13 +209,13 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
               {editing ? (
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">Condition</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 mb-1.5">Condition</div>
                     <div className="flex gap-1 flex-wrap">
                       {CONDITIONS.map((c) => (
                         <button
                           key={c}
                           onClick={() => set('condition', c)}
-                          className={`px-2 py-1.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${form.condition === c ? `${CONDITION_COLORS[c].bg} ${CONDITION_COLORS[c].text} ${CONDITION_COLORS[c].border}` : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                          className={`px-2 py-1.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${form.condition === c ? `${CONDITION_COLORS[c].bg} ${CONDITION_COLORS[c].text} ${CONDITION_COLORS[c].border}` : 'border-slate-200 dark:border-ink-700 text-slate-500 dark:text-ink-400'}`}
                         >
                           {CONDITION_LABELS[c]}
                         </button>
@@ -223,13 +223,13 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                     </div>
                   </div>
                   <div>
-                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">PTA Status</div>
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 mb-1.5">PTA Status</div>
                     <div className="flex gap-1 flex-wrap">
                       {PTA_OPTIONS.map((p) => (
                         <button
                           key={p}
                           onClick={() => set('ptaStatus', p)}
-                          className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${form.ptaStatus === p ? 'border-violet-600 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'}`}
+                          className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${form.ptaStatus === p ? 'border-violet-600 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-ink-700 text-slate-500 dark:text-ink-400'}`}
                         >
                           {PTA_EMOJI[p]} {PTA_STATUS_LABELS[p]}
                         </button>
@@ -243,7 +243,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                     <Star className="h-3 w-3 inline mr-1 fill-current" />{CONDITION_LABELS[phone.condition as UsedPhoneCondition]}
                   </span>
                   <PtaStatusBadge status={phone.ptaStatus as PtaStatus} size="sm" />
-                  <span className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 inline-flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 inline-flex items-center gap-1">
                     <Clock className="h-3 w-3" /> {ageDays === 0 ? 'Aaj liya' : `${ageDays} din pehle liya`}
                   </span>
                 </div>
@@ -264,7 +264,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                       className={`px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold border ${
                         a.on
                           ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-500/30'
-                          : 'bg-slate-50 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 line-through'
+                          : 'bg-slate-50 dark:bg-ink-800/60 text-slate-400 dark:text-ink-500 border-slate-200 dark:border-ink-700 line-through'
                       }`}
                     >
                       {a.label}
@@ -275,7 +275,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
             </section>
 
             {/* ── Customer ── */}
-            <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4 space-y-3">
+            <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
               <SectionTitle icon={User} title="Customer (jis se liya)" />
               {editing ? (
                 <div className="grid grid-cols-2 gap-3">
@@ -289,9 +289,9 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                       {(phone.fromCustomerName || '?')[0].toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white">{phone.fromCustomerName || 'Unknown'}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{phone.fromCustomerName || 'Unknown'}</div>
                       {phone.fromCustomerPhone && (
-                        <div className="text-xs font-mono text-slate-500 dark:text-slate-400">{phone.fromCustomerPhone}</div>
+                        <div className="text-xs font-mono text-slate-500 dark:text-ink-400">{phone.fromCustomerPhone}</div>
                       )}
                     </div>
                   </div>
@@ -340,7 +340,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                     <div className={`text-[0.6875rem] uppercase font-extrabold ${profit >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-rose-700 dark:text-rose-300'}`}>
                       {status === 'SOLD' ? '💰 Actual Profit' : '📈 Expected Profit'}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                       {formatPKR(displayResale)} − {formatPKR(displayCost)} cost
                     </div>
                   </div>
@@ -352,7 +352,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
             </section>
 
             {/* ── Timeline ── */}
-            <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2">
+            <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2">
               <SectionTitle icon={Calendar} title="Timeline" />
               <TimelineRow label="Trade-in liya" value={receivedDate.toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })} />
               {phone.soldAt && <TimelineRow label="Bik gaya" value={new Date(phone.soldAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })} />}
@@ -361,7 +361,7 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
 
             {/* ── Notes ── */}
             {(editing || phone.notes) && (
-              <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2">
+              <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2">
                 <SectionTitle icon={FileText} title="Notes" />
                 {editing ? (
                   <textarea
@@ -369,10 +369,10 @@ export function UsedPhoneDetailsModal({ phone, shopName, onClose, onUpdated, onD
                     value={form.notes}
                     onChange={(e) => set('notes', e.target.value)}
                     placeholder="Screen scratch, battery 85%, box nahi hai..."
-                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                   />
                 ) : (
-                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{phone.notes}</p>
+                  <p className="text-sm font-semibold text-slate-700 dark:text-ink-200">{phone.notes}</p>
                 )}
               </section>
             )}
@@ -498,28 +498,28 @@ export function TradeInReceipt({ phone, onClose }: { phone: any; onClose: () => 
       <ReceiptPrintStyles />
 
       {/* ── Toolbar (screen only) ── */}
-      <div className="shrink-0 px-4 py-3 bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap print:hidden">
+      <div className="shrink-0 px-4 py-3 bg-white dark:bg-ink-900 border-b-2 border-slate-200 dark:border-ink-800 flex items-center justify-between gap-2 flex-wrap print:hidden">
         <div className="flex items-center gap-3 min-w-0">
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition" title="Band karo (Esc)">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition" title="Band karo (Esc)">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
           <div className="min-w-0">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm flex items-center gap-1.5">
               <ReceiptText className="h-4 w-4" /> Trade-In Receipt
             </h3>
-            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold font-mono truncate">{phone.usedPhoneCode}</p>
+            <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold font-mono truncate">{phone.usedPhoneCode}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
             {(['58', '80'] as const).map((w) => (
               <button
                 key={w}
                 onClick={() => setPaperWidth(w)}
                 className={`px-3 h-9 text-xs font-extrabold tabular-nums transition ${
                   paperWidth === w
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900'
+                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
                 }`}
               >
                 {w}mm
@@ -718,28 +718,28 @@ function ReceiptPrintStyles() {
 /* ═══ SMALL COMPONENTS ═══ */
 function SectionTitle({ icon: Icon, title, tone = 'slate', noBorder }: { icon: any; title: string; tone?: string; noBorder?: boolean }) {
   return (
-    <div className={`flex items-center gap-2 pb-1 ${noBorder ? '' : 'border-b border-slate-100 dark:border-slate-800'}`}>
+    <div className={`flex items-center gap-2 pb-1 ${noBorder ? '' : 'border-b border-slate-100 dark:border-ink-800'}`}>
       <Icon className={`h-4 w-4 ${tone === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' : 'text-violet-600 dark:text-violet-400'}`} />
-      <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">{title}</span>
+      <span className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">{title}</span>
     </div>
   );
 }
 
 function InfoCell({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
-      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
-      <div className={`text-sm font-extrabold text-slate-900 dark:text-white truncate ${mono ? 'font-mono' : ''}`}>{value}</div>
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
+      <div className={`text-sm font-extrabold text-slate-900 dark:text-ink-white truncate ${mono ? 'font-mono' : ''}`}>{value}</div>
     </div>
   );
 }
 
 function PriceCell({ label, value, sub, highlight }: { label: string; value: string; sub: string; highlight?: boolean }) {
   return (
-    <div className={`rounded-xl p-2.5 text-center border-2 ${highlight ? 'bg-white dark:bg-slate-800 border-emerald-400 dark:border-emerald-500/50' : 'bg-white/70 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'}`}>
-      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
-      <div className={`text-sm font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>{value}</div>
-      <div className="text-[0.625rem] font-bold text-slate-400 dark:text-slate-500">{sub}</div>
+    <div className={`rounded-xl p-2.5 text-center border-2 ${highlight ? 'bg-white dark:bg-ink-800 border-emerald-400 dark:border-emerald-500/50' : 'bg-white/70 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'}`}>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
+      <div className={`text-sm font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-ink-white'}`}>{value}</div>
+      <div className="text-[0.625rem] font-bold text-slate-400 dark:text-ink-500">{sub}</div>
     </div>
   );
 }
@@ -749,13 +749,13 @@ function EditField({ label, value, onChange, type = 'text', placeholder, mono }:
 }) {
   return (
     <div>
-      <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1">{label}</label>
+      <label className="block text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 mb-1">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition ${mono ? 'font-mono' : ''}`}
+        className={`h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition ${mono ? 'font-mono' : ''}`}
       />
     </div>
   );
@@ -764,8 +764,8 @@ function EditField({ label, value, onChange, type = 'text', placeholder, mono }:
 function TimelineRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between text-xs">
-      <span className="font-bold text-slate-500 dark:text-slate-400">{label}</span>
-      <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</span>
+      <span className="font-bold text-slate-500 dark:text-ink-400">{label}</span>
+      <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</span>
     </div>
   );
 }

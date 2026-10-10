@@ -29,7 +29,7 @@ export function DarazConnectCard({ shopList }: { shopList: { id: string; name: s
       {st && !st.configured && (
         <div className="mb-3"><Banner tone="warning" title="Daraz app abhi server par nahi lagi">Nafaa admin Railway par DARAZ_APP_KEY aur DARAZ_APP_SECRET lagaye — phir yahan se jor sakte hain.</Banner></div>
       )}
-      <ul className="mb-4 space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
+      <ul className="mb-4 space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-ink-200">
         <li>✓ Daraz ke naye orders khud Nafaa me — ghanti, bill, stock</li>
         <li>✓ Stock Nafaa se Daraz par khud (POS par bika to Daraz par bhi kam)</li>
         <li>✓ Products SKU se khud jurte hain</li>
@@ -96,7 +96,7 @@ export function DarazChannelCard({ id, data, onChange }: { id: string; data: Web
       {expSoon && d.connected && !d.error && (
         <div className="mb-3"><Banner tone="warning" title="Daraz ki ijazat jald khatam">Is hafte "Dobara jorein" dabayein — warna orders aana band ho jayenge.</Banner></div>
       )}
-      <div className="grid gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300 sm:grid-cols-2">
+      <div className="grid gap-2 text-[0.8125rem] text-slate-600 dark:text-ink-300 sm:grid-cols-2">
         <div>Orders check: <b>{d.ordersSyncedAt ? timeAgo(d.ordersSyncedAt) : 'abhi nahi'}</b> <span className="text-slate-400">(har 5 minute)</span></div>
         <div>Jura: <b>{d.connectedAt ? whenText(d.connectedAt) : '—'}</b></div>
       </div>
@@ -129,10 +129,10 @@ export function DarazOrderSection({ order: o, onChanged }: { order: OnlineOrderD
     <section className="rounded-2xl border border-orange-200 bg-orange-50/50 p-4 dark:border-orange-500/30 dark:bg-orange-500/5">
       <div className="flex items-center gap-2">
         <Truck className="h-5 w-5 text-orange-600" />
-        <div className="flex-1 text-sm font-black text-slate-900 dark:text-white">Daraz delivery</div>
+        <div className="flex-1 text-sm font-black text-slate-900 dark:text-ink-white">Daraz delivery</div>
         {isRts && <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700"><CheckCircle2 className="h-3.5 w-3.5" /> Ready to ship</span>}
       </div>
-      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
+      <p className="mt-1 text-xs text-slate-600 dark:text-ink-300">
         {!o.nafaaSaleId ? 'Pehle Accept karein (bill + stock), phir Daraz par ready to ship.'
           : isRts ? `Daraz ka rider parcel uthayega${meta.trackingNumber ? ` · tracking ${meta.trackingNumber}` : ''}. Label print karke parcel par lagayein.`
             : 'Pack karke "Ready to ship" dabayein — Daraz ko khabar, tracking number aur label yahin.'}

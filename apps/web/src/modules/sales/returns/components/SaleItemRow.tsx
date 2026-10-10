@@ -24,16 +24,16 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
     <div
       className={`rounded-xl border-2 p-3 transition ${
         remaining <= 0
-          ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 opacity-60'
+          ? 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 opacity-60'
           : alreadyAdded
             ? 'border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 shadow-sm shadow-emerald-500/20'
             : isCarpet
               ? 'border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/30 dark:bg-emerald-500/5 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:shadow-md'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-md'
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-md'
       }`}
     >
       <div className="flex items-center gap-3">
-        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-700 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
           {variant?.imageUrl ? (
             <img src={variant.imageUrl} alt="" className="h-full w-full object-cover" />
           ) : variant?.colorHex ? (
@@ -47,7 +47,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
               {item.product.name}
             </div>
             {isCarpet && (
@@ -72,7 +72,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
             <div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-300 flex items-center gap-1 mt-0.5">
               {variant.colorHex && (
                 <span
-                  className="h-2 w-2 rounded-full border border-slate-300 dark:border-slate-600"
+                  className="h-2 w-2 rounded-full border border-slate-300 dark:border-ink-600"
                   style={{ backgroundColor: variant.colorHex }}
                 />
               )}
@@ -87,7 +87,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
             </div>
           )}
 
-          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
+          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 font-semibold">
             Sold: {formatQty(item.quantity)} · Returned: {formatQty(item.returnedQty || 0)} ·
             Available:{' '}
             <span className="font-extrabold text-emerald-700 dark:text-emerald-400">
@@ -99,7 +99,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
           {/* Return progress bar (only if partial returns) */}
           {returnPct > 0 && returnPct < 100 && (
             <div className="mt-1">
-              <div className="h-1 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+              <div className="h-1 rounded-full bg-slate-100 dark:bg-ink-700 overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-amber-500 to-orange-600 transition-all"
                   style={{ width: `${returnPct}%` }}
@@ -114,7 +114,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
           <div className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 mt-0.5">
             {formatPKR(item.price)} / {item.product.unit}
             {isCarpet && (
-              <span className="text-slate-500 dark:text-slate-400 font-semibold italic">
+              <span className="text-slate-500 dark:text-ink-400 font-semibold italic">
                 {' '}(resell as 80% cut piece)
               </span>
             )}
@@ -128,7 +128,7 @@ export function SaleItemRow({ item, alreadyAdded, onAdd }: Props) {
             alreadyAdded
               ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 cursor-default inline-flex items-center gap-1 border border-emerald-300 dark:border-emerald-500/40'
               : remaining <= 0
-                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'
+                ? 'bg-slate-100 dark:bg-ink-800 text-slate-400 dark:text-ink-500 cursor-not-allowed'
                 : isCarpet
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white inline-flex items-center gap-1 shadow-emerald-500/30'
                   : 'bg-blue-600 hover:bg-blue-700 text-white inline-flex items-center gap-1 shadow-blue-500/30'

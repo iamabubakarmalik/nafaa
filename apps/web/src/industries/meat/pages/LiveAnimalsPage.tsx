@@ -97,20 +97,20 @@ export default function LiveAnimalsPage() {
       </section>
 
       {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tag #, breed, vendor..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search tag #, breed, vendor..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setAnimalFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (animalFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (animalFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {ANIMAL_TYPES.map((a) => (
             <button key={a.value} onClick={() => setAnimalFilter(a.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (animalFilter === a.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (animalFilter === a.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{a.emoji} {a.label}</button>
           ))}
         </div>
@@ -123,7 +123,7 @@ export default function LiveAnimalsPage() {
           ].map((s) => (
             <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s.label}</button>
           ))}
         </div>
@@ -155,10 +155,10 @@ export default function LiveAnimalsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : animals.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Heart className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No animals in inventory</p>
           <Button className="mt-4 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -191,11 +191,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     orange: 'from-orange-500 to-red-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -213,7 +213,7 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
       (animal.isSlaughtered ? 'border-slate-300 opacity-70' : animal.isSold ? 'border-blue-300' : 'border-emerald-200')
     }>
       <div className="flex items-start gap-3">
@@ -226,7 +226,7 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-white">{animal.tagNumber}</span>
+            <span className="font-extrabold text-slate-900 dark:text-ink-white">{animal.tagNumber}</span>
             {animal.isSlaughtered ? (
               <span className="px-1.5 py-0.5 rounded bg-slate-600 text-white text-[0.625rem] font-extrabold uppercase">SLAUGHTERED</span>
             ) : animal.isSold ? (
@@ -253,7 +253,7 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
-        <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2">
+        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Weight</div>
           <div className="text-lg font-extrabold tabular-nums">{animal.weightKg}kg</div>
         </div>
@@ -294,12 +294,12 @@ function AnimalCard({ animal, onEdit, onAddFeed, onDelete }: any) {
 
       {/* Actions */}
       {!animal.isSlaughtered && !animal.isSold && (
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
           <button onClick={onAddFeed} className="flex-1 h-9 rounded-lg bg-orange-100 dark:bg-orange-950/40 hover:bg-orange-200 text-orange-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
             <Activity className="h-3 w-3" />
             Feed Cost
           </button>
-          <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+          <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
             <Edit3 className="h-3.5 w-3.5" />
           </button>
           <button onClick={onDelete} className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -349,27 +349,27 @@ function AnimalForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Animal' : 'Add Live Animal'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Animal' : 'Add Live Animal'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.tagNumber} onChange={(e) => setForm({ ...form, tagNumber: e.target.value })} placeholder="Tag # (auto if blank)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
-          <select value={form.animalType} onChange={(e) => setForm({ ...form, animalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+          <input value={form.tagNumber} onChange={(e) => setForm({ ...form, tagNumber: e.target.value })} placeholder="Tag # (auto if blank)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
+          <select value={form.animalType} onChange={(e) => setForm({ ...form, animalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
             {ANIMAL_TYPES.map((a) => <option key={a.value} value={a.value}>{a.emoji} {a.label}</option>)}
           </select>
-          <input value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} placeholder="Breed (Sahiwal, Beetal, Kajli...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <select value={form.sex} onChange={(e) => setForm({ ...form, sex: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+          <input value={form.breed} onChange={(e) => setForm({ ...form, breed: e.target.value })} placeholder="Breed (Sahiwal, Beetal, Kajli...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <select value={form.sex} onChange={(e) => setForm({ ...form, sex: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
             <option value="">-- Sex --</option>
             <option value="Male">♂️ Male</option>
             <option value="Female">♀️ Female</option>
           </select>
-          <input type="number" value={form.ageMonths} onChange={(e) => setForm({ ...form, ageMonths: e.target.value })} placeholder="Age (months)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-amber-500" />
+          <input type="number" value={form.ageMonths} onChange={(e) => setForm({ ...form, ageMonths: e.target.value })} placeholder="Age (months)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-amber-500" />
         </div>
 
         <div className="grid grid-cols-3 gap-3">
@@ -383,13 +383,13 @@ function AnimalForm({ editing, onClose, onSaved }: any) {
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Purchase Date</label>
-            <input type="date" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+            <input type="date" value={form.purchaseDate} onChange={(e) => setForm({ ...form, purchaseDate: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.vendorName} onChange={(e) => setForm({ ...form, vendorName: e.target.value })} placeholder="Vendor / Seller name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} placeholder="Source (Mandi, Farm...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <input value={form.vendorName} onChange={(e) => setForm({ ...form, vendorName: e.target.value })} placeholder="Vendor / Seller name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} placeholder="Source (Mandi, Farm...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
         </div>
 
         <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-2">
@@ -439,9 +439,9 @@ function AnimalForm({ editing, onClose, onSaved }: any) {
           }} />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.weightKg || !form.purchasePrice}>
             <Save className="h-4 w-4" />
@@ -465,10 +465,10 @@ function FeedCostModal({ animal, onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Add Feed Cost</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Add Feed Cost</h3>
             <p className="text-xs text-slate-500 font-semibold">{animal.tagNumber} • {animal.animalType}</p>
           </div>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">

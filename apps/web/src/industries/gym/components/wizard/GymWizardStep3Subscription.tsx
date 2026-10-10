@@ -28,13 +28,13 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
-        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-neutral-800">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-ink-800">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
             <Camera className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Member Photo</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Member Photo</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">For membership card & identification</p>
           </div>
         </div>
@@ -55,13 +55,13 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
       </section>
 
       {!isEdit && (
-        <section className="rounded-3xl bg-gradient-to-br from-fuchsia-50 via-white to-pink-50 dark:from-fuchsia-950/30 dark:via-neutral-900 dark:to-pink-950/30 border-2 border-fuchsia-200 dark:border-fuchsia-800 shadow-sm p-5 space-y-4">
+        <section className="rounded-3xl bg-gradient-to-br from-fuchsia-50 via-white to-pink-50 dark:from-fuchsia-950/30 dark:via-ink-900 dark:to-pink-950/30 border-2 border-fuchsia-200 dark:border-fuchsia-800 shadow-sm p-5 space-y-4">
           <div className="flex items-center gap-3 pb-3 border-b-2 border-fuchsia-200/60">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-600 text-white flex items-center justify-center shadow-md">
               <Target className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Choose Membership Plan</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Choose Membership Plan</h3>
               <p className="text-[0.6875rem] text-slate-500 font-semibold">Optional — can be added later</p>
             </div>
           </div>
@@ -76,7 +76,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <button type="button" onClick={() => onChange({ planId: '', totalPrice: '', paidAmount: '' })} className={[
                   'p-4 rounded-2xl border-2 text-left transition',
-                  !subscription.planId ? 'border-slate-800 bg-slate-100 shadow-md ring-2 ring-slate-300' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-slate-400',
+                  !subscription.planId ? 'border-slate-800 bg-slate-100 shadow-md ring-2 ring-slate-300' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-400',
                 ].join(' ')}>
                   <div className="text-2xl mb-1">⏭️</div>
                   <div className="font-extrabold text-sm">Skip for now</div>
@@ -87,7 +87,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
                   return (
                     <button key={plan.id} type="button" onClick={() => onChange({ planId: plan.id, totalPrice: plan.price, paidAmount: plan.price })} className={[
                       'p-4 rounded-2xl border-2 text-left transition relative',
-                      active ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow-md ring-2 ring-fuchsia-200' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300',
+                      active ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow-md ring-2 ring-fuchsia-200' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300',
                     ].join(' ')}>
                       {plan.isFeatured && (
                         <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
@@ -144,7 +144,7 @@ export function GymWizardStep3Subscription({ subscription, onChange, onBack, onS
           )}
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Referral Code (optional)</label>
-            <input value={subscription.referralCode} onChange={(e) => onChange({ referralCode: e.target.value })} placeholder="Who referred them?" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+            <input value={subscription.referralCode} onChange={(e) => onChange({ referralCode: e.target.value })} placeholder="Who referred them?" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
           </div>
         </section>
       )}

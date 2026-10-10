@@ -268,7 +268,7 @@ export default function ReorderPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
 
@@ -375,7 +375,7 @@ export default function ReorderPage() {
       </section>
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3 print:hidden">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -384,12 +384,12 @@ export default function ReorderPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Product ya supplier... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
               >
                 <X className="h-4 w-4 text-slate-400" />
               </button>
@@ -398,7 +398,7 @@ export default function ReorderPage() {
         </div>
 
         <div className="flex gap-1.5 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 flex-wrap">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 flex-wrap">
             {[
               { v: 'PENDING', l: 'Pending' },
               { v: 'ORDERED', l: 'Ordered' },
@@ -411,12 +411,12 @@ export default function ReorderPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
                   statusFilter === o.v
                     ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
                 {o.l}
                 {statusCounts[o.v] != null && (
-                  <span className={`ml-1 tabular-nums ${statusFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <span className={`ml-1 tabular-nums ${statusFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>
                     {statusCounts[o.v]}
                   </span>
                 )}
@@ -431,7 +431,7 @@ export default function ReorderPage() {
                 'h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition',
                 allPendingSelected
                   ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-emerald-300',
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:border-emerald-300',
               ].join(' ')}
             >
               {allPendingSelected ? <CheckSquare className="h-3.5 w-3.5" /> : <Square className="h-3.5 w-3.5" />}
@@ -439,7 +439,7 @@ export default function ReorderPage() {
             </button>
           )}
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} suggestions
           </div>
         </div>
@@ -447,7 +447,7 @@ export default function ReorderPage() {
 
       {/* ═══ BULK BAR ═══ */}
       {selected.size > 0 && (
-        <section className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 px-4 py-3 flex items-center gap-3 print:hidden">
+        <section className="fixed bottom-4 left-1/2 -translate-x-1/2 z-30 rounded-2xl bg-slate-950 dark:bg-ink-900 text-white shadow-2xl border border-white/20 px-4 py-3 flex items-center gap-3 print:hidden">
           <div className="text-xs font-extrabold">
             <span className="text-emerald-300">{selected.size}</span> selected
             {!hideCost && (
@@ -478,17 +478,17 @@ export default function ReorderPage() {
       {/* ═══ CONTENT ═══ */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-dashed border-slate-200 dark:border-slate-700 p-12 sm:p-16 text-center">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-dashed border-slate-200 dark:border-ink-700 p-12 sm:p-16 text-center">
           <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-600 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/40">
             <Check className="h-10 w-10 text-white" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             {search ? 'Kuch nahi mila' : allSuggestions.length === 0 ? 'Pehli dafa ho? 🧠' : 'Sab kuch stock mein hai! 🎉'}
           </h3>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+          <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
             {search
               ? 'Search clear karo ya filter change karo'
               : allSuggestions.length === 0
@@ -519,17 +519,17 @@ export default function ReorderPage() {
             return (
               <div
                 key={group.supplier?.id || 'none'}
-                className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden"
+                className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden"
               >
                 {/* Supplier header */}
-                <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 flex items-center justify-between gap-3 flex-wrap">
+                <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/10 dark:to-indigo-500/10 flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 shrink-0">
                       <Truck className="h-5 w-5" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-extrabold text-slate-900 dark:text-white truncate">
+                        <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">
                           {group.supplier?.name || 'Koi supplier nahi'}
                         </h3>
                         {groupCritical > 0 && (
@@ -538,7 +538,7 @@ export default function ReorderPage() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+                      <div className="text-xs text-slate-500 dark:text-ink-400 font-bold">
                         {group.items.length} items
                         {group.supplier?.phone && ` • ${group.supplier.phone}`}
                       </div>
@@ -552,7 +552,7 @@ export default function ReorderPage() {
                     )}
                     <button
                       onClick={() => copyOrderList(group.items, group.supplier)}
-                      className="h-9 px-3 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1 transition"
+                      className="h-9 px-3 rounded-lg bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1 transition"
                     >
                       <Copy className="h-3.5 w-3.5" /> Copy List
                     </button>
@@ -568,7 +568,7 @@ export default function ReorderPage() {
                 </div>
 
                 {/* Items */}
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800">
                   {group.items
                     .sort((a, b) => a.daysOfStockLeft - b.daysOfStockLeft)
                     .map((sug) => (
@@ -638,20 +638,20 @@ function ReorderTeacher({ onClose, onStart }: { onClose: () => void; onStart: ()
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Smart Reorder Kaise Kaam Karta Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Roz stock check karne ki jagah, system <strong>khud aapki sales speed dekh kar</strong> bata deta hai
             ke kaunsa product khatam hone wala hai — uske <strong>khatam hone SE PEHLE</strong>.
           </p>
@@ -661,11 +661,11 @@ function ReorderTeacher({ onClose, onStart }: { onClose: () => void; onStart: ()
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               🧠 Misal: Lay's Chips
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <div className="flex items-center gap-2">
-                <span className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 tabular-nums">Stock: 20</span>
+                <span className="px-2 py-1 rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 tabular-nums">Stock: 20</span>
                 <ArrowRight className="h-3.5 w-3.5 text-blue-500 shrink-0" />
-                <span className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 tabular-nums">Roz bike: 5</span>
+                <span className="px-2 py-1 rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 tabular-nums">Roz bike: 5</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-slate-400">=</span>
@@ -673,7 +673,7 @@ function ReorderTeacher({ onClose, onStart }: { onClose: () => void; onStart: ()
                   ⏳ 4 din mein khatam!
                 </span>
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2 font-extrabold text-emerald-700 dark:text-emerald-300">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2 font-extrabold text-emerald-700 dark:text-emerald-300">
                 ✅ Suggestion: "24 aur order karo" (2 hafte ka stock)
               </div>
             </div>
@@ -686,7 +686,7 @@ function ReorderTeacher({ onClose, onStart }: { onClose: () => void; onStart: ()
             <TeacherStep emoji="📱" title="Order" desc="WhatsApp se supplier ko bhejo" />
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="flex items-start gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <span><strong>🔴 FORAN</strong> = 3 din se kam stock — aaj hi order karo</span>
@@ -715,10 +715,10 @@ function ReorderTeacher({ onClose, onStart }: { onClose: () => void; onStart: ()
 
 function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -787,18 +787,18 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
               'h-6 w-6 rounded-md border-2 flex items-center justify-center shrink-0 mt-2.5 transition print:hidden',
               selected
                 ? 'bg-emerald-500 border-emerald-500 text-white'
-                : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 hover:border-emerald-400',
+                : 'border-slate-300 dark:border-ink-600 bg-white dark:bg-ink-800 hover:border-emerald-400',
             ].join(' ')}
           >
             {selected && <Check className="h-3.5 w-3.5" />}
           </button>
         )}
 
-        <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-200 dark:border-slate-700">
+        <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border-2 border-slate-200 dark:border-ink-700">
           {suggestion.product?.images?.[0]?.url ? (
             <img src={suggestion.product.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
           ) : (
-            <Package className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+            <Package className="h-5 w-5 text-slate-400 dark:text-ink-500" />
           )}
         </div>
 
@@ -806,7 +806,7 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               to={`/retail-products/${suggestion.productId}`}
-              className="font-extrabold text-slate-900 dark:text-white text-sm hover:text-blue-600 dark:hover:text-blue-400 truncate"
+              className="font-extrabold text-slate-900 dark:text-ink-white text-sm hover:text-blue-600 dark:hover:text-blue-400 truncate"
             >
               {suggestion.product?.name || 'Product'}
             </Link>
@@ -837,7 +837,7 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
 
           {/* Stock depletion bar */}
           <div className="mt-2 max-w-xs">
-            <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
               <div
                 className={[
                   'h-full rounded-full transition-all',
@@ -852,14 +852,14 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
         </div>
 
         <div className="text-right shrink-0 min-w-[110px]">
-          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Order Value</div>
+          <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Order Value</div>
           {!hideCost ? (
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(orderValue)}</div>
           ) : (
-            <div className="text-lg font-extrabold text-slate-400 dark:text-slate-600">••••</div>
+            <div className="text-lg font-extrabold text-slate-400 dark:text-ink-600">••••</div>
           )}
           {!hideCost && (
-            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold tabular-nums">
               @ {formatPKR(suggestion.lastPurchasePrice)}
             </div>
           )}
@@ -876,7 +876,7 @@ function SuggestionRow({ suggestion, hideCost, selected, onToggleSelect, onMarkO
                 <button
                   onClick={onIgnore}
                   title="Ignore"
-                  className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition"
+                  className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center transition"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -907,12 +907,12 @@ function MiniCell({ label, value, tone }: { label: string; value: string; tone: 
     rose:    'text-rose-700 dark:text-rose-400',
     amber:   'text-amber-700 dark:text-amber-400',
     blue:    'text-blue-700 dark:text-blue-400',
-    slate:   'text-slate-700 dark:text-slate-300',
+    slate:   'text-slate-700 dark:text-ink-300',
     emerald: 'text-emerald-700 dark:text-emerald-400',
   };
   return (
     <div>
-      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]}`}>{value}</div>
     </div>
   );
@@ -927,15 +927,15 @@ function Kpi({ label, value, sub, icon: Icon, tone, urgent }: any) {
   };
   return (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 hover:shadow-md dark:hover:shadow-lg transition-all hover:-translate-y-0.5 relative',
-      urgent ? 'border-rose-300 dark:border-rose-500/50 ring-2 ring-rose-200 dark:ring-rose-500/20' : 'border-slate-200 dark:border-slate-800',
+      'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 hover:shadow-md dark:hover:shadow-lg transition-all hover:-translate-y-0.5 relative',
+      urgent ? 'border-rose-300 dark:border-rose-500/50 ring-2 ring-rose-200 dark:ring-rose-500/20' : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       {urgent && <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rose-500 animate-ping" />}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

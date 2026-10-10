@@ -69,20 +69,20 @@ export default function DairyRoutesPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search route # / name / area..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search route # / name / area..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setSlotFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (slotFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (slotFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Slots</button>
           {SLOTS.map((s) => (
             <button key={s.value} onClick={() => setSlotFilter(s.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (slotFilter === s.value ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (slotFilter === s.value ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s.emoji} {s.label}</button>
           ))}
         </div>
@@ -98,10 +98,10 @@ export default function DairyRoutesPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : routes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <RouteIcon className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No routes yet</p>
         </div>
@@ -126,7 +126,7 @@ function RouteCard({ route, onEdit, onDelete, onRecalc }: any) {
   const slot = SLOTS.find((s) => s.value === route.slot);
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition overflow-hidden">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition overflow-hidden">
       <div className={'p-4 text-white bg-gradient-to-br ' + (slot?.color ?? 'from-violet-500 to-purple-600')} style={route.color ? { background: 'linear-gradient(135deg, ' + route.color + ', ' + route.color + 'dd)' } : {}}>
         <div className="flex items-start justify-between">
           <div>
@@ -160,7 +160,7 @@ function RouteCard({ route, onEdit, onDelete, onRecalc }: any) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <div className="rounded-lg bg-blue-50 dark:bg-blue-950/30 p-2 text-center">
             <div className="text-[0.625rem] uppercase font-extrabold text-blue-700 inline-flex items-center gap-0.5"><Users className="h-2.5 w-2.5" />Customers</div>
             <div className="text-lg font-extrabold text-blue-900 tabular-nums">{route.totalCustomers}</div>
@@ -175,7 +175,7 @@ function RouteCard({ route, onEdit, onDelete, onRecalc }: any) {
           <Link to={'/dairy/routes/' + route.id} className="flex-1 h-9 rounded-lg bg-violet-100 dark:bg-violet-950/40 hover:bg-violet-200 text-violet-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
             View
           </Link>
-          <button onClick={onRecalc} className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-1">
+          <button onClick={onRecalc} className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center gap-1">
             <RefreshCw className="h-3 w-3" />Recalc
           </button>
         </div>
@@ -217,7 +217,7 @@ function RouteForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 bg-violet-50 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Route' : 'New Route'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -226,8 +226,8 @@ function RouteForm({ editing, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Route name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.areaName} onChange={(e) => setForm({ ...form, areaName: e.target.value })} placeholder="Area name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Route name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.areaName} onChange={(e) => setForm({ ...form, areaName: e.target.value })} placeholder="Area name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
         </div>
 
         <div>
@@ -248,22 +248,22 @@ function RouteForm({ editing, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Time</label>
-            <input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+            <input type="time" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (min)</label>
-            <input type="number" value={form.estimatedDurationMin} onChange={(e) => setForm({ ...form, estimatedDurationMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.estimatedDurationMin} onChange={(e) => setForm({ ...form, estimatedDurationMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} placeholder="Vehicle type (bike/rickshaw)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.vehicleNumber} onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })} placeholder="Vehicle number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} placeholder="Vehicle type (bike/rickshaw)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.vehicleNumber} onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })} placeholder="Vehicle number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
         </div>
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assigned Staff (Dodhi)</label>
-          <select value={form.assignedStaffId} onChange={(e) => setForm({ ...form, assignedStaffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.assignedStaffId} onChange={(e) => setForm({ ...form, assignedStaffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="">-- Unassigned --</option>
             {(staffList ?? []).map((s: any) => {
               const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
@@ -284,7 +284,7 @@ function RouteForm({ editing, onClose, onSaved }: any) {
           </div>
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
         <div className="flex gap-2 pt-2 border-t border-slate-100">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>

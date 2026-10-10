@@ -109,8 +109,8 @@ export function MobileWizardStep3Imeis({
       {/* Intro — type-aware */}
       <div className={`rounded-2xl border-2 p-4 flex items-start gap-3 ${
         allAccessory
-          ? 'bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 border-emerald-200 dark:border-emerald-500/40'
-          : 'bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-slate-900 border-blue-200 dark:border-blue-500/40'
+          ? 'bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900 border-emerald-200 dark:border-emerald-500/40'
+          : 'bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-ink-900 border-blue-200 dark:border-blue-500/40'
       }`}>
         <div className={`h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md shrink-0 ${allAccessory ? 'bg-emerald-600' : 'bg-blue-600'}`}>
           {allAccessory ? <Cable className="h-5 w-5" /> : <Smartphone className="h-5 w-5" />}
@@ -167,26 +167,26 @@ export function MobileWizardStep3Imeis({
         return (
           <section
             key={b.tempId ?? '__none__'}
-            className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden"
+            className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 overflow-hidden"
           >
             <button
               type="button"
               onClick={() => toggle(b.tempId)}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 hover:from-slate-100 dark:hover:from-slate-800/80 transition"
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-slate-50 to-white dark:from-ink-800 dark:to-ink-900 hover:from-slate-100 dark:hover:from-ink-800/80 transition"
             >
               {b.colorHex ? (
                 <div
-                  className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-slate-600 shrink-0 shadow-inner"
+                  className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-ink-600 shrink-0 shadow-inner"
                   style={{ backgroundColor: b.colorHex }}
                 />
               ) : (
-                <div className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-slate-200 dark:bg-ink-700 text-slate-500 dark:text-ink-300 flex items-center justify-center shrink-0">
                   <Icon className="h-4 w-4" />
                 </div>
               )}
               <div className="flex-1 text-left min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{b.name}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{b.name}</div>
                   <span className={[
                     'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold',
                     isPhone
@@ -214,7 +214,7 @@ export function MobileWizardStep3Imeis({
                 </button>
               )}
 
-              {collapsedNow ? <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" /> : <ChevronUp className="h-4 w-4 text-slate-500 dark:text-slate-400" />}
+              {collapsedNow ? <ChevronDown className="h-4 w-4 text-slate-500 dark:text-ink-400" /> : <ChevronUp className="h-4 w-4 text-slate-500 dark:text-ink-400" />}
             </button>
 
             {!collapsedNow && (
@@ -246,10 +246,10 @@ export function MobileWizardStep3Imeis({
       })}
 
       {totalImeis === 0 && totalAccUnits === 0 && (
-        <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-8 text-center">
-          <Info className="h-10 w-10 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
-          <div className="font-extrabold text-slate-700 dark:text-slate-200 text-sm">Inventory optional hai</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/40 p-8 text-center">
+          <Info className="h-10 w-10 text-slate-400 dark:text-ink-500 mx-auto mb-2" />
+          <div className="font-extrabold text-slate-700 dark:text-ink-200 text-sm">Inventory optional hai</div>
+          <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">
             Sirf product create karna hai to <strong>Save</strong> dein — {allAccessory ? 'stock' : 'IMEIs'} baad mein add ho sakti hain
           </div>
         </div>

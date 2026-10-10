@@ -129,7 +129,7 @@ export default function HappyHoursPage() {
           onClick={() => setActiveOnly(false)}
           className={
             'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-            (!activeOnly ? 'bg-rose-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300')
+            (!activeOnly ? 'bg-rose-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300')
           }
         >
           All Rules
@@ -138,7 +138,7 @@ export default function HappyHoursPage() {
           onClick={() => setActiveOnly(true)}
           className={
             'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-            (activeOnly ? 'bg-rose-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700 dark:text-slate-300')
+            (activeOnly ? 'bg-rose-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300')
           }
         >
           Active Only
@@ -160,14 +160,14 @@ export default function HappyHoursPage() {
       {/* RULES LIST */}
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rules.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-rose-100 dark:bg-rose-950/40 mx-auto flex items-center justify-center">
             <Zap className="h-10 w-10 text-rose-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No happy hour rules</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No happy hour rules</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Discount rules banao off-peak sales badhane ke liye</p>
           <Button
             className="mt-4 bg-gradient-to-r from-rose-600 to-orange-700"
@@ -216,8 +216,8 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
       (isActiveNow
         ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 ring-2 ring-emerald-200 dark:ring-emerald-900'
         : rule.isActive
-          ? 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800'
-          : 'bg-slate-50 dark:bg-neutral-900/50 border-slate-200 dark:border-neutral-800 opacity-70')
+          ? 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800'
+          : 'bg-slate-50 dark:bg-ink-900/50 border-slate-200 dark:border-ink-800 opacity-70')
     }>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -227,7 +227,7 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{rule.name}</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{rule.name}</h3>
               {isActiveNow && (
                 <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-emerald-500 text-white animate-pulse inline-flex items-center gap-1">
                   <Zap className="h-2 w-2 fill-white" />
@@ -246,7 +246,7 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
               <p className="text-xs text-slate-500 font-semibold mt-1">{rule.description}</p>
             )}
 
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-bold flex-wrap">
+            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 dark:text-ink-400 font-bold flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <Clock className="h-3 w-3" />
                 {rule.startTime} – {rule.endTime}
@@ -268,7 +268,7 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
             {rule.orderModes?.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {rule.orderModes.map((m) => (
-                  <span key={m} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 text-[0.625rem] font-extrabold uppercase">
+                  <span key={m} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 text-[0.625rem] font-extrabold uppercase">
                     {ORDER_MODES.find((om) => om.value === m)?.label || m}
                   </span>
                 ))}
@@ -277,9 +277,9 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
 
             {/* Stats */}
             <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2">
+              <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2">
                 <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Total Usage</div>
-                <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{rule.totalUsage}</div>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{rule.totalUsage}</div>
               </div>
               <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-2">
                 <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Customer Saved</div>
@@ -294,7 +294,7 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
             onClick={onToggle}
             className={
               'h-9 w-9 rounded-lg flex items-center justify-center transition ' +
-              (rule.isActive ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700' : 'bg-slate-100 dark:bg-neutral-800 text-slate-500')
+              (rule.isActive ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700' : 'bg-slate-100 dark:bg-ink-800 text-slate-500')
             }
             title={rule.isActive ? 'Active' : 'Inactive'}
           >
@@ -302,7 +302,7 @@ function RuleCard({ rule, isActiveNow, onEdit, onToggle, onDelete }: {
           </button>
           <button
             onClick={onEdit}
-            className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
+            className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
           >
             <Edit3 className="h-4 w-4" />
           </button>
@@ -372,12 +372,12 @@ function HappyHourForm({ editing, onClose, onSaved }: {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Happy Hour Rule' : 'New Happy Hour Rule'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -391,7 +391,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="e.g. Ramzan Iftar Special, Weekday Lunch Deal"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
           />
         </div>
 
@@ -401,13 +401,13 @@ function HappyHourForm({ editing, onClose, onSaved }: {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="Optional — shown to staff"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
           />
         </div>
 
         {/* Discount */}
         <div className="rounded-xl border-2 border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/30 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">Discount</div>
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Discount</div>
 
           <div>
             <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Discount Type</label>
@@ -422,11 +422,11 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                       'p-3 rounded-xl border-2 text-center transition ' +
                       (form.discountType === t.value
                         ? 'border-rose-500 bg-rose-100 dark:bg-rose-950/60 shadow'
-                        : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-rose-300')
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300')
                     }
                   >
                     <Icon className="h-5 w-5 text-rose-600 mx-auto mb-1" />
-                    <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{t.label}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{t.label}</div>
                   </button>
                 );
               })}
@@ -444,7 +444,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 min="0"
                 value={form.discountValue}
                 onChange={(e) => setForm({ ...form, discountValue: Number(e.target.value) })}
-                className="h-14 w-full rounded-xl border-2 border-rose-300 dark:border-rose-700 bg-white dark:bg-neutral-800 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
+                className="h-14 w-full rounded-xl border-2 border-rose-300 dark:border-rose-700 bg-white dark:bg-ink-800 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
               />
             </div>
           )}
@@ -457,7 +457,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 value={form.minOrderAmount}
                 onChange={(e) => setForm({ ...form, minOrderAmount: e.target.value as any })}
                 placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
               />
             </div>
             <div>
@@ -467,15 +467,15 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 value={form.maxDiscount}
                 onChange={(e) => setForm({ ...form, maxDiscount: e.target.value as any })}
                 placeholder="Cap on discount"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
               />
             </div>
           </div>
         </div>
 
         {/* Time Window */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">Active Time Window</div>
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Active Time Window</div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -484,7 +484,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 type="time"
                 value={form.startTime}
                 onChange={(e) => setForm({ ...form, startTime: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold focus:outline-none focus:border-rose-500"
               />
             </div>
             <div>
@@ -493,7 +493,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 type="time"
                 value={form.endTime}
                 onChange={(e) => setForm({ ...form, endTime: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold focus:outline-none focus:border-rose-500"
               />
             </div>
           </div>
@@ -511,7 +511,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                       'py-2 rounded-lg text-xs font-extrabold transition ' +
                       (active
                         ? 'bg-rose-600 text-white shadow'
-                        : 'bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 text-slate-600 hover:border-rose-300')
+                        : 'bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 hover:border-rose-300')
                     }
                   >
                     {day.s}
@@ -528,7 +528,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 type="date"
                 value={form.validFrom}
                 onChange={(e) => setForm({ ...form, validFrom: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
               />
             </div>
             <div>
@@ -537,7 +537,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                 type="date"
                 value={form.validTo}
                 onChange={(e) => setForm({ ...form, validTo: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
               />
             </div>
           </div>
@@ -557,7 +557,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
                     'p-2 rounded-lg text-xs font-extrabold transition border-2 ' +
                     (active
                       ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:border-rose-300')
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:border-rose-300')
                   }
                 >
                   {mode.label}
@@ -581,7 +581,7 @@ function HappyHourForm({ editing, onClose, onSaved }: {
           </div>
         </label>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-rose-600 to-orange-700"

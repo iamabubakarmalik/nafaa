@@ -190,7 +190,7 @@ export default function DiscountsPage() {
   };
 
   const getCodeStatus = (c: any) => {
-    if (!c.isActive) return { label: 'INACTIVE', tone: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300', icon: ToggleLeft };
+    if (!c.isActive) return { label: 'INACTIVE', tone: 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300', icon: ToggleLeft };
     const expired = c.validUntil && new Date(c.validUntil) < new Date();
     if (expired) return { label: 'EXPIRED', tone: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300', icon: Clock };
     if (c.usageLimit && c.usageCount >= c.usageLimit) return { label: 'LIMIT REACHED', tone: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300', icon: AlertTriangle };
@@ -244,7 +244,7 @@ export default function DiscountsPage() {
       {showTeacher && <DiscountsTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 dark:from-slate-950 dark:via-pink-950 dark:to-rose-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 dark:from-ink-950 dark:via-pink-950 dark:to-rose-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-pink-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl pointer-events-none" />
 
@@ -332,11 +332,11 @@ export default function DiscountsPage() {
             <button
               key={p.code}
               onClick={() => applyPreset(p)}
-              className="p-3 rounded-xl bg-white dark:bg-slate-800/80 border-2 border-pink-200 dark:border-pink-500/30 hover:border-pink-400 dark:hover:border-pink-500/60 hover:shadow-lg hover:-translate-y-0.5 transition-all text-left"
+              className="p-3 rounded-xl bg-white dark:bg-ink-800/80 border-2 border-pink-200 dark:border-pink-500/30 hover:border-pink-400 dark:hover:border-pink-500/60 hover:shadow-lg hover:-translate-y-0.5 transition-all text-left"
             >
               <div className="text-2xl mb-1">{p.emoji}</div>
               <div className="font-mono text-xs font-extrabold text-pink-900 dark:text-pink-200 truncate">{p.code}</div>
-              <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-semibold truncate">
+              <div className="text-[0.625rem] text-slate-500 dark:text-ink-400 font-semibold truncate">
                 {p.type === 'PERCENTAGE' ? `${p.value}% off` : `Rs ${p.value} off`}
               </div>
             </button>
@@ -347,37 +347,37 @@ export default function DiscountsPage() {
       {/* ═══ MAIN GRID ═══ */}
       <section className="grid xl:grid-cols-[420px_1fr] gap-4 sm:gap-5 items-start">
         {/* ═══ CREATE FORM ═══ */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6 xl:sticky xl:top-4 print:hidden">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6 xl:sticky xl:top-4 print:hidden">
           <div className="flex items-center gap-3 mb-5">
             <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 shrink-0">
               <Plus className="h-5 w-5" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Naya Discount Code</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Customer ko promo do</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Naya Discount Code</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Customer ko promo do</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Code *</label>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Code *</label>
               <input
                 ref={codeInputRef}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-mono font-extrabold uppercase text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-mono font-extrabold uppercase text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition"
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/\s/g, '') })}
                 placeholder="EID2026"
                 maxLength={20}
               />
-              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+              <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                 Customer POS pe type karega — chhota + yaad rakhne wala rakho
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Description</label>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Description</label>
               <input
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Eid special discount"
@@ -385,7 +385,7 @@ export default function DiscountsPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Discount Type *</label>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Discount Type *</label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
@@ -393,7 +393,7 @@ export default function DiscountsPage() {
                   className={`p-3 rounded-xl border-2 transition flex items-center justify-center gap-2 ${
                     form.type === 'PERCENTAGE'
                       ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-pink-300 dark:hover:border-pink-500/50'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-pink-300 dark:hover:border-pink-500/50'
                   }`}
                 >
                   <Percent className="h-4 w-4" />
@@ -405,7 +405,7 @@ export default function DiscountsPage() {
                   className={`p-3 rounded-xl border-2 transition flex items-center justify-center gap-2 ${
                     form.type === 'FIXED_AMOUNT'
                       ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300 shadow-sm'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-pink-300 dark:hover:border-pink-500/50'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-pink-300 dark:hover:border-pink-500/50'
                   }`}
                 >
                   <DollarSign className="h-4 w-4" />
@@ -461,11 +461,11 @@ export default function DiscountsPage() {
 
             {/* Live Preview */}
             {preview && (
-              <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-800/30 border-2 border-emerald-200 dark:border-emerald-500/40 p-3">
+              <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-800/30 border-2 border-emerald-200 dark:border-emerald-500/40 p-3">
                 <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-400 font-extrabold mb-2 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Live Preview
                 </div>
-                <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 space-y-1">
+                <div className="text-xs font-semibold text-slate-700 dark:text-ink-200 space-y-1">
                   <div className="flex justify-between">
                     <span>Sample bill:</span>
                     <span className="font-extrabold tabular-nums">{formatPKR(preview.sampleBill)}</span>
@@ -494,10 +494,10 @@ export default function DiscountsPage() {
         </div>
 
         {/* ═══ CODES LIST ═══ */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Sab Codes ({filteredCodes.length})</h3>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Sab Codes ({filteredCodes.length})</h3>
               <div className="relative">
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -505,11 +505,11 @@ export default function DiscountsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Code dhundo... (/)"
-                  className="h-9 w-56 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-pink-500 transition"
+                  className="h-9 w-56 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-pink-500 transition"
                 />
               </div>
             </div>
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 flex-wrap">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 flex-wrap">
               {([
                 { v: 'active' as Filter, l: '✓ Active', c: stats.active },
                 { v: 'all' as Filter, l: 'Sab', c: stats.total },
@@ -520,10 +520,10 @@ export default function DiscountsPage() {
                   key={o.v}
                   onClick={() => setFilter(o.v)}
                   className={`flex-1 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                    filter === o.v ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    filter === o.v ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                   }`}
                 >
-                  {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                  {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>
                 </button>
               ))}
             </div>
@@ -534,10 +534,10 @@ export default function DiscountsPage() {
               <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-500/20 dark:to-rose-500/20 flex items-center justify-center">
                 <Gift className="h-9 w-9 text-pink-600 dark:text-pink-400" />
               </div>
-              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
                 {hasFilters ? 'Kuch nahi mila' : 'Abhi koi code nahi'}
               </h4>
-              <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+              <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
                 {hasFilters
                   ? 'Filter change kar ke dekho'
                   : 'Left side se naya code banao — ya upar wale ready-made presets me se koi choose karo (Eid, Sale, etc.)'}
@@ -561,12 +561,12 @@ export default function DiscountsPage() {
                     key={c.id}
                     className={`rounded-2xl border-2 overflow-hidden transition ${
                       !c.isActive
-                        ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 opacity-70'
+                        ? 'border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40 opacity-70'
                         : expired
                           ? 'border-rose-200 dark:border-rose-500/40 bg-rose-50/30 dark:bg-rose-500/5'
                           : limitReached
                             ? 'border-amber-200 dark:border-amber-500/40 bg-amber-50/30 dark:bg-amber-500/5'
-                            : 'border-pink-200 dark:border-pink-500/40 bg-gradient-to-br from-pink-50 to-white dark:from-pink-500/10 dark:to-slate-900/60'
+                            : 'border-pink-200 dark:border-pink-500/40 bg-gradient-to-br from-pink-50 to-white dark:from-pink-500/10 dark:to-ink-900/60'
                     }`}
                   >
                     <div className="p-4">
@@ -574,12 +574,12 @@ export default function DiscountsPage() {
                         <div className="min-w-0 flex-1">
                           <button
                             onClick={() => copyCode(c.code)}
-                            className="font-mono text-lg font-extrabold text-slate-900 dark:text-white hover:text-pink-700 dark:hover:text-pink-400 transition inline-flex items-center gap-1.5 group"
+                            className="font-mono text-lg font-extrabold text-slate-900 dark:text-ink-white hover:text-pink-700 dark:hover:text-pink-400 transition inline-flex items-center gap-1.5 group"
                           >
                             {c.code}
                             <Copy className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition" />
                           </button>
-                          {c.description && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5 line-clamp-2">{c.description}</div>}
+                          {c.description && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-0.5 line-clamp-2">{c.description}</div>}
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold mt-2 ${status.tone}`}>
                             <StatusIcon className="h-2.5 w-2.5" />
                             {status.label}
@@ -588,16 +588,16 @@ export default function DiscountsPage() {
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => toggleMutation.mutate(c.id)}
-                            className="text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-lg p-1.5 transition"
+                            className="text-slate-700 dark:text-ink-300 hover:bg-white dark:hover:bg-ink-700 rounded-lg p-1.5 transition"
                             title={c.isActive ? 'Band karo' : 'Active karo'}
                           >
                             {c.isActive
                               ? <ToggleRight className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                              : <ToggleLeft className="h-5 w-5 text-slate-400 dark:text-slate-500" />}
+                              : <ToggleLeft className="h-5 w-5 text-slate-400 dark:text-ink-500" />}
                           </button>
                           <button
                             onClick={() => confirmDelete(c)}
-                            className="text-rose-600 dark:text-rose-400 hover:bg-white dark:hover:bg-slate-700 rounded-lg p-1.5 transition"
+                            className="text-rose-600 dark:text-rose-400 hover:bg-white dark:hover:bg-ink-700 rounded-lg p-1.5 transition"
                             title="Delete"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -607,14 +607,14 @@ export default function DiscountsPage() {
 
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Discount</div>
+                          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold">Discount</div>
                           <div className="font-extrabold text-pink-700 dark:text-pink-400 text-lg tabular-nums">
                             {c.type === 'PERCENTAGE' ? `${c.value}%` : formatPKR(c.value)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Min Order</div>
-                          <div className="font-extrabold text-slate-700 dark:text-slate-300 tabular-nums">
+                          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold">Min Order</div>
+                          <div className="font-extrabold text-slate-700 dark:text-ink-300 tabular-nums">
                             {c.minPurchase > 0 ? formatPKR(c.minPurchase) : 'No min'}
                           </div>
                         </div>
@@ -622,11 +622,11 @@ export default function DiscountsPage() {
 
                       {c.usageLimit ? (
                         <div className="mt-3">
-                          <div className="flex items-center justify-between text-[0.6875rem] text-slate-500 dark:text-slate-400 mb-1">
+                          <div className="flex items-center justify-between text-[0.6875rem] text-slate-500 dark:text-ink-400 mb-1">
                             <span className="font-extrabold">Usage: {c.usageCount} / {c.usageLimit}</span>
                             <span className="font-extrabold tabular-nums">{usagePct.toFixed(0)}%</span>
                           </div>
-                          <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div className="h-1.5 bg-slate-200 dark:bg-ink-700 rounded-full overflow-hidden">
                             <div
                               className={`h-full transition-all ${
                                 usagePct >= 100 ? 'bg-rose-500' : usagePct >= 80 ? 'bg-amber-500' : 'bg-pink-500'
@@ -636,13 +636,13 @@ export default function DiscountsPage() {
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-3 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="mt-3 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                           <span className="font-extrabold">Used: {c.usageCount}</span> • Unlimited
                         </div>
                       )}
 
                       {c.validUntil && (
-                        <div className="mt-2 flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="mt-2 flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                           <Calendar className="h-3 w-3" />
                           Expires: <span className="font-extrabold">{new Date(c.validUntil).toLocaleDateString('en-PK')}</span>
                         </div>
@@ -682,20 +682,20 @@ function DiscountsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-500/15 dark:to-rose-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Discount Codes — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Discount code = promo password</strong> jo customer POS pe type kare aur usse bill kam ho jaye.
             Eid pe "EID2026", sale pe "SALE10" — ye tumhari marketing tool hai.
           </p>
@@ -705,17 +705,17 @@ function DiscountsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-pink-700 dark:text-pink-300">
               🎯 Percentage vs Fixed — Kaunsa Behtar?
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-pink-200 dark:border-pink-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-pink-200 dark:border-pink-500/30 p-2">
                 📊 <strong>Percentage (%)</strong> — "10% off". Bara bill = bara discount. Bulk buyers ko attract karta hai. <strong>Max Cap</strong> lagao warna 50k ke bill pe bahut bara nuksan.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-pink-200 dark:border-pink-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-pink-200 dark:border-pink-500/30 p-2">
                 💵 <strong>Fixed Rs</strong> — "Rs 500 off". Har bill pe same. Small purchases ke liye better. <strong>Min Purchase</strong> lagao warna Rs 100 ke bill pe bhi Rs 500 chala jayega!
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⚡ Presets</strong> — Eid, Sale, First Order etc. click karo → form bhar jayega</TipRow>
             <TipRow><strong>Min Purchase</strong> — chhota bill me discount nahi lagega (Rs 1000+ pe hi)</TipRow>
             <TipRow><strong>Max Cap</strong> — percentage me zaroori (10% × 50k = Rs 5000 loss se bachao)</TipRow>
@@ -770,18 +770,18 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-pink-500 dark:border-pink-500/60 ring-2 ring-pink-200 dark:ring-pink-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

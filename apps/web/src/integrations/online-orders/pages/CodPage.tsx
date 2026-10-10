@@ -49,7 +49,7 @@ export default function CodPage() {
       subtitle="Cash on delivery ka paisa kahan hai — courier-wise. Settlement sheet aaye to orders chun kar 'mil gaya' karein."
       actions={<Link to="/online-store/couriers"><Btn icon={<Truck className="h-4 w-4" />}>Couriers jorein</Btn></Link>}>
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />)}</div>
+        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />)}</div>
       ) : error || !data ? (
         <Card><EmptyState title="Hisaab nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
       ) : (
@@ -68,7 +68,7 @@ export default function CodPage() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[640px] text-[0.8125rem]">
-                  <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+                  <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
                     <tr>
                       <th className="px-4 py-2 sm:px-5">Courier</th>
                       <th className="px-3 py-2 text-right">Raste me</th>
@@ -77,10 +77,10 @@ export default function CodPage() {
                       <th className="px-4 py-2 text-right sm:px-5">RTO (30 din)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                     {data.couriers.map((c) => (
-                      <tr key={c.code} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                        <td className="px-4 py-2.5 font-semibold text-slate-900 dark:text-white sm:px-5">{c.name}</td>
+                      <tr key={c.code} className="hover:bg-slate-50 dark:hover:bg-ink-800/30">
+                        <td className="px-4 py-2.5 font-semibold text-slate-900 dark:text-ink-white sm:px-5">{c.name}</td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{rs(c.inTransitValue)} <span className="text-slate-400">· {c.inTransit}</span></td>
                         <td className={cn('px-3 py-2.5 text-right tabular-nums', c.withCourierValue > 0 && 'font-semibold text-orange-700 dark:text-orange-300')}>
                           {rs(c.withCourierValue)} <span className="font-normal text-slate-400">· {c.withCourier}</span>
@@ -121,12 +121,12 @@ export default function CodPage() {
               </div>
             )}
 
-            <div className="mt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
               {rows.length === 0 ? (
                 <EmptyState icon={<CheckCircle2 className="h-5 w-5" />} title="Kisi courier ke paas paisa nahi atka">Deliver hue sab COD orders ka paisa aa chuka hai.</EmptyState>
               ) : (
-                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                  <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
+                <ul className="divide-y divide-slate-100 dark:divide-ink-800">
+                  <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 sm:px-5">
                     <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chuno"
                       checked={rows.length > 0 && rows.every((r) => picked.has(r.id))}
                       onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} />
@@ -137,19 +137,19 @@ export default function CodPage() {
                   </li>
                   {rows.map((o) => (
                     <li key={o.id}>
-                      <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 sm:px-5">
+                      <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-ink-800/40 sm:px-5">
                         <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(o.id)} onChange={() => toggle(o.id)} />
-                        <Link to={`/online-orders?order=${o.id}`} onClick={(e) => e.stopPropagation()} className="w-20 text-[0.8125rem] font-semibold text-slate-900 hover:underline dark:text-white">
+                        <Link to={`/online-orders?order=${o.id}`} onClick={(e) => e.stopPropagation()} className="w-20 text-[0.8125rem] font-semibold text-slate-900 hover:underline dark:text-ink-white">
                           #{o.externalOrderNumber ?? o.externalOrderId}
                         </Link>
-                        <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-600 dark:text-slate-300">
+                        <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-600 dark:text-ink-300">
                           {o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ''} · {o.courier ?? '—'}{o.trackingNumber ? <span className="font-mono text-[0.75rem]"> · {o.trackingNumber}</span> : null}
                         </span>
                         <span className="hidden w-32 text-right text-[0.75rem] text-slate-500 sm:block">
                           {o.deliveredAt ? whenText(o.deliveredAt) : '—'}
                           {o.daysWaiting !== null && o.daysWaiting >= 7 && <Badge tone="warning" className="ml-1">{o.daysWaiting} din</Badge>}
                         </span>
-                        <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-white">{rs(o.total)}</span>
+                        <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-ink-white">{rs(o.total)}</span>
                       </label>
                     </li>
                   ))}

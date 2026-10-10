@@ -218,7 +218,7 @@ export default function TagsPage() {
       {showTeacher && <TagsTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 dark:from-slate-950 dark:via-pink-950 dark:to-rose-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-rose-700 dark:from-ink-950 dark:via-pink-950 dark:to-rose-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-pink-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl pointer-events-none" />
 
@@ -326,7 +326,7 @@ export default function TagsPage() {
             </div>
             <button
               onClick={() => setShowBulkImport(true)}
-              className="text-xs font-extrabold text-pink-700 dark:text-pink-300 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-pink-300 dark:border-pink-500/40 hover:border-pink-400 transition"
+              className="text-xs font-extrabold text-pink-700 dark:text-pink-300 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-pink-300 dark:border-pink-500/40 hover:border-pink-400 transition"
             >
               <Import className="h-3 w-3" /> Bulk Import <ChevronRight className="h-3 w-3" />
             </button>
@@ -347,7 +347,7 @@ export default function TagsPage() {
           {availablePresets.length > 20 && (
             <button
               onClick={() => setShowBulkImport(true)}
-              className="mt-3 w-full py-2 rounded-xl bg-white/80 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border-2 border-pink-200 dark:border-pink-500/30 text-xs font-extrabold text-pink-700 dark:text-pink-300 transition"
+              className="mt-3 w-full py-2 rounded-xl bg-white/80 dark:bg-ink-800/60 hover:bg-white dark:hover:bg-ink-800 border-2 border-pink-200 dark:border-pink-500/30 text-xs font-extrabold text-pink-700 dark:text-pink-300 transition"
             >
               + {availablePresets.length - 20} aur tags — Bulk Import kholo
             </button>
@@ -357,7 +357,7 @@ export default function TagsPage() {
 
       {/* ═══ TOP TAGS ═══ */}
       {topTags.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-pink-200 dark:border-pink-500/30 shadow-sm overflow-hidden">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-pink-200 dark:border-pink-500/30 shadow-sm overflow-hidden">
           <div className="px-5 py-4 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-500/10 dark:to-rose-500/10 border-b-2 border-pink-200 dark:border-pink-500/30">
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
@@ -367,7 +367,7 @@ export default function TagsPage() {
               </div>
             </div>
           </div>
-          <div className="divide-y divide-pink-100 dark:divide-slate-800">
+          <div className="divide-y divide-pink-100 dark:divide-ink-800">
             {topTags.map((t, idx) => {
               const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-pink-500', 'bg-rose-500'];
               return (
@@ -385,7 +385,7 @@ export default function TagsPage() {
                   <div className="flex-1" />
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-pink-700 dark:text-pink-400 text-lg tabular-nums">{t._count?.products ?? 0}</div>
-                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">products</div>
                   </div>
                 </div>
               );
@@ -395,7 +395,7 @@ export default function TagsPage() {
       )}
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -404,10 +404,10 @@ export default function TagsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Tag dhundo... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-500/30 transition"
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:focus:ring-pink-500/30 transition"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -415,14 +415,14 @@ export default function TagsPage() {
 
           <button
             onClick={exportCSV}
-            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-500/50 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition"
+            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-pink-300 dark:hover:border-pink-500/50 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition"
           >
             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
           </button>
         </div>
 
         <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
             {([
               { v: 'all' as FilterMode, l: 'Sab', c: stats.total },
               { v: 'used' as FilterMode, l: 'In Use', c: stats.used },
@@ -432,10 +432,10 @@ export default function TagsPage() {
                 key={o.v}
                 onClick={() => setFilter(o.v)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  filter === o.v ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  filter === o.v ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
-                {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>
               </button>
             ))}
           </div>
@@ -446,23 +446,23 @@ export default function TagsPage() {
             </button>
           )}
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} tags
           </div>
         </div>
       </section>
 
       {/* ═══ TAGS CLOUD ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
         {filtered.length === 0 ? (
           <div className="text-center py-12">
             <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-500/20 dark:to-rose-500/20 flex items-center justify-center">
               <Hash className="h-9 w-9 text-pink-600 dark:text-pink-400" />
             </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Kuch nahi mila' : 'Abhi koi tag nahi'}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
               {hasFilters
                 ? 'Filter change kar ke dekho'
                 : 'Tags flexible labels hain — "Bestseller", "New", "Sale" jo bhi chaho. Ek product pe kai tags lag sakte hain!'}
@@ -503,13 +503,13 @@ export default function TagsPage() {
               >
                 <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
                 <span className="text-sm font-extrabold" style={{ color: t.color }}>{t.name}</span>
-                <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 bg-white/70 dark:bg-slate-800/80 rounded-full px-1.5 py-0.5 tabular-nums">
+                <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 bg-white/70 dark:bg-ink-800/80 rounded-full px-1.5 py-0.5 tabular-nums">
                   {t._count?.products ?? 0}
                 </span>
                 <div className="flex opacity-0 group-hover:opacity-100 transition">
                   <button
                     onClick={() => openEdit(t)}
-                    className="h-7 w-7 rounded-full hover:bg-white/70 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                    className="h-7 w-7 rounded-full hover:bg-white/70 dark:hover:bg-ink-700 flex items-center justify-center transition"
                     title="Edit"
                   >
                     <Edit3 className="h-3 w-3" style={{ color: t.color }} />
@@ -535,38 +535,38 @@ export default function TagsPage() {
           onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl max-h-[92vh] flex flex-col"
+            className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-500/10 dark:to-rose-500/10 flex items-center justify-between gap-3">
+            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-500/10 dark:to-rose-500/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-lg shrink-0">
                   <Import className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white truncate">
+                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-ink-white truncate">
                     {industryPresets.industryEmoji} Bulk Import — {industryPresets.industryName}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                  <p className="text-xs text-slate-600 dark:text-ink-400 font-semibold">
                     {selectedPresets.size} of {availablePresets.length} selected
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}
-                className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center shrink-0 transition"
+                className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center shrink-0 transition"
               >
-                <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                <X className="h-5 w-5 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
 
-            <div className="shrink-0 px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+            <div className="shrink-0 px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-2 flex-wrap">
               <div className="flex gap-2">
                 <button onClick={() => setSelectedPresets(new Set(availablePresets.map((p) => p.name)))} className="text-xs font-extrabold text-pink-700 dark:text-pink-400 hover:underline">Sab select</button>
-                <span className="text-slate-300 dark:text-slate-600">•</span>
-                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-slate-400 hover:underline">Kuch nahi</button>
+                <span className="text-slate-300 dark:text-ink-600">•</span>
+                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-ink-400 hover:underline">Kuch nahi</button>
               </div>
-              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
+              <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
@@ -598,10 +598,10 @@ export default function TagsPage() {
               </div>
             </div>
 
-            <div className="shrink-0 px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center justify-between gap-2 flex-wrap">
+            <div className="shrink-0 px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 flex items-center justify-between gap-2 flex-wrap">
               <div className="text-sm">
-                <div className="font-extrabold text-slate-900 dark:text-white">{selectedPresets.size} tags selected</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Duplicate auto skip ho jayenge</div>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedPresets.size} tags selected</div>
+                <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Duplicate auto skip ho jayenge</div>
               </div>
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>Cancel</Button>
@@ -626,7 +626,7 @@ export default function TagsPage() {
           onClick={close}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-md max-h-[92vh] flex flex-col"
+            className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-md max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && form.name.trim() && !saveMutation.isPending) {
@@ -635,18 +635,18 @@ export default function TagsPage() {
               }
             }}
           >
-            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/30 shrink-0">
                   {editing ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white truncate">{editing ? 'Tag Edit Karo' : 'Naya Tag'}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Naam + color, bas!</p>
+                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-ink-white truncate">{editing ? 'Tag Edit Karo' : 'Naya Tag'}</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Naam + color, bas!</p>
                 </div>
               </div>
-              <button onClick={close} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center shrink-0 transition">
-                <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+              <button onClick={close} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center shrink-0 transition">
+                <X className="h-5 w-5 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
 
@@ -659,8 +659,8 @@ export default function TagsPage() {
               />
 
               <div>
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-                  <Palette className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                <label className="text-sm font-bold text-slate-700 dark:text-ink-300 mb-2 flex items-center gap-1.5">
+                  <Palette className="h-3.5 w-3.5 text-slate-500 dark:text-ink-400" />
                   Color
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -671,7 +671,7 @@ export default function TagsPage() {
                       onClick={() => setForm({ ...form, color: c })}
                       className={`h-11 rounded-xl border-2 transition shadow-sm ${
                         form.color === c
-                          ? 'border-slate-900 dark:border-white scale-110 shadow-lg ring-2 ring-slate-300 dark:ring-slate-600'
+                          ? 'border-slate-900 dark:border-ink-white scale-110 shadow-lg ring-2 ring-slate-300 dark:ring-ink-600'
                           : 'border-transparent hover:scale-105'
                       }`}
                       style={{ backgroundColor: c }}
@@ -683,21 +683,21 @@ export default function TagsPage() {
                     type="color"
                     value={form.color}
                     onChange={(e) => setForm({ ...form, color: e.target.value })}
-                    className="h-10 w-16 rounded-xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800"
+                    className="h-10 w-16 rounded-xl border-2 border-slate-200 dark:border-ink-700 cursor-pointer bg-white dark:bg-ink-800"
                   />
                   <input
                     type="text"
                     value={form.color}
                     onChange={(e) => setForm({ ...form, color: e.target.value })}
-                    className="h-10 flex-1 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-pink-500 transition"
+                    className="h-10 flex-1 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-pink-500 transition"
                     placeholder="#16a34a"
                   />
                 </div>
               </div>
 
               {/* Live preview */}
-              <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-800/30 border-2 border-slate-200 dark:border-slate-700 p-4">
-                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-2 flex items-center gap-1">
+              <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-800/30 border-2 border-slate-200 dark:border-ink-700 p-4">
+                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold mb-2 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Live Preview
                 </div>
                 <div
@@ -715,7 +715,7 @@ export default function TagsPage() {
               </div>
             </div>
 
-            <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+            <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
               <Button variant="secondary" onClick={close} className="flex-1">Cancel</Button>
               <Button
                 onClick={submitForm}
@@ -758,20 +758,20 @@ function TagsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-500/15 dark:to-rose-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Tags — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Tag = chhota sa sticker label</strong> jo product pe chipka do — "Bestseller", "Sale",
             "New", "Imported". Ek product pe <strong>jitne chaho tags</strong> lag sakte hain.
           </p>
@@ -781,20 +781,20 @@ function TagsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-pink-700 dark:text-pink-300">
               🎯 Tag vs Category vs Brand — Sab Se Bara Confusion Clear!
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-pink-200 dark:border-pink-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-pink-200 dark:border-pink-500/30 p-2">
                 🗂️ <strong>Category</strong> = cheez <em>kya</em> hai — "Dairy", "Shoes" (ek product ki <strong>ek</strong> category)
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-pink-200 dark:border-pink-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-pink-200 dark:border-pink-500/30 p-2">
                 🏢 <strong>Brand</strong> = <em>kis company</em> ki hai — "Nestlé", "Bata" (ek product ka <strong>ek</strong> brand)
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-pink-200 dark:border-pink-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-pink-200 dark:border-pink-500/30 p-2">
                 🏷️ <strong>Tag</strong> = <em>koi bhi</em> nishani — "Sale", "Bestseller", "Winter" (<strong>kai tags</strong> ek product pe!)
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>Kab use karein?</strong> — "Sale wale sab products dikhao" ya "Nayi cheezein alag karo" ke liye</TipRow>
             <TipRow><strong>⚡ Ready-made list</strong> — industry ke popular tags pehle se hain, click karo bas</TipRow>
             <TipRow><strong>🗑️ Delete safe hai</strong> — tag delete ho to products kharab NAHI hote, bas sticker hat jata hai</TipRow>
@@ -842,18 +842,18 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-pink-500 dark:border-pink-500/60 ring-2 ring-pink-200 dark:ring-pink-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

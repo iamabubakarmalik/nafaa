@@ -78,7 +78,7 @@ export function PtaStatusSelect({
     <div className="space-y-2.5">
       {label && (
         <div className="flex items-center justify-between gap-2">
-          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">
             {label}
           </label>
           <a
@@ -111,13 +111,13 @@ export function PtaStatusSelect({
                 compact ? 'p-1.5' : 'p-2.5',
                 active
                   ? `${colors.bg} ${colors.border} shadow-md scale-105 dark:brightness-125`
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500',
+                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-slate-400 dark:hover:border-ink-500',
               ].join(' ')}
             >
               {compact ? (
                 <>
-                  <Icon className={`h-3.5 w-3.5 ${active ? colors.text : 'text-slate-400 dark:text-slate-500'}`} />
-                  <span className={`text-[0.625rem] font-extrabold leading-tight ${active ? colors.text : 'text-slate-600 dark:text-slate-400'}`}>
+                  <Icon className={`h-3.5 w-3.5 ${active ? colors.text : 'text-slate-400 dark:text-ink-500'}`} />
+                  <span className={`text-[0.625rem] font-extrabold leading-tight ${active ? colors.text : 'text-slate-600 dark:text-ink-400'}`}>
                     {PTA_STATUS_LABELS[status].split(' ')[0]}
                   </span>
                 </>
@@ -125,7 +125,7 @@ export function PtaStatusSelect({
                 <>
                   <div className="text-xl leading-none">{EMOJIS[status]}</div>
                   <div className="min-w-0 w-full">
-                    <div className={`text-[0.6875rem] font-extrabold uppercase tracking-wider leading-tight ${active ? colors.text : 'text-slate-700 dark:text-slate-200'}`}>
+                    <div className={`text-[0.6875rem] font-extrabold uppercase tracking-wider leading-tight ${active ? colors.text : 'text-slate-700 dark:text-ink-200'}`}>
                       {PTA_STATUS_LABELS[status]}
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export function PtaStatusSelect({
       </div>
 
       {hint && (
-        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold flex items-start gap-1">
+        <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold flex items-start gap-1">
           <Info className="h-3 w-3 shrink-0 mt-0.5" />
           {hint}
         </p>
@@ -163,13 +163,13 @@ export function PtaStatusSelect({
 
       {/* Tax paid field — shown when APPROVED or PATCH */}
       {showTaxField && (value === 'APPROVED' || value === 'PATCH') && onTaxPaidChange && (
-        <div className="pt-3 border-t-2 border-slate-100 dark:border-slate-800">
-          <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+        <div className="pt-3 border-t-2 border-slate-100 dark:border-ink-800">
+          <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1.5">
             <DollarSign className="h-3 w-3 inline mr-0.5" />
             PTA Tax Paid (PKR)
           </label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-500 dark:text-slate-400">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-500 dark:text-ink-400">
               Rs
             </span>
             <input
@@ -179,10 +179,10 @@ export function PtaStatusSelect({
               value={taxPaid ?? ''}
               onChange={(e) => onTaxPaidChange(Number(e.target.value) || 0)}
               placeholder="0"
-              className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+              className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
             />
           </div>
-          <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-1 flex items-start gap-1">
+          <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold mt-1 flex items-start gap-1">
             <Info className="h-3 w-3 shrink-0 mt-0.5" />
             Warranty aur customer records ke liye rakha jayega
           </p>

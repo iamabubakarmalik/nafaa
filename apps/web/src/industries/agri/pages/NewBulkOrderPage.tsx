@@ -375,8 +375,8 @@ export default function NewBulkOrderPage() {
                     <Tractor className="h-5 w-5" />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white truncate">{farmer.fullName}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{farmer.fullName}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                       {farmer.farmerNumber}{farmer.phone ? ` · ${farmer.phone}` : ''}
                       {farmer.village ? ` · ${farmer.village}` : ''}
                     </div>
@@ -387,7 +387,7 @@ export default function NewBulkOrderPage() {
                   }} className="text-xs font-extrabold text-emerald-600 hover:underline shrink-0">Badlein</button>
                 </div>
                 {Number(farmer.currentBalance) > 0 && (
-                  <div className="mt-2 rounded-xl bg-white dark:bg-slate-800 px-2.5 py-1.5 text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">
+                  <div className="mt-2 rounded-xl bg-white dark:bg-ink-800 px-2.5 py-1.5 text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400">
                     Purana udhaar {formatPKR(farmer.currentBalance)}
                     {Number(farmer.creditLimit) > 0 && ` · hadd ${formatPKR(farmer.creditLimit)}`}
                   </div>
@@ -402,7 +402,7 @@ export default function NewBulkOrderPage() {
             ) : (
               <>
                 <button onClick={() => setShowFarmerPicker((v) => !v)}
-                  className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-extrabold text-slate-600 dark:text-slate-300 hover:border-emerald-400 inline-flex items-center justify-center gap-2 transition">
+                  className="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 dark:text-ink-300 hover:border-emerald-400 inline-flex items-center justify-center gap-2 transition">
                   <Search className="h-4 w-4" /> Register shuda farmer dhoondein
                 </button>
                 {showFarmerPicker && (
@@ -423,10 +423,10 @@ export default function NewBulkOrderPage() {
                             });
                             setShowFarmerPicker(false);
                           }}
-                          className="w-full px-3 py-2 flex items-center gap-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-left transition">
+                          className="w-full px-3 py-2 flex items-center gap-2 rounded-lg hover:bg-white dark:hover:bg-ink-800 text-left transition">
                           <Tractor className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                           <span className="flex-1 min-w-0">
-                            <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{f.fullName}</span>
+                            <span className="block text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">{f.fullName}</span>
                             <span className="block text-[0.6875rem] font-bold text-slate-500 truncate">
                               {f.farmerNumber} · {f.village || f.district || 'Gaon nahi'}
                               {f.landAreaAcres ? ` · ${f.landAreaAcres} acre` : ''}
@@ -483,7 +483,7 @@ export default function NewBulkOrderPage() {
                   className={`h-9 px-3 rounded-xl border-2 text-xs font-extrabold transition ${
                     form.cropTarget === c
                       ? 'border-lime-500 bg-lime-50 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-lime-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-lime-400'
                   }`}>🌾 {c}</button>
               ))}
             </div>
@@ -517,9 +517,9 @@ export default function NewBulkOrderPage() {
               </div>
             }>
             {items.length === 0 ? (
-              <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+              <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-8 text-center">
                 <Package className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-                <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Abhi koi cheez nahi</p>
+                <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Abhi koi cheez nahi</p>
                 <p className="text-xs font-bold text-slate-400 mt-1">
                   "Maal se" dabayein — stock, rate aur bori ka hisab khud aa jayega
                 </p>
@@ -542,7 +542,7 @@ export default function NewBulkOrderPage() {
                   jayega, magar delivery se pehle mangwani parengi:
                   <div className="mt-1 flex flex-wrap gap-1">
                     {shortItems.map((it, n) => (
-                      <span key={n} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-extrabold">
+                      <span key={n} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-ink-800 text-[0.6875rem] font-extrabold">
                         {it.productName} — chahiye {fmtQty(it.quantity)}, hai {fmtQty(it.stock ?? 0)}
                       </span>
                     ))}
@@ -559,8 +559,8 @@ export default function NewBulkOrderPage() {
                 onChange={(e) => setForm({ ...form, isDelivery: e.target.checked })}
                 className="h-5 w-5 rounded accent-emerald-600" />
               <span className="flex-1">
-                <span className="block text-sm font-extrabold text-slate-900 dark:text-white">Haan, khet tak pahunchana hai</span>
-                <span className="block text-xs font-bold text-slate-500 dark:text-slate-400">Bori bhari hoti hai — aksar dukaan hi pahunchati hai</span>
+                <span className="block text-sm font-extrabold text-slate-900 dark:text-ink-white">Haan, khet tak pahunchana hai</span>
+                <span className="block text-xs font-bold text-slate-500 dark:text-ink-400">Bori bhari hoti hai — aksar dukaan hi pahunchati hai</span>
               </span>
             </label>
 
@@ -606,7 +606,7 @@ export default function NewBulkOrderPage() {
                 className="h-5 w-5 rounded accent-amber-600" />
               <span className="flex-1">
                 <span className="block text-sm font-extrabold text-amber-800 dark:text-amber-300">Udhaar par ja raha hai</span>
-                <span className="block text-xs font-bold text-slate-500 dark:text-slate-400">Farmer katai ke baad dega</span>
+                <span className="block text-xs font-bold text-slate-500 dark:text-ink-400">Farmer katai ke baad dega</span>
               </span>
             </label>
 
@@ -615,8 +615,8 @@ export default function NewBulkOrderPage() {
                 <Field label="Kab tak dega">
                   <input type="date" value={form.creditDueDate}
                     onChange={(e) => setForm({ ...form, creditDueDate: e.target.value })}
-                    className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
-                  <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                    className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
+                  <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                     Katai ki tareekh rakhein — usi waqt farmer ke paas paisa aata hai
                   </p>
                 </Field>
@@ -730,7 +730,7 @@ export default function NewBulkOrderPage() {
 
 /* ════════════════ CHHOTE HISSE ════════════════ */
 
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
 
 const TONES: Record<string, string> = {
   emerald: 'from-emerald-600 to-lime-700',
@@ -740,13 +740,13 @@ const TONES: Record<string, string> = {
 
 function Card({ icon: Icon, title, action, tone = 'emerald', children }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-      <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 shadow-sm overflow-hidden">
+      <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2 min-w-0">
           <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${TONES[tone]} text-white flex items-center justify-center shrink-0`}>
             <Icon className="h-4 w-4" />
           </span>
-          <h2 className="text-sm font-black text-slate-900 dark:text-white truncate">{title}</h2>
+          <h2 className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{title}</h2>
         </div>
         {action}
       </header>
@@ -758,7 +758,7 @@ function Card({ icon: Icon, title, action, tone = 'emerald', children }: any) {
 function Field({ label, opt, children }: any) {
   return (
     <label className="block">
-      <span className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <span className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400">
         {label} {opt && <span className="text-slate-400 normal-case font-bold">(marzi)</span>}
       </span>
       {children}
@@ -801,7 +801,7 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
     <div className={`rounded-2xl border-2 p-3 space-y-2.5 transition ${
       short
         ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/50 dark:bg-amber-500/5'
-        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50'
+        : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50'
     }`}>
       <div className="flex items-center gap-2">
         <span className="h-7 w-7 rounded-lg bg-emerald-600 text-white text-xs font-black flex items-center justify-center shrink-0">
@@ -809,17 +809,17 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
         </span>
         {item.productId ? (
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+            <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">
               {item.kind ? `${AGRI_KIND_EMOJI[item.kind as AgriKind]} ` : ''}{item.productName}
             </div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {item.kind ? prettyAgriKind(item.kind as AgriKind) : ''}
               {item.stock !== undefined && ` · gudaam me ${fmtQty(item.stock)} ${agriUnitLabel(item.unit)}`}
             </div>
           </div>
         ) : (
           <input value={item.productName} onChange={(e) => onChange({ productName: e.target.value })}
-            placeholder="Cheez ka naam" className="flex-1 min-w-0 h-9 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition" />
+            placeholder="Cheez ka naam" className="flex-1 min-w-0 h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition" />
         )}
         <button onClick={onRemove} title="Hata dein"
           className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-500/10 text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-500/20 flex items-center justify-center shrink-0 transition">
@@ -830,16 +830,16 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <div>
           <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Tadaad</span>
-          <div className="flex items-center rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+          <div className="flex items-center rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
             <button onClick={() => onChange({ quantity: Math.max(0.5, item.quantity - 1) })}
-              className="h-9 w-8 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center shrink-0 transition">
+              className="h-9 w-8 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center shrink-0 transition">
               <Minus className="h-3 w-3 text-slate-500" />
             </button>
             <input type="number" step="0.5" min={0} value={item.quantity}
               onChange={(e) => onChange({ quantity: Number(e.target.value) })}
-              className="h-9 w-full min-w-0 text-center text-sm font-black text-slate-900 dark:text-white bg-transparent tabular-nums focus:outline-none" />
+              className="h-9 w-full min-w-0 text-center text-sm font-black text-slate-900 dark:text-ink-white bg-transparent tabular-nums focus:outline-none" />
             <button onClick={() => onChange({ quantity: item.quantity + 1 })}
-              className="h-9 w-8 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center shrink-0 transition">
+              className="h-9 w-8 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center shrink-0 transition">
               <Plus className="h-3 w-3 text-slate-500" />
             </button>
           </div>
@@ -847,30 +847,30 @@ function ItemRow({ item, index, onChange, onRemove }: any) {
         <div>
           <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Kis hisab se</span>
           {item.productId ? (
-            <div className="h-9 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 px-2.5 flex items-center text-xs font-black text-slate-600 dark:text-slate-300 truncate">
+            <div className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-slate-100 dark:bg-ink-800 px-2.5 flex items-center text-xs font-black text-slate-600 dark:text-ink-300 truncate">
               {agriUnitLabel(item.unit)}
             </div>
           ) : (
             <input value={item.unit} onChange={(e) => onChange({ unit: e.target.value })}
               placeholder="bori"
-              className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition" />
+              className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition" />
           )}
         </div>
         <div>
           <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Rate</span>
           <input type="number" min={0} value={item.pricePerUnit}
             onChange={(e) => onChange({ pricePerUnit: Number(e.target.value) })}
-            className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-sm font-black text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-emerald-500 transition" />
+            className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-sm font-black text-slate-900 dark:text-ink-white tabular-nums focus:outline-none focus:border-emerald-500 transition" />
         </div>
         <div>
           <span className="block mb-0.5 text-[0.625rem] font-black uppercase text-slate-400">Chhoot</span>
           <input type="number" min={0} value={item.discount}
             onChange={(e) => onChange({ discount: Number(e.target.value) })}
-            className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-sm font-black text-amber-600 tabular-nums focus:outline-none focus:border-amber-500 transition" />
+            className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-sm font-black text-amber-600 tabular-nums focus:outline-none focus:border-amber-500 transition" />
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-slate-200 dark:border-slate-700">
+      <div className="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-slate-200 dark:border-ink-700">
         <div className="flex items-center gap-1.5 flex-wrap min-w-0">
           {packSize > 0 && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-500/15 text-[0.6875rem] font-black text-sky-700 dark:text-sky-300">
@@ -903,7 +903,7 @@ function PickerModal({ list, search, setSearch, searchRef, acres, crop, onPick, 
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-3xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-3xl max-h-[90vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-4 bg-gradient-to-r from-emerald-600 to-lime-700 text-white shrink-0">
           <div className="flex items-center justify-between gap-2 mb-3">
             <h3 className="text-base font-black inline-flex items-center gap-2">
@@ -938,14 +938,14 @@ function PickerModal({ list, search, setSearch, searchRef, acres, crop, onPick, 
               className={`w-full p-3 rounded-2xl border-2 flex items-center gap-3 text-left transition ${
                 p.blocked
                   ? 'border-rose-200 dark:border-rose-500/30 bg-rose-50/60 dark:bg-rose-500/5 opacity-75'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/5'
               }`}>
-              <span className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-lg shrink-0">
+              <span className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-700 flex items-center justify-center text-lg shrink-0">
                 {AGRI_KIND_EMOJI[p.kind as AgriKind]}
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{p.name}</span>
-                <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                <span className="block text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">{p.name}</span>
+                <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                   {p.categoryName || prettyAgriKind(p.kind)}
                   {p.packSize > 0 && ` · 1 ${agriUnitLabel(p.unit)} = ${p.packSize} ${p.packUnit}`}
                   {p.crops.length > 0 && ` · ${p.crops.slice(0, 3).join(', ')}`}
@@ -953,7 +953,7 @@ function PickerModal({ list, search, setSearch, searchRef, acres, crop, onPick, 
                 <span className="mt-1 flex flex-wrap gap-1">
                   <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-black ${
                     p.stock <= 0 ? 'bg-rose-100 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                   }`}>
                     Stock {fmtQty(p.stock)}
                   </span>
@@ -995,17 +995,17 @@ function BlockedModal({ p, onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+        className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
         <div className="p-5 bg-gradient-to-br from-rose-600 to-red-700 text-white text-center">
           <ShieldAlert className="h-12 w-12 mx-auto mb-2" />
           <h3 className="text-lg font-black">Ye cheez nahi bik sakti</h3>
         </div>
         <div className="p-5 space-y-3">
-          <p className="text-sm font-extrabold text-slate-900 dark:text-white text-center">{p.name}</p>
+          <p className="text-sm font-extrabold text-slate-900 dark:text-ink-white text-center">{p.name}</p>
           <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3">
             <p className="text-[0.75rem] font-bold text-rose-800 dark:text-rose-300">{p.cert.text}</p>
           </div>
-          <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400">
+          <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400">
             {p.kind === 'FERTILIZER' || String(p.kind).includes('SEED')
               ? 'Seed Act ke tehat meyaad khatam hone ke baad bechna ghair-qanooni hai.'
               : 'Agricultural Pesticides Ordinance ke tehat meyaad khatam hone ke baad bechna ghair-qanooni hai.'}
@@ -1017,7 +1017,7 @@ function BlockedModal({ p, onClose }: any) {
               <CheckCircle2 className="h-4 w-4" /> Renew karein
             </Link>
             <button onClick={onClose}
-              className="h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-black transition">
+              className="h-11 px-4 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 text-sm font-black transition">
               Theek hai
             </button>
           </div>
@@ -1032,7 +1032,7 @@ function Teacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -1055,17 +1055,17 @@ function Teacher({ onClose }: any) {
             { i: Truck, t: 'Delivery', d: 'Bori bhari hoti hai, aksar dukaan hi khet tak pahunchati hai. Gaari aur kiraya likh dein taake baad me jhagra na ho.' },
             { i: Calendar, t: 'Udhaar ki tareekh', d: 'Katai ki tareekh rakhein — usi waqt farmer ke paas paisa aata hai. Agar udhaar ki hadd tut rahi ho to laal nishan aa jayega.' },
           ].map((s, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-600 to-lime-700 text-white flex items-center justify-center shrink-0">
                 <s.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{s.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['A', 'Maal chunein'], ['G', 'Ye safha'], ['Esc', 'Band karein']].map(([k, l]) => (
@@ -1076,7 +1076,7 @@ function Teacher({ onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-emerald-600 to-lime-700">
             Samajh gaya
           </Button>

@@ -110,21 +110,21 @@ export default function CatalogPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
         </div>
 
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setBusinessFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (businessFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (businessFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Business</button>
           {BUSINESS_TYPES.map((b) => (
             <button key={b.value} onClick={() => setBusinessFilter(b.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (businessFilter === b.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (businessFilter === b.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{b.emoji} {b.label}</button>
           ))}
         </div>
@@ -132,12 +132,12 @@ export default function CatalogPage() {
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setCategoryFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (categoryFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Categories</button>
           {CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (categoryFilter === c.value ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{c.emoji} {c.label}</button>
           ))}
         </div>
@@ -151,7 +151,7 @@ export default function CatalogPage() {
           ].map((t) => (
             <button key={t.v} onClick={() => setTagFilter(t.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === t.v ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === t.v ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.label}</button>
           ))}
         </div>
@@ -167,10 +167,10 @@ export default function CatalogPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : services.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Wrench className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No services yet</p>
           <Button className="mt-4 bg-gradient-to-r from-cyan-600 to-blue-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -200,8 +200,8 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (service.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+      (service.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="relative aspect-video bg-gradient-to-br from-cyan-500 via-blue-600 to-cyan-700 overflow-hidden">
         {service.imageUrl ? (
@@ -242,7 +242,7 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
       <div className="p-4 space-y-2">
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{service.name}</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{service.name}</h3>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             {biz && <span className="text-[0.6875rem] font-extrabold uppercase text-cyan-600">{biz.emoji} {biz.label}</span>}
             {cat && <span className="text-[0.6875rem] font-bold text-slate-500">• {cat.label}</span>}
@@ -270,7 +270,7 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
           )}
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{service.chargeType.replace('_', ' ')}</div>
             <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
@@ -280,7 +280,7 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
           {service.totalJobs > 0 && (
             <div className="text-right">
               <div className="text-[0.6875rem] font-extrabold text-slate-500">Total Jobs</div>
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white">{service.totalJobs}</div>
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{service.totalJobs}</div>
             </div>
           )}
         </div>
@@ -344,7 +344,7 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Service' : 'New Service'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -353,21 +353,21 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Service Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Service Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
           </select>
-          <select value={form.businessType} onChange={(e) => setForm({ ...form, businessType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+          <select value={form.businessType} onChange={(e) => setForm({ ...form, businessType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
             <option value="">-- Business Type --</option>
             {BUSINESS_TYPES.map((b) => <option key={b.value} value={b.value}>{b.emoji} {b.label}</option>)}
           </select>
-          <select value={form.requiredSkillLevel} onChange={(e) => setForm({ ...form, requiredSkillLevel: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+          <select value={form.requiredSkillLevel} onChange={(e) => setForm({ ...form, requiredSkillLevel: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
             <option value="APPRENTICE">Apprentice</option>
             <option value="JUNIOR">Junior</option>
             <option value="SENIOR">Senior</option>
@@ -388,7 +388,7 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
               {CHARGE_TYPES.map((c) => (
                 <button key={c.value} onClick={() => setForm({ ...form, chargeType: c.value })} className={
                   'p-2 rounded-lg border-2 text-center text-xs font-extrabold ' +
-                  (form.chargeType === c.value ? 'border-emerald-500 bg-white dark:bg-emerald-950/40 text-emerald-800 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600')
+                  (form.chargeType === c.value ? 'border-emerald-500 bg-white dark:bg-emerald-950/40 text-emerald-800 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600')
                 }>
                   <div className="text-lg">{c.emoji}</div>
                   {c.label}
@@ -472,28 +472,28 @@ function ServiceForm({ editing, onClose, onSaved }: any) {
 
         {/* Flags */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isFeatured ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isFeatured ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
             <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Featured</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isPopular ? 'border-red-500 bg-red-50' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isPopular ? 'border-red-500 bg-red-50' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.isPopular} onChange={(e) => setForm({ ...form, isPopular: e.target.checked })} className="h-4 w-4 rounded" />
             <Flame className={'h-4 w-4 ' + (form.isPopular ? 'text-red-600' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Popular</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isEmergency ? 'border-red-600 bg-red-50' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isEmergency ? 'border-red-600 bg-red-50' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.isEmergency} onChange={(e) => setForm({ ...form, isEmergency: e.target.checked })} className="h-4 w-4 rounded" />
             <Zap className={'h-4 w-4 ' + (form.isEmergency ? 'text-red-600' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Emergency</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.requiresQuote ? 'border-blue-500 bg-blue-50' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.requiresQuote ? 'border-blue-500 bg-blue-50' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.requiresQuote} onChange={(e) => setForm({ ...form, requiresQuote: e.target.checked })} className="h-4 w-4 rounded" />
             <span className="text-xs font-extrabold">Quote Required</span>
           </label>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
             <Save className="h-4 w-4" />

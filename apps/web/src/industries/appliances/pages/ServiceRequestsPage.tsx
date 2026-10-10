@@ -311,13 +311,13 @@ export default function ServiceRequestsPage() {
 
       {/* ═══ TABS ═══ */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
           <TabBtn active={tab === 'queue'} onClick={() => setTab('queue')} icon={ListChecks} label="Kaam" badge={summary?.open} />
           <TabBtn active={tab === 'all'} onClick={() => setTab('all')} icon={History} label="Poora Record" />
           <TabBtn active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={BarChart3} label="Analytics" />
         </div>
         {tab !== 'analytics' && (
-          <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
+          <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">
             {tab === 'queue' ? `${queue.length} khula kaam` : `${listData?.meta?.total ?? 0} records`}
           </div>
         )}
@@ -341,7 +341,7 @@ export default function ServiceRequestsPage() {
                     onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                   />
                   {search && (
-                    <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                    <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                       <X className="h-4 w-4 text-slate-400" />
                     </button>
                   )}
@@ -351,7 +351,7 @@ export default function ServiceRequestsPage() {
                   className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                     showFilters || hasFilters
                       ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-cyan-300'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-cyan-300'
                   }`}
                 >
                   <Filter className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
@@ -362,7 +362,7 @@ export default function ServiceRequestsPage() {
                   className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                     unpaidOnly
                       ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-300'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-rose-300'
                   }`}
                   title="Sirf wo jin ka paisa baqi hai"
                 >
@@ -373,7 +373,7 @@ export default function ServiceRequestsPage() {
               {showFilters && (
                 <Panel className="space-y-3">
                   <div>
-                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Halat</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Halat</div>
                     <ChipRow
                       options={SERVICE_STATUS_ORDER.map((s) => ({
                         value: s, label: svcStatusMeta(s).label, emoji: svcStatusMeta(s).emoji,
@@ -383,7 +383,7 @@ export default function ServiceRequestsPage() {
                     />
                   </div>
                   <div>
-                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Kaam ki qism</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Kaam ki qism</div>
                     <ChipRow
                       options={SERVICE_TYPE_ORDER.map((s) => ({
                         value: s, label: svcTypeMeta(s).label, emoji: svcTypeMeta(s).emoji,
@@ -393,7 +393,7 @@ export default function ServiceRequestsPage() {
                     />
                   </div>
                   <div>
-                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Priority</div>
+                    <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Priority</div>
                     <ChipRow
                       options={PRIORITY_ORDER.map((s) => ({
                         value: s, label: prioMeta(s).label, emoji: prioMeta(s).emoji,
@@ -429,7 +429,7 @@ export default function ServiceRequestsPage() {
           {/* ═══ LIST ═══ */}
           {loading ? (
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+              {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : rows.length === 0 ? (
             <Empty
@@ -460,19 +460,19 @@ export default function ServiceRequestsPage() {
 
           {/* ═══ PAGINATION ═══ */}
           {tab === 'all' && listData && listData.meta.totalPages > 1 && (
-            <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-slate-900/80 rounded-2xl border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4">
-              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">
-                Page <strong className="text-slate-900 dark:text-white">{listData.meta.page}</strong> / <strong className="text-slate-900 dark:text-white">{listData.meta.totalPages}</strong>
+            <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-ink-900/80 rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4">
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-400 font-bold">
+                Page <strong className="text-slate-900 dark:text-ink-white">{listData.meta.page}</strong> / <strong className="text-slate-900 dark:text-ink-white">{listData.meta.totalPages}</strong>
                 <span className="opacity-50 mx-1">•</span>
-                <strong className="text-slate-900 dark:text-white tabular-nums">{listData.meta.total}</strong> records
+                <strong className="text-slate-900 dark:text-ink-white tabular-nums">{listData.meta.total}</strong> records
               </div>
               <div className="flex gap-2">
                 <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
                   <ChevronLeft className="h-4 w-4" /> Pehle
                 </button>
                 <button disabled={page >= listData.meta.totalPages} onClick={() => setPage((p) => p + 1)}
-                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
                   Agla <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -505,10 +505,10 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
 
   return (
     <div
-      className={`group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
+      className={`group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
         overdue ? 'border-rose-300 dark:border-rose-500/40'
           : r.priority === 'URGENT' ? 'border-orange-300 dark:border-orange-500/40'
-          : 'border-slate-200 dark:border-slate-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
+          : 'border-slate-200 dark:border-ink-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
       }`}
     >
       <button onClick={onOpen} className="block w-full text-left p-4">
@@ -523,10 +523,10 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
                 <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">LATE</span>
               )}
             </div>
-            <h3 className="mt-1 font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+            <h3 className="mt-1 font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
               {r.customerName}
             </h3>
-            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
               <Phone className="h-3 w-3" /> {r.customerPhone}
               {r.city && <><span className="opacity-40">•</span><MapPin className="h-3 w-3" />{r.city}</>}
             </div>
@@ -534,13 +534,13 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
           <StatusBadge meta={st} />
         </div>
 
-        <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
-          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
+        <div className="mt-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
+          <div className="flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200">
             <Package className="h-3.5 w-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
             <span className="truncate">{r.productName}</span>
-            <span className="ml-auto shrink-0 text-[0.6875rem] text-slate-500 dark:text-slate-400">{ty.emoji} {ty.label}</span>
+            <span className="ml-auto shrink-0 text-[0.6875rem] text-slate-500 dark:text-ink-400">{ty.emoji} {ty.label}</span>
           </div>
-          <p className="mt-1 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 line-clamp-2">
+          <p className="mt-1 text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 line-clamp-2">
             {r.reportedIssue}
           </p>
         </div>
@@ -565,7 +565,7 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
           </div>
         </div>
 
-        <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
           <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{fmtDate(r.requestedAt)}</span>
           {r.scheduledDate && (
             <span className={`inline-flex items-center gap-1 ${overdue ? 'text-rose-600 dark:text-rose-400' : ''}`}>
@@ -583,7 +583,7 @@ function ServiceCard({ r, onOpen }: { r: ServiceRequest; onOpen: () => void }) {
       </button>
 
       {/* Buttons hamesha nazar — hover ka intezar nahi */}
-      <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-2">
+      <div className="px-3 py-2 border-t border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between gap-2">
         <button
           onClick={(e) => { e.stopPropagation(); waMsg(); }}
           className="h-8 px-2.5 rounded-lg bg-green-100 dark:bg-green-500/15 hover:bg-green-200 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition"
@@ -605,11 +605,11 @@ function TabBtn({ active, onClick, icon: Icon, label, badge }: any) {
   return (
     <button onClick={onClick}
       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
       {badge ? (
-        <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span>
+        <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700'}`}>{badge}</span>
       ) : null}
     </button>
   );
@@ -765,7 +765,7 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
             </button>
           </div>
           {lookupNote && (
-            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-200 whitespace-pre-line">
+            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-200 whitespace-pre-line">
               {lookupNote}
             </div>
           )}
@@ -836,7 +836,7 @@ function NewServiceModal({ technicians, onClose, onCreated }: any) {
                     reportedIssue: f.reportedIssue.includes(p) ? f.reportedIssue : (f.reportedIssue ? `${f.reportedIssue}, ${p}` : p),
                     issueCategory: f.issueCategory || p,
                   }))}
-                  className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400 transition"
+                  className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400 transition"
                 >
                   + {p}
                 </button>
@@ -906,16 +906,16 @@ function ToggleRow({ on, onChange, icon, title, sub }: any) {
     <button type="button" onClick={() => onChange(!on)}
       className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition text-left ${
         on ? 'bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-500/15 dark:to-teal-500/10 border-cyan-300 dark:border-cyan-500/40'
-           : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+           : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 hover:border-slate-300'
       }`}>
       <div className="flex items-center gap-2.5 min-w-0">
         {icon}
         <div className="min-w-0">
-          <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{title}</div>
-          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>
+          <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{title}</div>
+          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold truncate">{sub}</div>
         </div>
       </div>
-      <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${on ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+      <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${on ? 'bg-cyan-500' : 'bg-slate-300 dark:bg-ink-600'}`}>
         <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${on ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
       </div>
     </button>
@@ -1059,7 +1059,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
       footer={
         <div className="flex gap-2 flex-wrap">
           <button onClick={printSlip}
-            className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+            className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-ink-700 transition">
             <Printer className="h-4 w-4" /> Parchi
           </button>
           {/* Warranty ka kaam free kiya — ab brand se paisa wapas lein */}
@@ -1157,7 +1157,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                 )}
               </div>
             ) : (
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-xs font-bold text-slate-500 dark:text-ink-400">
                 {r.status === 'COMPLETED' ? '✅ Ye kaam mukammal ho chuka hai.' : 'Yahan se aage koi qadam nahi.'}
               </p>
             )}
@@ -1230,7 +1230,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className={`h-3.5 w-3.5 ${i < r.customerRating! ? 'fill-current' : 'opacity-25'}`} />
                   ))}
-                  {r.customerFeedback && <span className="text-slate-600 dark:text-slate-300 font-semibold ml-1">"{r.customerFeedback}"</span>}
+                  {r.customerFeedback && <span className="text-slate-600 dark:text-ink-300 font-semibold ml-1">"{r.customerFeedback}"</span>}
                 </div>
               ) : null}
             </div>
@@ -1241,9 +1241,9 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
             <div className="space-y-2">
               {timeline.map((t, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
-                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDateTime(t.at)}</div>
+                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
+                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">{t.label}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 shrink-0">{fmtDateTime(t.at)}</div>
                 </div>
               ))}
               {r.completedAt && (
@@ -1259,17 +1259,17 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
             <Panel icon={History} title={`Isi customer ka purana kaam (${r.history.length})`} hint="Baar baar wohi masla to nahi?" tone="slate">
               <div className="space-y-1.5">
                 {r.history.slice(0, 8).map((h) => (
-                  <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                  <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-2.5 py-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 truncate">
                         {h.productName} — {h.issueCategory || h.reportedIssue}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+                      <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
                         {h.requestNumber} • {fmtDate(h.requestedAt)}{h.technicianName ? ` • ${h.technicianName}` : ''}
                       </div>
                     </div>
                     <StatusBadge meta={svcStatusMeta(h.status)} size="xs" />
-                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">
+                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">
                       {formatPKR(h.totalCharge)}
                     </div>
                   </div>
@@ -1280,7 +1280,7 @@ function ServiceDetailSheet({ id, technicians, shopName, shopPhone, onClose, onC
 
           {r.internalNotes && (
             <Panel icon={Pencil} title="Andaruni notes" hint="Customer ko nahi dikhte" tone="slate">
-              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{r.internalNotes}</pre>
+              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 whitespace-pre-wrap font-sans">{r.internalNotes}</pre>
             </Panel>
           )}
         </div>
@@ -1307,15 +1307,15 @@ const THERMAL_CSS_INLINE = `
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
-      <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap">{value}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-ink-500">{label}</div>
+      <div className="text-xs font-semibold text-slate-800 dark:text-ink-100 whitespace-pre-wrap">{value}</div>
     </div>
   );
 }
 
 function MiniBox({ label, value, tone = 'slate' }: { label: string; value: string; tone?: 'slate' | 'cyan' | 'emerald' | 'rose' }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
     cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
@@ -1344,14 +1344,14 @@ function AssignForm({ technicians, current, defaultDate, defaultSlot, pending, o
                 className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border-2 transition text-left ${
                   technicianId === t.id
                     ? 'bg-blue-50 dark:bg-blue-500/15 border-blue-400 dark:border-blue-500/50'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-blue-300'
                 }`}>
                 <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0">
                   {t.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{t.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{t.name}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                     {t.employeeCode}{t.currentZone ? ` • ${t.currentZone}` : ''}
                     {t.avgRating ? ` • ⭐ ${Number(t.avgRating).toFixed(1)}` : ''}
                   </div>
@@ -1361,7 +1361,7 @@ function AssignForm({ technicians, current, defaultDate, defaultSlot, pending, o
                     ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                     : (t.openJobs ?? 0) > 5
                       ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                 }`}>
                   {(t.openJobs ?? 0) === 0 ? 'Khali' : `${t.openJobs} kaam`}
                 </span>
@@ -1451,7 +1451,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
           <Field label="Parts"><input type="number" min={0} className={inputCls('h-11 font-extrabold tabular-nums')} value={f.partsCharge} onChange={(e) => set('partsCharge', e.target.value)} /></Field>
         </div>
 
-        <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3">
+        <div className="rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3">
           <div className="flex items-center justify-between text-sm font-extrabold">
             <span>Kul Bill</span>
             <span className="tabular-nums text-cyan-300">{formatPKR(total)}</span>
@@ -1499,7 +1499,7 @@ function CompleteForm({ request, pending, onCancel, onSubmit }: any) {
             {[1, 2, 3, 4, 5].map((n) => (
               <button key={n} type="button" onClick={() => set('customerRating', f.customerRating === n ? 0 : n)}
                 className="p-1 transition hover:scale-110">
-                <Star className={`h-7 w-7 ${n <= f.customerRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-slate-600'}`} />
+                <Star className={`h-7 w-7 ${n <= f.customerRating ? 'fill-amber-400 text-amber-400' : 'text-slate-300 dark:text-ink-600'}`} />
               </button>
             ))}
             {f.customerRating > 0 && (
@@ -1566,7 +1566,7 @@ function PaymentForm({ due, pending, onCancel, onSubmit }: any) {
         <div className="flex gap-1.5 flex-wrap">
           {[due, Math.round(due / 2), 1000, 500].filter((v, i, a) => v > 0 && v <= due && a.indexOf(v) === i).map((v) => (
             <button key={v} type="button" onClick={() => setAmount(String(v))}
-              className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 transition">
+              className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-amber-400 transition">
               {v === due ? `Poora ${formatPKR(v)}` : formatPKR(v)}
             </button>
           ))}
@@ -1600,7 +1600,7 @@ function CancelForm({ pending, onCancel, onSubmit }: any) {
         <div className="flex gap-1.5 flex-wrap">
           {presets.map((p) => (
             <button key={p} type="button" onClick={() => setReason(p)}
-              className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-400 transition">
+              className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-rose-400 transition">
               {p}
             </button>
           ))}
@@ -1638,9 +1638,9 @@ function ServiceAnalytics() {
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
-        <div className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -1652,12 +1652,12 @@ function ServiceAnalytics() {
     <div className="space-y-3 sm:space-y-4">
       {/* Range chips */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">Arsa</span>
         {[7, 30, 90, 365].map((d) => (
           <button key={d} onClick={() => setDays(d)}
             className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
             }`}>
             {d === 7 ? '7 din' : d === 30 ? '1 mahina' : d === 90 ? '3 mahine' : '1 saal'}
           </button>
@@ -1733,7 +1733,7 @@ function ServiceAnalytics() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[760px]">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+                <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
                   <Th className="text-left">Technician</Th>
                   <Th className="text-center">Kaam</Th>
                   <Th className="text-center">Mukammal</Th>
@@ -1746,7 +1746,7 @@ function ServiceAnalytics() {
               </thead>
               <tbody>
                 {a.technicians.map((t2) => (
-                  <tr key={t2.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                  <tr key={t2.id} className="border-b border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-2">
                         <div className={`h-8 w-8 rounded-lg flex items-center justify-center text-xs font-extrabold text-white shrink-0 ${
@@ -1755,12 +1755,12 @@ function ServiceAnalytics() {
                           {t2.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate">{t2.name}</div>
+                          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{t2.name}</div>
                           <div className="text-[0.6875rem] font-bold text-slate-400">{t2.employeeCode}{t2.zone ? ` • ${t2.zone}` : ''}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-700 dark:text-slate-200">{t2.totalJobs}</td>
+                    <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-700 dark:text-ink-200">{t2.totalJobs}</td>
                     <td className="px-3 py-2.5 text-center">
                       <span className="text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{t2.completed}</span>
                       <div className="text-[0.625rem] font-bold text-slate-400">{t2.completionRate.toFixed(0)}%</div>
@@ -1769,14 +1769,14 @@ function ServiceAnalytics() {
                       <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                         t2.open === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                           : t2.open > 5 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                       }`}>{t2.open}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">{fmtDuration(t2.avgHours)}</td>
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">{fmtDuration(t2.avgHours)}</td>
                     <td className="px-3 py-2.5 text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                       {t2.avgRating ? `⭐ ${t2.avgRating.toFixed(1)}` : '—'}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">{formatPKR(t2.revenue)}</td>
+                    <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100 whitespace-nowrap">{formatPKR(t2.revenue)}</td>
                     <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-violet-700 dark:text-violet-400 whitespace-nowrap">{formatPKR(t2.commission)}</td>
                   </tr>
                 ))}
@@ -1810,17 +1810,17 @@ function ServiceAnalytics() {
           ) : (
             <div className="space-y-1">
               {a.problemProducts.slice(0, 10).map((p, i) => (
-                <div key={p.productName} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                <div key={p.productName} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                   <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
-                    i === 0 ? 'bg-rose-500 text-white' : i < 3 ? 'bg-orange-400 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    i === 0 ? 'bg-rose-500 text-white' : i < 3 ? 'bg-orange-400 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                   }`}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{p.productName}</div>
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{p.productName}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400">
                       {p.jobs} bar kharab{p.warrantyJobs > 0 ? ` • ${p.warrantyJobs} warranty me (dukaan ka nuqsan)` : ''}
                     </div>
                   </div>
-                  <div className="text-xs font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(p.revenue)}</div>
+                  <div className="text-xs font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">{formatPKR(p.revenue)}</div>
                 </div>
               ))}
             </div>
@@ -1838,10 +1838,10 @@ function ServiceAnalytics() {
               {a.overdueJobs.map((j) => (
                 <div key={j.id} className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-2.5 py-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</span>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{j.customerName}</span>
                     <span className="text-[0.6875rem] font-black text-rose-600 dark:text-rose-400 shrink-0">{j.daysLate} din late</span>
                   </div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                     {j.requestNumber} • {j.productName}{j.technicianName ? ` • ${j.technicianName}` : ' • banda nahi laga'}
                   </div>
                 </div>
@@ -1858,15 +1858,15 @@ function ServiceAnalytics() {
               {a.pendingFollowUps.map((f) => (
                 <div key={f.id} className={`rounded-xl border px-2.5 py-2 ${
                   f.isDue ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40'
-                          : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                          : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'
                 }`}>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{f.customerName}</span>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{f.customerName}</span>
                     <span className={`text-[0.6875rem] font-black shrink-0 ${f.isDue ? 'text-amber-700 dark:text-amber-400' : 'text-slate-400'}`}>
                       {fmtDate(f.followUpDate)}
                     </span>
                   </div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                     {f.productName}{f.followUpReason ? ` — ${f.followUpReason}` : ''}
                   </div>
                 </div>
@@ -1883,10 +1883,10 @@ function ServiceAnalytics() {
               {a.amcExpiring.map((c) => (
                 <div key={c.id} className="rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 px-2.5 py-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{c.customerName}</span>
+                    <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{c.customerName}</span>
                     <span className="text-[0.6875rem] font-black text-violet-700 dark:text-violet-400 shrink-0">{c.daysLeft} din</span>
                   </div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                     {c.contractNumber} • {c.visitsLeft} visit baqi{c.pending > 0 ? ` • ${formatPKR(c.pending)} udhaar` : ''}
                   </div>
                 </div>
@@ -1904,12 +1904,12 @@ function ServiceAnalytics() {
           ) : (
             <div className="space-y-1">
               {a.repeatCustomers.map((c) => (
-                <div key={c.phone} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                <div key={c.phone} className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 text-white flex items-center justify-center font-extrabold text-xs shrink-0">
                     {c.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{c.name}</div>
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{c.name}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400">{c.phone} • {c.jobs} bar bulaya</div>
                   </div>
                   <div className="text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 shrink-0">{formatPKR(c.revenue)}</div>
@@ -1942,28 +1942,28 @@ function ServiceAnalytics() {
 function QualityBar({ label, value, hint, good }: { label: string; value: number; hint: string; good: number }) {
   const ok = value >= good;
   return (
-    <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
+    <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-3">
       <div className="flex items-center justify-between">
-        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">{label}</span>
+        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300">{label}</span>
         <span className={`text-lg font-extrabold tabular-nums ${ok ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
           {value.toFixed(0)}%
         </span>
       </div>
-      <div className="mt-2 h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+      <div className="mt-2 h-2 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${ok ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'}`}
           style={{ width: `${Math.min(value, 100)}%` }}
         />
       </div>
-      <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</div>
-      <div className="text-[0.625rem] font-bold text-slate-400 dark:text-slate-500">Acha: {good}% se upar</div>
+      <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{hint}</div>
+      <div className="text-[0.625rem] font-bold text-slate-400 dark:text-ink-500">Acha: {good}% se upar</div>
     </div>
   );
 }
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );

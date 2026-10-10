@@ -57,10 +57,10 @@ export default function SchoolsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search schools..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search schools..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
         </div>
       </section>
 
@@ -70,24 +70,24 @@ export default function SchoolsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : schools.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <SchoolIcon className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No schools yet</p>
         </div>
       ) : (
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {schools.map((s) => (
-            <div key={s.id} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+            <div key={s.id} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow overflow-hidden shrink-0">
                     {s.logoUrl ? <img src={s.logoUrl} alt="" className="w-full h-full object-cover" /> : <SchoolIcon className="h-7 w-7" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{s.name}</h3>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">{s.name}</h3>
                     <div className="flex flex-wrap gap-1 mt-0.5">
                       {s.type && <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.625rem] font-extrabold uppercase">{s.type}</span>}
                       {s.board && <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-950/40 text-blue-700 text-[0.625rem] font-extrabold uppercase">{s.board}</span>}
@@ -116,7 +116,7 @@ export default function SchoolsPage() {
                 {s.contactPhone && <div className="flex items-center gap-1 text-slate-600 font-bold"><Phone className="h-3 w-3" />{s.contactPhone}</div>}
               </div>
 
-              <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+              <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
                 <div className="text-center">
                   <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Lists</div>
                   <div className="font-extrabold text-violet-700 tabular-nums">{s._count?.bookLists || 0}</div>
@@ -179,39 +179,39 @@ function SchoolForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit School' : 'New School'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
       </div>
       <div className="p-5 space-y-3 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="School name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="School name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             {SCHOOL_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <select value={form.board} onChange={(e) => setForm({ ...form, board: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.board} onChange={(e) => setForm({ ...form, board: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="">-- Board --</option>
             {BOARDS.map((b) => <option key={b} value={b}>{b}</option>)}
           </select>
-          <select value={form.medium} onChange={(e) => setForm({ ...form, medium: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.medium} onChange={(e) => setForm({ ...form, medium: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="">-- Medium --</option>
             {MEDIUMS.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
-        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="School Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="School Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.principalName} onChange={(e) => setForm({ ...form, principalName: e.target.value })} placeholder="Principal Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} placeholder="Contact Person" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} placeholder="Contact Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.principalName} onChange={(e) => setForm({ ...form, principalName: e.target.value })} placeholder="Principal Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} placeholder="Contact Person" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} placeholder="Contact Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
         </div>
 
         <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
@@ -251,7 +251,7 @@ function SchoolForm({ editing, onClose, onSaved }: any) {
           )}
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
         <div className="flex gap-2 pt-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>

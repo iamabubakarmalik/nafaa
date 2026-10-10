@@ -133,8 +133,8 @@ export default function NewWeightOrderPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Customer */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-orange-600" />
               Customer
             </h3>
@@ -168,16 +168,16 @@ export default function NewWeightOrderPage() {
                   </div>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
-                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
                 </div>
               </>
             )}
           </section>
 
           {/* Occasion */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-fuchsia-600" />
               Occasion
             </h3>
@@ -185,16 +185,16 @@ export default function NewWeightOrderPage() {
               {OCCASIONS.map((o) => (
                 <button key={o.value} onClick={() => setForm({ ...form, occasion: o.value })} className={
                   'p-3 rounded-xl border-2 text-xs font-extrabold transition ' +
-                  (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                  (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
                 }>{o.label}</button>
               ))}
             </div>
           </section>
 
           {/* Items */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Package className="h-4 w-4 text-orange-600" />
                 Order Items ({items.length})
               </h3>
@@ -218,7 +218,7 @@ export default function NewWeightOrderPage() {
             ) : (
               <div className="space-y-2">
                 {items.map((item, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
+                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 dark:bg-ink-800/30 p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
                       <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -226,7 +226,7 @@ export default function NewWeightOrderPage() {
                       </button>
                     </div>
 
-                    <input value={item.productName} onChange={(e) => updateItem(i, { productName: e.target.value })} placeholder="Product/cut name (e.g. Mutton Ran)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+                    <input value={item.productName} onChange={(e) => updateItem(i, { productName: e.target.value })} placeholder="Product/cut name (e.g. Mutton Ran)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
 
                     <div className="grid grid-cols-3 gap-2">
                       <div>
@@ -245,7 +245,7 @@ export default function NewWeightOrderPage() {
                       </div>
                     </div>
 
-                    <textarea rows={2} value={item.cuttingInstructions || ''} onChange={(e) => updateItem(i, { cuttingInstructions: e.target.value })} placeholder="Cutting instructions (e.g. medium pieces, boti size...)" className="w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-xs font-semibold focus:outline-none focus:border-orange-500 resize-none" />
+                    <textarea rows={2} value={item.cuttingInstructions || ''} onChange={(e) => updateItem(i, { cuttingInstructions: e.target.value })} placeholder="Cutting instructions (e.g. medium pieces, boti size...)" className="w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-xs font-semibold focus:outline-none focus:border-orange-500 resize-none" />
                   </div>
                 ))}
               </div>
@@ -253,7 +253,7 @@ export default function NewWeightOrderPage() {
           </section>
 
           {/* Delivery */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={form.isDelivery} onChange={(e) => setForm({ ...form, isDelivery: e.target.checked })} className="h-5 w-5 rounded" />
               <Truck className={'h-5 w-5 ' + (form.isDelivery ? 'text-blue-600' : 'text-slate-400')} />
@@ -264,15 +264,15 @@ export default function NewWeightOrderPage() {
             </label>
             {form.isDelivery && (
               <div className="space-y-3 pl-8">
-                <textarea rows={2} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Delivery address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+                <textarea rows={2} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Delivery address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
                 <div className="grid sm:grid-cols-2 gap-2">
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Scheduled Delivery</label>
-                    <input type="datetime-local" value={form.scheduledDelivery} onChange={(e) => setForm({ ...form, scheduledDelivery: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                    <input type="datetime-local" value={form.scheduledDelivery} onChange={(e) => setForm({ ...form, scheduledDelivery: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                   </div>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Charges</label>
-                    <input type="number" value={form.deliveryCharges} onChange={(e) => setForm({ ...form, deliveryCharges: e.target.value })} placeholder="0" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
+                    <input type="number" value={form.deliveryCharges} onChange={(e) => setForm({ ...form, deliveryCharges: e.target.value })} placeholder="0" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
                   </div>
                 </div>
               </div>
@@ -280,17 +280,17 @@ export default function NewWeightOrderPage() {
           </section>
 
           {/* Preparation */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Package className="h-4 w-4 text-purple-600" />
               Preparation
             </h3>
             <div className="grid sm:grid-cols-3 gap-3">
-              <input value={form.cuttingStyle} onChange={(e) => setForm({ ...form, cuttingStyle: e.target.value })} placeholder="Cutting style" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
-              <input value={form.packagingPref} onChange={(e) => setForm({ ...form, packagingPref: e.target.value })} placeholder="Packaging preference" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
-              <input type="number" value={form.numberOfPackets} onChange={(e) => setForm({ ...form, numberOfPackets: e.target.value })} placeholder="No. of packets" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-purple-500" />
+              <input value={form.cuttingStyle} onChange={(e) => setForm({ ...form, cuttingStyle: e.target.value })} placeholder="Cutting style" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+              <input value={form.packagingPref} onChange={(e) => setForm({ ...form, packagingPref: e.target.value })} placeholder="Packaging preference" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+              <input type="number" value={form.numberOfPackets} onChange={(e) => setForm({ ...form, numberOfPackets: e.target.value })} placeholder="No. of packets" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-purple-500" />
             </div>
-            <textarea rows={2} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none" />
+            <textarea rows={2} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none" />
           </section>
         </div>
 
@@ -333,7 +333,7 @@ export default function NewWeightOrderPage() {
       {/* Product picker modal */}
       {showProductPicker && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-5 py-3 border-b bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
               <h3 className="font-extrabold">Select Meat Product</h3>
               <button onClick={() => setShowProductPicker(false)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -342,7 +342,7 @@ export default function NewWeightOrderPage() {
             </div>
             <div className="flex-1 overflow-y-auto p-4 grid sm:grid-cols-2 gap-2">
               {meatProducts.map((p) => (
-                <button key={p.id} onClick={() => addProduct(p)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 hover:border-orange-500 hover:shadow-lg text-left">
+                <button key={p.id} onClick={() => addProduct(p)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-orange-500 hover:shadow-lg text-left">
                   <div className="font-extrabold text-sm truncate">{p.product?.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{p.animalType} • {p.cutCategory?.replace('_', ' ')}</div>
                   <div className="mt-1 text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(p.pricePerKg)}/kg</div>

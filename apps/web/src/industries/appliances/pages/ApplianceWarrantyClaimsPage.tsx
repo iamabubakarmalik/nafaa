@@ -241,7 +241,7 @@ export default function ApplianceWarrantyClaimsPage() {
       )}
 
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
           <TabBtn active={tab === 'claims'} onClick={() => setTab('claims')} icon={ShieldCheck} label="Claims" badge={summary?.total} />
           <TabBtn active={tab === 'missing'} onClick={() => setTab('missing')} icon={AlertTriangle} label="Banaya Nahi" badge={summary?.missing?.count} alert />
           <TabBtn active={tab === 'brands'} onClick={() => setTab('brands')} icon={Building2} label="Brand Wise" />
@@ -258,12 +258,12 @@ export default function ApplianceWarrantyClaimsPage() {
                 placeholder="Claim #, customer, serial, brand ref... (/)"
                 value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
             </div>
-            <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
+            <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">
               {data?.meta?.total ?? 0} claims
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function ApplianceWarrantyClaimsPage() {
 
           {isLoading ? (
             <div className="space-y-2">
-              {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+              {[1, 2, 3, 4].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : rows.length === 0 ? (
             <Empty
@@ -303,17 +303,17 @@ export default function ApplianceWarrantyClaimsPage() {
           )}
 
           {data && data.meta.totalPages > 1 && (
-            <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-slate-900/80 rounded-2xl border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4">
-              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">
-                Page <strong className="text-slate-900 dark:text-white">{data.meta.page}</strong> / <strong className="text-slate-900 dark:text-white">{data.meta.totalPages}</strong>
+            <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-ink-900/80 rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4">
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-400 font-bold">
+                Page <strong className="text-slate-900 dark:text-ink-white">{data.meta.page}</strong> / <strong className="text-slate-900 dark:text-ink-white">{data.meta.totalPages}</strong>
               </div>
               <div className="flex gap-2">
                 <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
                   <ChevronLeft className="h-4 w-4" /> Pehle
                 </button>
                 <button disabled={page >= data.meta.totalPages} onClick={() => setPage((p) => p + 1)}
-                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
                   Agla <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -378,7 +378,7 @@ export default function ApplianceWarrantyClaimsPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[600px]">
                   <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+                    <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
                       <Th className="text-left">Brand</Th>
                       <Th className="text-center">Claims</Th>
                       <Th className="text-right">Claim Kiya</Th>
@@ -389,10 +389,10 @@ export default function ApplianceWarrantyClaimsPage() {
                   </thead>
                   <tbody>
                     {(summary?.byBrand ?? []).map((b) => (
-                      <tr key={b.brand} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                        <td className="px-3 py-2.5 text-[0.8125rem] font-extrabold text-slate-900 dark:text-white">{b.brand}</td>
-                        <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-600 dark:text-slate-300">{b.claims}</td>
-                        <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-700 dark:text-slate-200 whitespace-nowrap">{formatPKR(b.claimed)}</td>
+                      <tr key={b.brand} className="border-b border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
+                        <td className="px-3 py-2.5 text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white">{b.brand}</td>
+                        <td className="px-3 py-2.5 text-center text-xs font-bold tabular-nums text-slate-600 dark:text-ink-300">{b.claims}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-700 dark:text-ink-200 whitespace-nowrap">{formatPKR(b.claimed)}</td>
                         <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{formatPKR(b.received)}</td>
                         <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-rose-700 dark:text-rose-400 whitespace-nowrap">
                           {formatPKR(Math.max(b.claimed - b.received, 0))}
@@ -421,12 +421,12 @@ function TabBtn({ active, onClick, icon: Icon, label, badge, alert }: any) {
   return (
     <button onClick={onClick}
       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
       {badge ? (
         <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${
-          active ? 'bg-white/25' : alert ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-slate-700'
+          active ? 'bg-white/25' : alert ? 'bg-rose-500 text-white' : 'bg-slate-200 dark:bg-ink-700'
         }`}>{badge}</span>
       ) : null}
     </button>
@@ -435,7 +435,7 @@ function TabBtn({ active, onClick, icon: Icon, label, badge, alert }: any) {
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -450,15 +450,15 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
 
   return (
     <button onClick={onOpen}
-      className={`w-full text-left rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all p-3 sm:p-4 group ${
-        stale ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-cyan-300'
+      className={`w-full text-left rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all p-3 sm:p-4 group ${
+        stale ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800 hover:border-cyan-300'
       }`}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-mono text-xs font-extrabold text-cyan-700 dark:text-cyan-400">{c.claimNumber}</span>
             <StatusBadge meta={st} size="xs" />
-            <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+            <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">
               {wk.emoji} {wk.label}
             </span>
             {stale && (
@@ -467,10 +467,10 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
               </span>
             )}
           </div>
-          <div className="mt-1 text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+          <div className="mt-1 text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
             {c.productName}
           </div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
             {c.brandName ? `${c.brandName} • ` : ''}{c.customerName}
             {c.serialNumber ? ` • 🔖 ${c.serialNumber}` : ''}
             {c.serviceRequestNumber ? ` • ${c.serviceRequestNumber}` : ''}
@@ -478,7 +478,7 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
         </div>
         <div className="text-right shrink-0">
           <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-400">Claim</div>
-          <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">{formatPKR(c.claimedAmount)}</div>
+          <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-ink-white">{formatPKR(c.claimedAmount)}</div>
         </div>
       </div>
 
@@ -492,7 +492,7 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
         />
       </div>
 
-      <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+      <div className="mt-2 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
         <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />{fmtDate(c.claimDate)}</span>
         {c.brandRef && <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" />{c.brandRef}</span>}
         {c.approvedAmount > 0 && c.approvedAmount < c.claimedAmount && (
@@ -508,7 +508,7 @@ function ClaimCard({ c, onOpen }: { c: WarrantyClaim; onOpen: () => void }) {
 
 function Cell({ label, value, tone = 'slate' }: { label: string; value: string; tone?: 'slate' | 'emerald' | 'rose' }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
   };
@@ -523,7 +523,7 @@ function Cell({ label, value, tone = 'slate' }: { label: string; value: string; 
 /* ═════════════ MISSING CARD ═════════════ */
 function MissingCard({ r, pending, onMake }: { r: MissingClaim; pending: boolean; onMake: () => void }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-rose-200 dark:border-rose-500/30 shadow-sm p-3 sm:p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-rose-200 dark:border-rose-500/30 shadow-sm p-3 sm:p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
@@ -537,8 +537,8 @@ function MissingCard({ r, pending, onMake }: { r: MissingClaim; pending: boolean
               </span>
             )}
           </div>
-          <div className="mt-1 text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate">{r.productName}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <div className="mt-1 text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{r.productName}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
             {r.customerName} • {r.issueCategory || r.reportedIssue}
             {r.technicianName ? ` • ${r.technicianName}` : ''}
           </div>
@@ -716,13 +716,13 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
       footer={
         <div className="flex gap-2 flex-wrap">
           <button onClick={printClaimLetter}
-            className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+            className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
             <Printer className="h-4 w-4" /> Claim Letter
           </button>
           {c.status === 'DRAFT' && (
             <>
               <button onClick={() => setMode('costs')}
-                className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+                className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
                 <Pencil className="h-4 w-4" /> Kharcha
               </button>
               <button onClick={() => { if (confirm('Ye claim delete karein?')) delMut.mutate(); }}
@@ -840,8 +840,8 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
             <div className="space-y-2">
               {timeline.map((t, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
-                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
+                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
+                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">{t.label}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 shrink-0">{fmtDate(t.at)}</div>
                 </div>
               ))}
@@ -853,15 +853,15 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
               hint="Pata chalta hai brand paisa deta hai ya tal-matol karta hai" tone="slate">
               <div className="space-y-1.5">
                 {c.brandHistory.map((h) => (
-                  <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                  <div key={h.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-2.5 py-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 truncate">
                         {h.claimNumber} — {h.productName}
                       </div>
                       <div className="text-[0.6875rem] font-bold text-slate-400">{fmtDate(h.claimDate)}</div>
                     </div>
                     <StatusBadge meta={claimStatusMeta(h.status)} size="xs" />
-                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-20 text-right">
+                    <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0 w-20 text-right">
                       {formatPKR(h.receivedAmount)}<span className="text-slate-400">/{formatPKR(h.claimedAmount)}</span>
                     </div>
                   </div>
@@ -872,7 +872,7 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
 
           {c.notes && (
             <Panel icon={Pencil} title="Notes" tone="slate">
-              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap font-sans">{c.notes}</pre>
+              <pre className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 whitespace-pre-wrap font-sans">{c.notes}</pre>
             </Panel>
           )}
         </div>
@@ -884,15 +884,15 @@ function ClaimDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any) 
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
-      <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap break-words">{value}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-ink-500">{label}</div>
+      <div className="text-xs font-semibold text-slate-800 dark:text-ink-100 whitespace-pre-wrap break-words">{value}</div>
     </div>
   );
 }
 
 function Box({ label, value, tone = 'slate' }: { label: string; value: string; tone?: 'slate' | 'cyan' | 'emerald' | 'rose' | 'amber' }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
     cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
@@ -927,7 +927,7 @@ function CostForm({ claim, pending, onCancel, onSubmit }: any) {
             <input type="number" min={0} className={inputCls('h-11 font-extrabold tabular-nums')} value={other} onChange={(e) => setOther(e.target.value)} />
           </Field>
         </div>
-        <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3 flex items-center justify-between text-sm font-extrabold">
+        <div className="rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3 flex items-center justify-between text-sm font-extrabold">
           <span>Brand se itna claim karenge</span>
           <span className="tabular-nums text-cyan-300">{formatPKR(total)}</span>
         </div>
@@ -1013,7 +1013,7 @@ function ResponseForm({ claim, pending, onCancel, onSubmit }: any) {
                 onClick={() => { setStatus(v); if (v === 'APPROVED') setApproved(String(claim.claimedAmount)); if (v === 'REJECTED') setApproved('0'); }}
                 className={`h-11 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                   status === v ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
                 }`}>{label}</button>
             ))}
           </div>
@@ -1090,7 +1090,7 @@ function SettleForm({ claim, pending, onCancel, onSubmit }: any) {
             value={amount} onChange={(e) => setAmount(e.target.value)} />
         </Field>
         {claim.approvedAmount > 0 && (
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Brand ne {formatPKR(claim.approvedAmount)} manzoor kiya tha
           </div>
         )}

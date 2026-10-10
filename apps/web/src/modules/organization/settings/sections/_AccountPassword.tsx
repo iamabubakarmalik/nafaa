@@ -83,8 +83,8 @@ export function AccountPasswordCard() {
   };
 
   const inputCls =
-    'w-full h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ' +
-    'text-slate-900 dark:text-white px-3 pr-10 text-sm font-bold outline-none focus:border-emerald-500 ' +
+    'w-full h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 ' +
+    'text-slate-900 dark:text-ink-white px-3 pr-10 text-sm font-bold outline-none focus:border-emerald-500 ' +
     'focus:ring-2 focus:ring-emerald-500/20 transition';
 
   return (
@@ -115,7 +115,7 @@ export function AccountPasswordCard() {
                 onChange={(e) => { setCurrent(e.target.value); setError(''); }}
                 placeholder="••••••••" className={inputCls} />
               <button type="button" onClick={() => setShow((v) => !v)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 {show ? <EyeOff className="h-3.5 w-3.5 text-slate-500" /> : <Eye className="h-3.5 w-3.5 text-slate-500" />}
               </button>
             </div>
@@ -130,7 +130,7 @@ export function AccountPasswordCard() {
           </div>
           {next && (
             <div className="mt-1.5">
-              <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                 <div className={`h-full rounded-full transition-all duration-300 ${str.color}`}
                   style={{ width: `${(str.score / 5) * 100}%` }} />
               </div>
@@ -174,7 +174,7 @@ export function AccountPasswordCard() {
         )}
       </div>
 
-      <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+      <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
         Password badalne par baqi devices ka login chalta rahega. Kisi device ko nikalna ho to
         neeche "Active Devices" se us ka session revoke karein.
       </p>

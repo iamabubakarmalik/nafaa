@@ -101,10 +101,10 @@ export default function CustomersPage() {
       </section>
 
       {/* SEARCH */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name or phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
         </div>
       </section>
 
@@ -130,10 +130,10 @@ export default function CustomersPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Heart className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No customer profiles yet</p>
           <p className="text-xs text-slate-500 mt-1">Add salon-specific profiles for your customers</p>
@@ -166,12 +166,12 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
     emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -188,12 +188,12 @@ function ProfileCard({ profile, onView, onEdit }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-4 space-y-3 ' +
-      (isVIP ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-4 space-y-3 ' +
+      (isVIP ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start gap-3">
         {profile.photoUrls?.[0] ? (
-          <img src={profile.photoUrls[0]} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-neutral-700 shrink-0" />
+          <img src={profile.photoUrls[0]} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-ink-700 shrink-0" />
         ) : (
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-teal-600 text-white flex items-center justify-center text-xl font-extrabold shadow shrink-0">
             {c?.name?.charAt(0).toUpperCase() || '?'}
@@ -202,7 +202,7 @@ function ProfileCard({ profile, onView, onEdit }: any) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-white truncate">{c?.name || 'Customer'}</span>
+            <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{c?.name || 'Customer'}</span>
             {isVIP && (
               <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Star className="h-2 w-2 fill-current" />
@@ -269,10 +269,10 @@ function ProfileCard({ profile, onView, onEdit }: any) {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Visits</div>
-          <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{profile.totalVisits}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{profile.totalVisits}</div>
         </div>
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
@@ -290,12 +290,12 @@ function ProfileCard({ profile, onView, onEdit }: any) {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         <button onClick={onView} className="flex-1 h-9 rounded-lg bg-cyan-100 dark:bg-cyan-950/40 hover:bg-cyan-200 text-cyan-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
           <Eye className="h-3 w-3" />
           View Full
         </button>
-        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
           <Edit3 className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -308,7 +308,7 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-3xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 text-white p-6">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-cyan-400/20 blur-3xl" />
           <div className="relative flex items-start justify-between gap-3">
@@ -449,7 +449,7 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
                   <div className="text-[0.6875rem] uppercase font-extrabold text-violet-700 mb-1">Favorite Brands</div>
                   <div className="flex flex-wrap gap-1">
                     {profile.favoriteBrands.map((b: string, i: number) => (
-                      <span key={i} className="px-2 py-0.5 rounded bg-white dark:bg-neutral-800 border border-violet-300 text-violet-800 text-xs font-extrabold">
+                      <span key={i} className="px-2 py-0.5 rounded bg-white dark:bg-ink-800 border border-violet-300 text-violet-800 text-xs font-extrabold">
                         {b}
                       </span>
                     ))}
@@ -461,16 +461,16 @@ function CustomerProfileModal({ profile, onClose, onEdit }: any) {
 
           {/* Notes */}
           {profile.notes && (
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800/50 p-4">
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white mb-2">Internal Notes</div>
-              <p className="text-sm text-slate-700 dark:text-slate-300 italic">{profile.notes}</p>
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-4">
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-2">Internal Notes</div>
+              <p className="text-sm text-slate-700 dark:text-ink-300 italic">{profile.notes}</p>
             </div>
           )}
 
           {/* Photos gallery */}
           {profile.photoUrls?.length > 1 && (
             <div>
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-2 flex items-center gap-2">
                 <Camera className="h-4 w-4" />
                 Reference Photos
               </div>
@@ -493,7 +493,7 @@ function ProfileField({ label, value }: { label: string; value?: string | null }
   return (
     <div>
       <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-      <div className="text-sm font-extrabold text-slate-900 dark:text-white">{value || '—'}</div>
+      <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{value || '—'}</div>
     </div>
   );
 }
@@ -554,9 +554,9 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Customer Profile' : 'New Customer Profile'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Customer Profile' : 'New Customer Profile'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -568,7 +568,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
             <div className="rounded-xl bg-cyan-50 dark:bg-cyan-950/30 border-2 border-cyan-200 dark:border-cyan-800 p-3 flex items-center gap-3">
               <User className="h-5 w-5 text-cyan-600" />
               <div className="flex-1">
-                <div className="font-extrabold text-slate-900 dark:text-white">{selectedCustomer.name}</div>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedCustomer.name}</div>
                 {selectedCustomer.phone && <div className="text-xs text-slate-600 font-bold">{selectedCustomer.phone}</div>}
               </div>
               <button onClick={() => { setSelectedCustomer(null); setForm({ ...form, customerId: '' }); setShowPicker(true); }} className="text-xs font-extrabold text-cyan-600 hover:underline">
@@ -579,7 +579,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Customer *</label>
               <input autoFocus value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="Search by name/phone..." className="h-11 w-full rounded-xl border-2 border-cyan-200 bg-cyan-50 dark:bg-cyan-950/30 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-              <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-neutral-700 p-1">
+              <div className="mt-2 max-h-52 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-ink-700 p-1">
                 {(customersData?.items ?? []).map((c) => (
                   <button
                     key={c.id}
@@ -680,7 +680,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
             {/* Notes */}
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
-              <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any special instructions, preferences, past reactions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+              <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any special instructions, preferences, past reactions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
             </div>
 
             {/* Photos */}
@@ -714,7 +714,7 @@ function CustomerProfileForm({ editing, onClose, onSaved }: {
               />
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
               <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
               <Button className="flex-1 bg-gradient-to-r from-cyan-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerId}>
                 <Save className="h-4 w-4" />

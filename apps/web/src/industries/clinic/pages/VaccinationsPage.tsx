@@ -53,7 +53,7 @@ export default function VaccinationsPage() {
         {['DUE', 'all', 'ADMINISTERED', 'DELAYED', 'SKIPPED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{s === 'all' ? 'All' : s === 'DUE' ? '🔥 Due Now' : s}</button>
         ))}
       </div>
@@ -62,9 +62,9 @@ export default function VaccinationsPage() {
       {administering && <AdministerModal vaccine={administering} onClose={() => setAdministering(null)} onSaved={() => { setAdministering(null); queryClient.invalidateQueries({ queryKey: ['vaccinations'] }); }} />}
 
       {isLoading ? (
-        <div className="grid gap-2">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-2">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : vaccinations.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Syringe className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No vaccinations scheduled</p>
         </div>
@@ -75,8 +75,8 @@ export default function VaccinationsPage() {
             const isOverdue = daysUntilDue < 0 && v.status === 'DUE';
             return (
               <div key={v.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-2 ' +
-                (isOverdue ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 dark:border-neutral-800')
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-2 ' +
+                (isOverdue ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3">
@@ -85,7 +85,7 @@ export default function VaccinationsPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white">{v.vaccineName}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{v.vaccineName}</span>
                         <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[v.status]}>{v.status}</span>
                         {isOverdue && <span className="px-2 py-0.5 rounded bg-red-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">OVERDUE</span>}
                       </div>
@@ -153,7 +153,7 @@ function BulkEpiModal({ onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">🍼 Bulk EPI Schedule</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -222,7 +222,7 @@ function AdministerModal({ vaccine, onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold">💉 Administer {vaccine.vaccineName}</h3>

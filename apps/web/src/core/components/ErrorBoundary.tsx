@@ -86,7 +86,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="w-full max-w-lg rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+        <div className="w-full max-w-lg rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-2xl overflow-hidden">
           <div className="relative bg-gradient-to-br from-slate-950 via-rose-900 to-red-700 text-white p-6 text-center overflow-hidden">
             <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-rose-400/25 blur-3xl" />
             <div className="relative">
@@ -101,12 +101,12 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
 
           <div className="p-5 space-y-3">
-            <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
+            <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
               <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">Masla</div>
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white break-words">
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white break-words">
                 {error.name}: {error.message}
               </div>
-              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 font-mono break-all">
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5 font-mono break-all">
                 {window.location.pathname}
               </div>
             </div>
@@ -117,13 +117,13 @@ export class ErrorBoundary extends Component<Props, State> {
                 <RefreshCw className="h-4 w-4" /> Dobara Koshish
               </button>
               <button onClick={() => { window.location.href = '/dashboard'; }}
-                className="h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-black inline-flex items-center justify-center gap-2 transition">
+                className="h-12 rounded-2xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-sm font-black inline-flex items-center justify-center gap-2 transition">
                 <Home className="h-4 w-4" /> Dashboard
               </button>
             </div>
 
             <button onClick={() => this.setState({ showDetails: !showDetails })}
-              className="w-full h-10 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+              className="w-full h-10 rounded-xl bg-slate-50 dark:bg-ink-800/60 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
               <ChevronDown className={`h-3.5 w-3.5 transition ${showDetails ? 'rotate-180' : ''}`} />
               Tafseel {showDetails ? 'chhupayein' : 'dekhein'}
             </button>
@@ -139,7 +139,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
             {showDetails && (
               <button onClick={this.copyDetails}
-                className="w-full h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+                className="w-full h-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
                 <Copy className="h-3.5 w-3.5" /> Tafseel copy karein (report ke liye)
               </button>
             )}

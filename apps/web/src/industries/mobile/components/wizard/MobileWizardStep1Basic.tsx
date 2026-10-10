@@ -105,7 +105,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
       )}
 
       {/* ═══ SECTION 1 — Identity ═══ */}
-      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-4">
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 space-y-4">
         <SectionHeader icon={Package} title="Product Identity" desc="Naam, brand, category — POS aur receipt pe yehi dikhega" />
 
         <Input
@@ -128,7 +128,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   key={q.label}
                   type="button"
                   onClick={() => onChange({ name: q.label })}
-                  className="px-2.5 py-1.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 text-xs font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-95"
+                  className="px-2.5 py-1.5 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-400 dark:hover:border-emerald-500 text-xs font-extrabold text-slate-700 dark:text-ink-200 transition active:scale-95"
                 >
                   {q.emoji} {q.label}
                 </button>
@@ -138,10 +138,10 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         )}
 
         <div>
-          <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Description</label>
+          <label className="block text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5">Description</label>
           <textarea
             rows={3}
-            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+            className="w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
             value={basic.description}
             onChange={(e) => onChange({ description: e.target.value })}
             placeholder={isAccessory ? 'Compatibility, material, wattage...' : 'Features, specs, network compatibility...'}
@@ -150,9 +150,9 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
 
         <div className="grid sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Category</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5">Category</label>
             <select
-              className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              className="h-11 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
               value={basic.categoryId}
               onChange={(e) => onChange({ categoryId: e.target.value })}
             >
@@ -161,9 +161,9 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Brand</label>
+            <label className="block text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5">Brand</label>
             <select
-              className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              className="h-11 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
               value={basic.brandId}
               onChange={(e) => onChange({ brandId: e.target.value })}
             >
@@ -197,7 +197,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
       </section>
 
       {/* ═══ SECTION 2 — Product Type ═══ */}
-      <section className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-slate-900 p-5 space-y-4">
+      <section className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-ink-900 p-5 space-y-4">
         <SectionHeader
           icon={Smartphone}
           title="Product Type"
@@ -212,13 +212,13 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
             const colorClasses: Record<string, string> = {
               blue: active
                 ? 'border-blue-600 bg-blue-50 dark:bg-blue-500/15 shadow-md ring-2 ring-blue-200 dark:ring-blue-500/30'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-400',
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-400',
               emerald: active
                 ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/30'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-400',
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-400',
               amber: active
                 ? 'border-amber-600 bg-amber-50 dark:bg-amber-500/15 shadow-md ring-2 ring-amber-200 dark:ring-amber-500/30'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400',
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-400',
             };
             const iconBg: Record<string, string> = {
               blue: active ? 'bg-blue-600 text-white' : 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300',
@@ -239,9 +239,9 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm">{t.label}</div>
-                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold leading-snug mt-0.5">{t.desc}</div>
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold italic mt-1">{t.examples}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{t.label}</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold leading-snug mt-0.5">{t.desc}</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold italic mt-1">{t.examples}</div>
                 </div>
               </button>
             );
@@ -251,7 +251,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
 
       {/* ═══ SECTION 3 — Warranty + PTA (phones only) ═══ */}
       {!isAccessory && (
-        <section className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900 p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-ink-900 p-5 space-y-4">
           <SectionHeader
             icon={ShieldCheck}
             title="Warranty & PTA Default"
@@ -270,7 +270,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
               hint="Standard warranty duration"
             />
             <div>
-              <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Default PTA Status</label>
+              <label className="block text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5">Default PTA Status</label>
               <div className="grid grid-cols-5 gap-1.5">
                 {(['APPROVED', 'NON_PTA', 'PATCH', 'PENDING', 'EXEMPT'] as PtaStatus[]).map((status) => {
                   const active = basic.defaultPtaStatus === status;
@@ -284,7 +284,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                         'h-10 rounded-lg border-2 text-[0.6875rem] font-extrabold transition active:scale-95',
                         active
                           ? `${colors.bg} ${colors.text} ${colors.border} shadow-sm ring-2 ring-blue-200 dark:ring-blue-500/30`
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-400',
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-slate-400',
                       ].join(' ')}
                       title={PTA_STATUS_LABELS[status]}
                     >
@@ -293,7 +293,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   );
                 })}
               </div>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-1">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold mt-1">
                 Naya IMEI add hote waqt ye default aajayega
               </p>
             </div>
@@ -302,7 +302,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
       )}
 
       {/* ═══ SECTION 4 — Pricing ═══ */}
-      <section className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-5 space-y-4">
+      <section className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900 p-5 space-y-4">
         <SectionHeader
           icon={DollarSign}
           title={`Pricing (per ${priceUnit})`}
@@ -359,7 +359,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                 ].join(' ')}>
                   {isLoss ? '⚠️ Loss Alert — sale price cost se kam!' : `Profit per ${priceUnit}`}
                 </div>
-                <div className="text-lg font-extrabold tabular-nums leading-tight text-slate-900 dark:text-white">
+                <div className="text-lg font-extrabold tabular-nums leading-tight text-slate-900 dark:text-ink-white">
                   {formatPKRFull(profit)}
                 </div>
               </div>
@@ -385,31 +385,31 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
       </section>
 
       {/* ═══ SECTION 5 — Settings ═══ */}
-      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 space-y-3">
         <SectionHeader icon={Sparkles} title="Product Settings" desc="Visibility aur featured status" />
 
-        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-ink-800 transition border-2 border-transparent hover:border-slate-200 dark:hover:border-ink-700">
           <input type="checkbox" checked={basic.isActive} onChange={(e) => onChange({ isActive: e.target.checked })} className="h-5 w-5 rounded accent-blue-600" />
-          <Eye className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+          <Eye className="h-5 w-5 text-slate-600 dark:text-ink-400" />
           <div className="flex-1">
-            <div className="font-extrabold text-slate-900 dark:text-white text-sm">Active</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">POS aur catalog mein visible</div>
+            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Active</div>
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">POS aur catalog mein visible</div>
           </div>
         </label>
 
-        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition border-2 border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+        <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-ink-800 transition border-2 border-transparent hover:border-slate-200 dark:hover:border-ink-700">
           <input type="checkbox" checked={basic.isFeatured} onChange={(e) => onChange({ isFeatured: e.target.checked })} className="h-5 w-5 rounded accent-amber-500" />
           <Star className="h-5 w-5 text-amber-500" />
           <div className="flex-1">
-            <div className="font-extrabold text-slate-900 dark:text-white text-sm">Featured</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Catalog mein highlight — sab se upar</div>
+            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Featured</div>
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Catalog mein highlight — sab se upar</div>
           </div>
         </label>
       </section>
 
       {/* ═══ SECTION 6 — Tags ═══ */}
       {allTags.length > 0 && (
-        <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
+        <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 space-y-3">
           <SectionHeader icon={Hash} title="Tags" desc="Product ko organize karne ke liye" />
           <div className="flex flex-wrap gap-2">
             {allTags.map((t) => {
@@ -428,7 +428,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
                   data-inactive={!active || undefined}
                 >
                   {!active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: t.color }} />}
-                  <span className={active ? '' : 'text-slate-600 dark:text-slate-300'}>{t.name}</span>
+                  <span className={active ? '' : 'text-slate-600 dark:text-ink-300'}>{t.name}</span>
                 </button>
               );
             })}
@@ -437,7 +437,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
       )}
 
       {/* ═══ SECTION 7 — Images ═══ */}
-      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 space-y-3">
         <SectionHeader icon={ImageIcon} title="Product Images" desc="Pehla image primary — POS pe yehi dikhega" />
 
         <UploadDropzone
@@ -452,7 +452,7 @@ export function MobileWizardStep1Basic({ basic, onChange, errors }: Props) {
         {basic.imageUrls.length > 0 && (
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
             {basic.imageUrls.map((url, idx) => (
-              <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+              <div key={url + idx} className="relative group aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
                 <img src={url} alt={`mobile-${idx}`} className="w-full h-full object-cover" />
                 {idx === 0 && (
                   <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-md bg-blue-600 text-white text-[0.625rem] font-extrabold">PRIMARY</div>
@@ -480,13 +480,13 @@ function SectionHeader({
     indigo: 'from-indigo-500 to-indigo-700',
   };
   return (
-    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100 dark:border-slate-800">
+    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100 dark:border-ink-800">
       <div className={['h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md bg-gradient-to-br', tones[tone] ?? tones.slate].join(' ')}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base leading-tight">{title}</h3>
+        <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{desc}</p>
       </div>
     </div>
   );

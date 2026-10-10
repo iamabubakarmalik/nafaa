@@ -112,22 +112,22 @@ export default function HardwareProductsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
         </div>
 
         {/* Category filter */}
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setCategoryFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (categoryFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Categories</button>
           {CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (categoryFilter === c.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {c.emoji} {c.label}
             </button>
@@ -136,7 +136,7 @@ export default function HardwareProductsPage() {
 
         {/* Brand + Tag filters */}
         <div className="flex gap-2 flex-wrap">
-          <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold focus:outline-none focus:border-amber-500">
+          <select value={brandFilter} onChange={(e) => setBrandFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-amber-500">
             <option value="all">All Brands</option>
             {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
@@ -150,7 +150,7 @@ export default function HardwareProductsPage() {
           ].map((t) => (
             <button key={t.v} onClick={() => setTagFilter(t.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === t.v ? 'bg-amber-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === t.v ? 'bg-amber-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.label}</button>
           ))}
         </div>
@@ -158,10 +158,10 @@ export default function HardwareProductsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : profiles.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No hardware products yet</p>
           <p className="text-xs text-slate-500 mt-1">Add products from Products module, then set hardware profile</p>
@@ -183,8 +183,8 @@ function ProductCard({ profile }: { profile: any }) {
     <Link
       to={'/products/' + profile.productId + '/edit'}
       className={
-        'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-        (profile.isFeatured ? 'border-amber-400' : 'border-slate-200 dark:border-neutral-800')
+        'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+        (profile.isFeatured ? 'border-amber-400' : 'border-slate-200 dark:border-ink-800')
       }
     >
       <div className="relative aspect-video bg-gradient-to-br from-amber-500 to-orange-600 overflow-hidden">
@@ -233,7 +233,7 @@ function ProductCard({ profile }: { profile: any }) {
 
       <div className="p-4 space-y-2">
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{p?.name}</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{p?.name}</h3>
           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {profile.brand && (
               <span className="text-[0.6875rem] font-extrabold text-amber-700">{profile.brand.name}</span>
@@ -284,7 +284,7 @@ function ProductCard({ profile }: { profile: any }) {
           )}
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">{profile.unit}</div>
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p?.price ?? 0)}</div>

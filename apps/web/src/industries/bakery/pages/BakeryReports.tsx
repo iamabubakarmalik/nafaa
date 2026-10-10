@@ -288,7 +288,7 @@ export default function BakeryReportsV2() {
             className={`py-3 rounded-2xl border-2 font-black text-[0.6875rem] sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
               tab === v
                 ? 'bg-gradient-to-r from-violet-500 to-fuchsia-600 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-violet-400'
             }`}>
             <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
             <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{i + 1}</kbd>
@@ -554,7 +554,7 @@ function Advice({ tone, text, to, cta }: any) {
       <AlertTriangle className="h-5 w-5 shrink-0" />
       <p className="text-[0.8125rem] font-extrabold min-w-0 flex-1 leading-snug">{text}</p>
       <Link to={to}
-        className="h-10 px-3.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition print:hidden">
+        className="h-10 px-3.5 rounded-xl bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition print:hidden">
         {cta}
       </Link>
     </section>
@@ -570,12 +570,12 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     pink: 'from-pink-500 to-fuchsia-600 shadow-pink-500/40',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -587,8 +587,8 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-violet-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -603,17 +603,17 @@ function EmptyBox({ text }: { text?: string }) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-500/15 dark:to-fuchsia-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Reports
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Aam reports sirf bikri dikhate hain. Bakery ka asal hisab <strong>chaar</strong>
             cheezon se banta hai — aur teen kisi aam report me aati hi nahi.
           </p>
@@ -635,12 +635,12 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Ek seedha jumla hota hai: <strong>is se karna kya hai</strong>. Sirf number dekhne se
             kuch nahi badalta.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-4</kbd> tab badlo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> ye madad</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-4</kbd> tab badlo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">G</kbd> ye madad</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -657,8 +657,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

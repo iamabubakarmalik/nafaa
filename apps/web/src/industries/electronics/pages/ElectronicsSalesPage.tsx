@@ -657,7 +657,7 @@ export default function ElectronicsSalesPage() {
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {serialStats.gapList.map((s) => (
                     <Link key={s.id} to={receiptLink(s.id, false)}
-                      className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-rose-800 dark:text-rose-200">
+                      className="px-2 py-0.5 rounded-md bg-white dark:bg-ink-800 text-[0.6875rem] font-black text-rose-800 dark:text-rose-200">
                       {s.saleNumber} · {serialGap(s)} baqi
                     </Link>
                   ))}
@@ -682,7 +682,7 @@ export default function ElectronicsSalesPage() {
                 </p>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {warrantyEnding.slice(0, 4).map((s: any) => (
-                    <span key={s.id} className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-amber-800 dark:text-amber-200">
+                    <span key={s.id} className="px-2 py-0.5 rounded-md bg-white dark:bg-ink-800 text-[0.6875rem] font-black text-amber-800 dark:text-amber-200">
                       {s.product?.name ?? 'Cheez'} · {fmtD(s.warrantyEndDate)}
                     </span>
                   ))}
@@ -708,7 +708,7 @@ export default function ElectronicsSalesPage() {
             <button key={t.v} onClick={() => setTab(t.v)}
               className={`group relative overflow-hidden rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on ? 'bg-gradient-to-br from-blue-600 to-cyan-700 border-transparent text-white shadow-xl shadow-blue-500/30'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:shadow-lg'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-blue-400 hover:shadow-lg'
               }`}>
               <div className="relative flex items-center gap-3">
                 <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center shrink-0 ${
@@ -718,7 +718,7 @@ export default function ElectronicsSalesPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
-                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'}`}>{t.n}</span>
                     )}
                   </div>
                   <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
@@ -730,16 +730,16 @@ export default function ElectronicsSalesPage() {
       </div>
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
         <div className="flex gap-2 flex-wrap items-center">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Bill #, grahak, phone, cheez, serial / IMEI… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -749,7 +749,7 @@ export default function ElectronicsSalesPage() {
             <button onClick={() => { setShowDate((v) => !v); setShowMore(false); }}
               className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                 dateFilter !== 'today' ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-blue-400'
               }`}>
               <CalendarRange className="h-4 w-4" />
               <span className="max-w-[140px] truncate">{DATE_OPTS.find(([v]) => v === dateFilter)?.[1]}</span>
@@ -758,14 +758,14 @@ export default function ElectronicsSalesPage() {
             {showDate && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowDate(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-2">
+                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-2">
                   <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
                   <div className="grid grid-cols-2 gap-1.5">
                     {DATE_OPTS.map(([v, l]) => (
                       <button key={v} onClick={() => { setDateFilter(v); if (v !== 'custom') setShowDate(false); }}
                         className={`h-10 rounded-xl text-xs font-black transition ${
                           dateFilter === v ? 'bg-blue-600 text-white shadow'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                         }`}>{l}</button>
                     ))}
                   </div>
@@ -775,12 +775,12 @@ export default function ElectronicsSalesPage() {
                         <div key={l}>
                           <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">{l}</label>
                           <input type="date" value={v} onChange={(e) => set(e.target.value)}
-                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 [color-scheme:light] dark:[color-scheme:dark]" />
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 [color-scheme:light] dark:[color-scheme:dark]" />
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">{rangeLabel}</div>
+                  <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">{rangeLabel}</div>
                 </div>
               </>
             )}
@@ -791,7 +791,7 @@ export default function ElectronicsSalesPage() {
               className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                 payFilter !== 'all' || creditOnly || noSerialOnly
                   ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-amber-400'
               }`}>
               <Filter className="h-4 w-4" /> Chaant
               {(payFilter !== 'all' || creditOnly || noSerialOnly) && (
@@ -804,15 +804,15 @@ export default function ElectronicsSalesPage() {
             {showMore && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowMore(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3">
+                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3">
                   <div>
                     <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kaise aaya</div>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button onClick={() => setPayFilter('all')}
-                        className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${payFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>Sab</button>
+                        className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${payFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}>Sab</button>
                       {Object.entries(PAY).map(([k, v]) => (
                         <button key={k} onClick={() => setPayFilter(k as PaymentMethod)}
-                          className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${payFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                          className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${payFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}
                           style={payFilter === k ? { background: v.hex } : undefined}>
                           <v.icon className="h-3 w-3" /> {v.label}
                         </button>
@@ -850,10 +850,10 @@ export default function ElectronicsSalesPage() {
           <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-black">
             <span className="text-slate-400">Chaant:</span>
             <span className="px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300">{rangeLabel}</span>
-            {payFilter !== 'all' && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{PAY[payFilter]?.label}</span>}
+            {payFilter !== 'all' && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">{PAY[payFilter]?.label}</span>}
             {creditOnly && <span className="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">Sirf udhaar</span>}
             {noSerialOnly && <span className="px-2 py-1 rounded-lg bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">Serial ke baghair</span>}
-            {search && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">"{search}"</span>}
+            {search && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">"{search}"</span>}
             <span className="text-slate-400">→ {stats.count} bill</span>
           </div>
         )}
@@ -901,12 +901,12 @@ export default function ElectronicsSalesPage() {
                     return (
                       <div key={c.name} className="space-y-1">
                         <div className="flex items-center justify-between gap-2 text-xs font-black">
-                          <span className="text-slate-700 dark:text-slate-200 truncate">{c.emoji} {c.name}</span>
+                          <span className="text-slate-700 dark:text-ink-200 truncate">{c.emoji} {c.name}</span>
                           <span className="text-slate-500 tabular-nums shrink-0">
                             {Number(c.qty.toFixed(1))} · {showValue(formatPKR(c.value))}
                           </span>
                         </div>
-                        <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                           <div className="h-full rounded-full transition-all"
                             style={{ width: `${(c.value / max) * 100}%`, background: PIE_COLORS[i % PIE_COLORS.length] }} />
                         </div>
@@ -969,14 +969,14 @@ export default function ElectronicsSalesPage() {
                     return (
                       <div key={it.name + i} className="space-y-1">
                         <div className="flex items-center justify-between gap-2 text-xs font-black">
-                          <span className="text-slate-700 dark:text-slate-200 truncate">
+                          <span className="text-slate-700 dark:text-ink-200 truncate">
                             {it.tracked && '🔢 '}{it.name}
                           </span>
                           <span className="text-slate-500 tabular-nums shrink-0">
                             {Number(it.qty.toFixed(1))} · {showValue(formatPKR(it.value))}
                           </span>
                         </div>
-                        <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                           <div className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-600"
                             style={{ width: `${(it.value / max) * 100}%` }} />
                         </div>
@@ -991,12 +991,12 @@ export default function ElectronicsSalesPage() {
               {topCustomers.length === 0 ? <EmptyBox text="Abhi kisi bill par grahak ka naam nahi" /> : (
                 <div className="space-y-1.5">
                   {topCustomers.map((c, i) => (
-                    <div key={c.name + i} className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+                    <div key={c.name + i} className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
                       <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-700 text-white text-xs font-black flex items-center justify-center shrink-0">
                         {i + 1}
                       </span>
                       <span className="flex-1 min-w-0">
-                        <span className="block text-xs font-black text-slate-900 dark:text-white truncate">{c.name}</span>
+                        <span className="block text-xs font-black text-slate-900 dark:text-ink-white truncate">{c.name}</span>
                         <span className="block text-[0.6875rem] font-bold text-slate-400">{c.bills} bill{c.phone ? ` · ${c.phone}` : ''}</span>
                       </span>
                       <span className="text-sm font-black text-blue-600 dark:text-blue-400 tabular-nums shrink-0">
@@ -1010,23 +1010,23 @@ export default function ElectronicsSalesPage() {
           </div>
         </div>
       ) : filtered.length === 0 ? (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 text-center">
           <Receipt className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-base font-black text-slate-700 dark:text-slate-200">Koi bill nahi mila</p>
+          <p className="text-base font-black text-slate-700 dark:text-ink-200">Koi bill nahi mila</p>
           <p className="text-xs font-bold text-slate-400 mt-1">
             {hasFilters ? 'Chaant badal kar dekhein' : 'Is arse me koi bikri nahi hui'}
           </p>
           {hasFilters && (
             <button onClick={clearFilters}
-              className="mt-4 h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-xs font-black transition">
+              className="mt-4 h-11 px-4 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-xs font-black transition">
               Chaant hatayein
             </button>
           )}
         </section>
       ) : (
         /* ═══════ LIST ═══════ */
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
-          <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
+          <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
             {filtered.slice(0, visible).map((s) => {
               const pay = PAY[s.paymentMethod] ?? PAY.CASH;
               const voided = s.status === 'VOIDED';
@@ -1054,7 +1054,7 @@ export default function ElectronicsSalesPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
+                          <span className="font-mono font-black text-sm text-slate-900 dark:text-ink-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
                           <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${pay.chip}`}>{pay.label}</span>
                           {voided && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white">Void</span>}
                           {gap > 0 && (
@@ -1076,7 +1076,7 @@ export default function ElectronicsSalesPage() {
                           )}
                         </div>
 
-                        <div className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2 flex-wrap">
+                        <div className="mt-1 text-xs font-bold text-slate-600 dark:text-ink-300 flex items-center gap-2 flex-wrap">
                           <User className="h-3 w-3 shrink-0" />
                           <span className="truncate max-w-[160px]">{s.customer?.name ?? 'Walk-in'}</span>
                           {s.customer?.phone && <><span className="text-slate-300">•</span><span className="text-slate-500">{s.customer.phone}</span></>}
@@ -1085,9 +1085,9 @@ export default function ElectronicsSalesPage() {
                           <span>{(s.items ?? []).length} cheezein · {Number(qty.toFixed(2))} qty</span>
                         </div>
 
-                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
+                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 inline-flex items-center gap-1.5 flex-wrap">
                           <Clock className="h-2.5 w-2.5" />
-                          <span className="text-slate-700 dark:text-slate-200">{fmtTime(s.soldAt)}</span>
+                          <span className="text-slate-700 dark:text-ink-200">{fmtTime(s.soldAt)}</span>
                           <span className="text-slate-300">•</span>
                           <span>{fmtDT(s.soldAt)}</span>
                           <span className="text-slate-300">•</span>
@@ -1099,14 +1099,14 @@ export default function ElectronicsSalesPage() {
                             const prof = profByProduct.get(itemPid(it));
                             return (
                               <span key={it.id ?? n}
-                                className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[190px] truncate">
+                                className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 max-w-[190px] truncate">
                                 {trackedIds.has(itemPid(it)) ? '🔢 ' : `${catMeta(prof?.categoryType).emoji} `}
                                 {it.product?.name} × {Number(Number(it.quantity).toFixed(2))}
                               </span>
                             );
                           })}
                           {(s.items?.length ?? 0) > 4 && (
-                            <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-500">
                               +{s.items.length - 4} aur
                             </span>
                           )}
@@ -1121,7 +1121,7 @@ export default function ElectronicsSalesPage() {
                             <div className="flex flex-wrap gap-1">
                               {mySerials.slice(0, 6).map((x: any) => (
                                 <span key={x.id}
-                                  className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 font-mono text-[0.6875rem] font-black text-slate-700 dark:text-slate-200">
+                                  className="px-1.5 py-0.5 rounded-md bg-white dark:bg-ink-800 font-mono text-[0.6875rem] font-black text-slate-700 dark:text-ink-200">
                                   {x.imei || x.serialNumber}
                                   {x.warrantyEndDate && (
                                     <span className="ml-1 font-sans text-emerald-600 dark:text-emerald-400">
@@ -1131,7 +1131,7 @@ export default function ElectronicsSalesPage() {
                                 </span>
                               ))}
                               {mySerials.length > 6 && (
-                                <span className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-slate-500">
+                                <span className="px-1.5 py-0.5 rounded-md bg-white dark:bg-ink-800 text-[0.6875rem] font-black text-slate-500">
                                   +{mySerials.length - 6} aur
                                 </span>
                               )}
@@ -1168,7 +1168,7 @@ export default function ElectronicsSalesPage() {
                       <Eye className="h-3.5 w-3.5" /> Bill dekhein
                     </Link>
                     <Link to={receiptLink(s.id, true)} title="Seedha print"
-                      className="relative z-10 h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
+                      className="relative z-10 h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                       <Printer className="h-3.5 w-3.5" /> Print
                     </Link>
                     {gap > 0 && (
@@ -1213,7 +1213,7 @@ export default function ElectronicsSalesPage() {
           </div>
           {visible < filtered.length && (
             <button onClick={() => setVisible((v) => v + 50)}
-              className="w-full py-4 text-xs font-black text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 border-t-2 border-slate-100 dark:border-slate-800 inline-flex items-center justify-center gap-1 transition print:hidden">
+              className="w-full py-4 text-xs font-black text-blue-700 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 border-t-2 border-slate-100 dark:border-ink-800 inline-flex items-center justify-center gap-1 transition print:hidden">
               Aur {Math.min(50, filtered.length - visible)} dikhayein <ArrowRight className="h-3 w-3" />
               <span className="text-slate-400 ml-1">({visible}/{filtered.length})</span>
             </button>
@@ -1285,13 +1285,13 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
   if (!pos) return null;
 
   const seg = (on: boolean) =>
-    `h-9 rounded-lg text-[0.6875rem] font-black transition ${on ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`;
+    `h-9 rounded-lg text-[0.6875rem] font-black transition ${on ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'}`;
 
   return createPortal(
     <>
       <div className="fixed inset-0 z-[70] print:hidden" onClick={onClose} />
       <div style={{ top: pos.top, right: pos.right }}
-        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white print:hidden">
+        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-ink-white print:hidden">
         <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
         <div>
           <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
@@ -1333,7 +1333,7 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+        className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
         <div className="p-5 bg-gradient-to-br from-rose-600 to-red-700 text-white">
           <div className="flex items-center gap-3">
             <span className="h-11 w-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
@@ -1346,7 +1346,7 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
           </div>
         </div>
         <div className="p-5 space-y-3">
-          <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+          <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
             Void karne se stock wapas aa jayega aur ye bill hisab se nikal jayega.
           </p>
 
@@ -1368,11 +1368,11 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
             </label>
             <input autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
               placeholder="Kyun void kar rahe hain…"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition" />
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-rose-500 transition" />
             <div className="mt-1.5 flex flex-wrap gap-1">
               {quick.map((r) => (
                 <button key={r} onClick={() => setReason(r)}
-                  className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                  className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-black text-slate-600 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700 transition">
                   {r}
                 </button>
               ))}
@@ -1381,7 +1381,7 @@ function VoidModal({ sale, pending, serials, onClose, onConfirm }: any) {
 
           <div className="flex gap-2">
             <button onClick={onClose}
-              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-black text-slate-700 dark:text-slate-200 transition">
+              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-sm font-black text-slate-700 dark:text-ink-200 transition">
               Rehne dein
             </button>
             <button onClick={() => onConfirm(reason.trim())} disabled={!reason.trim() || pending}
@@ -1410,16 +1410,16 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight }
     <Wrap onClick={onClick}
       className={`rounded-3xl border-2 p-4 text-left transition ${
         active ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-lg'
-          : highlight ? 'border-blue-200 dark:border-blue-500/30 bg-white dark:bg-slate-900 shadow-md'
-            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm'
+          : highlight ? 'border-blue-200 dark:border-blue-500/30 bg-white dark:bg-ink-900 shadow-md'
+            : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 shadow-sm'
       } ${onClick ? 'hover:border-blue-400 hover:shadow-md active:scale-[0.99] cursor-pointer' : ''}`}>
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${KPI_TONES[tone] ?? KPI_TONES.blue} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</span>
       </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none">
+      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
@@ -1431,13 +1431,13 @@ function Panel({ icon: Icon, title, hint, children }: {
   icon: any; title: string; hint?: string; children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <header className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <header className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
         <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-center shrink-0">
           <Icon className="h-4 w-4" />
         </span>
         <div className="min-w-0">
-          <h2 className="text-sm font-black text-slate-900 dark:text-white truncate">{title}</h2>
+          <h2 className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{title}</h2>
           {hint && <p className="text-[0.6875rem] font-bold text-slate-400 truncate">{hint}</p>}
         </div>
       </header>
@@ -1449,7 +1449,7 @@ function Panel({ icon: Icon, title, hint, children }: {
 function EmptyBox({ text }: { text?: string }) {
   return (
     <div className="py-12 text-center">
-      <BarChart3 className="h-10 w-10 text-slate-200 dark:text-slate-700 mx-auto mb-2" />
+      <BarChart3 className="h-10 w-10 text-slate-200 dark:text-ink-700 mx-auto mb-2" />
       <p className="text-xs font-black text-slate-400">{text ?? 'Is arse me kuch nahi bika'}</p>
     </div>
   );
@@ -1460,7 +1460,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -1482,17 +1482,17 @@ function Teacher({ onClose }: { onClose: () => void }) {
             { i: Undo2, t: 'Wapsi aur Void alag cheezein hain', d: 'Wapsi = grahak kuch cheezein wapas laya. Void = bill bana hi ghalat tha. Void par wajah likhna zaroori hai, aur serial bhi stock me wapas aate hain.' },
             { i: BarChart3, t: 'Analytics me qism dekhein', d: 'Kis qism ka maal bika — Audio, Power, Storage. Aur naya vs refurbished ka hissa. A dabayein.' },
           ].map((s, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-center shrink-0">
                 <s.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{s.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['B', 'Scan'], ['A', 'Analytics'], ['G', 'Ye safha'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
@@ -1503,7 +1503,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-blue-600 to-cyan-700">Samajh gaya</Button>
         </footer>
       </div>

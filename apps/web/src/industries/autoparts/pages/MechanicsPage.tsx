@@ -56,10 +56,10 @@ export default function MechanicsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mechanics..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search mechanics..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
         </div>
       </section>
 
@@ -69,10 +69,10 @@ export default function MechanicsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : mechanics.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No mechanics yet</p>
           <p className="text-xs text-slate-500 mt-1">Add staff first, then create mechanic profile</p>
@@ -82,7 +82,7 @@ export default function MechanicsPage() {
           {mechanics.map((m) => {
             const nm = m.staff ? (((m.staff as any).firstName || '') + ' ' + ((m.staff as any).lastName || '')).trim() : 'Mechanic';
             return (
-              <div key={m.id} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-xl transition p-4 space-y-3">
+              <div key={m.id} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl transition p-4 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="relative shrink-0">
                     {m.photoUrl ? (
@@ -100,7 +100,7 @@ export default function MechanicsPage() {
                     </button>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white truncate">{nm}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{nm}</div>
                     {m.yearsOfExperience && <div className="text-[0.6875rem] font-bold text-slate-500">{m.yearsOfExperience} yrs exp</div>}
                     <div className="mt-1 flex items-center gap-2 flex-wrap">
                       <span className={
@@ -132,7 +132,7 @@ export default function MechanicsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+                <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
                   <div className="text-center">
                     <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Jobs</div>
                     <div className="text-sm font-extrabold tabular-nums">{m.totalJobs}</div>
@@ -192,7 +192,7 @@ function MechanicForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Mechanic' : 'New Mechanic Profile'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>

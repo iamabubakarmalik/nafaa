@@ -77,11 +77,11 @@ export default function LogoUploader({
           'relative overflow-hidden flex items-center justify-center transition-all shrink-0 group',
           shapeCls,
           value
-            ? 'border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-md'
+            ? 'border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-md'
             : 'border-2 border-dashed cursor-pointer',
           dragOver
             ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 scale-105'
-            : value ? '' : 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 hover:border-emerald-400 dark:hover:border-emerald-500/60',
+            : value ? '' : 'border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800/60 hover:border-emerald-400 dark:hover:border-emerald-500/60',
         ].join(' ')}
         onClick={() => !value && !uploading && inputRef.current?.click()}
       >
@@ -111,7 +111,7 @@ export default function LogoUploader({
             )}
           </>
         ) : (
-          <div className="flex flex-col items-center gap-1.5 text-slate-400 dark:text-slate-500 pointer-events-none">
+          <div className="flex flex-col items-center gap-1.5 text-slate-400 dark:text-ink-500 pointer-events-none">
             <ImageIcon className="h-7 w-7" />
             <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider">
               {dragOver ? 'Drop!' : 'Upload'}
@@ -167,12 +167,12 @@ export default function LogoUploader({
           )}
         </div>
 
-        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold space-y-0.5">
+        <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold space-y-0.5">
           <p className="flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-amber-500" />
             {hint || 'PNG, JPG, WebP • Max 5MB • Drag & drop supported'}
           </p>
-          <p className="text-slate-400 dark:text-slate-500">Best size: 512×512 px, transparent background</p>
+          <p className="text-slate-400 dark:text-ink-500">Best size: 512×512 px, transparent background</p>
         </div>
       </div>
     </div>

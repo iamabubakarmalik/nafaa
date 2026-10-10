@@ -612,8 +612,8 @@ export default function AppliancesPosPage() {
           </div>
 
           {/* ═══ CHAAR KHANAY — counter par har tarah ka kaam ═══ */}
-          <div className="shrink-0 px-2 sm:px-3 py-2 bg-white dark:bg-slate-900 border-b-2 border-slate-100 dark:border-slate-800">
-            <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1">
+          <div className="shrink-0 px-2 sm:px-3 py-2 bg-white dark:bg-ink-900 border-b-2 border-slate-100 dark:border-ink-800">
+            <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-ink-800 p-1">
               <PosTabBtn active={posTab === 'goods'} onClick={() => setPosTab('goods')}
                 icon={Package} label="Maal" count={filteredProducts.length} color="cyan" shortcut="F7" />
               <PosTabBtn active={posTab === 'serial'} onClick={() => setPosTab('serial')}
@@ -625,7 +625,7 @@ export default function AppliancesPosPage() {
             </div>
           </div>
 
-          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-slate-900/40 lg:min-h-0">
+          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-ink-900/40 lg:min-h-0">
             {posTab === 'serial' ? (
               <SerialTab search={debouncedSearch} hidePrices={hidePrices} onPick={addSerialToCart} />
             ) : posTab === 'repair' ? (

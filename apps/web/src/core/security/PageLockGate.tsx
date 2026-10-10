@@ -78,7 +78,7 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-2xl overflow-hidden">
         <div className="relative bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 text-white p-6 sm:p-8 text-center overflow-hidden">
           <div className="absolute -top-16 -right-16 h-44 w-44 rounded-full bg-sky-400/25 blur-3xl" />
           <div className="relative">
@@ -102,7 +102,7 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
             onChange={(e) => { setPin(e.target.value.replace(/\D/g, '').slice(0, 8)); setError(''); }}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="••••"
-            className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 text-3xl font-extrabold text-center tracking-[0.4em] tabular-nums focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-500/30"
+            className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-3xl font-extrabold text-center tracking-[0.4em] tabular-nums focus:outline-none focus:border-sky-500 focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-500/30"
           />
           {error && <p className="text-xs font-extrabold text-rose-600 text-center">{error}</p>}
 
@@ -111,13 +111,13 @@ export function PageLockGate({ children }: { children: React.ReactNode }) {
             {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Unlock className="h-5 w-5" />} Kholein
           </button>
 
-          <p className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Ek dafa PIN daalne par {store.unlockMinutes} minute tak saray lock safhe khule rahenge
           </p>
 
           <div className="flex items-center gap-2">
             <button onClick={() => window.history.back()}
-              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
               <ArrowLeft className="h-3.5 w-3.5" /> Wapas
             </button>
             <button onClick={() => setForgot(true)}

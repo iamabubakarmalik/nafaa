@@ -91,14 +91,14 @@ export default function GarmentProductsPage() {
       </section>
 
       {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search product name or style code..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-pink-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-pink-500"
           />
         </div>
 
@@ -106,12 +106,12 @@ export default function GarmentProductsPage() {
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setGenderFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (genderFilter === 'all' ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (genderFilter === 'all' ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {GENDERS.map((g) => (
             <button key={g.value} onClick={() => setGenderFilter(g.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (genderFilter === g.value ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (genderFilter === g.value ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {g.emoji} {g.label}
             </button>
@@ -122,12 +122,12 @@ export default function GarmentProductsPage() {
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setCategoryFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (categoryFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Categories</button>
           {POPULAR_CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (categoryFilter === c.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {c.emoji} {c.label}
             </button>
@@ -145,7 +145,7 @@ export default function GarmentProductsPage() {
           ].map((t) => (
             <button key={t.v} onClick={() => setTagFilter(t.v)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (tagFilter === t.v ? t.color + ' text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === t.v ? t.color + ' text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {t.label}
             </button>
@@ -155,10 +155,10 @@ export default function GarmentProductsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Shirt className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No garment products found</p>
           <p className="text-xs text-slate-500 font-semibold mt-1">Go to Products page to add garment profiles</p>
@@ -180,11 +180,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     emerald: 'from-emerald-500 to-green-600', rose: 'from-rose-500 to-red-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -202,9 +202,9 @@ function ProductCard({ profile }: { profile: any }) {
   return (
     <Link
       to={'/products/' + profile.productId + '/edit'}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden"
     >
-      <div className="relative aspect-[3/4] bg-slate-100 dark:bg-neutral-800 overflow-hidden">
+      <div className="relative aspect-[3/4] bg-slate-100 dark:bg-ink-800 overflow-hidden">
         {product?.images?.[0]?.url ? (
           <img src={product.images[0].url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
         ) : (
@@ -253,7 +253,7 @@ function ProductCard({ profile }: { profile: any }) {
       </div>
 
       <div className="p-3 space-y-1">
-        <h3 className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1">{product?.name}</h3>
+        <h3 className="font-extrabold text-sm text-slate-900 dark:text-ink-white line-clamp-1">{product?.name}</h3>
 
         <div className="flex items-center gap-1.5 flex-wrap">
           {category && (

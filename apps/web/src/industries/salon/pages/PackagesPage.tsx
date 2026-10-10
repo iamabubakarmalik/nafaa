@@ -69,13 +69,13 @@ export default function PackagesPage() {
       <div className="flex gap-2">
         <button onClick={() => setTab('packages')} className={
           'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'packages' ? 'bg-emerald-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+          (tab === 'packages' ? 'bg-emerald-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
         }>
           Packages ({packages.length})
         </button>
         <button onClick={() => setTab('purchases')} className={
           'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'purchases' ? 'bg-emerald-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+          (tab === 'purchases' ? 'bg-emerald-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
         }>
           Sold / Purchases
         </button>
@@ -100,10 +100,10 @@ export default function PackagesPage() {
       {tab === 'packages' ? (
         pkgLoading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <div key={i} className="h-72 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-72 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : packages.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
             <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
             <p className="font-extrabold text-slate-700">No packages yet</p>
             <Button className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => { setEditing(null); setShowPackageForm(true); }}>
@@ -129,15 +129,15 @@ export default function PackagesPage() {
             {['ACTIVE', 'all', 'USED', 'EXPIRED', 'CANCELLED', 'REFUNDED'].map((s) => (
               <button key={s} onClick={() => setPurchaseStatus(s)} className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-                (purchaseStatus === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (purchaseStatus === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }>{s === 'all' ? 'All' : s}</button>
             ))}
           </div>
 
           {purLoading ? (
-            <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+            <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
           ) : purchases.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
               <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
               <p className="font-extrabold text-slate-700">No package purchases</p>
             </div>
@@ -158,8 +158,8 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
 
   return (
     <div className={
-      'group rounded-3xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl transition overflow-hidden ' +
-      (pkg.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-3xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition overflow-hidden ' +
+      (pkg.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="relative aspect-video bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 overflow-hidden">
         {pkg.imageUrl ? (
@@ -194,7 +194,7 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
       </div>
 
       <div className="p-4 space-y-2">
-        <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{pkg.name}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{pkg.name}</h3>
         {pkg.description && (
           <p className="text-xs text-slate-500 font-semibold line-clamp-2">{pkg.description}</p>
         )}
@@ -210,7 +210,7 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
           </div>
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             {pkg.originalPrice && pkg.originalPrice > pkg.price && (
               <div className="text-xs text-slate-400 line-through">{formatPKR(pkg.originalPrice)}</div>
@@ -219,7 +219,7 @@ function PackageCard({ pkg, onEdit, onDelete }: any) {
           </div>
           <div className="text-right">
             <div className="text-[0.6875rem] font-extrabold text-slate-500">Sold</div>
-            <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{pkg.totalSold}</div>
+            <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{pkg.totalSold}</div>
           </div>
         </div>
       </div>
@@ -234,8 +234,8 @@ function PurchaseCard({ purchase }: any) {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
-      (isExpiring ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
+      (isExpiring ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -244,7 +244,7 @@ function PurchaseCard({ purchase }: any) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{purchase.purchaseNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{purchase.purchaseNumber}</span>
               <span className={
                 'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                 (purchase.status === 'ACTIVE' ? 'bg-emerald-600' :
@@ -260,7 +260,7 @@ function PurchaseCard({ purchase }: any) {
                 </span>
               )}
             </div>
-            <div className="text-sm font-bold text-slate-900 dark:text-white mt-1">{purchase.package?.name}</div>
+            <div className="text-sm font-bold text-slate-900 dark:text-ink-white mt-1">{purchase.package?.name}</div>
             <div className="text-xs text-slate-500 font-semibold">
               Purchased: {format(new Date(purchase.purchaseDate), 'dd MMM yyyy')} • Expires: {format(new Date(purchase.expiryDate), 'dd MMM yyyy')}
             </div>
@@ -277,7 +277,7 @@ function PurchaseCard({ purchase }: any) {
           <span>Sessions Used: {purchase.sessionsUsed}</span>
           <span>Remaining: {purchase.sessionsRemaining}</span>
         </div>
-        <div className="h-2 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
+        <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
           <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-600" style={{ width: progressPct + '%' }} />
         </div>
       </div>
@@ -328,16 +328,16 @@ function PackageForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Package' : 'New Package'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Package' : 'New Package'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
-        <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Package Name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Package Name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
@@ -353,21 +353,21 @@ function PackageForm({ editing, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Total Sessions *</label>
-            <input type="number" value={form.totalSessions} onChange={(e) => setForm({ ...form, totalSessions: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+            <input type="number" value={form.totalSessions} onChange={(e) => setForm({ ...form, totalSessions: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days) *</label>
-            <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+            <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Included Services ({selectedServiceIds.length})</label>
-          <div className="max-h-60 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-2 space-y-1">
+          <div className="max-h-60 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2 space-y-1">
             {allServices.map((svc) => (
               <label key={svc.id} className={
                 'flex items-center gap-2 p-2 rounded-lg cursor-pointer transition ' +
-                (selectedServiceIds.includes(svc.id) ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'hover:bg-slate-50 dark:hover:bg-neutral-800')
+                (selectedServiceIds.includes(svc.id) ? 'bg-emerald-50 dark:bg-emerald-950/40' : 'hover:bg-slate-50 dark:hover:bg-ink-800')
               }>
                 <input type="checkbox" checked={selectedServiceIds.includes(svc.id)} onChange={() => toggleService(svc.id)} className="h-4 w-4 rounded" />
                 <div className="flex-1 min-w-0">
@@ -399,14 +399,14 @@ function PackageForm({ editing, onClose, onSaved }: any) {
 
         <label className={
           'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-          (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700')
+          (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')
         }>
           <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
           <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
           <span className="text-sm font-extrabold">Featured Package</span>
         </label>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.price}>
             <Save className="h-4 w-4" />
@@ -443,9 +443,9 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">Sell Package</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Sell Package</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -457,7 +457,7 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
             {packages.map((pkg: any) => (
               <button key={pkg.id} onClick={() => setForm({ ...form, packageId: pkg.id, amountPaid: pkg.price })} className={
                 'p-3 rounded-xl border-2 text-left ' +
-                (form.packageId === pkg.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
+                (form.packageId === pkg.id ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
               }>
                 <div className="flex items-center gap-3">
                   <Package className="h-8 w-8 text-emerald-600" />
@@ -516,9 +516,9 @@ function PurchaseForm({ packages, onClose, onSaved }: any) {
           </div>
         )}
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => purchaseMutation.mutate()} loading={purchaseMutation.isPending} disabled={!form.packageId || !form.customerId}>
             <CheckCircle2 className="h-4 w-4" />

@@ -239,7 +239,7 @@ export default function CombosPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 dark:from-slate-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-purple-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-violet-400/30 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl pointer-events-none" />
 
@@ -376,7 +376,7 @@ export default function CombosPage() {
                   <Link
                     key={c.id}
                     to={`/retail/combos/${c.id}/edit`}
-                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-300 dark:border-amber-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-amber-800 dark:text-amber-300 hover:border-amber-500 transition"
+                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-ink-800 border border-amber-300 dark:border-amber-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-amber-800 dark:text-amber-300 hover:border-amber-500 transition"
                   >
                     {c.name}
                     <span className="text-amber-600 dark:text-amber-400">
@@ -405,7 +405,7 @@ export default function CombosPage() {
       </section>
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3 print:hidden">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -414,12 +414,12 @@ export default function CombosPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Combo name, tag line, SKU... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition"
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
               >
                 <X className="h-4 w-4 text-slate-400" />
               </button>
@@ -432,7 +432,7 @@ export default function CombosPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-4 text-xs font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-violet-500 appearance-none cursor-pointer"
+              className="h-12 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-4 text-xs font-extrabold text-slate-700 dark:text-ink-200 focus:outline-none focus:border-violet-500 appearance-none cursor-pointer"
             >
               {SORT_OPTIONS.map((o) => (
                 <option key={o.v} value={o.v}>{o.l}</option>
@@ -440,11 +440,11 @@ export default function CombosPage() {
             </select>
           </div>
 
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
             <button
               onClick={() => setView('grid')}
               className={`px-4 h-12 text-xs font-extrabold transition ${
-                view === 'grid' ? 'bg-violet-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                view === 'grid' ? 'bg-violet-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
               }`}
               title="Grid view"
             >
@@ -452,8 +452,8 @@ export default function CombosPage() {
             </button>
             <button
               onClick={() => setView('table')}
-              className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-slate-700 transition ${
-                view === 'table' ? 'bg-violet-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-ink-700 transition ${
+                view === 'table' ? 'bg-violet-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
               }`}
               title="Table view"
             >
@@ -463,7 +463,7 @@ export default function CombosPage() {
         </div>
 
         <div className="flex gap-1.5 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 flex-wrap">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 flex-wrap">
             {[
               { v: 'all', l: 'Sab' },
               { v: 'ACTIVE', l: 'Active' },
@@ -477,12 +477,12 @@ export default function CombosPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
                   statusFilter === o.v
                     ? 'bg-violet-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
                 {o.l}
                 {statusCounts[o.v] != null && (
-                  <span className={`ml-1 tabular-nums ${statusFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <span className={`ml-1 tabular-nums ${statusFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>
                     {statusCounts[o.v]}
                   </span>
                 )}
@@ -495,13 +495,13 @@ export default function CombosPage() {
               'h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition',
               featuredOnly
                 ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-amber-300',
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:border-amber-300',
             ].join(' ')}
           >
             <Star className={`h-3.5 w-3.5 ${featuredOnly ? 'fill-current' : ''}`} />
             Sirf Featured
           </button>
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400">
             {sortedCombos.length} combos
           </div>
         </div>
@@ -511,18 +511,18 @@ export default function CombosPage() {
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       ) : sortedCombos.length === 0 ? (
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
           <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-700 mx-auto flex items-center justify-center shadow-lg shadow-violet-500/40">
             <Sparkles className="h-10 w-10 text-white" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             {search || statusFilter !== 'all' || featuredOnly ? 'Is filter mein koi combo nahi' : 'Abhi koi combo nahi 🎁'}
           </h3>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+          <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
             {search || statusFilter !== 'all' || featuredOnly
               ? 'Filter badal ke dekho ya search clear karo'
               : '2+ products ka bundle banao, customer ko bachat do — aap ka average bill khud barh jayega. "Chai + Biscuit" jaisa simple combo bhi kaam karta hai.'}
@@ -638,20 +638,20 @@ function ComboTeacher({ hasCombos, hasActive, onClose }: {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/15 dark:to-purple-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Combo Deal Kaise Banate Hain?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Combo = <strong>2 ya zyada products ka bundle</strong> thora sasta. Customer ko bachat milti hai,
             aapka <strong>har bill bara</strong> hota hai. Customer 1 cheez lene aaya tha, 3 le kar gaya — yahi combo ka kamaal hai.
           </p>
@@ -661,15 +661,15 @@ function ComboTeacher({ hasCombos, hasActive, onClose }: {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300">
               🫖 Misal: Nashta Combo
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 tabular-nums">Chai 220</span>
+                <span className="px-2 py-1 rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 tabular-nums">Chai 220</span>
                 <span className="text-violet-400">+</span>
-                <span className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 tabular-nums">Biscuit 60</span>
+                <span className="px-2 py-1 rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 tabular-nums">Biscuit 60</span>
                 <span className="text-violet-400">+</span>
-                <span className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 tabular-nums">Rusks 90</span>
+                <span className="px-2 py-1 rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 tabular-nums">Rusks 90</span>
                 <span className="text-slate-400">=</span>
-                <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 tabular-nums line-through">370</span>
+                <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-700 border border-slate-300 dark:border-ink-600 tabular-nums line-through">370</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <ArrowRight className="h-3.5 w-3.5 text-violet-500 shrink-0" />
@@ -677,7 +677,7 @@ function ComboTeacher({ hasCombos, hasActive, onClose }: {
                   Combo sirf 340 — customer ne 30 bachaye! 🎉
                 </span>
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2 font-extrabold text-violet-700 dark:text-violet-300">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 p-2 font-extrabold text-violet-700 dark:text-violet-300">
                 ✅ Agla customer: "Nashta combo hai?" — 1 click, bill 340 ka
               </div>
             </div>
@@ -691,7 +691,7 @@ function ComboTeacher({ hasCombos, hasActive, onClose }: {
           </div>
 
           {/* Tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="flex items-start gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <span><strong>Sath chalne wali cheezein</strong> jodo — chai+biscuit, oil+atta, shampoo+soap</span>
@@ -724,10 +724,10 @@ function ComboTeacher({ hasCombos, hasActive, onClose }: {
 
 function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -775,7 +775,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
 }) {
   const statusMeta: Record<string, { light: string; dark: string }> = {
     ACTIVE:   { light: 'bg-emerald-100 text-emerald-700', dark: 'dark:bg-emerald-500/20 dark:text-emerald-300' },
-    INACTIVE: { light: 'bg-slate-200 text-slate-600',     dark: 'dark:bg-slate-700 dark:text-slate-300' },
+    INACTIVE: { light: 'bg-slate-200 text-slate-600',     dark: 'dark:bg-ink-700 dark:text-ink-300' },
     DRAFT:    { light: 'bg-amber-100 text-amber-700',     dark: 'dark:bg-amber-500/20 dark:text-amber-300' },
     EXPIRED:  { light: 'bg-rose-100 text-rose-700',       dark: 'dark:bg-rose-500/20 dark:text-rose-300' },
   };
@@ -783,12 +783,12 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
 
   return (
     <div className={[
-      'group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm',
+      'group relative rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm',
       'border-2 shadow-sm dark:shadow-black/20 hover:shadow-xl dark:hover:shadow-violet-500/20',
       'hover:-translate-y-1 transition-all overflow-hidden',
       combo.isFeatured
         ? 'border-amber-400 dark:border-amber-500/50 ring-2 ring-amber-100 dark:ring-amber-500/20'
-        : 'border-slate-200 dark:border-slate-800',
+        : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       {/* Champion badges */}
       {(isBestSeller || isTopRevenue) && (
@@ -822,7 +822,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
         )}
 
         {combo.tagLine && (
-          <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/95 dark:bg-slate-900/95 backdrop-blur text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider shadow-lg">
+          <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-white/95 dark:bg-ink-900/95 backdrop-blur text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300 uppercase tracking-wider shadow-lg">
             {combo.tagLine}
           </div>
         )}
@@ -833,7 +833,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
             'absolute top-2 right-2 h-9 w-9 rounded-xl backdrop-blur-md flex items-center justify-center transition shadow-lg',
             combo.isFeatured
               ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white'
-              : 'bg-white/90 dark:bg-slate-900/90 text-slate-600 dark:text-slate-300 hover:bg-white',
+              : 'bg-white/90 dark:bg-ink-900/90 text-slate-600 dark:text-ink-300 hover:bg-white',
           ].join(' ')}
           title={combo.isFeatured ? 'Featured hataao' : 'Featured banao'}
         >
@@ -851,7 +851,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
       {/* Body */}
       <div className="p-3 space-y-2.5">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate flex-1">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate flex-1">
             {combo.name}
           </h3>
           <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0 ${sm.light} ${sm.dark}`}>
@@ -860,8 +860,8 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
         </div>
 
         {/* Items preview */}
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 border border-slate-100 dark:border-slate-700">
-          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1">
+        <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 border border-slate-100 dark:border-ink-700">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 mb-1 flex items-center gap-1">
             <Package className="h-2.5 w-2.5" />
             {combo.items.length} items
           </div>
@@ -869,10 +869,10 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
             {combo.items.slice(0, 2).map((item, i) => (
               <div key={i} className="flex items-center gap-1.5 text-[0.6875rem]">
                 <span className="h-1 w-1 rounded-full bg-violet-500 shrink-0" />
-                <span className="font-bold text-slate-700 dark:text-slate-200 truncate flex-1">
+                <span className="font-bold text-slate-700 dark:text-ink-200 truncate flex-1">
                   {item.product?.name || '—'}
                 </span>
-                <span className="text-slate-500 dark:text-slate-400 font-extrabold shrink-0 tabular-nums">
+                <span className="text-slate-500 dark:text-ink-400 font-extrabold shrink-0 tabular-nums">
                   × {item.quantity}
                 </span>
               </div>
@@ -889,7 +889,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
         <div className="flex items-end justify-between gap-2">
           <div>
             {combo.originalTotal > combo.comboPrice && (
-              <div className="text-xs text-slate-400 dark:text-slate-500 line-through font-bold">
+              <div className="text-xs text-slate-400 dark:text-ink-500 line-through font-bold">
                 {formatPKR(combo.originalTotal)}
               </div>
             )}
@@ -903,12 +903,12 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
             )}
           </div>
           <div className="text-right">
-            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">Bike</div>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">Bike</div>
+            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
               {combo.soldCount}
             </div>
             {!hideCost && Number(combo.totalRevenue) > 0 && (
-              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 {formatPKR(combo.totalRevenue)}
               </div>
             )}
@@ -916,7 +916,7 @@ function ComboCard({ combo, hideCost, isBestSeller, isTopRevenue, onToggleFeatur
         </div>
 
         {/* Actions */}
-        <div className="flex gap-1.5 pt-2 border-t-2 border-slate-100 dark:border-slate-800">
+        <div className="flex gap-1.5 pt-2 border-t-2 border-slate-100 dark:border-ink-800">
           <Link
             to={`/retail/combos/${combo.id}/edit`}
             className="flex-1 h-9 rounded-lg bg-violet-50 dark:bg-violet-500/15 hover:bg-violet-100 dark:hover:bg-violet-500/25 text-violet-700 dark:text-violet-300 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition"
@@ -957,10 +957,10 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
   onDuplicate: (c: ProductCombo) => void;
 }) {
   return (
-    <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm print:text-[0.6875rem]">
-          <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+          <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
             <tr>
               <Th>Combo</Th>
               <Th>Items</Th>
@@ -973,12 +973,12 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
               <Th className="text-right">Actions</Th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
             {combos.map((c: ProductCombo) => (
               <tr key={c.id} className="hover:bg-violet-50/40 dark:hover:bg-violet-500/5 transition">
                 <td className="px-3 py-2.5">
                   <Link to={`/retail/combos/${c.id}/edit`} className="flex items-center gap-2.5 group">
-                    <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-md">
+                    <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 overflow-hidden shrink-0 border border-slate-200 dark:border-ink-700 flex items-center justify-center shadow-md">
                       {c.imageUrl ? (
                         <img src={c.imageUrl} alt="" loading="lazy" className="w-full h-full object-cover" />
                       ) : (
@@ -989,7 +989,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                       <div className="flex items-center gap-1">
                         {bestSellerId === c.id && <Crown className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
                         {topRevenueId === c.id && <Trophy className="h-3.5 w-3.5 text-emerald-500 shrink-0" />}
-                        <span className="font-extrabold text-slate-900 dark:text-white truncate group-hover:text-violet-700 dark:group-hover:text-violet-300">
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-violet-700 dark:group-hover:text-violet-300">
                           {c.name}
                         </span>
                         {c.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500 shrink-0" />}
@@ -1003,15 +1003,15 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                   </Link>
                 </td>
                 <td className="px-3 py-2.5">
-                  <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
+                  <div className="text-xs font-extrabold text-slate-700 dark:text-ink-200">
                     {c.items.length} products
                   </div>
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate max-w-[150px]">
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold truncate max-w-[150px]">
                     {c.items.slice(0, 2).map((it) => it.product?.name).filter(Boolean).join(', ')}
                     {c.items.length > 2 && ` +${c.items.length - 2}`}
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums line-through">
+                <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-500 dark:text-ink-400 tabular-nums line-through">
                   {formatPKR(c.originalTotal)}
                 </td>
                 <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
@@ -1025,11 +1025,11 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                     {c.savingsPercentage.toFixed(1)}%
                   </div>
                 </td>
-                <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">
+                <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                   {c.soldCount}
                 </td>
                 {!hideCost && (
-                  <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-slate-200 tabular-nums">
+                  <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-ink-200 tabular-nums">
                     {formatPKR(c.totalRevenue)}
                   </td>
                 )}
@@ -1044,7 +1044,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
                       className={`h-8 w-8 rounded-lg flex items-center justify-center transition ${
                         c.isFeatured
                           ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-amber-50 dark:hover:bg-amber-500/10'
+                          : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400 hover:bg-amber-50 dark:hover:bg-amber-500/10'
                       }`}
                     >
                       <Star className={`h-3.5 w-3.5 ${c.isFeatured ? 'fill-current' : ''}`} />
@@ -1087,7 +1087,7 @@ function ComboTable({ combos, hideCost, bestSellerId, topRevenueId, onToggleFeat
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
+    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>
       {children}
     </th>
   );
@@ -1097,7 +1097,7 @@ function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
     ACTIVE:   'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     DRAFT:    'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
-    INACTIVE: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    INACTIVE: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
     EXPIRED:  'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
   };
   return (
@@ -1119,23 +1119,23 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer' : '',
         active
           ? 'border-violet-500 dark:border-violet-500/60 ring-2 ring-violet-200 dark:ring-violet-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">
             {label}
           </div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">
             {value}
           </div>
           {sub && (
-            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">
               {sub}
             </div>
           )}

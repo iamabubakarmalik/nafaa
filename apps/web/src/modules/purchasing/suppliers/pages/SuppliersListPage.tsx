@@ -319,11 +319,11 @@ export default function SuppliersListPage() {
             className={`h-11 px-4 rounded-2xl text-sm font-extrabold inline-flex items-center gap-2 shrink-0 transition ${
               tab === t.v
                 ? 'bg-gradient-to-r from-teal-600 to-emerald-700 text-white shadow-lg shadow-teal-500/30'
-                : 'bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-teal-400'
+                : 'bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-teal-400'
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && (
-              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-ink-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -332,7 +332,7 @@ export default function SuppliersListPage() {
       {tab === 'list' ? (
         <>
           {/* ─────── SEARCH + FILTERS ─────── */}
-          <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 space-y-3">
+          <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 space-y-3">
             <div className="flex gap-2 flex-wrap">
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -341,7 +341,7 @@ export default function SuppliersListPage() {
                   className={`${inputCls} h-12 pl-9 pr-9`} />
                 {search && (
                   <button onClick={() => setSearch('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
                     <X className="h-3.5 w-3.5 text-slate-500" />
                   </button>
                 )}
@@ -350,7 +350,7 @@ export default function SuppliersListPage() {
                 className={`h-12 px-4 rounded-xl text-sm font-extrabold inline-flex items-center gap-1.5 border-2 transition ${
                   showFilters || dues !== 'all' || status !== 'all' || city
                     ? 'bg-teal-50 dark:bg-teal-500/10 border-teal-400 text-teal-700 dark:text-teal-300'
-                    : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300'
+                    : 'bg-[#ffffff] dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300'
                 }`}>
                 <Filter className="h-4 w-4" /> Chaant
                 {(dues !== 'all' || status !== 'all' || !!city) && (
@@ -359,22 +359,22 @@ export default function SuppliersListPage() {
                   </span>
                 )}
               </button>
-              <div className="flex rounded-xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden shrink-0">
+              <div className="flex rounded-xl border-2 border-slate-200 dark:border-ink-800 overflow-hidden shrink-0">
                 {([['list', ListIcon], ['grid', LayoutGrid]] as const).map(([v, I]) => (
                   <button key={v} onClick={() => setView(v as View)} title={`${v} view (G)`}
                     className={`h-12 w-12 flex items-center justify-center transition ${
-                      view === v ? 'bg-teal-600 text-white' : 'bg-[#ffffff] dark:bg-slate-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      view === v ? 'bg-teal-600 text-white' : 'bg-[#ffffff] dark:bg-ink-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-ink-800'
                     }`}>
                     <I className="h-4 w-4" />
                   </button>
                 ))}
               </div>
               <button onClick={doCsv} title="CSV"
-                className="h-12 px-3.5 rounded-xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400 transition">
+                className="h-12 px-3.5 rounded-xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400 transition">
                 <FileSpreadsheet className="h-4 w-4" />
               </button>
               <button onClick={doPrint} title="Print (P)"
-                className="h-12 px-3.5 rounded-xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400 transition">
+                className="h-12 px-3.5 rounded-xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-blue-400 transition">
                 <Printer className="h-4 w-4" />
               </button>
             </div>
@@ -382,36 +382,36 @@ export default function SuppliersListPage() {
             {showFilters && (
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
                 <div>
-                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Khata</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">Khata</div>
                   <div className="flex gap-1.5">
                     {([['all', 'Sab'], ['due', 'Baqi hai'], ['clear', 'Saaf']] as const).map(([v, l]) => (
                       <button key={v} onClick={() => setDues(v as DueFilter)}
                         className={`flex-1 h-10 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
-                          dues === v ? 'bg-teal-600 border-teal-600 text-white' : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                          dues === v ? 'bg-teal-600 border-teal-600 text-white' : 'bg-[#ffffff] dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                         }`}>{l}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Halat</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">Halat</div>
                   <div className="flex gap-1.5">
                     {([['all', 'Sab'], ['active', 'Chalu'], ['inactive', 'Band']] as const).map(([v, l]) => (
                       <button key={v} onClick={() => setStatus(v as StatusFilter)}
                         className={`flex-1 h-10 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
-                          status === v ? 'bg-teal-600 border-teal-600 text-white' : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                          status === v ? 'bg-teal-600 border-teal-600 text-white' : 'bg-[#ffffff] dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                         }`}>{l}</button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Sheher</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">Sheher</div>
                   <select value={city} onChange={(e) => setCity(e.target.value)} className={`${inputCls} h-10`}>
                     <option value="">Sab sheher</option>
                     {cities.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
-                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Tarteeb</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">Tarteeb</div>
                   <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={`${inputCls} h-10`}>
                     {SORTS.map((s) => <option key={s.v} value={s.v}>{s.label}</option>)}
                   </select>
@@ -442,7 +442,7 @@ export default function SuppliersListPage() {
 
           {/* ─────── LIST / GRID ─────── */}
           {isLoading ? (
-            <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 py-20 text-center">
+            <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 py-20 text-center">
               <Loader2 className="h-6 w-6 animate-spin mx-auto text-teal-600 mb-2" />
               <p className="text-sm font-bold text-slate-500">Suppliers aa rahe hain…</p>
             </div>
@@ -450,7 +450,7 @@ export default function SuppliersListPage() {
             /* Pehle request fail hone par bhi "koi supplier nahi" likha
                aata tha — dukaan-daar samajhta ke record hi khatam ho gaya.
                Ab saaf batate hain ke maamla server ka hai. */
-            <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/40">
+            <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-500/40">
               <Empty icon={AlertTriangle}
                 title="Suppliers ki list nahi aa saki"
                 desc={
@@ -465,7 +465,7 @@ export default function SuppliersListPage() {
                 } />
             </div>
           ) : suppliers.length === 0 ? (
-            <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800">
+            <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800">
               <Empty icon={Truck}
                 title={search || dues !== 'all' || status !== 'all' || city ? 'Is chaant par koi supplier nahi' : 'Abhi koi supplier nahi'}
                 desc={search || dues !== 'all' || status !== 'all' || city
@@ -493,18 +493,18 @@ export default function SuppliersListPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
-              <div className="hidden lg:grid grid-cols-[40px_1fr_150px_120px_130px_130px_220px] gap-2 px-4 py-2.5 bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-800 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 overflow-hidden">
+              <div className="hidden lg:grid grid-cols-[40px_1fr_150px_120px_130px_130px_220px] gap-2 px-4 py-2.5 bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-800 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">
                 <button onClick={selectAll} className="flex items-center justify-center">
                   <span className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
-                    allSelected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-slate-600'
+                    allSelected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-ink-600'
                   }`}>{allSelected && <CheckCircle2 className="h-3 w-3 text-white" />}</span>
                 </button>
                 <span>Supplier</span><span>Rabta</span><span className="text-right">Bill</span>
                 <span className="text-right">Kharidari</span><span className="text-right">Hamara baqi</span>
                 <span className="text-right">Kaam</span>
               </div>
-              <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
                 {suppliers.map((s) => (
                   <SupplierRow key={s.id} s={s} hideCost={hideCost}
                     selected={selected.has(s.id)} onToggle={() => toggleSel(s.id)}
@@ -581,13 +581,13 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
     : null;
 
   return (
-    <div className={`px-3 sm:px-4 py-3 transition ${selected ? 'bg-teal-50 dark:bg-teal-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}`}>
+    <div className={`px-3 sm:px-4 py-3 transition ${selected ? 'bg-teal-50 dark:bg-teal-500/10' : 'hover:bg-slate-50 dark:hover:bg-ink-800/50'}`}>
       <div className="lg:grid lg:grid-cols-[40px_1fr_150px_120px_130px_130px_220px] lg:gap-2 lg:items-center flex flex-col gap-2">
         {/* select */}
         <div className="hidden lg:flex items-center justify-center">
           <button onClick={onToggle}>
             <span className={`h-4 w-4 rounded border-2 flex items-center justify-center ${
-              selected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-slate-600'
+              selected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-ink-600'
             }`}>{selected && <CheckCircle2 className="h-3 w-3 text-white" />}</span>
           </button>
         </div>
@@ -596,7 +596,7 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
         <div className="flex items-center gap-3 min-w-0">
           <button onClick={onToggle} className="lg:hidden shrink-0">
             <span className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
-              selected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-slate-600'
+              selected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-ink-600'
             }`}>{selected && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}</span>
           </button>
           <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-black text-white shrink-0 ${
@@ -605,13 +605,13 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
             {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-full w-full object-cover rounded-2xl" /> : initials(s.name)}
           </div>
           <div className="min-w-0 flex-1">
-            <Link to={`/suppliers/${s.id}`} className="font-black text-slate-900 dark:text-white hover:text-teal-600 truncate block">
+            <Link to={`/suppliers/${s.id}`} className="font-black text-slate-900 dark:text-ink-white hover:text-teal-600 truncate block">
               {s.name}
             </Link>
-            <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {s.contactPerson && <span>👤 {s.contactPerson}</span>}
               {s.city && <span className="inline-flex items-center gap-0.5"><MapPin className="h-3 w-3" />{s.city}</span>}
-              {!s.isActive && <span className="px-1.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Band</span>}
+              {!s.isActive && <span className="px-1.5 rounded bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300">Band</span>}
               {days !== null && days > 90 && (
                 <span className="px-1.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
                   {daysPhrase(days)} se ghaib
@@ -622,20 +622,20 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
         </div>
 
         {/* contact */}
-        <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 lg:pl-0 pl-8">
+        <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 lg:pl-0 pl-8">
           {s.phone ? <span className="font-mono">{s.phone}</span> : <span className="text-slate-400">—</span>}
           {s.email && <div className="truncate text-slate-400">{s.email}</div>}
         </div>
 
         {/* bills */}
-        <div className="lg:text-right text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 tabular-nums lg:pl-0 pl-8">
+        <div className="lg:text-right text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 tabular-nums lg:pl-0 pl-8">
           <span className="lg:hidden text-slate-400 font-bold">Bill: </span>
           {s._count?.purchases ?? 0}
           {s.lastPurchaseAt && <div className="text-[0.6875rem] font-bold text-slate-400">{daysPhrase(days)}</div>}
         </div>
 
         {/* purchased */}
-        <div className="lg:text-right text-xs font-extrabold text-slate-800 dark:text-slate-100 tabular-nums lg:pl-0 pl-8">
+        <div className="lg:text-right text-xs font-extrabold text-slate-800 dark:text-ink-100 tabular-nums lg:pl-0 pl-8">
           <span className="lg:hidden text-slate-400 font-bold">Kharida: </span>
           {hideCost ? '•••' : formatPKR(Number(s.totalPurchased ?? 0))}
         </div>
@@ -671,15 +671,15 @@ function SupplierRow({ s, hideCost, selected, onToggle, onKhata, onDelete, onTog
             </a>
           )}
           <Link to={`/suppliers/${s.id}`} title="Tafseel"
-            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-ink-700 transition">
             <Eye className="h-4 w-4" />
           </Link>
           <Link to={`/suppliers/${s.id}/edit`} title="Badlein"
-            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-ink-700 transition">
             <Edit3 className="h-4 w-4" />
           </Link>
           <button onClick={onToggleActive} title={s.isActive ? 'Band karein' : 'Chalu karein'}
-            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-amber-100 dark:hover:bg-amber-500/20 transition">
+            className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center hover:bg-amber-100 dark:hover:bg-amber-500/20 transition">
             {s.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
           </button>
           <button onClick={onDelete} title="Delete"
@@ -706,15 +706,15 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
     : null;
 
   return (
-    <div className={`relative rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 overflow-hidden transition ${
-      selected ? 'border-teal-500 ring-2 ring-teal-200 dark:ring-teal-500/30' : 'border-slate-200 dark:border-slate-800 hover:border-teal-400 hover:shadow-lg'
+    <div className={`relative rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 overflow-hidden transition ${
+      selected ? 'border-teal-500 ring-2 ring-teal-200 dark:ring-teal-500/30' : 'border-slate-200 dark:border-ink-800 hover:border-teal-400 hover:shadow-lg'
     }`}>
       <div className={`h-1.5 ${due > 0 ? 'bg-gradient-to-r from-rose-500 to-red-600' : 'bg-gradient-to-r from-teal-500 to-emerald-600'}`} />
       <div className="p-4">
         <div className="flex items-start gap-3">
           <button onClick={onToggle} className="shrink-0 mt-1">
             <span className={`h-5 w-5 rounded border-2 flex items-center justify-center ${
-              selected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-slate-600'
+              selected ? 'bg-teal-600 border-teal-600' : 'border-slate-300 dark:border-ink-600'
             }`}>{selected && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}</span>
           </button>
           <div className={`h-12 w-12 rounded-2xl flex items-center justify-center font-black text-white shrink-0 ${
@@ -723,19 +723,19 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
             {s.logoUrl ? <img src={s.logoUrl} alt="" className="h-full w-full object-cover rounded-2xl" /> : initials(s.name)}
           </div>
           <div className="min-w-0 flex-1">
-            <Link to={`/suppliers/${s.id}`} className="font-black text-slate-900 dark:text-white hover:text-teal-600 truncate block">
+            <Link to={`/suppliers/${s.id}`} className="font-black text-slate-900 dark:text-ink-white hover:text-teal-600 truncate block">
               {s.name}
             </Link>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {s.contactPerson ? `👤 ${s.contactPerson}` : s.city ? `📍 ${s.city}` : 'Tafseel nahi'}
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 mt-3">
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
             <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500">Kul kharidari</div>
-            <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums truncate">
+            <div className="text-sm font-black text-slate-900 dark:text-ink-white tabular-nums truncate">
               {hideCost ? '•••' : formatPKR(Number(s.totalPurchased ?? 0))}
             </div>
             <div className="text-[0.6875rem] font-bold text-slate-400">{s._count?.purchases ?? 0} bill</div>
@@ -754,10 +754,10 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
         </div>
 
         <div className="flex items-center gap-1.5 flex-wrap mt-2 text-[0.6875rem] font-extrabold">
-          {s.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">{s.phone}</span>}
-          {s.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{s.city}</span>}
+          {s.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 font-mono">{s.phone}</span>}
+          {s.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">{s.city}</span>}
           {s.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">{s.paymentTerms}</span>}
-          {!s.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Band</span>}
+          {!s.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300">Band</span>}
           {days !== null && days > 90 && (
             <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">
               {daysPhrase(days)} se ghaib
@@ -777,15 +777,15 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
             </a>
           )}
           <Link to={`/suppliers/${s.id}`}
-            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center transition">
             <Eye className="h-4 w-4" />
           </Link>
           <Link to={`/suppliers/${s.id}/edit`}
-            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center transition">
             <Edit3 className="h-4 w-4" />
           </Link>
           <button onClick={onToggleActive}
-            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center transition">
             {s.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
           </button>
           <button onClick={onDelete}
@@ -804,7 +804,7 @@ function SupplierCard({ s, hideCost, selected, onToggle, onKhata, onDelete, onTo
 function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }) {
   if (!summary) {
     return (
-      <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 py-20 text-center">
+      <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 py-20 text-center">
         <Loader2 className="h-6 w-6 animate-spin mx-auto text-teal-600 mb-2" />
         <p className="text-sm font-bold text-slate-500">Hisab lagaya ja raha hai…</p>
       </div>
@@ -862,7 +862,7 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
               </div>
               <div className="grid grid-cols-4 gap-1.5 mt-2">
                 {(summary.dueAging ?? []).map((a: any, i: number) => (
-                  <div key={a.bucket} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-center">
+                  <div key={a.bucket} className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 text-center">
                     <div className="text-[0.625rem] font-extrabold uppercase text-slate-500">{a.bucket}</div>
                     <div className="text-xs font-black tabular-nums" style={{ color: ['#10b981', '#f59e0b', '#f97316', '#e11d48'][i] }}>
                       {money(a.amount)}
@@ -906,13 +906,13 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
             <div className="space-y-1.5">
               {summary.topDebtors.map((d: any, i: number) => (
                 <Link key={d.id} to={`/suppliers/${d.id}`}
-                  className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
+                  className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition">
                   <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
-                    i === 0 ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    i === 0 ? 'bg-rose-600 text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                   }`}>{i + 1}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{d.name}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{d.name}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                       {d.orderCount} bill · adaigi {daysPhrase(d.daysSincePayment)}
                     </div>
                   </div>
@@ -934,20 +934,20 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
             <div className="space-y-1.5">
               {summary.topSuppliers.map((t: any, i: number) => (
                 <Link key={t.supplierId} to={`/suppliers/${t.supplierId}`}
-                  className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition">
+                  className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5 hover:bg-amber-50 dark:hover:bg-amber-500/10 transition">
                   <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
-                    i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                   }`}>{i === 0 ? '👑' : i + 1}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                    <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">
                       {t.supplier?.name ?? 'Supplier'}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                       {t.orderCount} bill{t.supplier?.city ? ` · ${t.supplier.city}` : ''}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(t.totalSpent)}</div>
+                    <div className="text-xs font-black text-slate-900 dark:text-ink-white tabular-nums">{money(t.totalSpent)}</div>
                     {t.outstanding > 0 && (
                       <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(t.outstanding)} baqi</div>
                     )}
@@ -989,13 +989,13 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
             <div className="space-y-1.5">
               {summary.dormantSuppliers.map((d: any) => (
                 <Link key={d.id} to={`/suppliers/${d.id}`}
-                  className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition">
-                  <div className="h-8 w-8 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black text-[0.6875rem] shrink-0">
+                  className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition">
+                  <div className="h-8 w-8 rounded-xl bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center font-black text-[0.6875rem] shrink-0">
                     {initials(d.name)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{d.name}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{d.name}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                       {daysPhrase(d.daysSincePurchase)} · {money(d.totalPurchased)} ka maal liya tha
                     </div>
                   </div>
@@ -1018,20 +1018,20 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
         ) : (
           <div className="grid sm:grid-cols-2 gap-2">
             {summary.topProducts.map((p: any, i: number) => (
-              <div key={p.productId} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
-                <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0 text-lg">
+              <div key={p.productId} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
+                <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-ink-700 flex items-center justify-center overflow-hidden shrink-0 text-lg">
                   {p.product?.images?.[0]?.url
                     ? <img src={p.product.images[0].url} alt="" className="h-full w-full object-cover" />
                     : '📦'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{p.product?.name ?? '—'}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{p.product?.name ?? '—'}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                     {p.quantity} {p.product?.unit ?? ''} · {p.orderCount} bill
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(p.total)}</div>
+                  <div className="text-xs font-black text-slate-900 dark:text-ink-white tabular-nums">{money(p.total)}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400">#{i + 1}</div>
                 </div>
               </div>
@@ -1071,20 +1071,20 @@ function AnalyticsTab({ summary, hideCost }: { summary: any; hideCost: boolean }
             {summary.recentPurchases.map((p: any) => {
               const due = Number(p.total ?? 0) - Number(p.paidAmount ?? 0);
               return (
-                <div key={p.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+                <div key={p.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
                   <div className="h-9 w-9 rounded-xl bg-teal-100 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0">
                     <Package className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                    <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">
                       {p.supplier?.name ?? 'Supplier'}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 font-mono truncate">
                       {p.purchaseNumber} · {fmtDate(p.purchasedAt)}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(p.total)}</div>
+                    <div className="text-xs font-black text-slate-900 dark:text-ink-white tabular-nums">{money(p.total)}</div>
                     {due > 0
                       ? <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(due)} udhaar</div>
                       : <div className="text-[0.6875rem] font-extrabold text-emerald-600">Poora diya</div>}
@@ -1112,7 +1112,7 @@ function DeleteConfirm({ s, pending, onCancel, onConfirm }: {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4" onClick={onCancel}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-[#ffffff] dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-800">
+        className="w-full max-w-md bg-[#ffffff] dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-800">
         <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
           <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center mb-2">
             <Trash2 className="h-5 w-5" />
@@ -1132,7 +1132,7 @@ function DeleteConfirm({ s, pending, onCancel, onConfirm }: {
               </div>
             </div>
           ) : (
-            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            <p className="text-sm font-semibold text-slate-600 dark:text-ink-300">
               Is supplier ka koi bill aur koi baqi nahi — mehfooz tareeqe se delete ho sakta hai.
             </p>
           )}

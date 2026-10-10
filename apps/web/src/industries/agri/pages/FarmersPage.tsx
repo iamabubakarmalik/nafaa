@@ -502,7 +502,7 @@ export default function FarmersPage() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.overdueList.map((r: any) => (
                 <span key={r.id}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 text-[0.6875rem] font-extrabold text-rose-900 dark:text-rose-200">
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-rose-200 dark:border-rose-500/40 text-[0.6875rem] font-extrabold text-rose-900 dark:text-rose-200">
                   {r.fullName} <span className="text-rose-600">({money(r.owed)} · {r.overdueBy}d)</span>
                 </span>
               ))}
@@ -510,7 +510,7 @@ export default function FarmersPage() {
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={copyChase}
-              className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-rose-300 dark:border-rose-500/40 hover:border-rose-500 text-rose-800 dark:text-rose-200 text-xs font-black inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-rose-300 dark:border-rose-500/40 hover:border-rose-500 text-rose-800 dark:text-rose-200 text-xs font-black inline-flex items-center gap-1.5 transition">
               {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copy hui' : 'List'}
             </button>
@@ -551,13 +551,13 @@ export default function FarmersPage() {
             className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             {count !== undefined && (
               <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
-                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
               }`}>{count}</span>
             )}
             <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
@@ -575,15 +575,15 @@ export default function FarmersPage() {
       ) : (
         <>
           {/* ═══ TOOLBAR ═══ */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
             <div className="relative">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Naam, phone, CNIC, gaon, zila, fasal… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -600,12 +600,12 @@ export default function FarmersPage() {
                 <button key={v} onClick={() => setCreditFilter(v as CreditFilter)}
                   className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     creditFilter === v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>{label}</button>
               ))}
 
               <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition">
+                className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition">
                 <option value="all">Har halat</option>
                 <option value="ACTIVE">Chalu</option>
                 <option value="SUSPENDED">Band</option>
@@ -613,7 +613,7 @@ export default function FarmersPage() {
 
               {districts.length > 0 && (
                 <select value={districtFilter} onChange={(e) => setDistrictFilter(e.target.value)}
-                  className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition">
+                  className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition">
                   <option value="">Har zila</option>
                   {districts.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
@@ -625,7 +625,7 @@ export default function FarmersPage() {
                   <X className="h-3 w-3" /> Chaant hatao
                 </button>
               )}
-              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
                 {filtered.length} farmer
               </div>
             </div>
@@ -633,7 +633,7 @@ export default function FarmersPage() {
 
           {isLoading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+              {[1, 2, 3].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : filtered.length === 0 ? (
             <Empty hasFilters={hasFilters} onClear={clearFilters}
@@ -681,7 +681,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
   const suspended = f.status === 'SUSPENDED';
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 avoid-break ${
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 avoid-break ${
       suspended ? 'border-rose-300 dark:border-rose-500/50 opacity-80'
         : f.overdue ? 'border-rose-300 dark:border-rose-500/50'
         : f.overLimit ? 'border-amber-300 dark:border-amber-500/50'
@@ -689,7 +689,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
     }`}>
       <div className="flex items-start gap-3">
         {f.photoUrl ? (
-          <img src={f.photoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-slate-700 shrink-0" />
+          <img src={f.photoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-ink-700 shrink-0" />
         ) : (
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-lime-600 text-white flex items-center justify-center text-xl font-black shrink-0">
             {f.fullName?.charAt(0).toUpperCase() || '?'}
@@ -697,7 +697,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-white truncate">{f.fullName}</span>
+            <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{f.fullName}</span>
             {suspended && (
               <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-black uppercase bg-rose-600 text-white">Band</span>
             )}
@@ -708,7 +708,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
             )}
           </div>
           <div className="font-mono text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400">{f.farmerNumber}</div>
-          <div className="mt-1 space-y-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <div className="mt-1 space-y-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             {f.phone && (
               <a href={`tel:${f.phone}`} className="flex items-center gap-1 hover:text-emerald-600 transition">
                 <Phone className="h-3 w-3 shrink-0" /> {f.phone}
@@ -742,10 +742,10 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2">
+      <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-black tracking-widest text-slate-500">Orders</div>
-          <div className="font-black text-slate-900 dark:text-white tabular-nums text-sm">{f.totalOrders ?? 0}</div>
+          <div className="font-black text-slate-900 dark:text-ink-white tabular-nums text-sm">{f.totalOrders ?? 0}</div>
         </div>
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-black tracking-widest text-emerald-700 dark:text-emerald-400">Kharidari</div>
@@ -765,12 +765,12 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
       {f.limit > 0 && (
         <div>
           <div className="flex items-center justify-between text-[0.6875rem] font-black mb-1">
-            <span className="text-slate-600 dark:text-slate-400">Udhaar ki hadd</span>
+            <span className="text-slate-600 dark:text-ink-400">Udhaar ki hadd</span>
             <span className={f.usedPct > 80 ? 'text-rose-700 dark:text-rose-400' : f.usedPct > 50 ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}>
               {money(f.owed)} / {money(f.limit)}
             </span>
           </div>
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
             <div className={
               f.usedPct > 80 ? 'h-full bg-gradient-to-r from-rose-500 to-red-600'
                 : f.usedPct > 50 ? 'h-full bg-gradient-to-r from-amber-500 to-orange-600'
@@ -788,7 +788,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
       {f.owed > 0 && f.since !== null && (
         <div className={`rounded-xl px-2.5 py-1.5 text-[0.6875rem] font-extrabold ${
           f.overdue ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-800 dark:text-rose-300'
-            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+            : 'bg-slate-50 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
         }`}>
           <Clock className="h-3 w-3 inline" />{' '}
           {f.overdue
@@ -805,7 +805,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
         </button>
       )}
 
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-slate-800 print:hidden">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 print:hidden">
         <Link to={`/agri/farmers/${f.id}`}
           className="flex-1 h-9 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 dark:hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition">
           <FileText className="h-3.5 w-3.5" /> Khata
@@ -817,7 +817,7 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
           </a>
         )}
         <button onClick={onEdit} title="Edit"
-          className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition">
+          className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 flex items-center justify-center transition">
           <Edit3 className="h-3.5 w-3.5" />
         </button>
         {f.status === 'ACTIVE' ? (
@@ -856,12 +856,12 @@ function FarmerCard({ f, money, onEdit, onSuspend, onReactivate, onRemove, onLin
 function UdhaarTab({ rows, money, reminderLink, onCopy, onWhatsapp, copied }: any) {
   if (rows.length === 0) {
     return (
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-14 text-center">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-14 text-center">
         <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
           <CheckCircle2 className="h-8 w-8 text-white" />
         </div>
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Kisi ka udhaar baqi nahi</h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold">
+        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Kisi ka udhaar baqi nahi</h3>
+        <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold">
           Saare khatay saaf hain. Ye agri dukaan me bohat kam hota hai — achhi baat hai.
         </p>
       </section>
@@ -883,7 +883,7 @@ function UdhaarTab({ rows, money, reminderLink, onCopy, onWhatsapp, copied }: an
         </div>
         <div className="flex gap-1.5 shrink-0">
           <button onClick={onCopy}
-            className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black inline-flex items-center gap-1.5 transition">
+            className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black inline-flex items-center gap-1.5 transition">
             {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
             {copied ? 'Copy hui' : 'List copy'}
           </button>
@@ -894,10 +894,10 @@ function UdhaarTab({ rows, money, reminderLink, onCopy, onWhatsapp, copied }: an
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+            <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
               <tr>
                 <Th>Farmer</Th>
                 <Th>Gaon</Th>
@@ -907,7 +907,7 @@ function UdhaarTab({ rows, money, reminderLink, onCopy, onWhatsapp, copied }: an
                 <Th className="text-right print:hidden">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {rows.map((r: any) => (
                 <tr key={r.id} className={`transition avoid-break ${
                   r.overdue ? 'bg-rose-50/60 dark:bg-rose-500/5' : 'hover:bg-amber-50/40 dark:hover:bg-amber-500/5'
@@ -918,7 +918,7 @@ function UdhaarTab({ rows, money, reminderLink, onCopy, onWhatsapp, copied }: an
                         {r.fullName?.charAt(0).toUpperCase() || '?'}
                       </span>
                       <span className="min-w-0">
-                        <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
+                        <span className="block font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-emerald-600">
                           {r.fullName}
                         </span>
                         <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -927,7 +927,7 @@ function UdhaarTab({ rows, money, reminderLink, onCopy, onWhatsapp, copied }: an
                       </span>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                     {[r.village, r.district].filter(Boolean).join(', ') || '—'}
                   </td>
                   <td className="px-3 py-2.5 text-right font-black text-amber-700 dark:text-amber-400 tabular-nums">
@@ -1129,7 +1129,7 @@ function SuspendModal({ farmer, onClose, onConfirm, saving }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -1146,7 +1146,7 @@ function SuspendModal({ farmer, onClose, onConfirm, saving }: any) {
           </button>
         </div>
         <div className="p-5 space-y-3">
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
             Band karne par is farmer ko naya udhaar nahi diya ja sakega. Purana khata aur record
             waise ka waisa rahega — kabhi bhi dobara chalu kar sakte hain.
           </div>
@@ -1156,12 +1156,12 @@ function SuspendModal({ farmer, onClose, onConfirm, saving }: any) {
             </label>
             <textarea rows={2} autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
               placeholder="Kyun band kar rahe hain…"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 resize-none transition" />
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 resize-none transition" />
           </div>
           <div className="flex flex-wrap gap-1.5">
             {SUSPEND_REASONS.map((r) => (
               <button key={r} type="button" onClick={() => setReason(r)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-amber-50 dark:hover:bg-amber-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 transition">
                 {r}
               </button>
             ))}
@@ -1187,7 +1187,7 @@ function RemoveModal({ farmer, onClose, onConfirm, saving }: any) {
   }, []);
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-sm bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-sm bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-center gap-3">
           <div className="h-11 w-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
@@ -1208,7 +1208,7 @@ function RemoveModal({ farmer, onClose, onConfirm, saving }: any) {
               </span>
             </div>
           )}
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-bold text-slate-700 dark:text-ink-200 leading-relaxed">
             Farmer ka profile hat jayega. Us ka Customer khata aur purani bikri waise ki waisi
             rahegi — sirf ye agri profile (zameen, fasal, CNIC) hategi.
           </p>
@@ -1289,19 +1289,19 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
       <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
         <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
           <Tractor className="h-5 w-5" /> {editing ? 'Farmer ki tafseel' : 'Naya farmer'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-          <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+          <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
         </button>
       </div>
 
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         {!editing && (
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3 text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
             Sirf <strong>naam aur phone</strong> zaroori hain — baqi sab baad me bhar sakte hain.
             Farmer banate hi us ka khata (Customer) bhi khud ban jata hai, taake POS par udhaar
             sahi jagah darj ho.
@@ -1331,7 +1331,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
         <Field label="CNIC" opt>
           <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })}
             placeholder="XXXXX-XXXXXXX-X" className={`${inp} font-mono`} />
-          <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             <IdCard className="h-3 w-3 inline" /> Sarkari subsidy ka claim banate waqt ye zaroori hota hai
           </p>
         </Field>
@@ -1400,12 +1400,12 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
                 <button key={c} type="button" onClick={() => toggle('primaryCrops', c)}
                   className={`h-9 px-3 rounded-xl border-2 text-xs font-extrabold transition ${
                     on ? 'border-lime-500 bg-lime-50 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-lime-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-lime-400'
                   }`}>🌾 {c}</button>
               );
             })}
           </div>
-          <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Season aane par pata chal jata hai ke kis ko kya chahiye hoga
           </p>
         </Field>
@@ -1418,7 +1418,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
                 <button key={ft} type="button" onClick={() => toggle('farmingType', ft)}
                   className={`h-9 px-3 rounded-xl border-2 text-xs font-extrabold transition ${
                     on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>{ft}</button>
               );
             })}
@@ -1456,7 +1456,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
         {/* Tasveer */}
         <Field label="Tasveer" opt>
           {form.photoUrl ? (
-            <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
+            <div className="relative w-32 h-32 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
               <img src={form.photoUrl} alt="" className="w-full h-full object-cover" />
               <button type="button" onClick={() => setForm({ ...form, photoUrl: '' })}
                 className="absolute top-1 right-1 h-6 w-6 rounded bg-rose-600 text-white flex items-center justify-center">
@@ -1490,7 +1490,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
           </div>
         )}
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Rehne do</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-lime-700"
             onClick={() => save.mutate()} loading={save.isPending} disabled={!valid}>
@@ -1505,7 +1505,7 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
 /* ═════════════════════════════════════════════════════════════
    CHHOTE HISSE
    ═════════════════════════════════════════════════════════════ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
 
 function Field({ label, req, opt, children }: any) {
   return (
@@ -1531,15 +1531,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
-        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1555,12 +1555,12 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     amber: 'text-amber-600 dark:text-amber-400', rose: 'text-rose-600 dark:text-rose-400',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
         <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
-      <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
+      <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-ink-white tabular-nums break-words">{value}</div>
       {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5 truncate">{sub}</div>}
     </div>
   );
@@ -1568,8 +1568,8 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1579,25 +1579,25 @@ function ChartCard({ icon: Icon, title, wide, children }: any) {
 
 function ListCard({ icon: Icon, title, rows, emptyText }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" />
-        <h3 className="font-black text-slate-900 dark:text-white">{title}</h3>
+        <h3 className="font-black text-slate-900 dark:text-ink-white">{title}</h3>
       </div>
       {rows.length === 0 ? (
         <div className="p-8 text-center text-sm font-bold text-slate-400">{emptyText}</div>
       ) : (
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((r: any, i: number) => (
-            <Link key={r.key} to={r.to} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-              <span className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
+            <Link key={r.key} to={r.to} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
+              <span className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
                 {i + 1}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.title}</span>
+                <span className="block font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.title}</span>
                 <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">{r.sub}</span>
               </span>
-              <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">{r.value}</span>
+              <span className="text-sm font-black tabular-nums text-slate-900 dark:text-ink-white shrink-0">{r.value}</span>
             </Link>
           ))}
         </div>
@@ -1607,7 +1607,7 @@ function ListCard({ icon: Icon, title, rows, emptyText }: any) {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>{children}</th>;
 }
 
 function Pill({ tone, children }: any) {
@@ -1615,7 +1615,7 @@ function Pill({ tone, children }: any) {
     emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
-    slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
   };
   return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold whitespace-nowrap ${tones[tone]}`}>{children}</span>;
 }
@@ -1626,14 +1626,14 @@ function EmptyBox({ text }: { text: string }) {
 
 function Empty({ hasFilters, onClear, onNew, onGuide }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Tractor className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
         {hasFilters ? 'Is chaant par koi farmer nahi' : 'Abhi koi farmer register nahi'}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
         {hasFilters
           ? 'Chaant badal kar dekhein'
           : 'Jo farmer aap se maal lete hain, unhein yahan register kar lein — phir udhaar, zameen aur fasal sab ka hisab rahega.'}
@@ -1661,14 +1661,14 @@ function Empty({ hasFilters, onClear, onNew, onGuide }: any) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Farmer ka khata kaise chalta hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
@@ -1706,13 +1706,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             <strong>Hatana</strong> — sirf agri profile jati hai, Customer khata aur purani bikri
             rehti hai. Jis par paisa baqi ho, us ko hatayein nahi.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya farmer</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> naya farmer</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-3</kbd> tabs</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1729,8 +1729,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ import { useAuthStore } from '@core/stores/auth.store';
 type Tab = 'today' | 'all' | 'analytics';
 
 const STATUS: Record<string, { label: string; chip: string; dot: string }> = {
-  PLANNED:       { label: 'Banana hai', chip: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300', dot: 'bg-slate-400' },
+  PLANNED:       { label: 'Banana hai', chip: 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300', dot: 'bg-slate-400' },
   IN_PROGRESS:   { label: 'Kaam chal raha', chip: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300', dot: 'bg-blue-500' },
   BAKING:        { label: 'Oven me hai', chip: 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300', dot: 'bg-orange-500' },
   COOLING:       { label: 'Thanda ho raha', chip: 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300', dot: 'bg-sky-500' },
@@ -269,7 +269,7 @@ export default function ProductionPage() {
             className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
               tab === v
                 ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-orange-400'
             }`}>
             <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
             <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{key}</kbd>
@@ -278,14 +278,14 @@ export default function ProductionPage() {
       </div>
 
       {tab !== 'analytics' && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
           <div className="relative">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Plan number ya cheez ka naam… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-orange-500 transition" />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -361,14 +361,14 @@ export default function ProductionPage() {
           <div className="h-12 w-12 rounded-full border-4 border-orange-200 border-t-orange-600 animate-spin" />
         </div>
       ) : shown.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 sm:p-14 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 sm:p-14 text-center">
           <div className="h-16 w-16 rounded-3xl bg-orange-100 dark:bg-orange-500/20 mx-auto flex items-center justify-center">
             <ChefHat className="h-8 w-8 text-orange-600 dark:text-orange-400" />
           </div>
-          <p className="mt-4 font-black text-slate-800 dark:text-slate-100 text-lg sm:text-xl">
+          <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg sm:text-xl">
             {tab === 'today' ? 'Aaj ka koi plan nahi' : 'Koi plan nahi mila'}
           </p>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold mt-1.5 max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5 max-w-md mx-auto">
             Subah plan bana lein — bawarchi ko pata chal jayega ke kya kitna banana hai, aur
             shaam ko hisab bhi saaf rahega.
           </p>
@@ -377,7 +377,7 @@ export default function ProductionPage() {
               <Plus className="h-4 w-4" /> Naya plan
             </Button>
             <Link to="/low-stock"
-              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-black inline-flex items-center gap-2 hover:border-orange-400 transition">
+              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-sm font-black inline-flex items-center gap-2 hover:border-orange-400 transition">
               Aaj kya banana hai <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -411,12 +411,12 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
   const pct = items.length > 0 ? (done / items.length) * 100 : 0;
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden avoid-break">
-      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 flex-wrap">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden avoid-break">
+      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 flex-wrap">
         <span className={`h-2.5 w-2.5 rounded-full ${s.dot} shrink-0`} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-black text-slate-900 dark:text-white">{plan.planNumber}</span>
+            <span className="font-black text-slate-900 dark:text-ink-white">{plan.planNumber}</span>
             <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${s.chip}`}>{s.label}</span>
             {plan.shift && <span className="text-[0.6875rem] font-black text-slate-400">{plan.shift}</span>}
           </div>
@@ -442,13 +442,13 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
       </div>
 
       <div className="px-4 pt-2.5">
-        <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
           <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
         </div>
         <div className="mt-1 text-[0.6875rem] font-bold text-slate-400">{done} / {items.length} ban gaya</div>
       </div>
 
-      <div className="divide-y divide-slate-100 dark:divide-slate-800 mt-2">
+      <div className="divide-y divide-slate-100 dark:divide-ink-800 mt-2">
         {items.map((i) => {
           const isDone = i.status === 'COMPLETED';
           const isBaking = i.status === 'BAKING';
@@ -457,7 +457,7 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
             <div key={i.id} className="p-3 sm:p-4">
               <div className="flex items-center gap-3 flex-wrap">
                 <span className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                  isDone ? 'bg-emerald-100 dark:bg-emerald-500/20' : isBaking ? 'bg-orange-100 dark:bg-orange-500/20' : 'bg-slate-100 dark:bg-slate-800'
+                  isDone ? 'bg-emerald-100 dark:bg-emerald-500/20' : isBaking ? 'bg-orange-100 dark:bg-orange-500/20' : 'bg-slate-100 dark:bg-ink-800'
                 }`}>
                   {isDone ? <CheckCircle2 className="h-5 w-5 text-emerald-600" />
                     : isBaking ? <Flame className="h-5 w-5 text-orange-600" />
@@ -466,7 +466,7 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{i.productName}</span>
+                    <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{i.productName}</span>
                     <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${st(i.status).chip}`}>{st(i.status).label}</span>
                   </div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">
@@ -478,7 +478,7 @@ function PlanCard({ plan, onStart, onComplete, onBake, onFinish, busy }: any) {
                 </div>
 
                 <div className="text-right shrink-0">
-                  <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">
+                  <div className="text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">
                     {isDone ? fmtQty(Number(i.producedQty)) : fmtQty(Number(i.plannedQty))}
                   </div>
                   <div className="text-[0.6875rem] font-bold text-slate-400">
@@ -542,7 +542,7 @@ function BakeModal({ item, onClose, onDone }: any) {
         {[160, 180, 200, 220].map((t) => (
           <button key={t} onClick={() => setTemp(t)}
             className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-black transition ${
-              temp === t ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+              temp === t ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
             }`}>{t}°</button>
         ))}
       </div>
@@ -611,12 +611,12 @@ function FinishModal({ item, onClose, onDone }: any) {
         <Field label="Kitne bane">
           <input type="number" min={0} step="any" autoFocus value={made}
             onChange={(e) => setMade(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+            className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
         </Field>
         <Field label="Kitne kharab">
           <input type="number" min={0} step="any" value={failed}
             onChange={(e) => setFailed(e.target.value === '' ? '' : Number(e.target.value))}
-            className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-rose-500" />
+            className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-rose-500" />
         </Field>
       </div>
 
@@ -628,14 +628,14 @@ function FinishModal({ item, onClose, onDone }: any) {
 
       <button type="button" onClick={() => setMakeBatch((v) => !v)}
         className={`w-full text-left rounded-2xl border-2 p-3 flex items-start gap-2.5 transition ${
-          makeBatch ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+          makeBatch ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
         }`}>
         <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
-          makeBatch ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+          makeBatch ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'
         }`}><Timer className="h-4 w-4" /></span>
         <span className="min-w-0">
-          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white">Taazgi ka batch bhi bana do</span>
-          <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white">Taazgi ka batch bhi bana do</span>
+          <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">
             Warna expiry ki warning kabhi nahi aayegi
           </span>
         </span>
@@ -651,7 +651,7 @@ function FinishModal({ item, onClose, onDone }: any) {
             {[6, 12, 24, 48, 72].map((h) => (
               <button key={h} onClick={() => setHours(h)}
                 className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-black transition ${
-                  hours === h ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  hours === h ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                 }`}>{h}h</button>
             ))}
           </div>
@@ -707,7 +707,7 @@ function NewPlanModal({ onClose, onDone }: any) {
           {['Subah', 'Dopahar', 'Shaam'].map((s) => (
             <button key={s} onClick={() => setShift(s)}
               className={`flex-1 h-10 rounded-lg text-xs font-black transition ${
-                shift === s ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                shift === s ? 'bg-orange-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
               }`}>{s}</button>
           ))}
         </div>
@@ -716,16 +716,16 @@ function NewPlanModal({ onClose, onDone }: any) {
       {lines.length > 0 && (
         <div className="space-y-2">
           {lines.map((l) => (
-            <div key={l.productId} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5 flex items-center gap-2">
+            <div key={l.productId} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-2.5 flex items-center gap-2">
               <Package className="h-4 w-4 text-slate-500 shrink-0" />
-              <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate flex-1">{l.productName}</span>
+              <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate flex-1">{l.productName}</span>
               <input type="number" min={1} step="any" value={l.plannedQty}
                 onChange={(e) => setLines((xs) => xs.map((x) => x.productId === l.productId
                   ? { ...x, plannedQty: e.target.value === '' ? '' : Number(e.target.value) } : x))}
                 placeholder="0"
-                className="h-10 w-24 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-orange-500" />
+                className="h-10 w-24 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-orange-500" />
               <button onClick={() => setLines((xs) => xs.filter((x) => x.productId !== l.productId))}
-                className="h-9 w-9 rounded-lg bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 hover:border-rose-400 transition">
+                className="h-9 w-9 rounded-lg bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center shrink-0 hover:border-rose-400 transition">
                 <Trash2 className="h-3.5 w-3.5 text-rose-500" />
               </button>
             </div>
@@ -741,7 +741,7 @@ function NewPlanModal({ onClose, onDone }: any) {
           {options.map((p) => (
             <button key={p.id}
               onClick={() => { setLines((xs) => [...xs, { productId: p.id, productName: p.name, plannedQty: '' }]); setSearch(''); }}
-              className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-orange-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+              className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-orange-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition">
               <Plus className="h-3.5 w-3.5 text-orange-500" /> {p.name}
             </button>
           ))}
@@ -759,12 +759,12 @@ function NewPlanModal({ onClose, onDone }: any) {
 }
 
 /* ═══ CHHOTE HISSE ═══ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500';
 
 function Modal({ title, sub, icon: Icon, onClose, wide, children }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className={`w-full ${wide ? 'max-w-lg' : 'max-w-sm'} max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl`}
+      <div className={`w-full ${wide ? 'max-w-lg' : 'max-w-sm'} max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl`}
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between sticky top-0 z-10">
           <div className="min-w-0">
@@ -773,8 +773,8 @@ function Modal({ title, sub, icon: Icon, onClose, wide, children }: any) {
             </h3>
             {sub && <p className="text-[0.6875rem] font-bold text-orange-700 dark:text-orange-300 truncate">{sub}</p>}
           </div>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center shrink-0">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center shrink-0">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3">{children}</div>
@@ -800,12 +800,12 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     orange: 'from-orange-500 to-red-500 shadow-orange-500/40',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -817,8 +817,8 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-orange-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -833,17 +833,17 @@ function EmptyBox({ text }: { text?: string }) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Production ka safha
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Subah bawarchi ko batana, shaam ko hisab dekhna — dono kaam yahin se.
           </p>
           <Tip icon={Plus} title="Naya plan">
@@ -865,13 +865,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Socha kitna tha aur bana kitna. Kis cheez me sab se zyada kharabi — us ka oven ya
             batch ka size dekhna chahiye.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya plan</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tab badlo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> naya plan</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-3</kbd> tab badlo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -888,8 +888,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-orange-600 dark:text-orange-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

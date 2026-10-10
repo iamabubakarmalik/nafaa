@@ -17,22 +17,22 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const variants: Record<Variant, string> = {
   primary:
     'bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white shadow-brand hover:shadow-brand-lg ' +
-    'dark:bg-brand-500 dark:hover:bg-brand-600 dark:active:bg-brand-700 dark:text-white',
+    'dark:bg-brand-500 dark:hover:bg-brand-600 dark:active:bg-brand-700 dark:text-ink-white',
   secondary:
     'bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white shadow-card ' +
-    'dark:bg-white dark:hover:bg-slate-100 dark:active:bg-slate-200 dark:text-slate-900',
+    'dark:bg-ink-white dark:hover:bg-ink-100 dark:active:bg-ink-200 dark:text-ink-900',
   outline:
     'bg-white border-2 border-slate-300 hover:border-brand-500 hover:bg-brand-50 text-slate-900 ' +
-    'dark:bg-slate-900 dark:border-slate-600 dark:hover:border-brand-400 dark:hover:bg-slate-800 dark:text-white',
+    'dark:bg-ink-900 dark:border-ink-600 dark:hover:border-brand-400 dark:hover:bg-ink-800 dark:text-ink-white',
   ghost:
     'bg-transparent hover:bg-slate-100 active:bg-slate-200 text-slate-800 ' +
-    'dark:hover:bg-slate-800 dark:active:bg-slate-700 dark:text-slate-100',
+    'dark:hover:bg-ink-800 dark:active:bg-ink-700 dark:text-ink-100',
   danger:
     'bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-card ' +
-    'dark:bg-rose-500 dark:hover:bg-rose-600 dark:text-white',
+    'dark:bg-rose-500 dark:hover:bg-rose-600 dark:text-ink-white',
   success:
     'bg-success-600 hover:bg-success-700 active:bg-success-800 text-white shadow-card ' +
-    'dark:bg-success-500 dark:hover:bg-success-600 dark:text-white',
+    'dark:bg-success-500 dark:hover:bg-success-600 dark:text-ink-white',
   gradient:
     'bg-gradient-to-r from-brand-600 via-brand-700 to-emerald-700 hover:from-brand-700 hover:via-brand-800 hover:to-emerald-800 text-white shadow-brand hover:shadow-brand-lg',
   link:
@@ -66,7 +66,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'inline-flex items-center justify-center font-bold transition-all duration-200 select-none whitespace-nowrap',
         'disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 focus-visible:ring-offset-2',
-        'focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-900',
+        'focus-visible:ring-offset-white dark:focus-visible:ring-offset-ink-900',
         'active:scale-[0.97]',
         variants[variant],
         sizes[size],

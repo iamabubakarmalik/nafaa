@@ -65,7 +65,7 @@ const prettyDate = (iso?: string) => {
   return isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-const IN = 'h-12 sm:h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition';
+const IN = 'h-12 sm:h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none transition';
 
 export function ElectronicsWizardStep3Warranty({
   warranty, onChange, categoryType, conditionType, errors,
@@ -127,8 +127,8 @@ export function ElectronicsWizardStep3Warranty({
       <section className={[
         'rounded-2xl border-2 p-4 sm:p-5 space-y-4 transition',
         noWarranty
-          ? 'border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40'
-          : 'border-blue-300 dark:border-blue-500/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-slate-900',
+          ? 'border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800/40'
+          : 'border-blue-300 dark:border-blue-500/40 bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-ink-900',
       ].join(' ')}>
         <Head icon={noWarranty ? ShieldOff : Shield} n={1} t="Warranty"
           d="Electronics me sab se ahem — customer isi par bharosa karta hai"
@@ -145,7 +145,7 @@ export function ElectronicsWizardStep3Warranty({
                     a ? (p.months === 0
                         ? 'border-slate-600 bg-slate-600 text-white shadow-md'
                         : 'border-blue-600 bg-blue-600 text-white shadow-md')
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
                   <span>{p.emoji}</span> {p.label}
                 </button>
               );
@@ -168,12 +168,12 @@ export function ElectronicsWizardStep3Warranty({
                     <button key={t.v} type="button" onClick={() => onChange({ warrantyType: t.v })}
                       className={['text-left px-3 py-2.5 rounded-xl border-2 transition active:scale-[0.98]',
                         a ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
                       <div className="flex items-center gap-1.5">
                         {a && <Check className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />}
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">{t.v}</span>
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{t.v}</span>
                       </div>
-                      <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{t.hint}</div>
+                      <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5">{t.hint}</div>
                     </button>
                   );
                 })}
@@ -195,7 +195,7 @@ export function ElectronicsWizardStep3Warranty({
                 )}
                 {warranty.warrantyEndDate && computedEnd && warranty.warrantyEndDate !== computedEnd && (
                   <button type="button" onClick={() => onChange({ warrantyEndDate: '' })}
-                    className="mt-1.5 text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 hover:text-blue-700 dark:hover:text-blue-400 underline">
+                    className="mt-1.5 text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 hover:text-blue-700 dark:hover:text-blue-400 underline">
                     Wapas khud-ba-khud par le jayen
                   </button>
                 )}
@@ -217,24 +217,24 @@ export function ElectronicsWizardStep3Warranty({
               className={['w-full flex items-center gap-3 p-3 rounded-xl border-2 transition active:scale-[0.98] text-left',
                 warranty.hasInternationalWarranty
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300 dark:hover:border-blue-500/50'].join(' ')}>
               <div className={['h-5 w-5 rounded border-2 flex items-center justify-center shrink-0',
-                warranty.hasInternationalWarranty ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-slate-600'].join(' ')}>
+                warranty.hasInternationalWarranty ? 'bg-blue-600 border-blue-600' : 'border-slate-300 dark:border-ink-600'].join(' ')}>
                 {warranty.hasInternationalWarranty && <Check className="h-3.5 w-3.5 text-white" />}
               </div>
               <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0" />
               <div className="flex-1 min-w-0">
-                <div className="font-extrabold text-sm text-slate-900 dark:text-white">International Warranty</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Bahar mulk me bhi claim ho sakti hai</div>
+                <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">International Warranty</div>
+                <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Bahar mulk me bhi claim ho sakti hai</div>
               </div>
             </button>
           </>
         )}
 
         {noWarranty && (
-          <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-start gap-2.5">
+          <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-start gap-2.5">
             <ShieldOff className="h-5 w-5 text-slate-400 shrink-0 mt-0.5" />
-            <div className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+            <div className="text-sm font-semibold text-slate-600 dark:text-ink-300">
               Is product par koi warranty nahi. Receipt par saaf likha aayega — baad me
               customer se behes nahi hogi.
               {condMeta && (condMeta.label === 'Used' || condMeta.label === 'For Parts') && (
@@ -249,8 +249,8 @@ export function ElectronicsWizardStep3Warranty({
       <section className={[
         'rounded-2xl border-2 p-4 sm:p-5 space-y-3 transition',
         warranty.hasImei
-          ? 'border-violet-300 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-slate-900'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80',
+          ? 'border-violet-300 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-ink-900'
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900/80',
       ].join(' ')}>
         <Head icon={Barcode} n={2} t="IMEI Number"
           d="Sirf un cheezon me hota hai jo SIM ya cellular chalati hain" tone="violet" />
@@ -259,22 +259,22 @@ export function ElectronicsWizardStep3Warranty({
           className={['w-full flex items-center gap-3 p-3 rounded-xl border-2 transition active:scale-[0.98] text-left',
             warranty.hasImei
               ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-300 dark:hover:border-violet-500/50'].join(' ')}>
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300 dark:hover:border-violet-500/50'].join(' ')}>
           <div className={['h-5 w-5 rounded border-2 flex items-center justify-center shrink-0',
-            warranty.hasImei ? 'bg-violet-600 border-violet-600' : 'border-slate-300 dark:border-slate-600'].join(' ')}>
+            warranty.hasImei ? 'bg-violet-600 border-violet-600' : 'border-slate-300 dark:border-ink-600'].join(' ')}>
             {warranty.hasImei && <Check className="h-3.5 w-3.5 text-white" />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-extrabold text-sm text-slate-900 dark:text-white">Is me IMEI number hota hai</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">Is me IMEI number hota hai</div>
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
               Smartwatch (LTE), 4G router, tablet, dashcam — jin me SIM lagti hai
             </div>
           </div>
         </button>
 
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-start gap-2.5">
+        <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-start gap-2.5">
           <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+          <div className="text-xs font-semibold text-slate-600 dark:text-ink-300 leading-relaxed">
             <b>Farq samajh lein:</b> <b>Serial number</b> har mehngi cheez par hota hai (laptop,
             camera, drone) — wo agle step me daalte hain. <b>IMEI</b> sirf un me hota hai jo
             mobile network par chalti hain.
@@ -288,13 +288,13 @@ export function ElectronicsWizardStep3Warranty({
       </section>
 
       {/* ══ 3. BOX CONTENTS ══ */}
-      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 p-4 sm:p-5 space-y-4">
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900/80 p-4 sm:p-5 space-y-4">
         <Head icon={Package} n={3} t="Dabbe Me Kya Kya Hai"
           d="Receipt par chhapta hai — wapsi ke waqt jhagra nahi hota" tone="amber" />
 
         {BOX_GROUPS.map((g) => (
           <div key={g.label}>
-            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+            <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 mb-1.5">
               {g.emoji} {g.label}
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -305,7 +305,7 @@ export function ElectronicsWizardStep3Warranty({
                     onClick={() => (added ? removeBoxItem(item) : addBoxItem(item))}
                     className={['px-3 py-2 rounded-full border-2 text-xs font-extrabold transition active:scale-95 inline-flex items-center gap-1',
                       added ? 'border-emerald-500 bg-emerald-500 text-white shadow'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-400 dark:hover:border-amber-500/50'].join(' ')}>
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-amber-400 dark:hover:border-amber-500/50'].join(' ')}>
                     {added ? <Check className="h-3 w-3" /> : <Plus className="h-3 w-3" />} {item}
                   </button>
                 );
@@ -314,7 +314,7 @@ export function ElectronicsWizardStep3Warranty({
           </div>
         ))}
 
-        <div className="pt-2 border-t-2 border-slate-100 dark:border-slate-800">
+        <div className="pt-2 border-t-2 border-slate-100 dark:border-ink-800">
           <Lbl>Ya apni cheez likhein</Lbl>
           <div className="flex gap-2">
             <input value={newItem} onChange={(e) => setNewItem(e.target.value)}
@@ -340,7 +340,7 @@ export function ElectronicsWizardStep3Warranty({
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 pt-2 border-t-2 border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t-2 border-slate-100 dark:border-ink-800">
           <Tog checked={warranty.hasManual} onChange={(v: boolean) => onChange({ hasManual: v })}
             emoji="📖" label="User Manual" />
           <Tog checked={warranty.hasWarrantyCard} onChange={(v: boolean) => onChange({ hasWarrantyCard: v })}
@@ -349,19 +349,19 @@ export function ElectronicsWizardStep3Warranty({
       </section>
 
       {/* ══ LIVE RECEIPT PREVIEW ══ */}
-      <section className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/40 p-4 sm:p-5">
+      <section className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800/40 p-4 sm:p-5">
         <div className="flex items-center gap-2 mb-3">
           <div className="h-8 w-8 rounded-lg bg-slate-700 text-white flex items-center justify-center shrink-0">
             <Receipt className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Customer Ki Receipt Par</h3>
-            <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">Aise nazar aayega</p>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Customer Ki Receipt Par</h3>
+            <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">Aise nazar aayega</p>
           </div>
         </div>
 
-        <div className="rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-300 dark:border-slate-600 p-4 font-mono text-xs text-slate-800 dark:text-slate-200 space-y-1.5">
-          <div className="flex justify-between border-b border-dashed border-slate-300 dark:border-slate-600 pb-1.5">
+        <div className="rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-300 dark:border-ink-600 p-4 font-mono text-xs text-slate-800 dark:text-ink-200 space-y-1.5">
+          <div className="flex justify-between border-b border-dashed border-slate-300 dark:border-ink-600 pb-1.5">
             <span className="font-extrabold">🛡️ WARRANTY</span>
             <span className="font-extrabold">
               {noWarranty ? 'KOI NAHI' : effectiveEnd ? prettyDate(effectiveEnd) : `${months} mahine`}
@@ -369,18 +369,18 @@ export function ElectronicsWizardStep3Warranty({
           </div>
           {!noWarranty && warranty.warrantyType && (
             <div className="flex justify-between text-[0.6875rem]">
-              <span className="text-slate-500 dark:text-slate-400">Type</span>
+              <span className="text-slate-500 dark:text-ink-400">Type</span>
               <span>{warranty.warrantyType}{warranty.hasInternationalWarranty ? ' + International' : ''}</span>
             </div>
           )}
           {(warranty.boxContents ?? []).length > 0 && (
-            <div className="pt-1.5 border-t border-dashed border-slate-300 dark:border-slate-600">
-              <div className="text-slate-500 dark:text-slate-400 text-[0.6875rem] mb-0.5">Dabbe me:</div>
+            <div className="pt-1.5 border-t border-dashed border-slate-300 dark:border-ink-600">
+              <div className="text-slate-500 dark:text-ink-400 text-[0.6875rem] mb-0.5">Dabbe me:</div>
               <div className="text-[0.6875rem] leading-relaxed">{(warranty.boxContents ?? []).join(' · ')}</div>
             </div>
           )}
           {(warranty.boxContents ?? []).length === 0 && (
-            <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 italic">Dabbe ki cheezein abhi nahi chuni</div>
+            <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 italic">Dabbe ki cheezein abhi nahi chuni</div>
           )}
         </div>
       </section>
@@ -406,22 +406,22 @@ function Head({ icon: Icon, n, t, d, tone = 'slate' }: any) {
     amber: 'from-amber-500 to-orange-700',
   };
   return (
-    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100 dark:border-slate-800">
+    <div className="flex items-center gap-3 pb-2 border-b-2 border-slate-100 dark:border-ink-800">
       <div className={['h-10 w-10 rounded-xl text-white flex items-center justify-center shadow-md bg-gradient-to-br shrink-0', g[tone]].join(' ')}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">
-          <span className="text-slate-400 dark:text-slate-500">{n}.</span> {t}
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base leading-tight">
+          <span className="text-slate-400 dark:text-ink-500">{n}.</span> {t}
         </h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{d}</p>
+        <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{d}</p>
       </div>
     </div>
   );
 }
 
 function Lbl({ children }: any) {
-  return <label className="block text-xs font-extrabold uppercase tracking-wider mb-1.5 text-slate-600 dark:text-slate-400">{children}</label>;
+  return <label className="block text-xs font-extrabold uppercase tracking-wider mb-1.5 text-slate-600 dark:text-ink-400">{children}</label>;
 }
 
 function Tog({ checked, onChange, emoji, label }: any) {
@@ -429,12 +429,12 @@ function Tog({ checked, onChange, emoji, label }: any) {
     <button type="button" onClick={() => onChange(!checked)}
       className={['flex items-center gap-2 p-2.5 rounded-xl border-2 transition active:scale-95 text-left',
         checked ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
       <div className={['h-4 w-4 rounded border-2 flex items-center justify-center shrink-0',
-        checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300 dark:border-slate-600'].join(' ')}>
+        checked ? 'bg-emerald-600 border-emerald-600' : 'border-slate-300 dark:border-ink-600'].join(' ')}>
         {checked && <Check className="h-3 w-3 text-white" />}
       </div>
-      <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200">{emoji} {label}</span>
+      <span className="text-xs font-extrabold text-slate-700 dark:text-ink-200">{emoji} {label}</span>
     </button>
   );
 }

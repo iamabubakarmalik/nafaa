@@ -54,7 +54,7 @@ export default function WorkshopJobDetailPage() {
   });
 
   if (isLoading || !job) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const statusCfg = STATUS_CONFIG[job.status];
@@ -101,9 +101,9 @@ export default function WorkshopJobDetailPage() {
       </section>
 
       {/* Status flow */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Job Workflow</h3>
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Job Workflow</h3>
           {nextStatus && !['CANCELLED'].includes(job.status) && (
             <div className="flex gap-2">
               <Button size="sm" onClick={() => statusMutation.mutate(nextStatus)} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
@@ -152,18 +152,18 @@ export default function WorkshopJobDetailPage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <section className="space-y-4">
           {/* Vehicle */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border p-5">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border p-5">
             <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2"><Car className="h-4 w-4 text-blue-600" />Vehicle</h3>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-white">{job.registrationNumber}</div>
+            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white">{job.registrationNumber}</div>
             <div className="text-sm font-bold text-slate-600">{job.makeName} {job.modelName} {job.year}</div>
             {job.odometerKm && <div className="text-xs text-slate-500 font-semibold">Odometer: {job.odometerKm} km</div>}
           </div>
 
           {/* Customer */}
           {(job.customerName || job.customerPhone) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border p-5">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border p-5">
               <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2"><User className="h-4 w-4 text-emerald-600" />Customer</h3>
-              <div className="font-extrabold text-slate-900 dark:text-white">{job.customerName}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white">{job.customerName}</div>
               {job.customerPhone && (
                 <a href={'tel:' + job.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
                   <Phone className="h-3 w-3" />
@@ -175,7 +175,7 @@ export default function WorkshopJobDetailPage() {
 
           {/* Description */}
           {(job.customerComplaint || job.diagnosis || job.workDescription) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border p-5 space-y-3">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border p-5 space-y-3">
               <h3 className="text-sm font-extrabold flex items-center gap-2"><Wrench className="h-4 w-4 text-orange-600" />Job Description</h3>
               {job.customerComplaint && (
                 <div>
@@ -200,7 +200,7 @@ export default function WorkshopJobDetailPage() {
 
           {/* Labor */}
           {job.laborItems?.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border overflow-hidden">
               <div className="px-5 py-3 border-b bg-orange-50 dark:bg-orange-950/30">
                 <h3 className="text-sm font-extrabold flex items-center gap-2"><Wrench className="h-4 w-4 text-orange-600" />Labor Items</h3>
               </div>
@@ -208,7 +208,7 @@ export default function WorkshopJobDetailPage() {
                 {job.laborItems.map((l: any) => (
                   <div key={l.id} className="p-4 flex items-center justify-between gap-3">
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white">{l.description}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white">{l.description}</div>
                       <div className="text-xs text-slate-500 font-bold">
                         {l.hours} hr × {formatPKR(l.ratePerHour)}
                         {l.mechanicName && ' • ' + l.mechanicName}
@@ -223,7 +223,7 @@ export default function WorkshopJobDetailPage() {
 
           {/* Parts */}
           {job.partsUsed?.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border overflow-hidden">
               <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30">
                 <h3 className="text-sm font-extrabold flex items-center gap-2"><Package className="h-4 w-4 text-amber-600" />Parts Used</h3>
               </div>
@@ -253,7 +253,7 @@ export default function WorkshopJobDetailPage() {
 
           {/* External */}
           {job.externalWork?.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border overflow-hidden">
               <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30">
                 <h3 className="text-sm font-extrabold">🏢 External Work</h3>
               </div>
@@ -315,7 +315,7 @@ export default function WorkshopJobDetailPage() {
             </div>
 
             {(job.payments?.length ?? 0) > 0 && (
-              <div className="rounded-3xl bg-white dark:bg-neutral-900 border overflow-hidden">
+              <div className="rounded-3xl bg-white dark:bg-ink-900 border overflow-hidden">
                 <div className="px-4 py-3 border-b">
                   <h3 className="text-sm font-bold">Payment History</h3>
                 </div>
@@ -356,7 +356,7 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>

@@ -79,20 +79,20 @@ export default function StaffPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search staff..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setRoleFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (roleFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (roleFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {ROLES.map((r) => (
             <button key={r.value} onClick={() => setRoleFilter(r.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (roleFilter === r.value ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (roleFilter === r.value ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {r.emoji} {r.label}
             </button>
@@ -122,10 +122,10 @@ export default function StaffPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : profiles.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <UserCheck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No staff profiles yet</p>
           <p className="text-xs text-slate-500 mt-1">Pehle Staff module se employee add karo, phir yahaan salon profile banao</p>
@@ -158,26 +158,26 @@ function StaffCard({ profile, onEdit, onDelete, onManageServices }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl transition-all p-4 space-y-3 ' +
-      (profile.isBookable ? 'border-slate-200 dark:border-neutral-800' : 'border-slate-200 dark:border-neutral-800 opacity-70')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition-all p-4 space-y-3 ' +
+      (profile.isBookable ? 'border-slate-200 dark:border-ink-800' : 'border-slate-200 dark:border-ink-800 opacity-70')
     }>
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
           {profile.photoUrl ? (
-            <img src={profile.photoUrl} alt={staffName} className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-neutral-700" />
+            <img src={profile.photoUrl} alt={staffName} className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-ink-700" />
           ) : (
             <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center text-2xl font-extrabold shadow-lg ring-2 ring-white">
               {staffName.charAt(0).toUpperCase()}
             </div>
           )}
           <div className={
-            'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white dark:ring-neutral-900 ' +
+            'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white dark:ring-ink-900 ' +
             (profile.isBookable ? 'bg-emerald-500' : 'bg-slate-400')
           } />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white truncate">{staffName}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{staffName}</div>
           <div className="flex items-center gap-1 text-xs text-violet-600 font-extrabold">
             <span>{role?.emoji}</span>
             <span>{role?.label}</span>
@@ -203,7 +203,7 @@ function StaffCard({ profile, onEdit, onDelete, onManageServices }: any) {
             </span>
           ))}
           {profile.specialization.length > 3 && (
-            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[0.625rem] font-extrabold">
+            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-600 text-[0.625rem] font-extrabold">
               +{profile.specialization.length - 3}
             </span>
           )}
@@ -227,10 +227,10 @@ function StaffCard({ profile, onEdit, onDelete, onManageServices }: any) {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Bookings</div>
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{profile.totalAppointments}</div>
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{profile.totalAppointments}</div>
         </div>
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Revenue</div>
@@ -265,12 +265,12 @@ function StaffCard({ profile, onEdit, onDelete, onManageServices }: any) {
       )}
 
       {/* Actions */}
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         <button onClick={onManageServices} className="flex-1 h-9 rounded-lg bg-violet-100 dark:bg-violet-950/40 hover:bg-violet-200 text-violet-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
           <Scissors className="h-3 w-3" />
           Services
         </button>
-        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
           <Edit3 className="h-3.5 w-3.5" />
         </button>
         <button onClick={onDelete} className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -329,9 +329,9 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Staff Profile' : 'New Staff Profile'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Staff Profile' : 'New Staff Profile'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -342,7 +342,7 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
         {!editing && (
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
-            <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+            <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               <option value="">-- Pick from HR/Staff --</option>
               {(staffList ?? []).map((s: any) => {
                 const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
@@ -375,22 +375,22 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Role *</label>
-            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+            <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
               {ROLES.map((r) => <option key={r.value} value={r.value}>{r.emoji} {r.label}</option>)}
             </select>
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Experience (years)</label>
-            <input type="number" value={form.experienceYears} onChange={(e) => setForm({ ...form, experienceYears: e.target.value })} placeholder="5" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.experienceYears} onChange={(e) => setForm({ ...form, experienceYears: e.target.value })} placeholder="5" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
         </div>
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Specialization (comma separated)</label>
-          <input value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} placeholder="Bridal, Balayage, Keratin" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} placeholder="Bridal, Balayage, Keratin" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
         </div>
 
-        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Short bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Short bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
         {/* Commission */}
         <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
@@ -398,7 +398,7 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
             <Award className="h-4 w-4" />
             Commission Setup
           </div>
-          <select value={form.commissionType} onChange={(e) => setForm({ ...form, commissionType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+          <select value={form.commissionType} onChange={(e) => setForm({ ...form, commissionType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
             <option value="NONE">No Commission</option>
             <option value="PERCENTAGE">Percentage %</option>
             <option value="FIXED_PER_SERVICE">Fixed per service (Rs)</option>
@@ -437,7 +437,7 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
                   onClick={() => toggleDay(i)}
                   className={
                     'py-2 rounded-lg text-xs font-extrabold transition ' +
-                    (form.workingDays.includes(i) ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-neutral-800 border border-slate-200 text-slate-600 hover:border-blue-300')
+                    (form.workingDays.includes(i) ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-ink-800 border border-slate-200 text-slate-600 hover:border-blue-300')
                   }
                 >
                   {d}
@@ -456,11 +456,11 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break Start (optional)</label>
-              <input type="time" value={form.breakStartTime} onChange={(e) => setForm({ ...form, breakStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input type="time" value={form.breakStartTime} onChange={(e) => setForm({ ...form, breakStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break End</label>
-              <input type="time" value={form.breakEndTime} onChange={(e) => setForm({ ...form, breakEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input type="time" value={form.breakEndTime} onChange={(e) => setForm({ ...form, breakEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
           </div>
         </div>
@@ -469,11 +469,11 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Daily Bookings</label>
-            <input type="number" value={form.maxDailyBookings} onChange={(e) => setForm({ ...form, maxDailyBookings: e.target.value })} placeholder="Unlimited" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.maxDailyBookings} onChange={(e) => setForm({ ...form, maxDailyBookings: e.target.value })} placeholder="Unlimited" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer Between Bookings (min)</label>
-            <input type="number" value={form.bookingBuffer} onChange={(e) => setForm({ ...form, bookingBuffer: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.bookingBuffer} onChange={(e) => setForm({ ...form, bookingBuffer: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
         </div>
 
@@ -486,7 +486,7 @@ function StaffProfileForm({ editing, onClose, onSaved }: any) {
           </div>
         </label>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.staffId}>
             <Save className="h-4 w-4" />
@@ -527,10 +527,10 @@ function StaffServicesModal({ profile, onClose, onSaved }: { profile: StaffProfi
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Manage Services</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Manage Services</h3>
             <p className="text-xs text-slate-500 font-semibold">{profile.staff?.firstName || 'Staff'} • {profile.role}</p>
           </div>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -549,12 +549,12 @@ function StaffServicesModal({ profile, onClose, onSaved }: { profile: StaffProfi
                   onClick={() => toggle(svc.id)}
                   className={
                     'p-3 rounded-xl border-2 text-left transition ' +
-                    (isSelected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
+                    (isSelected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
                   }
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{svc.name}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{svc.name}</div>
                       <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.category?.replace('_', ' ')}</div>
                       <div className="text-xs font-extrabold text-emerald-700 tabular-nums mt-1">{formatPKR(svc.price)}</div>
                     </div>
@@ -566,7 +566,7 @@ function StaffServicesModal({ profile, onClose, onSaved }: { profile: StaffProfi
           </div>
         </div>
 
-        <div className="border-t-2 border-slate-200 dark:border-neutral-800 p-4 flex gap-2">
+        <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>
             <Save className="h-4 w-4" />

@@ -98,7 +98,7 @@ export default function KotDisplayPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {[
             { v: 'active' as const, label: 'Active' },
@@ -116,7 +116,7 @@ export default function KotDisplayPage() {
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
                 (statusFilter === opt.v
                   ? 'bg-amber-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200')
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200')
               }
             >
               {opt.label}
@@ -130,7 +130,7 @@ export default function KotDisplayPage() {
               onClick={() => setStationFilter('all')}
               className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (stationFilter === 'all' ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (stationFilter === 'all' ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }
             >
               All Stations
@@ -141,7 +141,7 @@ export default function KotDisplayPage() {
                 onClick={() => setStationFilter(s!)}
                 className={
                   'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                  (stationFilter === s ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                  (stationFilter === s ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
                 }
               >
                 🍳 {s}
@@ -155,15 +155,15 @@ export default function KotDisplayPage() {
       {isLoading ? (
         <div className="grid grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-96 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+            <div key={i} className="h-96 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       ) : filteredKots.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950/40 mx-auto flex items-center justify-center">
             <Check className="h-10 w-10 text-emerald-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Kitchen is clear!</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Kitchen is clear!</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">No pending orders</p>
         </div>
       ) : (
@@ -173,7 +173,7 @@ export default function KotDisplayPage() {
             const items = grouped[status] || [];
             return (
               <div key={status} className={
-                'rounded-2xl border-2 shadow-sm overflow-hidden bg-white dark:bg-neutral-900 ' +
+                'rounded-2xl border-2 shadow-sm overflow-hidden bg-white dark:bg-ink-900 ' +
                 cfg.border
               }>
                 <div className={'px-4 py-3 ' + cfg.bg + ' text-white'}>
@@ -234,7 +234,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
 
   return (
     <div className={
-      'rounded-xl bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 shadow-sm p-3 space-y-2 ' + urgencyBg
+      'rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 shadow-sm p-3 space-y-2 ' + urgencyBg
     }>
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
@@ -243,7 +243,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
             <Timer className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{kot.kotNumber}</div>
+            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{kot.kotNumber}</div>
             <div className="text-[0.6875rem] text-slate-500 font-bold flex items-center gap-1">
               <ModeIcon className="h-2.5 w-2.5" />
               {order?.table ? 'Table ' + order.table.tableNumber : order?.mode || '—'}
@@ -278,12 +278,12 @@ function KotCard({ kot, onAdvance, onCancel }: {
       )}
 
       {/* Items */}
-      <div className="rounded-lg bg-slate-50 dark:bg-neutral-900 p-2 space-y-1">
+      <div className="rounded-lg bg-slate-50 dark:bg-ink-900 p-2 space-y-1">
         {items.slice(0, 8).map((item: any, i: number) => (
           <div key={i} className="flex items-start gap-1 text-xs">
             <span className="font-extrabold text-amber-700 tabular-nums shrink-0">{item.quantity}×</span>
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-slate-900 dark:text-white leading-tight">{item.product?.name || 'Item'}</div>
+              <div className="font-bold text-slate-900 dark:text-ink-white leading-tight">{item.product?.name || 'Item'}</div>
               {item.specialInstructions && (
                 <div className="text-[0.6875rem] italic text-amber-700 mt-0.5">📝 {item.specialInstructions}</div>
               )}
@@ -309,7 +309,7 @@ function KotCard({ kot, onAdvance, onCancel }: {
       )}
 
       {/* Actions */}
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-700">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-700">
         {STATUS_CONFIG[kot.status].next && (
           <button
             onClick={onAdvance}

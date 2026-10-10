@@ -74,7 +74,7 @@ export default function ReservationsPage() {
         {['ACTIVE', 'all', 'CONVERTED_TO_SALE', 'EXPIRED', 'CANCELLED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>
             {s === 'all' ? 'All' : s.replace('_', ' ')}
           </button>
@@ -90,10 +90,10 @@ export default function ReservationsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : reservations.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <BookmarkPlus className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No reservations</p>
         </div>
@@ -104,12 +104,12 @@ export default function ReservationsPage() {
             const isExpiring = r.status === 'ACTIVE' && daysLeft <= 1;
             return (
               <div key={r.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
-                (isExpiring ? 'border-rose-400 ring-2 ring-rose-100' : 'border-slate-200 dark:border-neutral-800')
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
+                (isExpiring ? 'border-rose-400 ring-2 ring-rose-100' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-extrabold text-slate-900 dark:text-white">{r.reservationNumber}</span>
+                    <span className="font-extrabold text-slate-900 dark:text-ink-white">{r.reservationNumber}</span>
                     <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>
                       {r.status.replace('_', ' ')}
                     </span>
@@ -137,10 +137,10 @@ export default function ReservationsPage() {
                   {r.customerPhone && <div className="inline-flex items-center gap-1 text-xs text-slate-600 font-bold ml-4"><Phone className="h-3 w-3" />{r.customerPhone}</div>}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
                   <div>
                     <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</div>
-                    <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{r.quantity}</div>
+                    <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{r.quantity}</div>
                   </div>
                   <div>
                     <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total</div>
@@ -199,24 +199,24 @@ function ReservationForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">New Reservation</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">New Reservation</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
         </div>
 
         {selectedProduct ? (
           <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 dark:border-blue-800 p-3 flex items-center gap-3">
             <Package className="h-5 w-5 text-blue-600" />
             <div className="flex-1">
-              <div className="font-extrabold text-slate-900 dark:text-white">{selectedProduct.name}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedProduct.name}</div>
               <div className="text-xs text-slate-600 font-bold">Stock: {selectedProduct.stock} • {formatPKR(selectedProduct.price)}</div>
             </div>
             <button onClick={() => { setSelectedProduct(null); setForm({ ...form, productId: '', unitPrice: 0 }); }} className="text-xs font-extrabold text-blue-600 hover:underline">
@@ -225,13 +225,13 @@ function ReservationForm({ onClose, onSaved }: any) {
           </div>
         ) : (
           <div>
-            <button onClick={() => setShowProductPicker(!showProductPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-neutral-600 bg-slate-50 dark:bg-neutral-800 text-sm font-extrabold text-slate-600 hover:border-blue-400">
+            <button onClick={() => setShowProductPicker(!showProductPicker)} className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 hover:border-blue-400">
               <Search className="h-4 w-4 inline mr-1" />
               Select Product *
             </button>
             {showProductPicker && (
               <div className="mt-2 rounded-xl border-2 border-blue-300 bg-blue-50/50 p-3 space-y-2">
-                <input autoFocus value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="h-10 w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                <input autoFocus value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="h-10 w-full rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                 <div className="max-h-52 overflow-y-auto space-y-1">
                   {(productsData?.items ?? []).map((p) => (
                     <button
@@ -241,7 +241,7 @@ function ReservationForm({ onClose, onSaved }: any) {
                         setForm({ ...form, productId: p.id, unitPrice: p.price });
                         setShowProductPicker(false);
                       }}
-                      className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-neutral-800 text-left"
+                      className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-ink-800 text-left"
                     >
                       <Package className="h-3.5 w-3.5 text-slate-400" />
                       <div className="flex-1 min-w-0">
@@ -273,12 +273,12 @@ function ReservationForm({ onClose, onSaved }: any) {
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Expires At (default: 7 days)</label>
-          <input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input type="datetime-local" value={form.expiresAt} onChange={(e) => setForm({ ...form, expiresAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.productId}>
             <Save className="h-4 w-4" />

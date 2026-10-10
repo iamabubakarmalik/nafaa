@@ -120,7 +120,7 @@ function QrSlot({ slot, draft, onChange }: { slot: (typeof SLOTS)[number]; draft
           <div className="min-w-0 flex-1 space-y-2">
             {info && !info.valid && <p className="text-[0.8125rem] font-semibold text-rose-600">{info.problems.join(' · ')}</p>}
             {info?.valid && (
-              <div className="text-[0.8125rem] text-slate-700 dark:text-slate-200">
+              <div className="text-[0.8125rem] text-slate-700 dark:text-ink-200">
                 <b>{info.merchantName || '—'}</b>{info.city ? `, ${info.city}` : ''} <span className="font-mono text-[0.71875rem] text-slate-500">{info.scheme}</span>
               </div>
             )}

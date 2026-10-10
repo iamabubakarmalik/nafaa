@@ -356,14 +356,14 @@ export default function AgriCatalogPage() {
 
       {/* ═══ FASAL ═══ */}
       {cropOptions.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 p-4 shadow-sm">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2.5">
             <span className="h-8 w-8 rounded-xl bg-gradient-to-br from-lime-600 to-emerald-700 text-white flex items-center justify-center shrink-0">
               <Sprout className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 dark:text-white">Kaunsi fasal?</h2>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Kaunsi fasal?</h2>
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Fasal chunte hi sirf us ka maal reh jayega
               </p>
             </div>
@@ -374,15 +374,15 @@ export default function AgriCatalogPage() {
                 className={`h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                   crop === c
                     ? 'border-lime-500 bg-lime-50 dark:bg-lime-500/15 text-lime-700 dark:text-lime-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-lime-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-lime-400'
                 }`}>
                 🌾 {c}
-                <span className="px-1.5 rounded-md bg-slate-100 dark:bg-slate-700 text-[0.6875rem] font-black">{n}</span>
+                <span className="px-1.5 rounded-md bg-slate-100 dark:bg-ink-700 text-[0.6875rem] font-black">{n}</span>
               </button>
             ))}
             {crop && (
               <button onClick={() => setCrop('')}
-                className="h-10 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-xs font-black inline-flex items-center gap-1.5 transition">
+                className="h-10 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-xs font-black inline-flex items-center gap-1.5 transition">
                 <X className="h-3 w-3" /> Sab dikhayein
               </button>
             )}
@@ -400,11 +400,11 @@ export default function AgriCatalogPage() {
                 className={`h-11 px-3.5 rounded-2xl border-2 text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition ${
                   kindTab === t.v
                     ? 'border-emerald-600 bg-gradient-to-br from-emerald-600 to-lime-700 text-white shadow-lg'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                 }`}>
                 <span className="text-sm">{t.e}</span> {t.l}
                 <span className={`px-1.5 rounded-md text-[0.6875rem] font-black ${
-                  kindTab === t.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                  kindTab === t.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
                 }`}>{n}</span>
               </button>
             );
@@ -417,19 +417,19 @@ export default function AgriCatalogPage() {
               className={`h-9 px-2.5 rounded-xl border-2 text-[0.6875rem] font-extrabold transition ${
                 season === s.v
                   ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
               }`}>{s.e} {s.l}</button>
           ))}
           <button onClick={() => setOrganicOnly((v) => !v)}
             className={`h-9 px-2.5 rounded-xl border-2 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition ${
               organicOnly
                 ? 'border-green-600 bg-green-50 dark:bg-green-500/15 text-green-700 dark:text-green-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-green-400'
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 hover:border-green-400'
             }`}>
             <Leaf className="h-3 w-3" /> Sirf organic
           </button>
           <select value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}
-            className="ml-auto h-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-emerald-500 transition">
+            className="ml-auto h-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 focus:outline-none focus:border-emerald-500 transition">
             {SORTS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
           </select>
         </div>
@@ -443,7 +443,7 @@ export default function AgriCatalogPage() {
               <Heart className="h-4 w-4 fill-rose-500 text-rose-500" /> Pasand ki hui cheezein
             </h2>
             <button onClick={() => setShowWishlist(false)}
-              className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center transition">
+              className="h-8 w-8 rounded-lg bg-white dark:bg-ink-800 flex items-center justify-center transition">
               <X className="h-3.5 w-3.5 text-slate-500" />
             </button>
           </div>
@@ -467,13 +467,13 @@ export default function AgriCatalogPage() {
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="h-72 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-72 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 text-center">
           <Package className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-base font-black text-slate-700 dark:text-slate-200">Kuch nahi mila</p>
+          <p className="text-base font-black text-slate-700 dark:text-ink-200">Kuch nahi mila</p>
           <p className="text-xs font-bold text-slate-400 mt-1">
             {crop ? `"${crop}" ka maal is qism me nahi hai` : 'Dhoondne ka lafz ya chaant badal kar dekhein'}
           </p>
@@ -487,7 +487,7 @@ export default function AgriCatalogPage() {
         </div>
       ) : (
         <>
-          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400">
             {filtered.length} cheezein
             {crop && <> · 🌾 {crop}</>}
             {acreNum > 0 && <> · 📐 {acreNum} acre</>}
@@ -531,9 +531,9 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
   const out = p.stock <= 0;
 
   return (
-    <div className="group rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-300 dark:hover:border-emerald-500/40 transition flex flex-col">
+    <div className="group rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 overflow-hidden shadow-sm hover:shadow-xl hover:border-emerald-300 dark:hover:border-emerald-500/40 transition flex flex-col">
       {/* Tasveer */}
-      <button onClick={onOpen} className="relative aspect-square bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-slate-800 dark:to-slate-800 overflow-hidden">
+      <button onClick={onOpen} className="relative aspect-square bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-ink-800 dark:to-ink-800 overflow-hidden">
         {p.image ? (
           <img src={p.image} alt={p.name} loading="lazy"
             className="h-full w-full object-cover group-hover:scale-105 transition duration-300" />
@@ -567,7 +567,7 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
         </span>
 
         <button onClick={(e) => { e.stopPropagation(); onWish(); }}
-          className="absolute top-2 right-2 h-8 w-8 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur flex items-center justify-center shadow transition hover:scale-110">
+          className="absolute top-2 right-2 h-8 w-8 rounded-xl bg-white/90 dark:bg-ink-900/90 backdrop-blur flex items-center justify-center shadow transition hover:scale-110">
           <Heart className={`h-4 w-4 ${wished ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
         </button>
       </button>
@@ -575,10 +575,10 @@ function ProductCard({ p, acres, suggest, wished, onWish, onAdd, onOpen }: any) 
       {/* Tafseel */}
       <div className="p-3 flex-1 flex flex-col gap-1.5">
         <button onClick={onOpen} className="text-left">
-          <p className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white leading-snug line-clamp-2">
+          <p className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white leading-snug line-clamp-2">
             {p.name}
           </p>
-          <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
             {AGRI_KIND_EMOJI[p.kind as AgriKind]} {p.categoryName || prettyAgriKind(p.kind)}
             {p.brand && ` · ${p.brand}`}
           </p>
@@ -645,7 +645,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-2xl max-h-[92vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-2xl max-h-[92vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         {/* Upar */}
         <header className="relative shrink-0">
           <div className="h-40 sm:h-52 bg-gradient-to-br from-emerald-600 to-lime-700 overflow-hidden">
@@ -665,8 +665,8 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
 
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
           <div>
-            <h3 className="text-xl font-black text-slate-900 dark:text-white">{p.name}</h3>
-            <p className="mt-0.5 text-xs font-bold text-slate-500 dark:text-slate-400">
+            <h3 className="text-xl font-black text-slate-900 dark:text-ink-white">{p.name}</h3>
+            <p className="mt-0.5 text-xs font-bold text-slate-500 dark:text-ink-400">
               {AGRI_KIND_EMOJI[p.kind as AgriKind]} {p.categoryName || prettyAgriKind(p.kind)}
               {p.brand && ` · ${p.brand}`}
               {p.origin && ` · ${p.origin}`}
@@ -681,7 +681,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
           </div>
 
           {p.desc && (
-            <p className="text-[0.8125rem] font-bold text-slate-600 dark:text-slate-300 leading-relaxed">{p.desc}</p>
+            <p className="text-[0.8125rem] font-bold text-slate-600 dark:text-ink-300 leading-relaxed">{p.desc}</p>
           )}
 
           {/* Kis fasal / keeray ke liye */}
@@ -699,7 +699,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
               {p.rate && <KV k="Kitni miqdar" v={p.rate} />}
               {p.method && <KV k="Kis tareeqe se" v={p.method} />}
               {p.usage && (
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 leading-relaxed whitespace-pre-line">
                   {p.usage}
                 </p>
               )}
@@ -718,9 +718,9 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
                 </p>
               )}
               {p.firstAid && (
-                <div className="rounded-xl bg-white dark:bg-slate-800 p-2.5">
+                <div className="rounded-xl bg-white dark:bg-ink-800 p-2.5">
                   <p className="text-[0.6875rem] font-black uppercase tracking-wide text-rose-600 mb-0.5">Agar lag jaye</p>
-                  <p className="text-[0.75rem] font-bold text-slate-700 dark:text-slate-300 whitespace-pre-line">{p.firstAid}</p>
+                  <p className="text-[0.75rem] font-bold text-slate-700 dark:text-ink-300 whitespace-pre-line">{p.firstAid}</p>
                 </div>
               )}
               <p className="text-[0.6875rem] font-bold text-amber-800/80 dark:text-amber-300/80">
@@ -738,7 +738,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
         </div>
 
         {/* Neeche — tadaad aur list */}
-        <footer className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 p-4 space-y-2.5 bg-white dark:bg-slate-900">
+        <footer className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 p-4 space-y-2.5 bg-white dark:bg-ink-900">
           {acres > 0 && perAcre && (
             <div className="rounded-xl bg-lime-50 dark:bg-lime-500/10 border-2 border-lime-200 dark:border-lime-500/30 px-2.5 py-1.5 flex items-center gap-2 flex-wrap">
               <Calculator className="h-3.5 w-3.5 text-lime-600 shrink-0" />
@@ -753,16 +753,16 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
           )}
 
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden shrink-0">
+            <div className="flex items-center rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden shrink-0">
               <button onClick={() => setQty((q) => Math.max(0.5, q - 1))}
-                className="h-11 w-10 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition">
+                className="h-11 w-10 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition">
                 <Minus className="h-3.5 w-3.5 text-slate-500" />
               </button>
               <input type="number" step="0.5" min={0.5} value={qty}
                 onChange={(e) => setQty(Math.max(0.5, Number(e.target.value)))}
-                className="h-11 w-16 text-center text-sm font-black text-slate-900 dark:text-white bg-transparent tabular-nums focus:outline-none" />
+                className="h-11 w-16 text-center text-sm font-black text-slate-900 dark:text-ink-white bg-transparent tabular-nums focus:outline-none" />
               <button onClick={() => setQty((q) => q + 1)}
-                className="h-11 w-10 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition">
+                className="h-11 w-10 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition">
                 <Plus className="h-3.5 w-3.5 text-slate-500" />
               </button>
             </div>
@@ -770,7 +770,7 @@ function DetailModal({ p, acres, onClose, onAdd }: any) {
               <p className="text-lg font-black text-emerald-600 dark:text-emerald-400 tabular-nums leading-none">
                 {formatPKR(line)}
               </p>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                 {fmtQty(qty)} {agriUnitLabel(p.unit)} × {formatPKR(p.price)}
                 {p.packSize > 0 && ` · kul ${fmtQty(totalLoose)} ${p.packUnit}`}
               </p>
@@ -797,13 +797,13 @@ const BOX_TONES: Record<string, string> = {
   lime: 'bg-lime-50 dark:bg-lime-500/10 border-lime-200 dark:border-lime-500/30',
   sky: 'bg-sky-50 dark:bg-sky-500/10 border-sky-200 dark:border-sky-500/30',
   amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30',
-  slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700',
+  slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700',
 };
 
 function Box({ icon: Icon, title, tone, children }: any) {
   return (
     <div className={`rounded-2xl border-2 p-3 space-y-2 ${BOX_TONES[tone]}`}>
-      <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+      <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5">
         <Icon className="h-3.5 w-3.5" /> {title}
       </p>
       {children}
@@ -814,8 +814,8 @@ function Box({ icon: Icon, title, tone, children }: any) {
 function KV({ k, v }: any) {
   return (
     <div className="flex gap-2 flex-wrap">
-      <span className="text-[0.6875rem] font-black text-slate-500 dark:text-slate-400 shrink-0">{k}:</span>
-      <span className="text-[0.75rem] font-extrabold text-slate-800 dark:text-slate-100 min-w-0">{v}</span>
+      <span className="text-[0.6875rem] font-black text-slate-500 dark:text-ink-400 shrink-0">{k}:</span>
+      <span className="text-[0.75rem] font-extrabold text-slate-800 dark:text-ink-100 min-w-0">{v}</span>
     </div>
   );
 }
@@ -823,10 +823,10 @@ function KV({ k, v }: any) {
 function TagRow({ label, items, emoji }: any) {
   return (
     <div className="flex gap-2 flex-wrap items-baseline">
-      <span className="text-[0.6875rem] font-black text-slate-500 dark:text-slate-400 shrink-0">{label}:</span>
+      <span className="text-[0.6875rem] font-black text-slate-500 dark:text-ink-400 shrink-0">{label}:</span>
       <span className="flex flex-wrap gap-1 min-w-0">
         {items.map((x: string) => (
-          <span key={x} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200">
+          <span key={x} className="px-1.5 py-0.5 rounded-md bg-white dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200">
             {emoji} {x}
           </span>
         ))}
@@ -840,7 +840,7 @@ const CHIP_TONES: Record<string, string> = {
   orange: 'bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300',
   emerald: 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   sky: 'bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300',
-  slate: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+  slate: 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
 };
 
 function Chip({ tone, icon: Icon, children }: any) {
@@ -856,7 +856,7 @@ function Teacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -878,17 +878,17 @@ function Teacher({ onClose }: any) {
             { i: Award, t: 'Ehtiyat parh lein', d: 'Kisi cheez par dabayein to poori tafseel khulti hai: kitni miqdar, chhirkao ke baad khet me kab jayein, katai se kitne din pehle chhor dein, aur agar lag jaye to kya karein.' },
             { i: ShoppingBag, t: 'List WhatsApp par', d: 'Farmer apni list banata hai aur WhatsApp par bhej deta hai. Aap ko poora order likha hua mil jata hai — phone par ginwane ki zaroorat nahi.' },
           ].map((s, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-600 to-lime-700 text-white flex items-center justify-center shrink-0">
                 <s.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{s.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['C', 'Meri list'], ['G', 'Ye safha'], ['Esc', 'Band']].map(([k, l]) => (
@@ -899,7 +899,7 @@ function Teacher({ onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-emerald-600 to-lime-700">
             Samajh gaya
           </Button>

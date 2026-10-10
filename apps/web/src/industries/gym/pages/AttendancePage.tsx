@@ -111,7 +111,7 @@ export default function AttendancePage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* CHECK-IN KIOSK */}
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
           <div className="px-6 py-4 border-b bg-emerald-50 dark:bg-emerald-950/30">
             <h3 className="text-lg font-extrabold text-emerald-900 flex items-center gap-2">
               <Zap className="h-5 w-5" />
@@ -129,7 +129,7 @@ export default function AttendancePage() {
               ].map((m) => (
                 <button key={m.v} onClick={() => { setScanMethod(m.v); setFoundMember(null); setShowManualSearch(m.v === 'MANUAL'); }} className={
                   'p-3 rounded-xl border-2 text-center transition ' +
-                  (scanMethod === m.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
+                  (scanMethod === m.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
                 }>
                   <div className="text-2xl mb-1">{m.emoji}</div>
                   <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
@@ -226,8 +226,8 @@ export default function AttendancePage() {
         </section>
 
         {/* CURRENTLY INSIDE */}
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Activity className="h-5 w-5 text-emerald-600 animate-pulse" />
@@ -239,7 +239,7 @@ export default function AttendancePage() {
               <RefreshCw className="h-4 w-4" />
             </button>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-[500px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[500px] overflow-y-auto">
             {currentlyInside.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Users className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -274,14 +274,14 @@ export default function AttendancePage() {
       </div>
 
       {/* TODAY'S HISTORY */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
           <h3 className="text-lg font-bold flex items-center gap-2">
             <Clock className="h-5 w-5 text-blue-600" />
             Today's Activity ({todayAttendance.length})
           </h3>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
           {isLoading ? (
             <div className="p-6 text-center text-sm text-slate-500 font-semibold">Loading...</div>
           ) : todayAttendance.length === 0 ? (
@@ -307,7 +307,7 @@ export default function AttendancePage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-extrabold text-sm">{att.member?.memberNumber || att.guestName || 'Guest'}</span>
                       {isInside && <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase">INSIDE</span>}
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">{att.method}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">{att.method}</span>
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">
                       {format(new Date(att.checkInAt), 'HH:mm')}

@@ -61,14 +61,14 @@ export default function ExpiringPage() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : batches.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-emerald-300 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-emerald-300 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950/40 mx-auto flex items-center justify-center">
             <Clock className="h-10 w-10 text-emerald-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">All good!</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">All good!</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">No batches expiring in {days} days</p>
         </div>
       ) : (
@@ -77,23 +77,23 @@ export default function ExpiringPage() {
             const items = grouped[bkt.key] || [];
             if (items.length === 0) return null;
             return (
-              <div key={bkt.key} className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+              <div key={bkt.key} className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
                 <div className={'px-5 py-3 font-extrabold text-sm ' + bkt.color + ' flex items-center justify-between'}>
                   <span>{bkt.label}</span>
                   <span className="px-2 py-0.5 rounded-full bg-white/20 text-xs">{items.length}</span>
                 </div>
-                <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800">
                   {items.map((b: any) => (
-                    <Link key={b.id} to={'/products/' + b.productId + '/edit'} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
-                      <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                    <Link key={b.id} to={'/products/' + b.productId + '/edit'} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
+                      <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
                         {b.product?.images?.[0]?.url ? <img src={b.product.images[0].url} alt="" className="w-full h-full object-cover" /> : <Pill className="h-5 w-5 text-slate-400" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{b.product?.name}</div>
+                        <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{b.product?.name}</div>
                         <div className="text-xs text-slate-500 font-mono font-bold">Batch: {b.batchNumber}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-xs font-bold text-slate-500">Qty: <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{b.quantity}</span></div>
+                        <div className="text-xs font-bold text-slate-500">Qty: <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{b.quantity}</span></div>
                         <div className="text-xs font-bold text-amber-700 tabular-nums">
                           {format(new Date(b.expiryDate), 'dd MMM yyyy')}
                         </div>

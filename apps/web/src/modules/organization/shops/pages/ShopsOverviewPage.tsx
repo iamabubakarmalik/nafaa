@@ -148,13 +148,13 @@ export default function ShopsOverviewPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-44 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-44 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
-        <div className="h-80 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -212,7 +212,7 @@ export default function ShopsOverviewPage() {
       {/* ═══════════ TOP PERFORMER + ALERTS ═══════════ */}
       <div className="grid lg:grid-cols-2 gap-4">
         {data?.best && (
-          <section className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900 dark:border-amber-500/40 p-5">
+          <section className="rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-ink-900 dark:border-amber-500/40 p-5">
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white flex items-center justify-center shadow">
                 <Crown className="h-6 w-6" />
@@ -221,7 +221,7 @@ export default function ShopsOverviewPage() {
                 <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-amber-700 dark:text-amber-300">
                   Sab se aage
                 </div>
-                <div className="text-xl font-extrabold text-slate-900 dark:text-white truncate">
+                <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white truncate">
                   {data.best.name}
                 </div>
               </div>
@@ -234,8 +234,8 @@ export default function ShopsOverviewPage() {
           </section>
         )}
 
-        <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
-          <div className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white text-sm">
+        <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5">
+          <div className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-ink-white text-sm">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
             Tawajjo chahiye
           </div>
@@ -252,7 +252,7 @@ export default function ShopsOverviewPage() {
                     style={{ background: hueOf.get(n.shopId) ?? OVERFLOW_HUE }}
                   />
                   <div className="min-w-0">
-                    <div className="text-sm font-bold text-slate-900 dark:text-white">{n.name}</div>
+                    <div className="text-sm font-bold text-slate-900 dark:text-ink-white">{n.name}</div>
                     <div className="text-[0.6875rem] font-semibold text-amber-700 dark:text-amber-300">
                       {n.reasons.join(' · ')}
                     </div>
@@ -265,23 +265,23 @@ export default function ShopsOverviewPage() {
       </div>
 
       {/* ═══════════ COMPARISON CHART ═══════════ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h2 className="font-extrabold text-slate-900 dark:text-white">Branch Comparison</h2>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Branch Comparison</h2>
+            <p className="text-xs font-semibold text-slate-500 dark:text-ink-400">
               {periodLabel} — har branch ki bikri, net profit aur kharche
             </p>
           </div>
-          <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-700 p-1">
+          <div className="inline-flex rounded-xl border border-slate-200 dark:border-ink-700 p-1">
             {PERIODS.map((p) => (
               <button
                 key={p.key}
                 onClick={() => setPeriod(p.key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
                   period === p.key
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900'
+                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
                 }`}
               >
                 {p.label}
@@ -294,11 +294,11 @@ export default function ShopsOverviewPage() {
           <div style={{ minWidth: Math.max(comparisonData.length * 140, 520) }}>
             <ResponsiveContainer width="100%" height={320}>
               <BarChart data={comparisonData} margin={{ top: 24, right: 12, left: 4, bottom: 4 }} barGap={2}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-slate-700" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-slate-200 dark:text-ink-700" />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fontWeight: 700 }} />
                 <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11 }} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} width={44} />
                 <Tooltip
-                  cursor={{ fill: 'currentColor', className: 'text-slate-100 dark:text-slate-800' } as any}
+                  cursor={{ fill: 'currentColor', className: 'text-slate-100 dark:text-ink-800' } as any}
                   formatter={(v: any, n: any) => [formatPKR(Number(v)), n]}
                   contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0', fontSize: 12, fontWeight: 700 }}
                 />
@@ -307,7 +307,7 @@ export default function ShopsOverviewPage() {
                     sit under 3:1 against the surface — identity never rests on
                     colour alone. */}
                 <Bar dataKey="Sales" fill={METRIC_HUES.sales} radius={[4, 4, 0, 0]} maxBarSize={34}>
-                  <LabelList dataKey="Sales" position="top" formatter={(v: any) => (Number(v) ? formatPKR(Number(v)) : '')} style={{ fontSize: 10, fontWeight: 800 }} className="fill-slate-600 dark:fill-slate-300" />
+                  <LabelList dataKey="Sales" position="top" formatter={(v: any) => (Number(v) ? formatPKR(Number(v)) : '')} style={{ fontSize: 10, fontWeight: 800 }} className="fill-slate-600 dark:fill-ink-300" />
                 </Bar>
                 <Bar dataKey="Profit" fill={METRIC_HUES.profit} radius={[4, 4, 0, 0]} maxBarSize={34} />
                 <Bar dataKey="Kharche" fill={METRIC_HUES.expenses} radius={[4, 4, 0, 0]} maxBarSize={34} />
@@ -315,7 +315,7 @@ export default function ShopsOverviewPage() {
             </ResponsiveContainer>
           </div>
           {period === 'week' && (
-            <p className="px-1 pt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
+            <p className="px-1 pt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">
               7-din ke kharche branch-wise abhi record nahi hote — is period mein Kharche 0 dikhenge.
             </p>
           )}
@@ -323,17 +323,17 @@ export default function ShopsOverviewPage() {
       </section>
 
       {/* ═══════════ SHARE OF MONTH ═══════════ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="font-extrabold text-slate-900 dark:text-white">Is mahine ka hissa</h2>
-          <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-ink-800">
+          <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Is mahine ka hissa</h2>
+          <p className="text-xs font-semibold text-slate-500 dark:text-ink-400">
             Kul bikri mein har branch kitna la rahi hai
           </p>
         </div>
         <div className="p-4">
           <ResponsiveContainer width="100%" height={Math.max(shareData.length * 46 + 30, 140)}>
             <BarChart data={shareData} layout="vertical" margin={{ top: 4, right: 72, left: 4, bottom: 4 }}>
-              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-slate-700" />
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="currentColor" className="text-slate-200 dark:text-ink-700" />
               <XAxis type="number" domain={[0, 100]} tickLine={false} axisLine={false} tick={{ fontSize: 11 }} unit="%" />
               <YAxis type="category" dataKey="name" width={130} tickLine={false} axisLine={false} tick={{ fontSize: 11, fontWeight: 700 }} />
               <Tooltip
@@ -347,7 +347,7 @@ export default function ShopsOverviewPage() {
                 {shareData.map((d) => (
                   <Cell key={d.id} fill={hueOf.get(d.id) ?? OVERFLOW_HUE} />
                 ))}
-                <LabelList dataKey="share" position="right" formatter={(v: any) => `${v}%`} style={{ fontSize: 11, fontWeight: 800 }} className="fill-slate-700 dark:fill-slate-200" />
+                <LabelList dataKey="share" position="right" formatter={(v: any) => `${v}%`} style={{ fontSize: 11, fontWeight: 800 }} className="fill-slate-700 dark:fill-ink-200" />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -355,18 +355,18 @@ export default function ShopsOverviewPage() {
       </section>
 
       {/* ═══════════ FULL DETAIL TABLE ═══════════ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <Table2 className="h-4 w-4 text-slate-500" />
             <div>
-              <h2 className="font-extrabold text-slate-900 dark:text-white">Har Branch — Poori Tafseel</h2>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+              <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Har Branch — Poori Tafseel</h2>
+              <p className="text-xs font-semibold text-slate-500 dark:text-ink-400">
                 Wohi numbers jo charts mein hain, parhne ke liye
               </p>
             </div>
           </div>
-          <div className="inline-flex rounded-xl border border-slate-200 dark:border-slate-700 p-1 flex-wrap">
+          <div className="inline-flex rounded-xl border border-slate-200 dark:border-ink-700 p-1 flex-wrap">
             {([
               ['sales', 'Bikri'], ['profit', 'Profit'], ['orders', 'Orders'],
               ['credit', 'Udhaar'], ['name', 'Naam'],
@@ -376,8 +376,8 @@ export default function ShopsOverviewPage() {
                 onClick={() => setSortBy(k)}
                 className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition ${
                   sortBy === k
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900'
+                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
                 }`}
               >
                 {label}
@@ -388,7 +388,7 @@ export default function ShopsOverviewPage() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-ink-800/60 text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400">
               <tr>
                 <Th className="text-left pl-5">Branch</Th>
                 <Th>Aaj</Th>
@@ -405,12 +405,12 @@ export default function ShopsOverviewPage() {
                 <Th>Register</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {sorted.map((s) => {
                 const up = s.growthVsYesterday >= 0;
                 const Arrow = up ? ArrowUpRight : ArrowDownRight;
                 return (
-                  <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <td className="pl-5 py-3">
                       <div className="flex items-center gap-2 min-w-0">
                         <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: hueOf.get(s.id) }} />
@@ -419,7 +419,7 @@ export default function ShopsOverviewPage() {
                         ) : (
                           <Store className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                         )}
-                        <span className="font-extrabold text-slate-900 dark:text-white truncate">{s.name}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{s.name}</span>
                         {s.isMain && (
                           <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
                             MAIN
@@ -453,7 +453,7 @@ export default function ShopsOverviewPage() {
                           <LockOpen className="h-2.5 w-2.5" /> Khula
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-slate-200 text-slate-600 dark:bg-ink-700 dark:text-ink-300">
                           <Lock className="h-2.5 w-2.5" /> Band
                         </span>
                       )}
@@ -486,7 +486,7 @@ export default function ShopsOverviewPage() {
         <QuickLink to="/reports" icon={TrendingUp} label="All Reports" sub="Gehri tafseel" />
       </section>
 
-      <p className="text-center text-xs font-semibold text-slate-500 dark:text-slate-400">
+      <p className="text-center text-xs font-semibold text-slate-500 dark:text-ink-400">
         Kisi ek branch ka poora hisab dekhne ke liye upar dropdown se woh shop chunein.
       </p>
     </div>
@@ -507,9 +507,9 @@ function HeroStat({ label, value, sub }: { label: string; value: string; sub: st
 
 function MiniFact({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-white/70 dark:bg-slate-800/60 p-2.5">
-      <div className="text-[0.625rem] uppercase tracking-wide font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="font-extrabold text-slate-900 dark:text-white tabular-nums text-sm truncate">{value}</div>
+    <div className="rounded-xl bg-white/70 dark:bg-ink-800/60 p-2.5">
+      <div className="text-[0.625rem] uppercase tracking-wide font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
+      <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums text-sm truncate">{value}</div>
     </div>
   );
 }
@@ -520,7 +520,7 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
 
 function Td({ children, strong }: { children: React.ReactNode; strong?: boolean }) {
   return (
-    <td className={`px-3 py-3 text-right tabular-nums ${strong ? 'font-extrabold text-slate-900 dark:text-white' : 'font-bold text-slate-600 dark:text-slate-300'}`}>
+    <td className={`px-3 py-3 text-right tabular-nums ${strong ? 'font-extrabold text-slate-900 dark:text-ink-white' : 'font-bold text-slate-600 dark:text-ink-300'}`}>
       {children}
     </td>
   );
@@ -532,15 +532,15 @@ function QuickLink({
   return (
     <Link
       to={to}
-      className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-4 hover:border-indigo-400 hover:shadow-md transition group"
+      className="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 p-4 hover:border-indigo-400 hover:shadow-md transition group"
     >
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 flex items-center justify-center transition">
-          <Icon className="h-5 w-5 text-slate-600 dark:text-slate-300 group-hover:text-indigo-600" />
+        <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 flex items-center justify-center transition">
+          <Icon className="h-5 w-5 text-slate-600 dark:text-ink-300 group-hover:text-indigo-600" />
         </div>
         <div className="min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white text-sm">{label}</div>
-          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 truncate">{sub}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{label}</div>
+          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 truncate">{sub}</div>
         </div>
         <ArrowRight className="h-4 w-4 text-slate-300 group-hover:text-indigo-500 ml-auto shrink-0 transition" />
       </div>

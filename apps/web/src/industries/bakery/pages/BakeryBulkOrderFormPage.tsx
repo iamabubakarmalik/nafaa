@@ -243,7 +243,7 @@ export default function BakeryBulkOrderFormPage() {
   return (
     <div className="space-y-4 sm:space-y-5 pb-10">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Link to={LIST} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-amber-600 transition">
+        <Link to={LIST} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-ink-400 hover:text-amber-600 transition">
           <ArrowLeft className="h-4 w-4" /> Bare orders
         </Link>
         <button onClick={() => setShowTeacher(true)}
@@ -264,9 +264,9 @@ export default function BakeryBulkOrderFormPage() {
       </section>
 
       {locked && (
-        <div className="rounded-2xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 p-3 flex gap-2">
+        <div className="rounded-2xl bg-slate-100 dark:bg-ink-800 border-2 border-slate-300 dark:border-ink-700 p-3 flex gap-2">
           <Lock className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="text-[0.75rem] font-bold text-slate-700 dark:text-slate-200">
+          <p className="text-[0.75rem] font-bold text-slate-700 dark:text-ink-200">
             Ye order <strong>{existing.status === 'DELIVERED' ? 'de diya ja chuka' : 'cancel ho chuka'}</strong> hai
             {existing.status === 'DELIVERED' ? ' aur is ka bill ban chuka' : ''} — ab badla nahi ja sakta.
           </p>
@@ -290,7 +290,7 @@ export default function BakeryBulkOrderFormPage() {
                   <button key={t.value} type="button" onClick={() => set({ orderType: t.value })}
                     className={`h-11 px-2 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
                       f.orderType === t.value ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400'
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-amber-400'
                     }`}>{t.emoji} {t.label}</button>
                 ))}
               </div>
@@ -343,31 +343,31 @@ export default function BakeryBulkOrderFormPage() {
                 {lines.map((l, idx) => {
                   const p = l.productId ? productBy.get(l.productId) : undefined;
                   return (
-                    <div key={idx} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5 space-y-2">
+                    <div key={idx} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-2.5 space-y-2">
                       <div className="flex items-center gap-2">
                         <input value={l.name} onChange={(e) => updateLine(idx, { name: e.target.value })} placeholder="Cheez ka naam"
-                          className="h-10 flex-1 min-w-0 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500" />
+                          className="h-10 flex-1 min-w-0 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2.5 text-sm font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500" />
                         <button type="button" onClick={() => setLines((xs) => xs.filter((_, i) => i !== idx))}
-                          className="h-10 w-10 rounded-lg bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 hover:border-rose-400 transition">
+                          className="h-10 w-10 rounded-lg bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center shrink-0 hover:border-rose-400 transition">
                           <Trash2 className="h-4 w-4 text-rose-500" />
                         </button>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <div className="inline-flex items-center">
                           <button type="button" onClick={() => updateLine(idx, { qty: Math.max(Number(l.qty || 0) - 1, 0) || '' })}
-                            className="h-10 w-9 rounded-l-lg border-2 border-r-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center"><Minus className="h-3.5 w-3.5" /></button>
+                            className="h-10 w-9 rounded-l-lg border-2 border-r-0 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 flex items-center justify-center"><Minus className="h-3.5 w-3.5" /></button>
                           <input type="number" min={0} step="any" value={l.qty}
                             onChange={(e) => updateLine(idx, { qty: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="Tadaad"
-                            className="h-10 w-20 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-amber-500" />
+                            className="h-10 w-20 border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-amber-500" />
                           <button type="button" onClick={() => updateLine(idx, { qty: Number(l.qty || 0) + 1 })}
-                            className="h-10 w-9 rounded-r-lg border-2 border-l-0 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex items-center justify-center"><Plus className="h-3.5 w-3.5" /></button>
+                            className="h-10 w-9 rounded-r-lg border-2 border-l-0 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 flex items-center justify-center"><Plus className="h-3.5 w-3.5" /></button>
                         </div>
                         <span className="text-[0.6875rem] font-black text-slate-500 w-10">{l.unit ?? p?.unit ?? ''}</span>
                         <span className="text-slate-400 font-black">×</span>
                         <input type="number" min={0} step="any" value={l.rate}
                           onChange={(e) => updateLine(idx, { rate: e.target.value === '' ? '' : Number(e.target.value) })} placeholder="Rate"
-                          className="h-10 w-28 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-amber-500" />
-                        <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-white">{formatPKR(Number(l.qty || 0) * Number(l.rate || 0))}</span>
+                          className="h-10 w-28 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-amber-500" />
+                        <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-ink-white">{formatPKR(Number(l.qty || 0) * Number(l.rate || 0))}</span>
                       </div>
                       <div className="text-[0.6875rem] font-bold">
                         {p ? (
@@ -394,7 +394,7 @@ export default function BakeryBulkOrderFormPage() {
                 {options.map((p) => (
                   <button key={p.id} type="button"
                     onClick={() => { setLines((xs) => [...xs, { productId: p.id, name: p.name, qty: '', rate: Number(p.price) || '', unit: p.unit }]); setSearch(''); }}
-                    className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+                    className="h-9 px-3 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition">
                     <Plus className="h-3.5 w-3.5 text-amber-500" /> {p.name}
                     <span className="text-[0.6875rem] text-slate-400 tabular-nums">{formatPKR(p.price)}/{p.unit}</span>
                   </button>
@@ -402,7 +402,7 @@ export default function BakeryBulkOrderFormPage() {
               </div>
             )}
             <button type="button" onClick={() => setLines((xs) => [...xs, { name: '', qty: '', rate: '' }])}
-              className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-black inline-flex items-center justify-center gap-1.5 hover:border-amber-400 transition">
+              className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-xs font-black inline-flex items-center justify-center gap-1.5 hover:border-amber-400 transition">
               <Plus className="h-4 w-4" /> Haath se line daalein
             </button>
             <Input label="Koi khaas baat" value={f.specialInstructions} onChange={(e) => set({ specialInstructions: e.target.value })}
@@ -434,7 +434,7 @@ export default function BakeryBulkOrderFormPage() {
                   <div className="grid grid-cols-3 gap-1.5">
                     {[0.5, 0.3, 1].map((pc) => (
                       <button key={pc} type="button" onClick={() => set({ advancePaid: Math.round(total * pc) })}
-                        className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200 transition">
+                        className="h-10 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-[0.6875rem] font-black text-slate-700 dark:text-ink-200 transition">
                         {pc === 1 ? 'Poora' : `${pc * 100}%`}
                       </button>
                     ))}
@@ -442,7 +442,7 @@ export default function BakeryBulkOrderFormPage() {
                 )}
               </>
             )}
-            <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3 space-y-1">
+            <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3 space-y-1">
               <Line2 label="Kul" value={formatPKR(total)} />
               <Line2 label={isEdit ? 'Mil chuka' : 'Advance'} value={formatPKR(advance)} tone="emerald" />
               <Line2 label="Baqi rahega" value={formatPKR(due)} tone="amber" />
@@ -480,10 +480,10 @@ export default function BakeryBulkOrderFormPage() {
 
       {showTeacher && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={() => setShowTeacher(false)}>
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-3 border-b-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-500/15 dark:to-yellow-500/15 flex items-center justify-between sticky top-0 z-10">
               <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Bara order kaise lein</h3>
-              <button onClick={() => setShowTeacher(false)} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"><X className="h-4 w-4 text-slate-600 dark:text-slate-300" /></button>
+              <button onClick={() => setShowTeacher(false)} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"><X className="h-4 w-4 text-slate-600 dark:text-ink-300" /></button>
             </div>
             <div className="p-5 space-y-3 text-sm">
               <Tip icon={Building2} title="Kis ka order">Idare ka naam aur phone zaroori. Baat karne wala koi aur ho to uska naam alag likh lein.</Tip>
@@ -504,12 +504,12 @@ export default function BakeryBulkOrderFormPage() {
 }
 
 /* ═══ CHHOTE HISSE ═══ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500';
 
 function Card({ icon: Icon, title, children }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 space-y-3">
-      <div className="flex items-center gap-2"><Icon className="h-4 w-4 text-amber-600" /><h3 className="font-black text-slate-900 dark:text-white">{title}</h3></div>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+      <div className="flex items-center gap-2"><Icon className="h-4 w-4 text-amber-600" /><h3 className="font-black text-slate-900 dark:text-ink-white">{title}</h3></div>
       {children}
     </section>
   );
@@ -523,12 +523,12 @@ function Toggle({ icon: Icon, label, hint, value, onChange }: any) {
   return (
     <button type="button" onClick={() => onChange(!value)}
       className={`text-left rounded-2xl border-2 p-3 flex items-start gap-2.5 transition ${
-        value ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-300'
+        value ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300'
       }`}>
-      <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${value ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'}`}><Icon className="h-4 w-4" /></span>
+      <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${value ? 'bg-amber-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'}`}><Icon className="h-4 w-4" /></span>
       <span className="min-w-0">
-        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
-        <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</span>
+        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white leading-tight">{label}</span>
+        <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{hint}</span>
       </span>
     </button>
   );
@@ -538,8 +538,8 @@ function Line2({ label, value, tone }: any) {
   const tones: Record<string, string> = { emerald: 'text-emerald-600 dark:text-emerald-400', amber: 'text-amber-600 dark:text-amber-400' };
   return (
     <div className="flex items-center justify-between">
-      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400">{label}</span>
-      <span className={`text-sm font-black tabular-nums ${tone ? tones[tone] : 'text-slate-900 dark:text-white'}`}>{value}</span>
+      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-ink-400">{label}</span>
+      <span className={`text-sm font-black tabular-nums ${tone ? tones[tone] : 'text-slate-900 dark:text-ink-white'}`}>{value}</span>
     </div>
   );
 }
@@ -549,8 +549,8 @@ function Tip({ icon: Icon, title, children }: any) {
     <div className="flex gap-2.5">
       <div className="h-8 w-8 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0"><Icon className="h-4 w-4 text-amber-600 dark:text-amber-400" /></div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

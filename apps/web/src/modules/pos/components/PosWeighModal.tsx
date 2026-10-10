@@ -63,7 +63,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2 py-0.5 text-[0.6875rem] font-extrabold">
@@ -84,25 +84,25 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
             <button onClick={() => setMode('money')}
               className={['py-3.5 rounded-2xl border-2 font-extrabold text-sm transition',
                 mode === 'money' ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 shadow-md'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'].join(' ')}>
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'].join(' ')}>
               💰 Paise Se
               <div className="text-[0.6875rem] font-bold opacity-70">"100 ka aata de do"</div>
             </button>
             <button onClick={() => setMode('weight')}
               className={['py-3.5 rounded-2xl border-2 font-extrabold text-sm transition',
                 mode === 'weight' ? 'border-amber-600 bg-amber-50 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 shadow-md'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'].join(' ')}>
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'].join(' ')}>
               ⚖️ Wazan Se
               <div className="text-[0.6875rem] font-bold opacity-70">"250 gram daal"</div>
             </button>
           </div>
 
           {subUnits.length > 1 && (
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-max mx-auto">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 w-max mx-auto">
               {subUnits.map((s) => (
                 <button key={s.k} onClick={() => setSubUnit(s.k)}
                   className={['px-4 py-1.5 rounded-lg text-xs font-extrabold transition',
-                    subUnit === s.k ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+                    subUnit === s.k ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
                   {s.l}
                 </button>
               ))}
@@ -120,7 +120,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
 
           {mode === 'weight' ? (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Kitna wazan? ({activeSub.l})</label>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">Kitna wazan? ({activeSub.l})</label>
               <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={weightInput}
                 onChange={(e) => setWeightInput(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
@@ -128,7 +128,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
               <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
                 {weightPresets.map((w) => (
                   <button key={w} onClick={() => setWeightInput(w)}
-                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-amber-800 dark:text-amber-300 text-xs font-extrabold transition tabular-nums">
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-amber-800 dark:text-amber-300 text-xs font-extrabold transition tabular-nums">
                     {w} {activeSub.k === 'g' ? 'g' : activeSub.k === 'ml' ? 'ml' : activeSub.l}
                   </button>
                 ))}
@@ -136,7 +136,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Kitne paise ka? (Rs)</label>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">Kitne paise ka? (Rs)</label>
               <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={moneyInput}
                 onChange={(e) => setMoneyInput(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
@@ -144,7 +144,7 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
               <div className="mt-2 flex flex-wrap gap-1.5 justify-center">
                 {moneyPresets.map((m) => (
                   <button key={m} onClick={() => setMoneyInput(m)}
-                    className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/40 hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition tabular-nums">
+                    className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/40 hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition tabular-nums">
                     Rs {m}
                   </button>
                 ))}
@@ -180,8 +180,8 @@ export function PosWeighModal({ product, unit, prefillMoney, onConfirm, onClose 
           )}
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
-          <button onClick={onClose} className="flex-1 h-12 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition">Cancel</button>
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
+          <button onClick={onClose} className="flex-1 h-12 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition">Cancel</button>
           <button onClick={submit} disabled={!canAdd}
             className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-700 hover:from-amber-700 hover:to-orange-800 disabled:opacity-40 text-white font-extrabold shadow-lg shadow-amber-500/40 inline-flex items-center justify-center gap-2 transition">
             <Plus className="h-4 w-4" /> Cart Me Daalo ({formatPKR(finalPrice)})

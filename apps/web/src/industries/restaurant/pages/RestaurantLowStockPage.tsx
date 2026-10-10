@@ -223,7 +223,7 @@ export default function RestaurantLowStockPage() {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.liveButDead.slice(0, 8).map((r) => (
                   <Link key={r.menuItemId} to="/restaurant/menu"
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 transition">
                     {r.name}
                     {r.blocker && <span className="text-rose-600 dark:text-rose-400"> · {r.blocker.name} khatam</span>}
                   </Link>
@@ -261,7 +261,7 @@ export default function RestaurantLowStockPage() {
             <button key={t.v} onClick={() => setTab(t.v)}
               className={`rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on ? 'bg-gradient-to-br from-orange-600 to-amber-700 border-transparent text-white shadow-xl'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-orange-400'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-orange-400'
               }`}>
               <div className="flex items-center gap-3">
                 <span className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
@@ -270,7 +270,7 @@ export default function RestaurantLowStockPage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.l}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'}`}>{t.n}</span>
                   </span>
                   <span className={`block text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.h}</span>
                 </span>
@@ -281,14 +281,14 @@ export default function RestaurantLowStockPage() {
       </div>
 
       {/* ═══ SEARCH ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 flex gap-2 flex-wrap items-center print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 flex gap-2 flex-wrap items-center print:hidden">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Dish ya saamaan ka naam…"
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition" />
+            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition" />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
@@ -298,7 +298,7 @@ export default function RestaurantLowStockPage() {
             className={`h-12 px-4 rounded-2xl border-2 text-xs font-black inline-flex items-center gap-1.5 transition ${
               onlyBlocked
                 ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-rose-400'
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-rose-400'
             }`}>
             <Flame className="h-4 w-4" /> Sirf ruki hui
           </button>
@@ -309,7 +309,7 @@ export default function RestaurantLowStockPage() {
       {tab === 'dish' && (
         cookQ.isLoading ? (
           <div className="space-y-2">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : rows.length === 0 ? (
           <Empty icon={Soup} title="Kisi dish par recipe nahi bani"
@@ -330,8 +330,8 @@ export default function RestaurantLowStockPage() {
           <Empty icon={CheckCircle2} title="Saara saamaan poora hai"
             sub="Koi ingredient kisi dish ko nahi rok raha" />
         ) : (
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
               {ingredients
                 .filter((i) => !search.trim() || i.name.toLowerCase().includes(search.toLowerCase()))
                 .map((ing) => (
@@ -345,7 +345,7 @@ export default function RestaurantLowStockPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-black text-slate-900 dark:text-white">{ing.name}</span>
+                      <span className="text-sm font-black text-slate-900 dark:text-ink-white">{ing.name}</span>
                       <span className={`px-2 py-0.5 rounded-lg text-[0.6875rem] font-black ${
                         ing.have <= 0
                           ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
@@ -383,14 +383,14 @@ export default function RestaurantLowStockPage() {
           Bottle, drinks, chips — in ki recipe nahi hoti, stock hota hai.
           Isi liye ye alag khane me hain. */}
       {counterLow.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
-          <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
+          <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5">
             <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center shrink-0">
               <Package className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 dark:text-white">Counter ka maal kam ho gaya</h2>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Counter ka maal kam ho gaya</h2>
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Bottle, drinks, chips — jo banta nahi, seedha bikta hai
               </p>
             </div>
@@ -412,15 +412,15 @@ export default function RestaurantLowStockPage() {
 
       {/* ═══ RECIPE NAHI BANI ═══ */}
       {withoutRecipe.length > 0 && (
-        <section className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
+        <section className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
           <Soup className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-slate-700 dark:text-slate-300">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-slate-700 dark:text-ink-300">
             <strong>{withoutRecipe.length} dish</strong> par recipe nahi bani. In ka food cost pata nahi
             chalta aur ye is safhe par nazar bhi nahi aatin — yani saamaan khatam hone ka pata order
             ke waqt chalega.
           </p>
           <Link to="/restaurant/recipes"
-            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
+            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
             Recipe banayein <ArrowRight className="h-3 w-3" />
           </Link>
         </section>
@@ -439,15 +439,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <W onClick={onClick}
       className={`rounded-2xl sm:rounded-3xl border-2 p-3 sm:p-4 text-left transition ${
         active ? 'border-orange-500 bg-orange-50 dark:bg-orange-500/10 shadow-lg'
-          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm'
+          : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 shadow-sm'
       } ${onClick ? 'hover:border-orange-400 active:scale-[0.99] cursor-pointer' : ''}`}>
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</span>
       </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none">{value}</p>
+      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none">{value}</p>
       {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
     </W>
   );
@@ -464,26 +464,26 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
     <div className={`rounded-2xl border-2 p-3 transition ${
       dead ? 'border-rose-300 dark:border-rose-500/40 bg-rose-50/50 dark:bg-rose-500/10'
         : tight ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/5'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
     }`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{r.name}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             {r.ingredientCount} saamaan
             {r.prepTimeMinutes ? ` · ${r.prepTimeMinutes} min` : ''}
             {r.totalOrdered > 0 ? ` · ${r.totalOrdered} dafa bika` : ''}
           </div>
         </div>
         {!r.isAvailable && (
-          <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[0.625rem] font-black text-slate-600 dark:text-slate-300 shrink-0">
+          <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-ink-700 text-[0.625rem] font-black text-slate-600 dark:text-ink-300 shrink-0">
             Menu par nahi
           </span>
         )}
       </div>
 
       {/* Kitni aur ban sakti hai — safhe ka asal jawab */}
-      <div className="mt-2.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 p-2.5 text-center">
+      <div className="mt-2.5 rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 p-2.5 text-center">
         {r.canMake === null ? (
           <p className="text-[0.75rem] font-bold text-slate-500">Recipe khali hai</p>
         ) : (
@@ -495,7 +495,7 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
             }`}>
               {dead ? '0' : r.canMake}
             </p>
-            <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 mt-0.5">
               {dead ? 'ab nahi ban sakti' : 'plate aur ban sakti hain'}
             </p>
           </>
@@ -503,7 +503,7 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
       </div>
 
       {r.blocker && r.canMake !== null && (
-        <p className={`mt-2 text-[0.6875rem] font-bold ${dead ? 'text-rose-800 dark:text-rose-300' : 'text-slate-600 dark:text-slate-300'}`}>
+        <p className={`mt-2 text-[0.6875rem] font-bold ${dead ? 'text-rose-800 dark:text-rose-300' : 'text-slate-600 dark:text-ink-300'}`}>
           {dead ? '🚫' : '⏳'} <strong>{r.blocker.name}</strong> rok raha hai —{' '}
           {Number(r.blocker.have.toFixed(2))} {r.blocker.unit} bacha, ek plate par{' '}
           {Number(r.blocker.need.toFixed(2))} {r.blocker.unit} lagta hai
@@ -511,8 +511,8 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
       )}
 
       {!hideCost && r.price > 0 && (
-        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2 flex-wrap">
-          <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+        <div className="mt-2 pt-2 border-t border-slate-200 dark:border-ink-700 flex items-center justify-between gap-2 flex-wrap">
+          <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Rate {money(r.price)} · lagat {money(r.cost)}
           </span>
           <span className={`px-1.5 py-0.5 rounded-md text-[0.6875rem] font-black ${
@@ -535,9 +535,9 @@ function DishCard({ r, money, hideCost }: { r: Cookability; money: (v: number) =
 
 function Empty({ icon: Icon, title, sub, to, cta }: any) {
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 text-center">
       <Icon className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-      <p className="text-base font-black text-slate-700 dark:text-slate-200">{title}</p>
+      <p className="text-base font-black text-slate-700 dark:text-ink-200">{title}</p>
       {sub && <p className="mt-1 text-xs font-bold text-slate-400 max-w-md mx-auto">{sub}</p>}
       {to && (
         <Link to={to}
@@ -554,7 +554,7 @@ function Teacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -575,17 +575,17 @@ function Teacher({ onClose }: any) {
             { i: Soup, t: 'Recipe na ho to kuch pata nahi chalta', d: 'Jis dish par recipe nahi bani, wo is safhe par aati hi nahi — yani us ka saamaan khatam hone ka pata order ke waqt chalega. Neeche un ki list hai.' },
             { i: ShoppingBag, t: 'Seedha mangwa lein', d: 'Har line par "Mangwayein" ka button hai — wahin se purchase ban jati hai.' },
           ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-600 to-amber-700 text-white flex items-center justify-center shrink-0">
                 <x.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['G', 'Ye safha'], ['R', 'Taaza'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
@@ -596,7 +596,7 @@ function Teacher({ onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-orange-600 to-amber-700">Samajh gaya</Button>
         </footer>
       </div>

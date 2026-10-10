@@ -30,7 +30,7 @@ export default function QuotationDetailPage() {
   });
 
   if (isLoading || !q) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const daysLeft = differenceInDays(new Date(q.validUntil), new Date());
@@ -84,7 +84,7 @@ export default function QuotationDetailPage() {
 
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <section className="space-y-4">
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2"><User className="h-4 w-4 text-violet-600" />Customer</h3>
             <div className="space-y-1 text-sm">
               <div className="font-extrabold text-lg">{q.customerName}</div>
@@ -95,11 +95,11 @@ export default function QuotationDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800">
               <h3 className="text-lg font-bold flex items-center gap-2"><Package className="h-5 w-5 text-violet-600" />Items ({q.items.length})</h3>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {q.items.map((item: any) => (
                 <div key={item.id} className="p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -129,7 +129,7 @@ export default function QuotationDetailPage() {
           </div>
 
           {(q.paymentTerms || q.deliveryTerms || q.warrantyTerms || q.specialTerms) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
               <h3 className="text-sm font-extrabold">📋 Terms & Conditions</h3>
               {q.paymentTerms && <div className="text-sm"><span className="font-extrabold text-slate-700">Payment: </span>{q.paymentTerms}</div>}
               {q.deliveryTerms && <div className="text-sm"><span className="font-extrabold text-slate-700">Delivery: </span>{q.deliveryTerms}</div>}

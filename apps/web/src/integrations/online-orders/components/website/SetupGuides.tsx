@@ -37,12 +37,12 @@ function Step({ n, done, title, children }: { n: number; done?: boolean; title: 
   return (
     <li className="flex gap-3">
       <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.75rem] font-bold',
-        done ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200')}>
+        done ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 dark:bg-ink-800 dark:text-ink-200')}>
         {done ? <CheckCircle2 className="h-4 w-4" /> : n}
       </span>
       <div className="min-w-0 flex-1 pt-0.5">
-        <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{title}</div>
-        {children && <div className="mt-1.5 space-y-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">{children}</div>}
+        <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{title}</div>
+        {children && <div className="mt-1.5 space-y-2 text-[0.8125rem] text-slate-600 dark:text-ink-300">{children}</div>}
       </div>
     </li>
   );
@@ -95,7 +95,7 @@ export function IndoljGuide({ data, onOpenProducts }: { data: WebsiteOverview; o
           <p>{multi ? 'Har branch ki' : 'Branch ki'} General POS settings me ye khaane bharein:</p>
           <div className="space-y-3">
             {rows.map((r) => (
-              <div key={r.id} className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+              <div key={r.id} className="rounded-xl border border-slate-200 p-3 dark:border-ink-800">
                 {multi && <div className="mb-2 text-[0.78125rem] font-bold uppercase tracking-wide text-slate-500">{r.name}</div>}
                 <div className="grid gap-2 md:grid-cols-2">
                   <CopyField label="Call Back URL" value={r.url} />
@@ -146,7 +146,7 @@ export function BranchSetup({ data }: { data: WebsiteOverview }) {
       </p>
       {(i.branchCodes?.length ?? 0) > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-[0.78125rem] font-semibold text-slate-600 dark:text-slate-300">Advanced — website ke code se branch</summary>
+          <summary className="cursor-pointer text-[0.78125rem] font-semibold text-slate-600 dark:text-ink-300">Advanced — website ke code se branch</summary>
           <BranchCodeMap channelId={i.id} codes={i.branchCodes ?? []} defaultShopId={defaultShop} shops={shops} />
         </details>
       )}
@@ -185,7 +185,7 @@ function BranchCodeMap({ channelId, codes, defaultShopId, shops }: {
       </p>
       {codes.map((c) => (
         <div key={c.code} className="flex flex-wrap items-center gap-2 text-[0.8125rem]">
-          <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.75rem] dark:bg-slate-800">{c.label ?? c.code}</code>
+          <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.75rem] dark:bg-ink-800">{c.label ?? c.code}</code>
           {c.sample && <span className="text-[0.75rem] text-slate-500">aakhri order {c.sample}</span>}
           <span className="flex-1" />
           <select value={map[c.code] ?? fallback}
@@ -241,14 +241,14 @@ export function Troubleshoot({ kind, onOpenActivity }: { kind: Kind; onOpenActiv
   ];
   return (
     <Card title="Masle aur hal" description="Jo aksar hota hai — aur us ka hal" actions={<DocsLink anchor="masle">Sab masle</DocsLink>}>
-      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+      <ul className="divide-y divide-slate-100 dark:divide-ink-800">
         {items.filter((x) => !x.only || x.only.includes(kind)).map((x) => (
           <li key={x.q}>
             <details className="group py-2.5">
-              <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.84375rem] font-medium text-slate-900 dark:text-white">
+              <summary className="flex cursor-pointer list-none items-center gap-2 text-[0.84375rem] font-medium text-slate-900 dark:text-ink-white">
                 <ChevronRight className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-90" /> {x.q}
               </summary>
-              <div className="mt-1.5 pl-6 text-[0.8125rem] text-slate-600 dark:text-slate-300">{x.a}</div>
+              <div className="mt-1.5 pl-6 text-[0.8125rem] text-slate-600 dark:text-ink-300">{x.a}</div>
             </details>
           </li>
         ))}
@@ -263,9 +263,9 @@ export function HelpCard() {
   return (
     <Card title="Madad">
       <ul className="space-y-2 text-[0.8125rem]">
-        <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-slate-200"><BookOpen className="h-4 w-4" /> Online store ki poori guide <ExternalLink className="h-3 w-3" /></a></li>
-        <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-slate-200"><Circle className="h-4 w-4" /> Masle aur hal <ExternalLink className="h-3 w-3" /></a></li>
-        <li><a href={docsUrl('api')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-slate-200"><Circle className="h-4 w-4" /> Developer API <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl()} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-ink-200"><BookOpen className="h-4 w-4" /> Online store ki poori guide <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl('masle')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Masle aur hal <ExternalLink className="h-3 w-3" /></a></li>
+        <li><a href={docsUrl('api')} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-slate-700 hover:text-emerald-700 dark:text-ink-200"><Circle className="h-4 w-4" /> Developer API <ExternalLink className="h-3 w-3" /></a></li>
       </ul>
     </Card>
   );

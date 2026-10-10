@@ -28,13 +28,13 @@ export function Alert({ variant = 'info', title, children, onClose, className, i
     <div className={cn('flex items-start gap-3 p-4 rounded-2xl border', bg, className)} role="alert">
       <Icon className={cn('h-5 w-5 shrink-0 mt-0.5', iconColor)} />
       <div className="flex-1 min-w-0">
-        {title && <div className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</div>}
-        {children && <div className={cn('text-sm text-slate-700 dark:text-slate-300', title && 'mt-1')}>{children}</div>}
+        {title && <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{title}</div>}
+        {children && <div className={cn('text-sm text-slate-700 dark:text-ink-300', title && 'mt-1')}>{children}</div>}
       </div>
       {onClose && (
         <button
           onClick={onClose}
-          className="shrink-0 h-6 w-6 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 flex items-center justify-center transition"
+          className="shrink-0 h-6 w-6 rounded-lg hover:bg-black/5 dark:hover:bg-ink-white/5 flex items-center justify-center transition"
           aria-label="Dismiss"
         >
           <X className="h-4 w-4 text-slate-500" />

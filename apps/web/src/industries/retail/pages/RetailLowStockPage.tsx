@@ -36,7 +36,7 @@ type Filter = 'all' | 'critical' | 'warning';
 type SortKey = 'urgency' | 'stock-asc' | 'value' | 'name';
 
 const industryConfig: Record<string, { label: string; icon: any; color: string; bg: string; darkBg: string }> = {
-  STANDARD:     { label: 'Standard', icon: Package,    color: '#64748b', bg: 'bg-slate-100 text-slate-700',   darkBg: 'dark:bg-slate-500/20 dark:text-slate-300' },
+  STANDARD:     { label: 'Standard', icon: Package,    color: '#64748b', bg: 'bg-slate-100 text-slate-700',   darkBg: 'dark:bg-ink-500/20 dark:text-ink-300' },
   CARPET:       { label: 'Carpet',   icon: Layers,     color: '#10b981', bg: 'bg-emerald-100 text-emerald-700', darkBg: 'dark:bg-emerald-500/20 dark:text-emerald-300' },
   MOBILE:       { label: 'Mobile',   icon: Smartphone, color: '#3b82f6', bg: 'bg-blue-100 text-blue-700',     darkBg: 'dark:bg-blue-500/20 dark:text-blue-300' },
   WEIGHT_BASED: { label: 'Weight',   icon: Hash,       color: '#f59e0b', bg: 'bg-amber-100 text-amber-700',   darkBg: 'dark:bg-amber-500/20 dark:text-amber-300' },
@@ -409,12 +409,12 @@ export default function RetailLowStockPage() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
             {industryStock.restockRules.map((rule) => (
-              <div key={rule.label} className="rounded-xl bg-white dark:bg-slate-800/80 border-2 p-2.5" style={{ borderColor: `${rule.color}40` }}>
+              <div key={rule.label} className="rounded-xl bg-white dark:bg-ink-800/80 border-2 p-2.5" style={{ borderColor: `${rule.color}40` }}>
                 <div className="flex items-center gap-2">
                   <span className="text-xl shrink-0">{rule.emoji}</span>
                   <div className="min-w-0">
                     <div className="text-[0.6875rem] font-extrabold" style={{ color: rule.color }}>{rule.label}</div>
-                    <div className="text-[0.625rem] text-slate-600 dark:text-slate-400 font-semibold line-clamp-2">{rule.description}</div>
+                    <div className="text-[0.625rem] text-slate-600 dark:text-ink-400 font-semibold line-clamp-2">{rule.description}</div>
                   </div>
                 </div>
               </div>
@@ -436,11 +436,11 @@ export default function RetailLowStockPage() {
       {/* ═══ CHARTS ═══ */}
       {stats.total > 0 && (
         <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 print:hidden">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Top 10 Urgent Items</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Stock vs alert threshold</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Top 10 Urgent Items</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Stock vs alert threshold</p>
               </div>
               <BarChart3 className="h-5 w-5 text-amber-500" />
             </div>
@@ -460,11 +460,11 @@ export default function RetailLowStockPage() {
             ) : (<EmptyChart />)}
           </div>
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Category Breakdown</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Kaunsi category sab se zyada affected</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Category Breakdown</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Kaunsi category sab se zyada affected</p>
               </div>
               <Layers className="h-5 w-5 text-violet-500" />
             </div>
@@ -486,7 +486,7 @@ export default function RetailLowStockPage() {
       )}
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
         <div className="relative">
           <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
@@ -494,17 +494,17 @@ export default function RetailLowStockPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Naam, SKU, barcode, category, brand... (/ shortcut)"
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-500/30 transition"
+            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-500/30 transition"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
         </div>
 
         <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
             {([
               { v: 'all' as Filter, l: 'Sab', c: stats.total },
               { v: 'critical' as Filter, l: '🔴 Khatam', c: stats.critical },
@@ -514,10 +514,10 @@ export default function RetailLowStockPage() {
                 key={o.v}
                 onClick={() => setFilter(o.v)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  filter === o.v ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  filter === o.v ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
-                {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>
               </button>
             ))}
           </div>
@@ -525,7 +525,7 @@ export default function RetailLowStockPage() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
+            className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
           >
             <option value="all">Sab Categories ({categories.length})</option>
             {categories.map((c) => (<option key={c} value={c}>{c}</option>))}
@@ -534,7 +534,7 @@ export default function RetailLowStockPage() {
           <select
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
+            className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
           >
             <option value="urgency">⚡ Sab se urgent pehle</option>
             <option value="stock-asc">Stock kam pehle</option>
@@ -548,18 +548,18 @@ export default function RetailLowStockPage() {
             </button>
           )}
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} alerts
           </div>
         </div>
       </section>
 
       {/* ═══ TABLE ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 print:hidden">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Restock Chahiye</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Restock Chahiye</h3>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
               {filtered.length} of {stats.total} • urgency order me
             </p>
           </div>
@@ -575,21 +575,21 @@ export default function RetailLowStockPage() {
 
         {isLoading ? (
           <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => (<div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />))}
+            {Array.from({ length: 5 }).map((_, i) => (<div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 sm:p-16 text-center">
             <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-green-200 dark:from-emerald-500/20 dark:to-green-500/20 flex items-center justify-center">
               <CheckCircle2 className="h-9 w-9 text-emerald-700 dark:text-emerald-400" />
             </div>
-            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Kuch nahi mila' : 'Sab products ka stock theek hai 🎉'}
             </h4>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold">
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold">
               {hasFilters ? 'Filter change kar ke dekho' : 'Koi bhi product alert level se neeche nahi'}
             </p>
             {hasFilters && (
-              <button onClick={clearFilters} className="mt-4 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 transition">
+              <button onClick={clearFilters} className="mt-4 px-4 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 transition">
                 Filter hatao
               </button>
             )}
@@ -597,7 +597,7 @@ export default function RetailLowStockPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 text-slate-700 dark:text-ink-300 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <Th>#</Th>
                   <Th>Product</Th>
@@ -610,7 +610,7 @@ export default function RetailLowStockPage() {
                   <Th className="text-right print:hidden">Actions</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {filtered.map((p, idx) => {
                   const isCritical = p.stockStatus === 'OUT_OF_STOCK';
                   const urg = urgencyOf(p);
@@ -626,25 +626,25 @@ export default function RetailLowStockPage() {
                           : 'bg-amber-50/40 dark:bg-amber-500/5 hover:bg-amber-50/60 dark:hover:bg-amber-500/10',
                       ].join(' ')}
                     >
-                      <td className="px-3 py-3 text-[0.6875rem] font-extrabold text-slate-400 dark:text-slate-500 tabular-nums">{idx + 1}</td>
+                      <td className="px-3 py-3 text-[0.6875rem] font-extrabold text-slate-400 dark:text-ink-500 tabular-nums">{idx + 1}</td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 print:hidden">
+                          <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700 print:hidden">
                             {p.primaryImage ? (
                               <img src={p.primaryImage} alt="" loading="lazy" className="h-full w-full object-cover" />
                             ) : (
-                              <Package className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                              <Package className="h-4 w-4 text-slate-400 dark:text-ink-500" />
                             )}
                           </div>
                           <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{p.productName}</div>
-                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">{p.sku || p.barcode || '—'}</div>
+                            <div className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{p.productName}</div>
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">{p.sku || p.barcode || '—'}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-3 py-3 text-xs">
                         {p.category && (
-                          <div className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                          <div className="font-bold text-slate-700 dark:text-ink-300 flex items-center gap-1">
                             {p.categoryColor && (<span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: p.categoryColor }} />)}
                             <span className="truncate">{p.category}</span>
                           </div>
@@ -663,14 +663,14 @@ export default function RetailLowStockPage() {
                           <span className="text-[0.625rem] font-extrabold text-emerald-600 dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition">+ Stock</span>
                         </button>
                         <span className="hidden print:inline font-extrabold">{formatQty(p.stock)}</span>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase print:hidden">{p.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold uppercase print:hidden">{p.unit}</div>
                       </td>
-                      <td className="px-3 py-3 text-right text-slate-700 dark:text-slate-300 font-bold tabular-nums text-xs">
+                      <td className="px-3 py-3 text-right text-slate-700 dark:text-ink-300 font-bold tabular-nums text-xs">
                         {formatQty(p.lowStockAlert)} {p.unit}
                       </td>
                       <td className="px-3 py-3 text-center print:hidden">
                         <div className="inline-flex flex-col items-center gap-1 min-w-[64px]">
-                          <div className="h-1.5 w-16 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                          <div className="h-1.5 w-16 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all ${isCritical ? 'bg-rose-600' : urgPct < 50 ? 'bg-rose-500' : 'bg-amber-500'}`}
                               style={{ width: `${Math.max(urgPct, 4)}%` }}
@@ -683,7 +683,7 @@ export default function RetailLowStockPage() {
                       </td>
                       <td className="px-3 py-3 text-right">
                         <span className="font-extrabold text-sky-700 dark:text-sky-400 tabular-nums text-xs">
-                          {orderQty} <span className="text-[0.625rem] text-slate-500 dark:text-slate-400">{p.unit}</span>
+                          {orderQty} <span className="text-[0.625rem] text-slate-500 dark:text-ink-400">{p.unit}</span>
                         </span>
                       </td>
                       <td className="px-3 py-3 text-center">
@@ -706,7 +706,7 @@ export default function RetailLowStockPage() {
                             </button>
                             {reminderProduct?.productId === p.productId && industryStock.supplierReminders.length > 0 && (
                               <div
-                                className="absolute right-0 top-full mt-1 w-72 bg-white dark:bg-slate-900 border-2 border-green-200 dark:border-green-500/40 rounded-2xl shadow-2xl z-20 overflow-hidden"
+                                className="absolute right-0 top-full mt-1 w-72 bg-white dark:bg-ink-900 border-2 border-green-200 dark:border-green-500/40 rounded-2xl shadow-2xl z-20 overflow-hidden"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <div className="px-3 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-500/10 dark:to-emerald-500/10 border-b border-green-100 dark:border-green-500/30">
@@ -716,19 +716,19 @@ export default function RetailLowStockPage() {
                                 </div>
                                 <div className="max-h-64 overflow-y-auto p-1 space-y-1">
                                   {industryStock.supplierReminders.map((r) => (
-                                    <div key={r.id} className="rounded-lg border border-slate-200 dark:border-slate-700 p-2 hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                                    <div key={r.id} className="rounded-lg border border-slate-200 dark:border-ink-700 p-2 hover:bg-slate-50 dark:hover:bg-ink-800 transition">
                                       <div className="flex items-center justify-between gap-1">
                                         <div className="min-w-0 flex-1 flex items-center gap-1">
                                           <span className="text-sm">{r.emoji}</span>
-                                          <span className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{r.label}</span>
+                                          <span className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{r.label}</span>
                                         </div>
                                         <div className="flex gap-1 shrink-0">
                                           <button
                                             onClick={() => copyReminderOnly(p, r.id)}
-                                            className="h-6 w-6 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                                            className="h-6 w-6 rounded bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition"
                                             title="Copy"
                                           >
-                                            <Copy className="h-3 w-3 text-slate-600 dark:text-slate-300" />
+                                            <Copy className="h-3 w-3 text-slate-600 dark:text-ink-300" />
                                           </button>
                                           <button
                                             onClick={() => sendSupplierReminder(p, r.id)}
@@ -753,7 +753,7 @@ export default function RetailLowStockPage() {
                             <Boxes className="h-3.5 w-3.5" />
                           </button>
                           <Link to={`/products/${p.productId}/edit`}>
-                            <button className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300 text-slate-600 dark:text-slate-300 flex items-center justify-center transition" title="Edit">
+                            <button className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 hover:text-blue-700 dark:hover:text-blue-300 text-slate-600 dark:text-ink-300 flex items-center justify-center transition" title="Edit">
                               <Edit3 className="h-3.5 w-3.5" />
                             </button>
                           </Link>
@@ -820,25 +820,25 @@ function LowStockTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Low Stock — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye page batata hai <strong>kaunsa maal khatam hone wala hai</strong> — taake customer aaye
             aur tumhare paas maal na ho, aisa kabhi na ho.
           </p>
 
-          <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-500/30 bg-amber-50/60 dark:bg-amber-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⚡ Urgency bar</strong> — jitna % kam, utna jaldi khatam hoga. 🔴 0% = abhi khatam!</TipRow>
             <TipRow><strong>📋 Order List button</strong> — poori shopping list 1 click me copy → supplier ko WhatsApp</TipRow>
             <TipRow><strong>💬 Green button</strong> — single product ka ready-made reminder message</TipRow>
@@ -847,7 +847,7 @@ function LowStockTeacher({ onClose }: { onClose: () => void }) {
             <TipRow><strong>⌨️ / dabao</strong> — search pe jump &nbsp;•&nbsp; <strong>Esc</strong> — sab band</TipRow>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💡 <strong>Roz ki aadat:</strong> Subah dukaan kholte waqt ye page kholo → Order List WhatsApp karo → shaam tak maal aa jayega. Stock kabhi khatam nahi hoga!
           </div>
 
@@ -908,18 +908,18 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-amber-500 dark:border-amber-500/60 ring-2 ring-amber-200 dark:ring-amber-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -931,7 +931,7 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
 
 function EmptyChart() {
   return (
-    <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 font-semibold">
+    <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-ink-400 font-semibold">
       Koi data nahi
     </div>
   );

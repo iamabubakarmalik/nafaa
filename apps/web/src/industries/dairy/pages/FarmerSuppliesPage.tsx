@@ -79,9 +79,9 @@ export default function FarmerSuppliesPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex gap-3 flex-wrap">
-        <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-        <select value={farmerFilter} onChange={(e) => setFarmerFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex gap-3 flex-wrap">
+        <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+        <select value={farmerFilter} onChange={(e) => setFarmerFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
           <option value="all">All Farmers</option>
           {farmers.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
         </select>
@@ -96,16 +96,16 @@ export default function FarmerSuppliesPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : supplies.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No supplies recorded</p>
         </div>
       ) : (
         <section className="grid gap-2">
           {supplies.map((s) => (
-            <div key={s.id} className="rounded-xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-3">
+            <div key={s.id} className="rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-extrabold shrink-0">
@@ -167,11 +167,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow shrink-0'}>
           <Icon className="h-5 w-5" />
@@ -212,7 +212,7 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 bg-amber-50 flex items-center justify-between">
         <h3 className="font-extrabold">Record Farmer Supply</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -234,11 +234,11 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date/Time *</label>
-            <input type="datetime-local" value={form.supplyDate} onChange={(e) => setForm({ ...form, supplyDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+            <input type="datetime-local" value={form.supplyDate} onChange={(e) => setForm({ ...form, supplyDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
-            <select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+            <select value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
               {SLOTS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
@@ -270,15 +270,15 @@ function SupplyForm({ farmers, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Rate/Liter (override)</label>
-            <input type="number" step="0.01" value={form.ratePerLiter} onChange={(e) => setForm({ ...form, ratePerLiter: e.target.value })} placeholder={selectedFarmer?.ratePerLiter} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
+            <input type="number" step="0.01" value={form.ratePerLiter} onChange={(e) => setForm({ ...form, ratePerLiter: e.target.value })} placeholder={selectedFarmer?.ratePerLiter} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Adjustment</label>
-            <input type="number" step="0.01" value={form.otherAdjustment} onChange={(e) => setForm({ ...form, otherAdjustment: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
+            <input type="number" step="0.01" value={form.otherAdjustment} onChange={(e) => setForm({ ...form, otherAdjustment: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
         <div className="flex gap-2 pt-2 border-t border-slate-100">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>

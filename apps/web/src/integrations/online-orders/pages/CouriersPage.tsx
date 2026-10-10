@@ -27,7 +27,7 @@ export default function CouriersPage() {
       subtitle="Courier jorein — phir ek click me booking, CN, label aur tracking. Deliver ya wapas hote hi order aur stock khud update."
       actions={<Link to="/online-orders/cod"><Btn icon={<Wallet className="h-4 w-4" />}>COD hisaab</Btn></Link>}>
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />)}</div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2, 3, 4, 5].map((i) => <div key={i} className="h-28 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />)}</div>
       ) : error || !data ? (
         <Card><EmptyState title="Couriers nahi khule">{apiErrorMessage(error)}</EmptyState></Card>
       ) : (
@@ -64,7 +64,7 @@ function Section({ title, hint, children }: { title: string; hint?: string; chil
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-baseline gap-2">
-        <h2 className="text-[0.875rem] font-semibold text-slate-900 dark:text-white">{title}</h2>
+        <h2 className="text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">{title}</h2>
         {hint && <span className="text-[0.78125rem] text-slate-500">{hint}</span>}
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
@@ -76,12 +76,12 @@ function CourierTile({ c }: { c: CourierAccount }) {
   const s = c.stats;
   return (
     <Link to={`/online-store/couriers/${c.code.toLowerCase()}`}
-      className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-400 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-600">
+      className="group flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-slate-400 dark:border-ink-800 dark:bg-ink-900 dark:hover:border-ink-600">
       <div className="flex items-center gap-3">
         <CourierLogo c={c} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-white">{c.name}</span>
+            <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">{c.name}</span>
             {c.connected
               ? c.lastError ? <Badge tone="critical" dot>Masla</Badge> : <Badge tone={c.active ? 'success' : 'neutral'} dot>{c.active ? 'Jura hua' : 'Band'}</Badge>
               : c.mode === 'api' ? <Badge tone="info"><Zap className="mr-0.5 inline h-3 w-3" />Ek click</Badge>
@@ -96,7 +96,7 @@ function CourierTile({ c }: { c: CourierAccount }) {
         <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-slate-500" />
       </div>
       {(s.active > 0 || s.dispatched30 > 0 || s.codPending > 0) && (
-        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-2 text-[0.75rem] text-slate-600 dark:border-slate-800 dark:text-slate-300">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-100 pt-2 text-[0.75rem] text-slate-600 dark:border-ink-800 dark:text-ink-300">
           <span><Truck className="mr-1 inline h-3.5 w-3.5 text-slate-400" />{s.active} raste me</span>
           {s.codPending > 0 && <span className="text-orange-700 dark:text-orange-300">{rs(s.codPendingValue)} courier ke paas</span>}
           {s.dispatched30 > 0 && <span className={s.rtoRate >= 20 ? 'text-rose-600' : ''}>RTO {s.rtoRate}%</span>}

@@ -64,13 +64,13 @@ export default function ReorderRulesPage() {
       <div className="flex gap-2">
         <button onClick={() => setTab('alerts')} className={
           'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'alerts' ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+          (tab === 'alerts' ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
         }>
           🚨 Alerts ({alerts?.total || 0})
         </button>
         <button onClick={() => setTab('rules')} className={
           'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'rules' ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+          (tab === 'rules' ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
         }>
           Rules
         </button>
@@ -78,13 +78,13 @@ export default function ReorderRulesPage() {
 
       {tab === 'alerts' ? (
         alertsLoading ? (
-          <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+          <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
         ) : !alerts?.alerts?.length ? (
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-emerald-300 p-12 text-center">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-emerald-300 p-12 text-center">
             <div className="h-20 w-20 rounded-3xl bg-emerald-100 dark:bg-emerald-950/40 mx-auto flex items-center justify-center">
               <Package className="h-10 w-10 text-emerald-600" />
             </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">All Stock OK!</h3>
+            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">All Stock OK!</h3>
             <p className="mt-1 text-sm text-slate-500 font-semibold">No products need reordering</p>
           </div>
         ) : (
@@ -95,7 +95,7 @@ export default function ReorderRulesPage() {
       ) : (
         <section className="grid gap-3">
           {rules.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
               <AlertTriangle className="h-16 w-16 text-slate-400 mx-auto mb-3" />
               <p className="font-extrabold text-slate-700">No reorder rules set</p>
             </div>
@@ -114,11 +114,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     orange: 'from-orange-500 to-red-600', amber: 'from-amber-500 to-orange-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -134,7 +134,7 @@ function AlertCard({ alert }: any) {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 ' +
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 ' +
       (alert.severity === 'OUT_OF_STOCK' ? 'border-red-500 ring-2 ring-red-100' :
        alert.severity === 'CRITICAL' ? 'border-rose-400' :
        'border-amber-300')
@@ -144,7 +144,7 @@ function AlertCard({ alert }: any) {
           {p?.images?.[0]?.url ? (
             <img src={p.images[0].url} alt="" className="h-14 w-14 rounded-xl object-cover shrink-0" />
           ) : (
-            <div className="h-14 w-14 rounded-xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center shrink-0">
+            <div className="h-14 w-14 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0">
               <Package className="h-6 w-6 text-slate-400" />
             </div>
           )}
@@ -201,7 +201,7 @@ function AlertCard({ alert }: any) {
 
 function RuleCard({ rule }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="font-extrabold">{rule.product?.name || 'Product'}</div>

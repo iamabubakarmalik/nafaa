@@ -27,16 +27,16 @@ export function OrderBranchPicker({ order, onChanged }: { order: OnlineOrderDeta
   if (active.length <= 1 || order.orderStatus !== 'PENDING' || order.nafaaSaleId) return null;
   const current = order.shopId ?? order.fulfilShopId ?? '';
   return (
-    <section className="rounded-2xl border border-slate-200 p-3 dark:border-neutral-800">
+    <section className="rounded-2xl border border-slate-200 p-3 dark:border-ink-800">
       <div className="flex flex-wrap items-center gap-2">
         <Store className="h-4 w-4 text-slate-400" />
-        <span className="text-[0.8125rem] font-bold text-slate-700 dark:text-slate-200">Branch</span>
+        <span className="text-[0.8125rem] font-bold text-slate-700 dark:text-ink-200">Branch</span>
         <span className="flex-1" />
         <select
           value={current}
           disabled={move.isPending}
           onChange={(e) => e.target.value && e.target.value !== current && move.mutate(e.target.value)}
-          className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-semibold dark:border-neutral-700 dark:bg-neutral-900"
+          className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-[0.8125rem] font-semibold dark:border-ink-700 dark:bg-ink-900"
         >
           {!current && <option value="">— chunein —</option>}
           {active.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}

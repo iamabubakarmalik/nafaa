@@ -73,7 +73,7 @@ const SORTS: Array<{ v: SortKey; l: string }> = [
   { v: 'warranty',   l: '🛡️ Lambi warranty pehle' },
 ];
 
-const sel = 'h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition';
+const sel = 'h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition';
 
 const catMeta = (c?: string) =>
   (c && CATEGORY_META[c as CategoryType]) || { label: 'Baqi', emoji: '📦', urdu: undefined };
@@ -433,18 +433,18 @@ export default function ElectronicsProductsPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 sm:space-y-5 pb-24 animate-pulse">
-        <div className="rounded-2xl sm:rounded-3xl bg-slate-200 dark:bg-slate-800 h-40 sm:h-48" />
+        <div className="rounded-2xl sm:rounded-3xl bg-slate-200 dark:bg-ink-800 h-40 sm:h-48" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-          {[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-24" />)}
+          {[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl bg-slate-200 dark:bg-ink-800 h-24" />)}
         </div>
-        <div className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-16" />
+        <div className="rounded-2xl bg-slate-200 dark:bg-ink-800 h-16" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 overflow-hidden">
-              <div className="aspect-square bg-slate-200 dark:bg-slate-800" />
+            <div key={i} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 overflow-hidden">
+              <div className="aspect-square bg-slate-200 dark:bg-ink-800" />
               <div className="p-2.5 space-y-2">
-                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-4/5" />
-                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-2/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-ink-800 w-4/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-ink-800 w-2/5" />
               </div>
             </div>
           ))}
@@ -493,7 +493,7 @@ export default function ElectronicsProductsPage() {
         <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
           onClick={() => setBulkDeleteOpen(false)}>
           <div onClick={(e) => e.stopPropagation()}
-            className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5 flex items-center gap-3">
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
                 <Trash2 className="h-6 w-6" />
@@ -520,12 +520,12 @@ export default function ElectronicsProductsPage() {
                       <li>• Khali reh jane wali receipts</li>
                     </ul>
                   </div>
-                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400 text-center">
+                  <p className="text-xs font-bold text-slate-500 dark:text-ink-400 text-center">
                     Sirf test ka data saaf karne ke liye. Ye wapas <strong>nahi</strong> aa sakta.
                   </p>
                   <div className="flex gap-2">
                     <button onClick={() => setBulkDeleteOpen(false)}
-                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-black text-slate-700 dark:text-slate-200 transition">
+                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-black text-slate-700 dark:text-ink-200 transition">
                       Rehne dein
                     </button>
                     <button onClick={() => setBulkDeleteStep(2)}
@@ -536,14 +536,14 @@ export default function ElectronicsProductsPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 text-center leading-relaxed">
+                  <p className="text-sm font-bold text-slate-700 dark:text-ink-200 text-center leading-relaxed">
                     Aakhri baar pooch rahe hain:<br />
                     <span className="text-rose-600 dark:text-rose-400 font-black">{selected.size} cheezein</span> aur
                     unka saara record mita dein?
                   </p>
                   <div className="flex gap-2">
                     <button onClick={() => setBulkDeleteStep(1)}
-                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-black text-slate-700 dark:text-slate-200 transition">
+                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-black text-slate-700 dark:text-ink-200 transition">
                       ← Wapas
                     </button>
                     <button onClick={() => { setBulkDeleteOpen(false); setBulkDeleteStep(1); forceDeleteAll(Array.from(selected)); }}
@@ -692,7 +692,7 @@ export default function ElectronicsProductsPage() {
               className={`group relative overflow-hidden rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on
                   ? 'bg-gradient-to-br from-blue-600 to-cyan-700 border-transparent text-white shadow-xl shadow-blue-500/30'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:shadow-lg'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-blue-400 hover:shadow-lg'
               }`}>
               {on && <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-white/15 blur-2xl" />}
               <div className="relative flex items-center gap-3">
@@ -706,11 +706,11 @@ export default function ElectronicsProductsPage() {
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
                       <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums shrink-0 ${
-                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400'
                       }`}>{t.n.toLocaleString()}</span>
                     )}
                   </div>
-                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-ink-500'}`}>
                     {t.hint}
                   </div>
                 </div>
@@ -742,7 +742,7 @@ export default function ElectronicsProductsPage() {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.mismatchList.map((p) => (
                   <Link key={p.id} to={`/electronics-products/${p.id}`}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 transition">
                     {p.name}{' '}
                     <span className="text-rose-600 dark:text-rose-400">
                       (stock {p._stock} · serial {p._serials})
@@ -757,7 +757,7 @@ export default function ElectronicsProductsPage() {
                 Sab dekhein →
               </button>
               <Link to="/electronics/serials"
-                className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 text-xs font-black text-center transition">
+                className="px-3 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-rose-200 dark:border-rose-500/40 text-rose-700 dark:text-rose-300 text-xs font-black text-center transition">
                 Serial darj karein
               </Link>
             </div>
@@ -779,7 +779,7 @@ export default function ElectronicsProductsPage() {
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {stats.lowList.map((p) => (
                   <button key={p.id} onClick={() => setStockModalProduct(p)}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-[0.6875rem] font-black text-amber-900 dark:text-amber-200 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 text-[0.6875rem] font-black text-amber-900 dark:text-amber-200 transition">
                     {p.name} <span className="text-rose-700 dark:text-rose-400">({p._stock} {p.unit})</span>
                   </button>
                 ))}
@@ -804,7 +804,7 @@ export default function ElectronicsProductsPage() {
           <div className="flex flex-wrap gap-1 shrink-0">
             {stats.overMrp.slice(0, 4).map((p) => (
               <Link key={p.id} to={`/electronics-products/${p.id}`}
-                className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-[0.6875rem] font-black text-violet-800 dark:text-violet-200 transition">
+                className="px-2 py-1 rounded-lg bg-white dark:bg-ink-800 text-[0.6875rem] font-black text-violet-800 dark:text-violet-200 transition">
                 {p.name} · {formatPKR(p.price)} &gt; {formatPKR(p._mrp)}
               </Link>
             ))}
@@ -829,16 +829,16 @@ export default function ElectronicsProductsPage() {
 
       {/* ═══ TOOLBAR — chipak kar upar rehta hai ═══ */}
       <section className="sticky top-0 z-30 -mx-1 px-1 py-1 print:hidden">
-        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-900/5 dark:shadow-black/30 p-3 sm:p-4 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-ink-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-ink-800 shadow-lg shadow-slate-900/5 dark:shadow-black/30 p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px] sm:min-w-[240px]">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Naam, model, brand, SKU, barcode… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition" />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -853,25 +853,25 @@ export default function ElectronicsProductsPage() {
               className={`lg:hidden h-12 px-4 rounded-2xl border-2 text-sm font-extrabold inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                 showMobileFilters
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200'
               }`}>
               <SlidersHorizontal className="h-4 w-4" /> Chaant
               {hasFilters && <span className="h-2 w-2 rounded-full bg-amber-500" />}
             </button>
 
-            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
               <button onClick={() => setView('grid')} title="Khane"
-                className={`px-4 h-12 transition ${view === 'grid' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                className={`px-4 h-12 transition ${view === 'grid' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}>
                 <Grid3x3 className="h-4 w-4" />
               </button>
               <button onClick={() => setView('table')} title="List"
-                className={`px-4 h-12 border-l-2 border-slate-200 dark:border-slate-700 transition ${view === 'table' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+                className={`px-4 h-12 border-l-2 border-slate-200 dark:border-ink-700 transition ${view === 'table' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}>
                 <List className="h-4 w-4" />
               </button>
             </div>
 
             <button onClick={() => exportCSV(filtered)}
-              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition active:scale-[0.97]">
+              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-blue-300 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition active:scale-[0.97]">
               <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
             </button>
           </div>
@@ -882,7 +882,7 @@ export default function ElectronicsProductsPage() {
               className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                 conditionType === 'all'
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-blue-400'
               }`}>
               <Package className="h-3.5 w-3.5" /> Sab ({stats.total})
             </button>
@@ -894,7 +894,7 @@ export default function ElectronicsProductsPage() {
                   className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                     conditionType === k
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-blue-400'
                   }`}>
                   {m.emoji} {m.label} ({n})
                 </button>
@@ -947,7 +947,7 @@ export default function ElectronicsProductsPage() {
               ]} />
 
             <Segmented value={statusFilter} onChange={setStatusFilter}
-              activeCls="bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+              activeCls="bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900"
               options={[
                 { v: 'active' as const, l: 'Active' },
                 { v: 'inactive' as const, l: 'Band' },
@@ -965,7 +965,7 @@ export default function ElectronicsProductsPage() {
               </button>
             )}
 
-            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
               {filtered.length} cheezein
             </div>
           </div>
@@ -974,7 +974,7 @@ export default function ElectronicsProductsPage() {
 
       {/* ═══ BULK BAR ═══ */}
       {selected.size > 0 && (
-        <section className="sticky top-[76px] z-20 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
+        <section className="sticky top-[76px] z-20 rounded-2xl bg-slate-950 dark:bg-ink-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
           <div className="font-extrabold text-sm px-2"><span className="text-cyan-300">{selected.size}</span> chuni</div>
           <button onClick={() => bulkStatus.mutate(true)} disabled={bulkStatus.isPending}
             className="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97] disabled:opacity-50">
@@ -1008,22 +1008,22 @@ export default function ElectronicsProductsPage() {
       )}
 
       {/* ═══ NATEEJA ═══ */}
-      <p className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 print:hidden">
+      <p className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 print:hidden">
         {filtered.length} cheezein
         {filtered.length > visible.length && ` · ${visible.length} dikha rahe hain`}
       </p>
 
       {filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 text-center">
           <Package className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-base font-black text-slate-700 dark:text-slate-200">Kuch nahi mila</p>
+          <p className="text-base font-black text-slate-700 dark:text-ink-200">Kuch nahi mila</p>
           <p className="text-xs font-bold text-slate-400 mt-1">
             {hasFilters ? 'Chaant badal kar dekhein' : 'Abhi koi cheez nahi — pehli cheez daal dein'}
           </p>
           <div className="mt-4 flex gap-2 justify-center flex-wrap">
             {hasFilters && (
               <button onClick={clearFilters}
-                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-xs font-black transition">
+                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-xs font-black transition">
                 Chaant hatayein
               </button>
             )}
@@ -1044,7 +1044,7 @@ export default function ElectronicsProductsPage() {
           </div>
           {filtered.length > visible.length && (
             <button onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              className="w-full h-12 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-black text-slate-600 dark:text-slate-300 hover:border-blue-400 transition print:hidden">
+              className="w-full h-12 rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-white dark:bg-ink-900 text-sm font-black text-slate-600 dark:text-ink-300 hover:border-blue-400 transition print:hidden">
               Aur {Math.min(PAGE_SIZE, filtered.length - visible.length)} dikhayein
               <span className="text-slate-400"> · {filtered.length - visible.length} baqi</span>
             </button>
@@ -1052,10 +1052,10 @@ export default function ElectronicsProductsPage() {
         </>
       ) : (
         <>
-          <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-100 dark:border-slate-800">
+                <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-100 dark:border-ink-800">
                   <tr>
                     <th className="w-10 px-3 py-2.5 print:hidden">
                       <input type="checkbox" onChange={toggleAllVisible}
@@ -1072,14 +1072,14 @@ export default function ElectronicsProductsPage() {
                     <Th className="text-right print:hidden">Kaam</Th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                   {visible.map((p) => {
                     const cm = catMeta(p._cat);
                     const cond = condMeta(p._cond);
                     const alert = Number(p.lowStockAlert ?? 5);
                     return (
                       <tr key={p.id} className={`transition ${
-                        selected.has(p.id) ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                        selected.has(p.id) ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-slate-50 dark:hover:bg-ink-800/40'
                       }`}>
                         <td className="px-3 py-2.5 print:hidden">
                           <input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleOne(p.id)}
@@ -1089,7 +1089,7 @@ export default function ElectronicsProductsPage() {
                           <Link to={`/electronics-products/${p.id}`} className="flex items-center gap-2 min-w-0 group">
                             <Thumb p={p} />
                             <span className="min-w-0">
-                              <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-600 transition">
+                              <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-blue-600 transition">
                                 {p.name}
                               </span>
                               <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -1099,7 +1099,7 @@ export default function ElectronicsProductsPage() {
                             </span>
                           </Link>
                         </td>
-                        <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 whitespace-nowrap">
                           {cm.emoji} {cm.label}
                         </td>
                         <td className="px-3 py-2.5">
@@ -1108,7 +1108,7 @@ export default function ElectronicsProductsPage() {
                             : <span className="text-[0.6875rem] font-bold text-slate-300">—</span>}
                         </td>
                         <td className="px-3 py-2.5 text-right">
-                          <span className="block text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
+                          <span className="block text-[0.8125rem] font-black text-slate-900 dark:text-ink-white tabular-nums">
                             {formatPKR(p.price)}
                           </span>
                           {!hideCost && Number(p.costPrice) > 0 && (
@@ -1129,7 +1129,7 @@ export default function ElectronicsProductsPage() {
                             </Pill>
                           ) : <span className="text-[0.6875rem] font-bold text-slate-300">—</span>}
                         </td>
-                        <td className="px-3 py-2.5 text-right text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                        <td className="px-3 py-2.5 text-right text-[0.6875rem] font-black text-slate-600 dark:text-ink-300 whitespace-nowrap">
                           {p._warranty > 0 ? `🛡️ ${p._warranty} mah` : <span className="text-slate-300">—</span>}
                         </td>
                         <td className="px-3 py-2.5 print:hidden">
@@ -1151,7 +1151,7 @@ export default function ElectronicsProductsPage() {
           </div>
           {filtered.length > visible.length && (
             <button onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              className="w-full h-12 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-black text-slate-600 dark:text-slate-300 hover:border-blue-400 transition print:hidden">
+              className="w-full h-12 rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-white dark:bg-ink-900 text-sm font-black text-slate-600 dark:text-ink-300 hover:border-blue-400 transition print:hidden">
               Aur {Math.min(PAGE_SIZE, filtered.length - visible.length)} dikhayein
             </button>
           )}
@@ -1169,16 +1169,16 @@ function Segmented<T extends string>({ value, onChange, options, activeCls }: {
   options: Array<{ v: T; l: string; c?: number }>;
 }) {
   return (
-    <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+    <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
       {options.map((o) => {
         const on = value === o.v;
         return (
           <button key={o.v} onClick={() => onChange(o.v)}
             className={`px-3 py-2 rounded-lg text-xs font-extrabold transition active:scale-[0.97] ${
-              on ? `${activeCls} shadow-sm` : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              on ? `${activeCls} shadow-sm` : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
             }`}>
             {o.l}
-            {o.c != null && <span className={`ml-1 tabular-nums ${on ? 'opacity-70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>}
+            {o.c != null && <span className={`ml-1 tabular-nums ${on ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>}
           </button>
         );
       })}
@@ -1211,7 +1211,7 @@ function Kbd({ children }: any) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -1249,7 +1249,7 @@ function IconBtn({ to, title, tone, children }: any) {
 function FilterSelect({ value, onChange, label, full, children }: any) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)} aria-label={label}
-      className={`h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition ${full ? 'w-full' : ''}`}>
+      className={`h-12 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2.5 text-xs font-bold text-slate-700 dark:text-ink-200 focus:outline-none focus:border-blue-500 transition ${full ? 'w-full' : ''}`}>
       {children}
     </select>
   );
@@ -1259,7 +1259,7 @@ function Thumb({ p, size = 'h-10 w-10' }: any) {
   const img = p.images?.find((i: any) => i.isPrimary)?.url ?? p.images?.[0]?.url;
   const cm = catMeta(p._cat);
   return (
-    <span className={`${size} rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0`}>
+    <span className={`${size} rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center overflow-hidden shrink-0`}>
       {img
         ? <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
         : <span className="text-base">{cm.emoji}</span>}
@@ -1283,17 +1283,17 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
       className={`rounded-2xl sm:rounded-3xl border-2 p-3 sm:p-4 text-left transition ${
         active
           ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-lg'
-          : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm'
+          : 'border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900 shadow-sm'
       } ${onClick ? 'hover:border-blue-400 hover:shadow-md active:scale-[0.99] cursor-pointer' : ''}`}>
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${t.bg} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">
           {label}
         </span>
       </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none">
+      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
@@ -1315,25 +1315,25 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
 
   return (
     <div className={[
-      'group relative rounded-2xl bg-white dark:bg-slate-900/80 border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 avoid-break',
+      'group relative rounded-2xl bg-white dark:bg-ink-900/80 border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 avoid-break',
       selected ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-500/30'
         : p._mismatch ? 'border-rose-300 dark:border-rose-500/40'
         : out ? 'border-rose-200 dark:border-rose-500/40'
         : low ? 'border-amber-200 dark:border-amber-500/40'
-        : 'border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-500/40',
+        : 'border-slate-200 dark:border-ink-800 hover:border-blue-300 dark:hover:border-blue-500/40',
       !p.isActive ? 'opacity-60' : '',
     ].join(' ')}>
       <button onClick={onToggle} aria-label="Chunein"
         className={[
           'absolute top-2 left-2 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition shadow-sm print:hidden',
           selected ? 'bg-blue-600 border-blue-600 text-white'
-            : 'bg-white/90 dark:bg-slate-900/90 border-slate-300 dark:border-slate-600 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100',
+            : 'bg-white/90 dark:bg-ink-900/90 border-slate-300 dark:border-ink-600 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100',
         ].join(' ')}>
         {selected && <CheckCircle2 className="h-3.5 w-3.5" />}
       </button>
 
       <Link to={`/electronics-products/${p.id}`} className="block">
-        <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className="relative aspect-[4/3] bg-slate-100 dark:bg-ink-800 overflow-hidden">
           {img ? (
             <img src={img} alt={p.name} loading="lazy"
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -1374,7 +1374,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
         </div>
 
         <div className="p-2.5">
-          <div className="font-extrabold text-slate-900 dark:text-white text-xs leading-tight line-clamp-2 min-h-[2rem] group-hover:text-blue-600">
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs leading-tight line-clamp-2 min-h-[2rem] group-hover:text-blue-600">
             {p.name}
           </div>
 
@@ -1384,7 +1384,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
                 {cond.emoji} {cond.label}
               </span>
             )}
-            <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 truncate max-w-[8rem]">
+            <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 truncate max-w-[8rem]">
               {cm.emoji} {cm.label}
             </span>
             {p.category && (
@@ -1406,7 +1406,7 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
               <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
                 {formatPKR(p.price || 0)}
               </div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                 {hideCost || !Number(p.costPrice)
                   ? `per ${p.unit}`
                   : `lagat ${formatPKR(p.costPrice)} · nafa ${formatPKR(Number(p.price || 0) - Number(p.costPrice || 0))}`}
@@ -1416,9 +1416,9 @@ function ProductCard({ p, hideCost, selected, onToggle, onStock }: any) {
               <div className={`text-sm font-extrabold tabular-nums leading-none ${
                 out ? 'text-rose-700 dark:text-rose-400'
                   : low ? 'text-amber-700 dark:text-amber-400'
-                    : 'text-slate-700 dark:text-slate-300'
+                    : 'text-slate-700 dark:text-ink-300'
               }`}>{p._stock}</div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">stock</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">stock</div>
             </div>
           </div>
         </div>
@@ -1454,7 +1454,7 @@ function ProductsTeacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -1476,17 +1476,17 @@ function ProductsTeacher({ onClose }: any) {
             { i: Boxes, t: 'Stock wahin se badlein', d: 'Khane par jo hara/peela/laal number hai, us par dabayein — stock wahin badal jayega. Poora safha kholne ki zaroorat nahi.' },
             { i: Trash2, t: 'Delete se pehle soch lein', d: '"Delete" wo cheezein hata deta hai jinka koi record nahi. Jinki bikri ho chuki, wo "poori tarah mitao" se jati hain — aur us ke sath unke serial aur warranty ka record bhi chala jata hai. Wo wapas nahi aata.' },
           ].map((s, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-700 text-white flex items-center justify-center shrink-0">
                 <s.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{s.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{s.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{s.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{s.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['B', 'Scan'], ['G', 'Ye safha'], ['R', 'Refresh'], ['Esc', 'Band']].map(([k, l]) => (
@@ -1497,7 +1497,7 @@ function ProductsTeacher({ onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-blue-600 to-cyan-700">
             Samajh gaya
           </Button>

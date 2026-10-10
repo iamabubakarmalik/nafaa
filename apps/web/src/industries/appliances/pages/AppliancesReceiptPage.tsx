@@ -432,7 +432,7 @@ export default function AppliancesReceiptPage() {
     <div className="space-y-4 sm:space-y-5 pb-10">
       {showTeacher && <ReceiptTeacher onClose={() => setShowTeacher(false)} />}
 
-      <Link to="/sales" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 font-extrabold transition">
+      <Link to="/sales" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-cyan-600 dark:hover:text-cyan-400 font-extrabold transition">
         <ArrowLeft className="h-4 w-4" /> Saari bikri
       </Link>
 
@@ -465,12 +465,12 @@ export default function AppliancesReceiptPage() {
 
       {/* Paper chooser */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kaghaz</span>
+        <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">Kaghaz</span>
         {([['thermal80', '🧾 80mm'], ['thermal58', '🧾 58mm'], ['a4', '📄 A4']] as const).map(([v, label]) => (
           <button key={v} onClick={() => setPaper(v as Paper)}
             className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border-2 transition ${
               paper === v ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
             }`}>{label}</button>
         ))}
         <button onClick={() => printBill()}
@@ -498,7 +498,7 @@ export default function AppliancesReceiptPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[560px]">
             <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+              <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
                 <Th className="text-left">Cheez</Th>
                 <Th className="text-center">Tadaad</Th>
                 <Th className="text-right">Rate</Th>
@@ -507,9 +507,9 @@ export default function AppliancesReceiptPage() {
             </thead>
             <tbody>
               {(s.items ?? []).map((it: any, i: number) => (
-                <tr key={i} className="border-b border-slate-100 dark:border-slate-800">
+                <tr key={i} className="border-b border-slate-100 dark:border-ink-800">
                   <td className="px-3 py-2.5">
-                    <div className="text-[13px] font-extrabold text-slate-900 dark:text-white">
+                    <div className="text-[13px] font-extrabold text-slate-900 dark:text-ink-white">
                       {it.product?.name ?? it.name ?? 'Item'}
                     </div>
                     {(it.serials ?? []).length > 0 && (
@@ -523,11 +523,11 @@ export default function AppliancesReceiptPage() {
                     )}
                     {it.note && <div className="text-[10px] font-bold text-slate-400 mt-0.5">{it.note}</div>}
                   </td>
-                  <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-700 dark:text-slate-200">{it.quantity}</td>
-                  <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                  <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-700 dark:text-ink-200">{it.quantity}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-600 dark:text-ink-300 whitespace-nowrap">
                     {formatPKR(it.price ?? it.unitPrice ?? 0)}
                   </td>
-                  <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold tabular-nums text-slate-900 dark:text-white whitespace-nowrap">
+                  <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold tabular-nums text-slate-900 dark:text-ink-white whitespace-nowrap">
                     {formatPKR(it.total)}
                   </td>
                 </tr>
@@ -542,13 +542,13 @@ export default function AppliancesReceiptPage() {
         <Panel icon={HardHat} title="Services" hint="Maal ke ilawa jo charge lage" tone="amber">
           <div className="space-y-1.5">
             {svc.list.map((c: any, i: number) => (
-              <div key={i} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-3 py-2">
+              <div key={i} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-3 py-2">
                 <span className="text-base shrink-0">{c.type === 'DELIVERY' ? '🚚' : c.type === 'INSTALLATION' ? '🔧' : '🧾'}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[12px] font-extrabold text-slate-900 dark:text-white truncate">{c.label ?? c.type}</div>
+                  <div className="text-[12px] font-extrabold text-slate-900 dark:text-ink-white truncate">{c.label ?? c.type}</div>
                   {c.note && <div className="text-[10px] font-bold text-slate-400 truncate">{c.note}</div>}
                 </div>
-                <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 shrink-0">{formatPKR(c.amount)}</div>
+                <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100 shrink-0">{formatPKR(c.amount)}</div>
               </div>
             ))}
           </div>
@@ -571,9 +571,9 @@ export default function AppliancesReceiptPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <Barcode className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400 shrink-0" />
                   <span className="font-mono text-[11px] font-extrabold text-violet-800 dark:text-violet-200">{x.serialNumber}</span>
-                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 truncate">{x.productName}</span>
+                  <span className="text-[11px] font-extrabold text-slate-700 dark:text-ink-200 truncate">{x.productName}</span>
                 </div>
-                <div className="mt-1 flex gap-2 flex-wrap text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                <div className="mt-1 flex gap-2 flex-wrap text-[10px] font-bold text-slate-500 dark:text-ink-400">
                   {x.warrantyEndDate && <span>🛡️ Main: {fmtDate(x.warrantyEndDate)}</span>}
                   {x.compressorWarrantyEndDate && <span>❄️ Compressor: {fmtDate(x.compressorWarrantyEndDate)}</span>}
                   {x.motorWarrantyEndDate && <span>⚙️ Motor: {fmtDate(x.motorWarrantyEndDate)}</span>}
@@ -609,7 +609,7 @@ export default function AppliancesReceiptPage() {
 
 function Line({ label, value, tone = 'slate', big }: { label: string; value: string; tone?: string; big?: boolean }) {
   const tones: Record<string, string> = {
-    slate: 'text-slate-600 dark:text-slate-300',
+    slate: 'text-slate-600 dark:text-ink-300',
     amber: 'text-amber-700 dark:text-amber-400',
     blue: 'text-blue-700 dark:text-blue-400',
     emerald: 'text-emerald-700 dark:text-emerald-400',
@@ -625,7 +625,7 @@ function Line({ label, value, tone = 'slate', big }: { label: string; value: str
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );

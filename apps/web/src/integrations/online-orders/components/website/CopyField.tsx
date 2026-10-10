@@ -20,12 +20,12 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
 
   return (
     <div>
-      <div className="mb-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="mb-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-ink-400">{label}</div>
       <div className="flex items-center gap-1.5">
         <code
           className={cn(
             'min-w-0 flex-1 truncate rounded-xl border-2 border-slate-200 bg-slate-50 px-3 py-2 font-mono text-[0.78125rem] font-semibold text-slate-800',
-            'dark:border-neutral-700 dark:bg-neutral-900 dark:text-slate-100',
+            'dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100',
           )}
           title={shown ? value : undefined}
         >
@@ -46,4 +46,4 @@ export function CopyField({ label, value, secret, hint }: { label: string; value
 }
 
 const btn =
-  'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-neutral-700 dark:text-slate-300 dark:hover:bg-neutral-800';
+  'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-ink-700 dark:text-ink-300 dark:hover:bg-ink-800';

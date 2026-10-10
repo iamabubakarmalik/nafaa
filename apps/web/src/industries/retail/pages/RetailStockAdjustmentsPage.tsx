@@ -214,7 +214,7 @@ export default function RetailStockAdjustmentsPage() {
       {showTeacher && <AdjustmentsTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
@@ -282,22 +282,22 @@ export default function RetailStockAdjustmentsPage() {
       {/* ═══ FORM + HISTORY ═══ */}
       <section className="grid xl:grid-cols-[480px_1fr] gap-4 sm:gap-5 items-start">
         {/* ═══ FORM ═══ */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-blue-200 dark:border-blue-500/40 shadow-sm p-5 print:hidden">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-blue-200 dark:border-blue-500/40 shadow-sm p-5 print:hidden">
           <div className="flex items-center gap-3 mb-5">
             <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/40 shrink-0">
               <Plus className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Nayi Adjustment</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">3 step: product → qty → reason</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Nayi Adjustment</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">3 step: product → qty → reason</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* 1 — Product picker */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-                ① Product * <span className="normal-case font-bold text-slate-400 dark:text-slate-500">(/ dabao)</span>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
+                ① Product * <span className="normal-case font-bold text-slate-400 dark:text-ink-500">(/ dabao)</span>
               </label>
               <div className="relative">
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -306,21 +306,21 @@ export default function RetailStockAdjustmentsPage() {
                   type="text" value={productSearch}
                   onChange={(e) => { setProductSearch(e.target.value); setProductId(''); }}
                   placeholder="Naam, SKU ya barcode..."
-                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
                 />
                 {productSearch && (
-                  <button onClick={() => { setProductSearch(''); setProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <button onClick={() => { setProductSearch(''); setProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                     <X className="h-4 w-4 text-slate-400" />
                   </button>
                 )}
               </div>
               {productSearch && !productId && filteredProducts.length > 0 && (
-                <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700 shadow-lg">
+                <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 divide-y divide-slate-100 dark:divide-ink-700 shadow-lg">
                   {filteredProducts.map((p: any) => (
                     <button key={p.id} type="button"
                       onClick={() => { setProductId(p.id); setProductSearch(p.name); }}
                       className="w-full px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-500/10 transition flex items-center gap-2.5">
-                      <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                      <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-700 overflow-hidden flex items-center justify-center shrink-0">
                         {p.images?.[0]?.url ? (
                           <img src={p.images[0].url} alt="" className="h-full w-full object-cover" />
                         ) : (
@@ -328,8 +328,8 @@ export default function RetailStockAdjustmentsPage() {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
+                        <div className="font-bold text-sm text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">
                           {p.sku || '—'} • Stock: <span className="font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatQty(p.stock)} {p.unit}</span>
                         </div>
                       </div>
@@ -340,7 +340,7 @@ export default function RetailStockAdjustmentsPage() {
               {selectedProduct && (
                 <div className="mt-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/40 p-3 flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">✓ {selectedProduct.name}</div>
+                    <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">✓ {selectedProduct.name}</div>
                     <div className="text-xs text-blue-700 dark:text-blue-300 font-bold mt-0.5 tabular-nums">
                       Stock abhi: {formatQty(selectedProduct.stock)} {selectedProduct.unit}
                     </div>
@@ -354,7 +354,7 @@ export default function RetailStockAdjustmentsPage() {
 
             {/* 2 — Type */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 ② Kya Hua? *
               </label>
               <div className="grid grid-cols-2 gap-2">
@@ -363,10 +363,10 @@ export default function RetailStockAdjustmentsPage() {
                   return (
                     <button key={key} type="button" onClick={() => setType(key)}
                       className={`px-3 py-3 rounded-xl border-2 transition text-left ${
-                        active ? `${c.light} ${c.dark} shadow-md scale-[1.02]` : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50'
+                        active ? `${c.light} ${c.dark} shadow-md scale-[1.02]` : 'bg-white dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50'
                       }`}>
                       <div className="text-lg">{c.emoji}</div>
-                      <div className="text-xs font-extrabold mt-0.5 text-slate-900 dark:text-white">{c.label}</div>
+                      <div className="text-xs font-extrabold mt-0.5 text-slate-900 dark:text-ink-white">{c.label}</div>
                     </button>
                   );
                 })}
@@ -375,14 +375,14 @@ export default function RetailStockAdjustmentsPage() {
 
             {/* Quantity */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 Kitna? {selectedProduct ? `(${selectedProduct.unit})` : ''} *
               </label>
               <input
                 type="number" step="0.01" inputMode="decimal" min="0.01" value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder="5"
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-center text-2xl font-extrabold tabular-nums text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-500/20 transition"
+                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-center text-2xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white placeholder:text-slate-300 dark:placeholder:text-ink-600 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-500/20 transition"
               />
             </div>
 
@@ -392,7 +392,7 @@ export default function RetailStockAdjustmentsPage() {
                 'rounded-xl border-2 p-3 flex items-center justify-center gap-3 text-sm font-extrabold tabular-nums',
                 stockPreview.negative
                   ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300'
-                  : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+                  : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
               ].join(' ')}>
                 <span>{formatQty(stockPreview.current)}</span>
                 <ArrowRight className="h-4 w-4" />
@@ -405,8 +405,8 @@ export default function RetailStockAdjustmentsPage() {
 
             {/* 3 — Reason + quick chips */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-                ③ Wajah * <span className="normal-case font-bold text-slate-400 dark:text-slate-500">(audit ke liye zaroori)</span>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
+                ③ Wajah * <span className="normal-case font-bold text-slate-400 dark:text-ink-500">(audit ke liye zaroori)</span>
               </label>
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {QUICK_REASONS[type].map((r) => (
@@ -417,7 +417,7 @@ export default function RetailStockAdjustmentsPage() {
                     className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                       reason === r
                         ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-blue-300 dark:hover:border-blue-500/50'
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-blue-300 dark:hover:border-blue-500/50'
                     }`}
                   >
                     {r}
@@ -428,7 +428,7 @@ export default function RetailStockAdjustmentsPage() {
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Ya apni wajah likho..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 transition"
               />
             </div>
 
@@ -436,7 +436,7 @@ export default function RetailStockAdjustmentsPage() {
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Extra note (optional)..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 transition"
             />
 
             <Button
@@ -452,12 +452,12 @@ export default function RetailStockAdjustmentsPage() {
         </div>
 
         {/* ═══ HISTORY ═══ */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">History</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tabular-nums">
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">History</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold tabular-nums">
                   {filteredAdjustments.length} of {adjustments.length}
                 </p>
               </div>
@@ -466,12 +466,12 @@ export default function RetailStockAdjustmentsPage() {
                 <input
                   value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder="Search..."
-                  className="h-9 w-48 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition"
+                  className="h-9 w-48 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 transition"
                 />
               </div>
             </div>
             <div className="flex gap-1.5 flex-wrap items-center">
-              <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+              <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
                 {([
                   { v: 'all' as const, l: 'Sab' },
                   { v: 'today' as const, l: 'Aaj' },
@@ -480,7 +480,7 @@ export default function RetailStockAdjustmentsPage() {
                 ]).map((o) => (
                   <button key={o.v} onClick={() => setDatePreset(o.v)}
                     className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
-                      datePreset === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400'
+                      datePreset === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400'
                     }`}>
                     {o.l}
                   </button>
@@ -489,7 +489,7 @@ export default function RetailStockAdjustmentsPage() {
               {(Object.entries(TYPE_CONFIG) as [AdjustmentType, any][]).map(([key, c]) => (
                 <button key={key} onClick={() => setHistoryFilter(historyFilter === key ? 'all' : key)}
                   className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition border-2 ${
-                    historyFilter === key ? `${c.light} ${c.dark}` : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                    historyFilter === key ? `${c.light} ${c.dark}` : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400'
                   }`}>
                   {c.emoji} {c.label}
                 </button>
@@ -508,20 +508,20 @@ export default function RetailStockAdjustmentsPage() {
               <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-500/20 dark:to-indigo-500/20 flex items-center justify-center">
                 <ClipboardCheck className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <h4 className="mt-3 font-extrabold text-slate-900 dark:text-white">
+              <h4 className="mt-3 font-extrabold text-slate-900 dark:text-ink-white">
                 {hasHistoryFilters ? 'Kuch nahi mila' : 'Abhi koi adjustment nahi'}
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                 {hasHistoryFilters ? 'Filter change karo' : 'Baayein form se pehli adjustment karo'}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[700px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[700px] overflow-y-auto">
               {filteredAdjustments.map((a: any) => {
                 const c = TYPE_CONFIG[a.type as AdjustmentType];
                 const isPos = c?.isPositive;
                 return (
-                  <div key={a.id} className="px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <div key={a.id} className="px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0 flex-1">
                         <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 border-2 ${c?.light} ${c?.dark} text-lg`}>
@@ -529,14 +529,14 @@ export default function RetailStockAdjustmentsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{a.product?.name}</span>
+                            <span className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{a.product?.name}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold border ${c?.light} ${c?.dark}`}>
                               {c?.label}
                             </span>
                           </div>
-                          <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold">{a.reason}</div>
-                          {a.note && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">{a.note}</div>}
-                          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                          <div className="text-xs text-slate-600 dark:text-ink-300 mt-0.5 font-semibold">{a.reason}</div>
+                          {a.note && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 italic">{a.note}</div>}
+                          <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
                             <span className="inline-flex items-center gap-0.5">
                               <Calendar className="h-2.5 w-2.5" />{formatDate(a.createdAt)}
                             </span>
@@ -555,7 +555,7 @@ export default function RetailStockAdjustmentsPage() {
                         <div className={`font-extrabold text-lg tabular-nums ${isPos ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                           {isPos ? '+' : '−'}{formatQty(a.quantity)}
                         </div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{a.product?.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{a.product?.unit}</div>
                       </div>
                     </div>
                   </div>
@@ -598,20 +598,20 @@ function AdjustmentsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Stock Adjustment Kya Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Kabhi stock <strong>sale ya purchase ke baghair</strong> badalta hai — maal toota,
             ginti me farq nikla, maal gum hua. Ye page us <strong>har change ka record</strong> rakhta hai
             taake stock hamesha sach bataye.
@@ -624,7 +624,7 @@ function AdjustmentsTeacher({ onClose }: { onClose: () => void }) {
             <TypeCard emoji="🕳️" title="Gum/Chori" desc="Poora nuqsaan — record zaroor rakho" tone="amber" />
           </div>
 
-                    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>👁️ Live preview</strong> — qty type karte hi dikhta hai naya stock kitna hoga</TipRow>
             <TipRow><strong>Wajah zaroori hai</strong> — baad me pata ho stock kyun badla</TipRow>
             <TipRow><strong>💔 Kharaab/expired maal</strong> — damage ke liye proper record rakho taake audit clear ho</TipRow>
@@ -745,13 +745,13 @@ function Kpi({
     <div className={`rounded-2xl border-2 p-3 sm:p-4 ${c.wrap}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">
             {label}
           </div>
           <div className={`mt-1 text-xl sm:text-2xl font-extrabold tabular-nums ${c.text}`}>
             {value}
           </div>
-          <div className="text-[0.6875rem] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+          <div className="text-[0.6875rem] sm:text-xs font-semibold text-slate-500 dark:text-ink-400 mt-0.5">
             {sub}
           </div>
         </div>

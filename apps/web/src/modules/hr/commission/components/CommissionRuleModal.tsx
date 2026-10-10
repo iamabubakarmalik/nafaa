@@ -83,7 +83,7 @@ export function CommissionRuleModal({
   return (
     <div className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[92vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[92vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-violet-600 to-purple-700 text-white shrink-0 flex items-center justify-between gap-2">
           <div className="min-w-0">
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -116,10 +116,10 @@ export function CommissionRuleModal({
                     className={`p-3 rounded-2xl border-2 text-left transition ${
                       on
                         ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-400'
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-400'
                     }`}>
-                    <div className="text-sm font-black text-slate-900 dark:text-white">{m.emoji} {m.label}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{m.hint}</div>
+                    <div className="text-sm font-black text-slate-900 dark:text-ink-white">{m.emoji} {m.label}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{m.hint}</div>
                   </button>
                 );
               })}
@@ -141,12 +141,12 @@ export function CommissionRuleModal({
                       className={`p-2.5 rounded-2xl border-2 text-left transition ${
                         on
                           ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-400'
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-400'
                       }`}>
-                      <div className="text-xs font-black text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                      <div className="text-xs font-black text-slate-900 dark:text-ink-white inline-flex items-center gap-1.5">
                         <Icon className="h-3.5 w-3.5" /> {l}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">{hint}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5 leading-tight">{hint}</div>
                     </button>
                   );
                 })}
@@ -160,15 +160,15 @@ export function CommissionRuleModal({
               <input type="number" step={effType === 'PERCENT' ? '0.1' : '1'} min={0} autoFocus
                 value={value} onChange={(e) => setValue(e.target.value)}
                 placeholder={effType === 'PERCENT' ? '2.5' : '20'}
-                className={`h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 ${
+                className={`h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 ${
                   effType === 'FIXED' ? 'pl-10' : 'pl-3'
-                } pr-12 text-lg font-black text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-violet-500 transition`} />
+                } pr-12 text-lg font-black text-slate-900 dark:text-ink-white tabular-nums focus:outline-none focus:border-violet-500 transition`} />
               {effType === 'PERCENT' && (
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-slate-400">%</span>
               )}
             </div>
 
-            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {perBill
                 ? 'Har bill par itne rupay — chahe bill chhota ho ya bara.'
                 : effType === 'PERCENT'
@@ -193,7 +193,7 @@ export function CommissionRuleModal({
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Kisi ek ka alag rule banayein to us par wohi chalega, "sab wala" nahi.
             </p>
           </div>
@@ -211,12 +211,12 @@ export function CommissionRuleModal({
                       className={`h-9 px-2.5 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                         on
                           ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-violet-400'
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-violet-400'
                       }`}>{c.name}</button>
                   );
                 })}
               </div>
-              <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Kuch na chunein to har cheez par lagu. Chunne par sirf unhi cheezon ki bikri
                 ginti hai — jaise sirf cake par 5%.
               </p>
@@ -227,7 +227,7 @@ export function CommissionRuleModal({
             <Label opt>Hadd — itni bikri ke baad commission shuru ho</Label>
             <input type="number" min={0} value={minSale} onChange={(e) => setMinSale(e.target.value)}
               placeholder="0" className={`${inp} tabular-nums`} />
-            <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Khali chhorein to pehle rupay se hi commission banti hai.
             </p>
           </div>
@@ -241,7 +241,7 @@ export function CommissionRuleModal({
                 <div key={l}>
                   <span className="block mb-1 text-[0.6875rem] font-black uppercase text-slate-500">{l}</span>
                   <input type="number" min={0} value={v} onChange={(e) => set(e.target.value)} placeholder={ph}
-                    className="h-11 w-full rounded-xl border-2 border-amber-200 dark:border-amber-500/40 bg-white dark:bg-slate-800 px-2.5 text-sm font-black text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-amber-500 transition" />
+                    className="h-11 w-full rounded-xl border-2 border-amber-200 dark:border-amber-500/40 bg-white dark:bg-ink-800 px-2.5 text-sm font-black text-slate-900 dark:text-ink-white tabular-nums focus:outline-none focus:border-amber-500 transition" />
                 </div>
               ))}
             </div>
@@ -257,7 +257,7 @@ export function CommissionRuleModal({
           </div>
         </div>
 
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0 flex gap-2">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0 flex gap-2">
           {onDelete && (
             <button onClick={onDelete} disabled={saving}
               className="h-12 px-4 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 text-sm font-black disabled:opacity-50 transition">
@@ -265,7 +265,7 @@ export function CommissionRuleModal({
             </button>
           )}
           <button onClick={onClose}
-            className="flex-1 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-black transition">
+            className="flex-1 h-12 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-sm font-black transition">
             Rehne dein
           </button>
           <Button onClick={submit} disabled={errors.length > 0} loading={saving}
@@ -278,11 +278,11 @@ export function CommissionRuleModal({
   );
 }
 
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition';
 
 function Label({ children, opt }: any) {
   return (
-    <span className="block mb-1.5 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <span className="block mb-1.5 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400">
       {children} {opt && <span className="normal-case font-bold text-slate-400">(marzi)</span>}
     </span>
   );

@@ -74,7 +74,7 @@ export function PosReceiverField({
           <UserCheck className="h-4 w-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-extrabold text-slate-900 dark:text-white leading-tight">
+          <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white leading-tight">
             Maal lene kaun aaya hai?
           </div>
           <div className="text-[0.6875rem] font-bold text-amber-800 dark:text-amber-300 truncate">
@@ -90,14 +90,14 @@ export function PosReceiverField({
           value={value.name}
           onChange={(e) => onChange({ ...value, name: e.target.value })}
           placeholder="Naam — jaise Bilal (driver)"
-          className="h-11 flex-1 min-w-0 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 bg-white dark:bg-slate-900 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
+          className="h-11 flex-1 min-w-0 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
         />
         {value.name.trim() && (
           <button
             type="button"
             onClick={() => { onChange(emptyReceiver()); setShowPhone(false); }}
             title="Saaf karein"
-            className="h-11 w-11 rounded-xl bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-500/30 text-slate-500 flex items-center justify-center shrink-0 hover:border-rose-400 transition"
+            className="h-11 w-11 rounded-xl bg-white dark:bg-ink-900 border-2 border-amber-200 dark:border-amber-500/30 text-slate-500 flex items-center justify-center shrink-0 hover:border-rose-400 transition"
           >
             <X className="h-4 w-4" />
           </button>
@@ -111,7 +111,7 @@ export function PosReceiverField({
             onChange={(e) => onChange({ ...value, phone: e.target.value })}
             placeholder="Phone (optional)"
             inputMode="tel"
-            className="mt-2 h-10 w-full rounded-xl border-2 border-amber-200 dark:border-amber-500/30 bg-white dark:bg-slate-900 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
+            className="mt-2 h-10 w-full rounded-xl border-2 border-amber-200 dark:border-amber-500/30 bg-white dark:bg-ink-900 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
           />
         ) : (
           <button
@@ -135,7 +135,7 @@ export function PosReceiverField({
                 key={r.name}
                 type="button"
                 onClick={() => pick(r)}
-                className="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-500/30 text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition active:scale-[0.97] max-w-full truncate"
+                className="h-8 px-2.5 rounded-lg bg-white dark:bg-ink-900 border-2 border-amber-200 dark:border-amber-500/30 text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 hover:border-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/20 transition active:scale-[0.97] max-w-full truncate"
               >
                 {r.name}
               </button>

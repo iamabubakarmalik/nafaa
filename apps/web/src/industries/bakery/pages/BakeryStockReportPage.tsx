@@ -321,11 +321,11 @@ export default function BakeryStockReportPage() {
             className={`h-14 rounded-2xl border-2 font-black text-[0.6875rem] sm:text-sm inline-flex items-center justify-center gap-1.5 transition ${
               tab === v
                 ? 'bg-gradient-to-r from-indigo-500 to-violet-600 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-indigo-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-indigo-400'
             }`}>
             <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
             {count !== null && (
-              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{count}</span>
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'}`}>{count}</span>
             )}
             <kbd className="hidden lg:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
@@ -333,15 +333,15 @@ export default function BakeryStockReportPage() {
       </div>
 
       {tab !== 'analytics' && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
           <div className="flex gap-2 flex-wrap items-center">
             <div className="relative flex-1 min-w-[220px]">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Naam ya category… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-indigo-500 transition" />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -352,7 +352,7 @@ export default function BakeryStockReportPage() {
                   className={`h-12 px-3.5 rounded-2xl border-2 text-xs font-black transition ${
                     filter === v
                       ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/15 text-indigo-700 dark:text-indigo-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-indigo-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-indigo-400'
                   }`}>{l}</button>
               ))}
             </div>
@@ -366,21 +366,21 @@ export default function BakeryStockReportPage() {
         </div>
       ) : tab === 'goods' ? (
         shownGoods.length === 0 ? <Empty text="Koi cheez nahi mili" /> : (
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+                <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                   <tr>
                     {['Cheez', 'Type', 'Stock', 'Cost', 'Rate', 'Lagat', 'Bikri par', 'Theek rehti'].map((h, i) => (
                       <th key={h} className={`px-3 py-2.5 text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                   {shownGoods.map((g) => (
-                    <tr key={g.productId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition avoid-break">
+                    <tr key={g.productId} className="hover:bg-slate-50 dark:hover:bg-ink-800/40 transition avoid-break">
                       <td className="px-3 py-2.5">
-                        <Link to={`/bakery-products/${g.productId}`} className="font-extrabold text-slate-900 dark:text-white hover:text-indigo-600">
+                        <Link to={`/bakery-products/${g.productId}`} className="font-extrabold text-slate-900 dark:text-ink-white hover:text-indigo-600">
                           {g.productName}
                         </Link>
                         <div className="text-[0.6875rem] font-bold text-slate-400 flex items-center gap-1">
@@ -395,12 +395,12 @@ export default function BakeryStockReportPage() {
                         }`}>{g.isMade ? 'Khud' : 'Bahar'}</span>
                       </td>
                       <td className={`px-3 py-2.5 text-right font-black tabular-nums ${
-                        g.isOut ? 'text-rose-600' : g.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-white'
+                        g.isOut ? 'text-rose-600' : g.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-ink-white'
                       }`}>{fmtQty(Number(g.stock))} <span className="text-[0.6875rem] text-slate-400">{g.unit}</span></td>
-                      <td className={`px-3 py-2.5 text-right font-bold tabular-nums ${Number(g.costPrice) <= 0 ? 'text-amber-600' : 'text-slate-600 dark:text-slate-300'}`}>
+                      <td className={`px-3 py-2.5 text-right font-bold tabular-nums ${Number(g.costPrice) <= 0 ? 'text-amber-600' : 'text-slate-600 dark:text-ink-300'}`}>
                         {Number(g.costPrice) > 0 ? formatPKR(g.costPrice) : '—'}
                       </td>
-                      <td className="px-3 py-2.5 text-right font-black tabular-nums text-slate-900 dark:text-white">{formatPKR(g.salePrice)}</td>
+                      <td className="px-3 py-2.5 text-right font-black tabular-nums text-slate-900 dark:text-ink-white">{formatPKR(g.salePrice)}</td>
                       <td className="px-3 py-2.5 text-right font-bold tabular-nums text-violet-700 dark:text-violet-400">{formatPKR(g.stockValue)}</td>
                       <td className="px-3 py-2.5 text-right font-bold tabular-nums text-emerald-700 dark:text-emerald-400">{formatPKR(g.retailValue)}</td>
                       <td className="px-3 py-2.5 text-right font-bold tabular-nums text-slate-500">
@@ -415,9 +415,9 @@ export default function BakeryStockReportPage() {
         )
       ) : tab === 'raw' ? (
         shownRaw.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
             <Wheat className="h-10 w-10 text-slate-400 mx-auto" />
-            <p className="mt-3 font-black text-slate-800 dark:text-slate-100 text-lg">Koi saamaan nahi mila</p>
+            <p className="mt-3 font-black text-slate-800 dark:text-ink-100 text-lg">Koi saamaan nahi mila</p>
             <Link to="/bakery/ingredients"
               className="mt-4 h-11 px-4 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-black inline-flex items-center gap-2 transition">
               Saamaan ka safha <ArrowRight className="h-4 w-4" />
@@ -432,10 +432,10 @@ export default function BakeryStockReportPage() {
                 bakery ka sab se bara stock yehi hota hai.
               </p>
             </div>
-            <section className="mt-3 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <section className="mt-3 rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {shownRaw.map((r: any) => (
-                  <div key={r.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition avoid-break">
+                  <div key={r.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition avoid-break">
                     <span className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${
                       r.isOut ? 'bg-rose-100 dark:bg-rose-500/20' : r.isLow ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-violet-100 dark:bg-violet-500/20'
                     }`}>
@@ -444,13 +444,13 @@ export default function BakeryStockReportPage() {
                         : <Wheat className={`h-5 w-5 ${r.isOut ? 'text-rose-600' : 'text-violet-600 dark:text-violet-400'}`} />}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.name}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                       <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
                         {formatPKR(r.cost)} / {r.unit}{r.level > 0 ? ` · hadd ${fmtQty(r.level)}` : ''}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className={`text-lg font-black tabular-nums ${r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-white'}`}>
+                      <div className={`text-lg font-black tabular-nums ${r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-ink-white'}`}>
                         {fmtQty(r.have)} <span className="text-xs">{r.unit}</span>
                       </div>
                       <div className="text-[0.6875rem] font-black text-violet-700 dark:text-violet-400 tabular-nums">{formatPKR(r.value)}</div>
@@ -553,14 +553,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
   const Comp: any = onClick ? 'button' : 'div';
   return (
     <Comp onClick={onClick}
-      className={`rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm text-left w-full transition-all ${
+      className={`rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm text-left w-full transition-all ${
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : ''
       }`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -572,8 +572,8 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-indigo-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -587,9 +587,9 @@ function EmptyBox({ text }: { text?: string }) {
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
       <Boxes className="h-10 w-10 text-slate-400 mx-auto" />
-      <p className="mt-3 font-black text-slate-800 dark:text-slate-100 text-lg">{text}</p>
+      <p className="mt-3 font-black text-slate-800 dark:text-ink-100 text-lg">{text}</p>
     </div>
   );
 }
@@ -597,17 +597,17 @@ function Empty({ text }: { text: string }) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-indigo-300 dark:border-indigo-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-indigo-300 dark:border-indigo-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-indigo-200 dark:border-indigo-500/30 bg-gradient-to-r from-indigo-50 to-violet-50 dark:from-indigo-500/15 dark:to-violet-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Stock report
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Aam stock report sirf bikne wali cheezein ginti hai. Bakery me is se <strong>aadhi
             tasveer</strong> banti hai — gudaam me para maida aur makkhan bhi paisa hi hai.
           </p>
@@ -626,13 +626,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Jis cheez ki cost 0 hai, uska stock is hisab me <strong>zero qeemat</strong> ka gina
             jata hai — yani kul paisa asal se kam dikhta hai. Pehle wo theek karein.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tab badlo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> ye madad</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-3</kbd> tab badlo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">G</kbd> ye madad</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -649,8 +649,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

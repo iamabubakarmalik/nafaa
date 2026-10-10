@@ -369,13 +369,13 @@ export default function BakeryProductDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 pb-10 animate-pulse">
-        <div className="h-10 rounded-xl bg-slate-200 dark:bg-slate-800 w-1/2" />
-        <div className="rounded-3xl bg-slate-200 dark:bg-slate-800 h-72" />
+        <div className="h-10 rounded-xl bg-slate-200 dark:bg-ink-800 w-1/2" />
+        <div className="rounded-3xl bg-slate-200 dark:bg-ink-800 h-72" />
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-12 rounded-2xl bg-slate-200 dark:bg-slate-800" />)}
+          {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-12 rounded-2xl bg-slate-200 dark:bg-ink-800" />)}
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-200 dark:bg-slate-800" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-200 dark:bg-ink-800" />)}
         </div>
       </div>
     );
@@ -385,7 +385,7 @@ export default function BakeryProductDetailPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4">
         <Cake className="h-16 w-16 text-slate-300" />
-        <p className="font-black text-slate-700 dark:text-slate-200 text-lg">Ye cheez nahi mili</p>
+        <p className="font-black text-slate-700 dark:text-ink-200 text-lg">Ye cheez nahi mili</p>
         <Link to={ROUTES.list} className="text-pink-600 font-bold hover:underline">← Wapas list par</Link>
       </div>
     );
@@ -443,7 +443,7 @@ export default function BakeryProductDetailPage() {
       {/* ═══ TOP BAR ═══ */}
       <div className="flex items-center justify-between gap-3 flex-wrap print:hidden">
         <button onClick={() => navigate(ROUTES.list)}
-          className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-pink-600 transition">
+          className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-ink-300 hover:text-pink-600 transition">
           <ArrowLeft className="h-4 w-4" /> Saara maal
         </button>
         <div className="flex items-center gap-2 flex-wrap">
@@ -674,7 +674,7 @@ export default function BakeryProductDetailPage() {
       )}
 
       {/* ═══ TABS ═══ */}
-      <section className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-2 overflow-x-auto print:hidden">
+      <section className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-2 overflow-x-auto print:hidden">
         <div className="flex gap-1.5 min-w-max">
           {TABS.map((t, i) => {
             const on = tab === t.id;
@@ -683,11 +683,11 @@ export default function BakeryProductDetailPage() {
               <button key={t.id} onClick={() => setTab(t.id)}
                 className={`relative px-4 py-2.5 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition ${
                   on ? 'bg-gradient-to-br from-pink-600 to-fuchsia-700 text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-800'
                 }`}>
                 <Icon className="h-4 w-4" /> {t.label}
                 {t.count !== undefined && (
-                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${on ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}>{t.count}</span>
+                  <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${on ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300'}`}>{t.count}</span>
                 )}
                 {t.dot && <span className="h-2 w-2 rounded-full bg-amber-500" />}
                 <span className={`hidden lg:inline text-[0.625rem] font-mono font-bold ${on ? 'text-white/60' : 'text-slate-400'}`}>{i + 1}</span>
@@ -711,7 +711,7 @@ export default function BakeryProductDetailPage() {
           </section>
 
           {/* 30 din */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <PanelHead icon={BarChart3} tone="emerald" title="Pichle 30 din ki bikri"
               desc={`${fmtQty(sales$.sold30)} ${unit} bika • roz ka average ${sales$.perDay.toFixed(1)} ${unit}`} />
             {chartData.some((d) => d.revenue > 0) ? (
@@ -735,8 +735,8 @@ export default function BakeryProductDetailPage() {
               </div>
             ) : (
               <div className="h-[180px] flex flex-col items-center justify-center gap-2">
-                <Receipt className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-                <p className="text-sm font-extrabold text-slate-600 dark:text-slate-300">Pichle 30 din me koi bikri nahi</p>
+                <Receipt className="h-10 w-10 text-slate-300 dark:text-ink-600" />
+                <p className="text-sm font-extrabold text-slate-600 dark:text-ink-300">Pichle 30 din me koi bikri nahi</p>
               </div>
             )}
           </section>
@@ -774,23 +774,23 @@ export default function BakeryProductDetailPage() {
           </div>
 
           {/* Unit calculator */}
-          <section className="rounded-3xl bg-gradient-to-br from-pink-50 to-white dark:from-pink-500/10 dark:to-slate-900/80 border-2 border-pink-200 dark:border-pink-500/30 shadow-sm p-5 space-y-4 print:hidden">
+          <section className="rounded-3xl bg-gradient-to-br from-pink-50 to-white dark:from-pink-500/10 dark:to-ink-900/80 border-2 border-pink-200 dark:border-pink-500/30 shadow-sm p-5 space-y-4 print:hidden">
             <PanelHead icon={ArrowRightLeft} tone="pink" title="Naap ka calculator" desc={'"3 slice kitne ke?" — aur stock se kitna ghatega'} />
             <div className="grid sm:grid-cols-[120px_1fr] gap-3">
               <div>
-                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Kitne</label>
+                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1">Kitne</label>
                 <input type="number" min={0} step="any" value={convQty}
                   onChange={(e) => setConvQty(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
-                  className="h-12 w-full rounded-xl border-2 border-pink-300 dark:border-pink-500/40 bg-white dark:bg-slate-800 px-3 text-center text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-pink-600 transition" />
+                  className="h-12 w-full rounded-xl border-2 border-pink-300 dark:border-pink-500/40 bg-white dark:bg-ink-800 px-3 text-center text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-pink-600 transition" />
               </div>
               <div>
-                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Naap</label>
+                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1">Naap</label>
                 <div className="flex flex-wrap gap-1.5">
                   {unitOptions.map((u) => (
                     <button key={u.key} onClick={() => setConvFrom(u.key)}
                       className={`px-3 h-12 rounded-xl border-2 text-sm font-extrabold capitalize transition ${
                         activeConv?.key === u.key ? 'border-pink-600 bg-pink-600 text-white shadow-md'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-pink-400'
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-pink-400'
                       }`}>
                       {u.emoji} {u.name}
                     </button>
@@ -798,7 +798,7 @@ export default function BakeryProductDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 p-4 grid sm:grid-cols-3 gap-3">
+            <div className="rounded-2xl bg-white dark:bg-ink-800/80 border-2 border-slate-200 dark:border-ink-700 p-4 grid sm:grid-cols-3 gap-3">
               <ConvCell label="Stock se ghatega" value={`${fmtQty(convBaseQty)} ${unit}`} tone="pink" />
               <ConvCell label="Kitne paise banenge" value={formatPKRFull(Number(convQty || 0) * (activeConv?.price || 0))} tone="emerald" />
               <ConvCell label="Phir bachega" value={`${fmtQty(Math.max(stock - convBaseQty, 0))} ${unit}`} tone={convBaseQty > stock ? 'rose' : 'slate'} />
@@ -809,7 +809,7 @@ export default function BakeryProductDetailPage() {
               </div>
             )}
             {otherRates.length === 0 && (
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Abhi sirf ek naap ({unit}) me bikti hai. Slice, pound ya dozen ka rate{' '}
                 <Link to={ROUTES.edit(product.id)} className="text-pink-600 underline">Edit</Link> me daal dein — yahan khud aa jayega.
               </p>
@@ -818,15 +818,15 @@ export default function BakeryProductDetailPage() {
 
           {/* Related */}
           {related.length > 0 && (
-            <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
-              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800">
+            <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
+              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800">
                 <PanelHead icon={Sparkles} tone="violet" title="Isi category ki cheezein" desc={product.category?.name ?? ''} />
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {related.map((r) => (
                   <Link key={r.id} to={ROUTES.detail(r.id)}
-                    className="group rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-pink-400 hover:shadow-md overflow-hidden transition bg-white dark:bg-slate-800/60">
-                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    className="group rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-pink-400 hover:shadow-md overflow-hidden transition bg-white dark:bg-ink-800/60">
+                    <div className="aspect-square bg-slate-100 dark:bg-ink-800 overflow-hidden">
                       {r.images?.[0]?.url ? (
                         <img src={r.images[0].url} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       ) : (
@@ -836,7 +836,7 @@ export default function BakeryProductDetailPage() {
                       )}
                     </div>
                     <div className="p-2">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight min-h-[1.8rem]">{r.name}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white line-clamp-2 leading-tight min-h-[1.8rem]">{r.name}</div>
                       <div className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums mt-0.5">{formatPKR(r.price)}</div>
                     </div>
                   </Link>
@@ -889,13 +889,13 @@ export default function BakeryProductDetailPage() {
               )}
 
               <div className="grid lg:grid-cols-2 gap-4">
-                <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                  <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+                  <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
                     <Wheat className="h-4 w-4 text-violet-600" />
-                    <h3 className="font-black text-slate-900 dark:text-white">Kya kya lagta hai</h3>
+                    <h3 className="font-black text-slate-900 dark:text-ink-white">Kya kya lagta hai</h3>
                     <Link to={ROUTES.ingredients} className="ml-auto text-xs font-black text-violet-600 print:hidden">Gudaam →</Link>
                   </div>
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <div className="divide-y divide-slate-100 dark:divide-ink-800">
                     {recipeRows.map((r, i) => {
                       const share = recipe$.liveBatch > 0 ? (r.lineCost / recipe$.liveBatch) * 100 : 0;
                       const up = r.nowRate > r.savedRate + 0.009;
@@ -907,7 +907,7 @@ export default function BakeryProductDetailPage() {
                             <Wheat className={`h-4 w-4 ${short || r.missing ? 'text-rose-600' : 'text-violet-600 dark:text-violet-400'}`} />
                           </span>
                           <div className="min-w-0 flex-1">
-                            <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate flex items-center gap-1.5">
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate flex items-center gap-1.5">
                               {r.name}
                               {!hideCost && up && <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">▲ Mehnga</span>}
                               {!hideCost && down && <span className="text-[0.625rem] font-black px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">▼ Sasta</span>}
@@ -922,7 +922,7 @@ export default function BakeryProductDetailPage() {
                             </div>
                           </div>
                           <div className="text-right shrink-0">
-                            <div className="font-black text-sm text-slate-900 dark:text-white tabular-nums">{money(r.lineCost)}</div>
+                            <div className="font-black text-sm text-slate-900 dark:text-ink-white tabular-nums">{money(r.lineCost)}</div>
                             <div className="text-[0.6875rem] font-bold text-slate-400">{share.toFixed(0)}%</div>
                           </div>
                         </div>
@@ -968,13 +968,13 @@ export default function BakeryProductDetailPage() {
             <EmptyState icon={Timer} title="Abhi koi batch nahi"
               sub="Jab is cheez ka batch banega, yahan nazar aayega ke kab tak theek hai aur kitna bacha hua hai." />
           ) : (
-            <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
                 <Clock className="h-4 w-4 text-emerald-600" />
-                <h3 className="font-black text-slate-900 dark:text-white">Jo abhi para hai — pehle kharab hone wala upar</h3>
+                <h3 className="font-black text-slate-900 dark:text-ink-white">Jo abhi para hai — pehle kharab hone wala upar</h3>
                 <Link to={ROUTES.freshness} className="ml-auto text-xs font-black text-emerald-600 print:hidden">Poora safha →</Link>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {liveBatches.map((f) => {
                   const gone = f.left !== null && f.left <= 0;
                   const soon = f.left !== null && f.left > 0 && f.left <= 12;
@@ -987,16 +987,16 @@ export default function BakeryProductDetailPage() {
                         <Clock className={`h-4 w-4 ${gone ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-emerald-600'}`} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-sm text-slate-900 dark:text-white">{f.batchNumber ? `Batch ${f.batchNumber}` : 'Batch'}</div>
+                        <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{f.batchNumber ? `Batch ${f.batchNumber}` : 'Batch'}</div>
                         <div className={`text-[0.6875rem] font-black ${gone ? 'text-rose-600' : soon ? 'text-amber-600' : 'text-slate-500'}`}>
                           {f.left !== null ? hoursPhrase(f.left) : 'Expiry likhi nahi'}
                         </div>
-                        <div className="mt-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden max-w-[200px]">
+                        <div className="mt-1 h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden max-w-[200px]">
                           <div className={`h-full rounded-full ${gone ? 'bg-rose-500' : soon ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{fmtQty(Number(f.currentQty))}</div>
+                        <div className="text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">{fmtQty(Number(f.currentQty))}</div>
                         <div className="text-[0.6875rem] font-bold text-slate-400">{fmtQty(Number(f.initialQty))} me se</div>
                       </div>
                     </div>
@@ -1013,7 +1013,7 @@ export default function BakeryProductDetailPage() {
         <Panel icon={Receipt} tone="emerald" title="Bikri ki history"
           desc={`${salesForProduct.length} haal ki receipts • kul ${fmtQty(sales$.totalSold)} ${unit} bika`}
           empty={salesForProduct.length === 0} emptyText="Abhi tak koi bikri nahi hui">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
             {salesForProduct.map((s: any) => {
               const lines = (s.items ?? []).filter((it: any) => (it.product?.id ?? it.productId) === id);
               const qty = lines.reduce((a: number, it: any) => a + Number(it.quantity || 0), 0);
@@ -1023,21 +1023,21 @@ export default function BakeryProductDetailPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span>
-                        <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+                        <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-ink-white">{s.saleNumber}</span>
+                        <span className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                           {new Date(s.soldAt).toLocaleString('en-PK', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {Number(s.creditAmount) > 0 && <Pill tone="amber">Udhaar</Pill>}
                       </div>
-                      <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
+                      <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-0.5">
                         {s.customer?.name || 'Walk-in'} • {fmtQty(qty)} {unit}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKRFull(rev)}</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">kul {formatPKR(s.total)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">kul {formatPKR(s.total)}</div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-slate-300 dark:text-ink-600 shrink-0" />
                   </div>
                 </Link>
               );
@@ -1050,21 +1050,21 @@ export default function BakeryProductDetailPage() {
       {tab === 'log' && (
         <Panel icon={History} tone="slate" title="Stock ka aana jana" desc={`${movements.length} entries`}
           empty={movements.length === 0} emptyText="Koi stock movement record nahi mila">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
             {movements.map((m: any, i: number) => {
               const qty = Number(m.quantity ?? m.qty ?? 0);
               const type = String(m.type || '');
               const isIn = qty > 0 || type.includes('IN') || type.includes('PURCHASE') || type.includes('PRODUCTION');
               return (
-                <div key={m.id ?? i} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+                <div key={m.id ?? i} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50/60 dark:hover:bg-ink-800/40 transition">
                   <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
                     isIn ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                   }`}>
                     {isIn ? <Plus className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm">{(type || 'MOVEMENT').replace(/_/g, ' ')}</div>
-                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold truncate">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{(type || 'MOVEMENT').replace(/_/g, ' ')}</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold truncate">
                       {m.note || m.reason || m.reference || '—'}
                       {m.createdAt && ` • ${new Date(m.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`}
                     </div>
@@ -1107,10 +1107,10 @@ export default function BakeryProductDetailPage() {
           {otherRates.length > 0 && (
             <InfoCard icon={Scale} title="Aur kis tarah bikti hai">
               {otherRates.map((r) => (
-                <div key={r.key} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-50 dark:border-slate-800/60 last:border-0">
-                  <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">{r.emoji} Per {r.label}</span>
+                <div key={r.key} className="flex items-center justify-between gap-3 py-1.5 border-b border-slate-50 dark:border-ink-800/60 last:border-0">
+                  <span className="text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 shrink-0">{r.emoji} Per {r.label}</span>
                   <span className="min-w-0 text-right">
-                    <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(r.price)}</span>
+                    <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(r.price)}</span>
                     <span className="block text-[0.6875rem] font-bold text-slate-400 tabular-nums">stock se {r.rate.toFixed(r.rate < 1 ? 3 : 2)} {unit}</span>
                   </span>
                 </div>
@@ -1167,7 +1167,7 @@ export default function BakeryProductDetailPage() {
               <div className="grid grid-cols-4 gap-2 pt-1">
                 {gallery.map((im: any, i: number) => (
                   <button key={im.id ?? i} onClick={() => { setImgIndex(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className={`aspect-square rounded-xl overflow-hidden border-2 transition ${i === imgIndex ? 'border-pink-500' : 'border-slate-200 dark:border-slate-700'}`}>
+                    className={`aspect-square rounded-xl overflow-hidden border-2 transition ${i === imgIndex ? 'border-pink-500' : 'border-slate-200 dark:border-ink-700'}`}>
                     <img src={im.url} alt="" className="h-full w-full object-cover" />
                   </button>
                 ))}
@@ -1265,7 +1265,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col animate-in"
         onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-pink-600 to-fuchsia-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -1295,12 +1295,12 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
 
           {mode !== 'set' ? (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 {mode === 'add' ? `Kitna ${isMade ? 'bana' : 'aaya'}? (${unit})` : `Kitna kam hua? (${unit})`}
               </label>
               <div className="flex items-center gap-2">
                 <button onClick={() => setQty(Math.max(0, round(Number(qty || 0) - step)))}
-                  className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 transition">
+                  className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 flex items-center justify-center shrink-0 transition">
                   <Minus className="h-5 w-5" />
                 </button>
                 <input ref={inputRef} autoFocus type="number" inputMode="decimal" step="any" min={0}
@@ -1315,19 +1315,19 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {chips.map((c) => (
                   <button key={c} onClick={() => setQty(round(Number(qty || 0) + c))}
-                    className={`px-3 py-1.5 rounded-xl border-2 bg-white dark:bg-slate-800 text-xs font-extrabold transition ${tone.chip}`}>+{c}</button>
+                    className={`px-3 py-1.5 rounded-xl border-2 bg-white dark:bg-ink-800 text-xs font-extrabold transition ${tone.chip}`}>+{c}</button>
                 ))}
                 {mode === 'remove' && stock > 0 && (
                   <button onClick={() => setQty(stock)}
-                    className={`px-3 py-1.5 rounded-xl border-2 bg-white dark:bg-slate-800 text-xs font-extrabold transition ${tone.chip}`}>Sab ({fmtQty(stock)})</button>
+                    className={`px-3 py-1.5 rounded-xl border-2 bg-white dark:bg-ink-800 text-xs font-extrabold transition ${tone.chip}`}>Sab ({fmtQty(stock)})</button>
                 )}
                 <button onClick={() => setQty('')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-extrabold transition">Clear</button>
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300 text-xs font-extrabold transition">Clear</button>
               </div>
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 Counter par asal me kitna hai? ({unit})
               </label>
               <input ref={inputRef} autoFocus type="number" inputMode="decimal" step="any" min={0} value={setTo}
@@ -1336,10 +1336,10 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
             </div>
           )}
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Naya stock</div>
-              <div className={`text-2xl font-extrabold tabular-nums ${finalStock < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Naya stock</div>
+              <div className={`text-2xl font-extrabold tabular-nums ${finalStock < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-ink-white'}`}>
                 {fmtQty(finalStock)} <span className="text-sm font-bold text-slate-500">{unit}</span>
               </div>
             </div>
@@ -1349,7 +1349,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
               }`}>{diff > 0 ? '+' : ''}{fmtQty(diff)}</div>
             )}
             <div className="text-right">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Bikri qeemat</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Bikri qeemat</div>
               <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {hideCost ? '••••' : formatPKRFull(Math.max(finalStock, 0) * Number(product.price || 0))}
               </div>
@@ -1368,7 +1368,7 @@ function BakeryQuickStock({ product, stock, isMade, shelfDays, fridge, hideCost,
           )}
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
           <Button onClick={() => mutation.mutate()} loading={mutation.isPending} disabled={!canSave}
             className="flex-1 bg-gradient-to-r from-pink-600 to-fuchsia-700 disabled:opacity-50">
@@ -1386,7 +1386,7 @@ function ModeBtn({ active, onClick, activeCls, title, sub }: {
   return (
     <button onClick={onClick}
       className={`py-3 rounded-2xl border-2 font-extrabold text-xs sm:text-sm transition ${
-        active ? activeCls : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+        active ? activeCls : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
       }`}>
       {title}
       <div className="text-[0.6875rem] font-bold opacity-70">{sub}</div>
@@ -1397,7 +1397,7 @@ function ModeBtn({ active, onClick, activeCls, title, sub }: {
 /* ═════════════════════════════════════════════════════════════
    CHHOTE HISSE
    ═════════════════════════════════════════════════════════════ */
-const topCls = 'inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-500/50 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition';
+const topCls = 'inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-pink-300 dark:hover:border-pink-500/50 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition';
 
 function TopBtn({ children, onClick, tone }: any) {
   return (
@@ -1458,9 +1458,9 @@ function HeroStat({ icon: Icon, label, value, sub, tone, onClick }: any) {
 
 function AlertCard({ tone, icon: Icon, title, body, action }: any) {
   const tones: Record<string, string> = {
-    rose: 'from-rose-50 to-white dark:from-rose-500/10 dark:to-slate-900/60 border-rose-300 dark:border-rose-500/40 text-rose-900 dark:text-rose-200',
-    amber: 'from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900/60 border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200',
-    sky: 'from-sky-50 to-white dark:from-sky-500/10 dark:to-slate-900/60 border-sky-300 dark:border-sky-500/40 text-sky-900 dark:text-sky-200',
+    rose: 'from-rose-50 to-white dark:from-rose-500/10 dark:to-ink-900/60 border-rose-300 dark:border-rose-500/40 text-rose-900 dark:text-rose-200',
+    amber: 'from-amber-50 to-white dark:from-amber-500/10 dark:to-ink-900/60 border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200',
+    sky: 'from-sky-50 to-white dark:from-sky-500/10 dark:to-ink-900/60 border-sky-300 dark:border-sky-500/40 text-sky-900 dark:text-sky-200',
   };
   const btn: Record<string, string> = { rose: 'bg-rose-600 hover:bg-rose-700', amber: 'bg-amber-600 hover:bg-amber-700', sky: 'bg-sky-600 hover:bg-sky-700' };
   const cls = `mt-2 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-white text-xs font-extrabold transition ${btn[tone]}`;
@@ -1496,8 +1496,8 @@ function PanelHead({ icon: Icon, title, desc, tone }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{title}</h3>
-        {desc && <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>}
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{title}</h3>
+        {desc && <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{desc}</p>}
       </div>
     </div>
   );
@@ -1506,14 +1506,14 @@ function PanelHead({ icon: Icon, title, desc, tone }: any) {
 function Panel({ icon, title, desc, tone, children, empty, emptyText }: any) {
   const Icon = icon;
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:shadow-none print:rounded-xl">
-      <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800">
+    <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:shadow-none print:rounded-xl">
+      <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800">
         <PanelHead icon={icon} title={title} desc={desc} tone={tone} />
       </div>
       {empty ? (
         <div className="p-12 text-center">
-          <Icon className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-          <div className="font-extrabold text-slate-700 dark:text-slate-300">{emptyText}</div>
+          <Icon className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+          <div className="font-extrabold text-slate-700 dark:text-ink-300">{emptyText}</div>
         </div>
       ) : children}
     </section>
@@ -1522,12 +1522,12 @@ function Panel({ icon, title, desc, tone, children, empty, emptyText }: any) {
 
 function Stat({ icon: Icon, label, value, sub, tone }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-1.5 text-lg sm:text-xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${TONE_GRAD[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-4 w-4" />
@@ -1539,8 +1539,8 @@ function Stat({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, children }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-pink-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1554,10 +1554,10 @@ function Bar2({ label, value, max, tone }: any) {
   return (
     <div>
       <div className="flex items-center justify-between text-[0.6875rem] font-black">
-        <span className="text-slate-600 dark:text-slate-300">{label}</span>
-        <span className="text-slate-900 dark:text-white tabular-nums">{formatPKR(value)}</span>
+        <span className="text-slate-600 dark:text-ink-300">{label}</span>
+        <span className="text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(value)}</span>
       </div>
-      <div className="mt-1 h-3 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+      <div className="mt-1 h-3 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
         <div className={`h-full rounded-full ${tones[tone]} transition-all`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -1567,11 +1567,11 @@ function Bar2({ label, value, max, tone }: any) {
 function ConvCell({ label, value, tone }: any) {
   const tones: Record<string, string> = {
     pink: 'text-pink-700 dark:text-pink-400', emerald: 'text-emerald-700 dark:text-emerald-400',
-    rose: 'text-rose-700 dark:text-rose-400', slate: 'text-slate-700 dark:text-slate-300',
+    rose: 'text-rose-700 dark:text-rose-400', slate: 'text-slate-700 dark:text-ink-300',
   };
   return (
     <div>
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
       <div className={`text-xl font-extrabold tabular-nums mt-0.5 ${tones[tone]}`}>{value}</div>
     </div>
   );
@@ -1579,10 +1579,10 @@ function ConvCell({ label, value, tone }: any) {
 
 function InfoCard({ icon: Icon, title, children }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
         <Icon className="h-4 w-4 text-pink-600" />
-        <h3 className="font-black text-slate-900 dark:text-white">{title}</h3>
+        <h3 className="font-black text-slate-900 dark:text-ink-white">{title}</h3>
       </div>
       <div className="p-4 space-y-1.5">{children}</div>
     </section>
@@ -1591,9 +1591,9 @@ function InfoCard({ icon: Icon, title, children }: any) {
 
 function Row({ label, value, warn }: any) {
   return (
-    <div className="flex items-center justify-between gap-3 py-1 border-b border-slate-50 dark:border-slate-800/60 last:border-0">
-      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
-      <span className={`text-[0.8125rem] font-extrabold text-right break-words ${warn ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-white'}`}>{value}</span>
+    <div className="flex items-center justify-between gap-3 py-1 border-b border-slate-50 dark:border-ink-800/60 last:border-0">
+      <span className="text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 shrink-0">{label}</span>
+      <span className={`text-[0.8125rem] font-extrabold text-right break-words ${warn ? 'text-amber-600 dark:text-amber-400' : 'text-slate-900 dark:text-ink-white'}`}>{value}</span>
     </div>
   );
 }
@@ -1614,12 +1614,12 @@ function EmptyBox({ text }: { text: string }) {
 
 function EmptyState({ icon: Icon, title, sub, action }: any) {
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
-      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
+      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
         <Icon className="h-8 w-8 text-slate-400" />
       </div>
-      <p className="mt-4 font-black text-slate-800 dark:text-slate-100 text-lg">{title}</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 font-bold mt-1.5 max-w-md mx-auto">{sub}</p>
+      <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg">{title}</p>
+      <p className="text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5 max-w-md mx-auto">{sub}</p>
       {action && (
         <Link to={action.to} className="mt-4 h-11 px-4 rounded-xl bg-pink-600 hover:bg-pink-700 text-white text-sm font-black inline-flex items-center gap-2 transition">
           <Edit3 className="h-4 w-4" /> {action.label}
@@ -1632,18 +1632,18 @@ function EmptyState({ icon: Icon, title, sub, action }: any) {
 function Teacher({ onClose, isMade, name }: { onClose: () => void; isMade: boolean; name: string }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl animate-in"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl animate-in"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye safha kya batata hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             <strong>"{name}"</strong> ki poori kahani — paisa, bikri, recipe aur taazgi ek jagah.
           </p>
           <Tip icon={BarChart3} title="1 · Hisab">Ek par munafa, 30 din ki bikri, phinka hua maal, aur naap ka calculator.</Tip>
@@ -1662,15 +1662,15 @@ function Teacher({ onClose, isMade, name }: { onClose: () => void; isMade: boole
               ? 'Bikri aur taazgi se hisab — utna hi banao jitna shelf life me bik jaye, warna phinkna parega.'
               : 'Pichli bikri se 1 mahine ka hisab.'}
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-6</kbd> tab badlo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">S</kbd> stock</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">E</kbd> edit</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> ye madad</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">Esc</kbd> band</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-6</kbd> tab badlo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">S</kbd> stock</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">E</kbd> edit</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">G</kbd> ye madad</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">Esc</kbd> band</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1687,8 +1687,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

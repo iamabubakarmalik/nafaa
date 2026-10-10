@@ -84,7 +84,7 @@ export default function RentalsPage() {
         ].map((f) => (
           <button key={f.v} onClick={() => setStatusFilter(f.v)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === f.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === f.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{f.label}</button>
         ))}
       </div>
@@ -99,10 +99,10 @@ export default function RentalsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rentals.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <BookMarked className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No rentals</p>
         </div>
@@ -114,8 +114,8 @@ export default function RentalsPage() {
             const isSoon = daysLeft >= 0 && daysLeft <= 3 && r.status === 'ACTIVE';
             return (
               <div key={r.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 ' +
-                (isOverdue ? 'border-rose-400 ring-2 ring-rose-100' : isSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 ' +
+                (isOverdue ? 'border-rose-400 ring-2 ring-rose-100' : isSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -124,7 +124,7 @@ export default function RentalsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white">{r.rentalNumber}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{r.rentalNumber}</span>
                         <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[r.status]}>{r.status}</span>
                         {isOverdue && <span className="px-2 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">{Math.abs(daysLeft)}d OVERDUE</span>}
                         {isSoon && <span className="px-2 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase">{daysLeft}d LEFT</span>}
@@ -199,7 +199,7 @@ function RentalForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">Issue Book Rental</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
@@ -297,7 +297,7 @@ function ReturnModal({ rental, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Return Book</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>

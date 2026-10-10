@@ -328,12 +328,12 @@ export default function SupplierFormPage() {
             { icon: Wallet, label: 'Hamara baqi', value: formatPKR(Number(existing?.outstandingDue ?? 0)), sub: existing?.ledger?.daysSincePayment !== null && existing?.ledger?.daysSincePayment !== undefined ? `Adaigi ${daysPhrase(existing.ledger.daysSincePayment)}` : 'Kabhi adaigi nahi', tone: 'from-rose-500 to-red-700' },
             { icon: Clock, label: 'Aakhri maal', value: stats.lastPurchaseDate ? fmtDate(stats.lastPurchaseDate) : '—', sub: daysPhrase(stats.daysSinceLastPurchase), tone: 'from-violet-500 to-purple-700' },
           ].map((k) => (
-            <div key={k.label} className="rounded-2xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3">
+            <div key={k.label} className="rounded-2xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-3">
               <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${k.tone} text-white flex items-center justify-center shadow`}>
                 <k.icon className="h-4 w-4" />
               </div>
               <div className="mt-2 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">{k.label}</div>
-              <div className="text-base font-black text-slate-900 dark:text-white tabular-nums truncate">{k.value}</div>
+              <div className="text-base font-black text-slate-900 dark:text-ink-white tabular-nums truncate">{k.value}</div>
               <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{k.sub}</div>
             </div>
           ))}
@@ -382,7 +382,7 @@ export default function SupplierFormPage() {
                         className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                           form.paymentTerms === t
                             ? 'bg-teal-600 border-teal-600 text-white'
-                            : 'bg-[#ffffff] dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                            : 'bg-[#ffffff] dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                         }`}>{t}</button>
                     ))}
                   </div>
@@ -390,14 +390,14 @@ export default function SupplierFormPage() {
               </div>
 
               {isEdit && (
-                <label className="flex items-center gap-3 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-3 cursor-pointer">
+                <label className="flex items-center gap-3 rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-3 cursor-pointer">
                   <input type="checkbox" checked={form.isActive} onChange={(e) => set('isActive', e.target.checked)}
                     className="h-5 w-5 rounded accent-teal-600" />
                   <div className="min-w-0">
-                    <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                    <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">
                       {form.isActive ? 'Chalu hai' : 'Band hai'}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                       Band supplier naye bill ki list me nazar nahi aayega — purana record mehfooz rahega.
                     </div>
                   </div>
@@ -506,7 +506,7 @@ export default function SupplierFormPage() {
                   {form.accountNumber && (
                     <button type="button" title="Copy"
                       onClick={() => { navigator.clipboard.writeText(form.accountNumber ?? ''); toast.success('Copy ho gaya'); }}
-                      className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 transition">
+                      className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center shrink-0 transition">
                       <Copy className="h-4 w-4" />
                     </button>
                   )}
@@ -547,12 +547,12 @@ export default function SupplierFormPage() {
                   </div>
                 </div>
                 {Number(opening) > 0 && (
-                  <div className="rounded-xl bg-[#ffffff] dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 p-2.5 text-center">
+                  <div className="rounded-xl bg-[#ffffff] dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 p-2.5 text-center">
                     <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-violet-600">Khata yahan se shuru hoga</div>
                     <div className="text-xl font-black text-violet-700 dark:text-violet-300 tabular-nums">
                       {formatPKR(Number(opening))}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">itna hum ne dena hai</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">itna hum ne dena hai</div>
                   </div>
                 )}
               </div>
@@ -570,7 +570,7 @@ export default function SupplierFormPage() {
         {/* ─────── SIDEBAR: LIVE PREVIEW ─────── */}
         <div className="space-y-4 xl:sticky xl:top-4">
           <Panel icon={Sparkles} title="Jaisa Dikhega" desc="List me is tarah nazar aayega" tone="indigo">
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-800 overflow-hidden">
               <div className={`h-1.5 ${Number(opening) > 0 ? 'bg-gradient-to-r from-rose-500 to-red-600' : 'bg-gradient-to-r from-teal-500 to-emerald-600'}`} />
               <div className="p-3.5">
                 <div className="flex items-center gap-3">
@@ -582,20 +582,20 @@ export default function SupplierFormPage() {
                       : initials(form.name || '?')}
                   </div>
                   <div className="min-w-0">
-                    <div className="font-black text-slate-900 dark:text-white truncate">
+                    <div className="font-black text-slate-900 dark:text-ink-white truncate">
                       {form.name || 'Supplier ka naam'}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                       {form.contactPerson ? `👤 ${form.contactPerson}` : form.city ? `📍 ${form.city}` : 'Tafseel nahi'}
                     </div>
                   </div>
                 </div>
                 <div className="flex gap-1.5 flex-wrap mt-2.5 text-[0.6875rem] font-extrabold">
-                  {form.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">{form.phone}</span>}
-                  {form.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{form.city}</span>}
+                  {form.phone && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 font-mono">{form.phone}</span>}
+                  {form.city && <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">{form.city}</span>}
                   {form.paymentTerms && <span className="px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300">{form.paymentTerms}</span>}
                   {form.bankName && <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">{form.bankName}</span>}
-                  {!form.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">Band</span>}
+                  {!form.isActive && <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300">Band</span>}
                 </div>
                 {!isEdit && Number(opening) > 0 && (
                   <div className="mt-2.5 rounded-xl bg-rose-50 dark:bg-rose-500/10 p-2 text-center">
@@ -615,13 +615,13 @@ export default function SupplierFormPage() {
                 className="w-full h-12 rounded-2xl bg-gradient-to-r from-violet-600 to-purple-700 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg transition">
                 <BookOpen className="h-4 w-4" /> Khata kholein
               </Link>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2 text-center">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-2 text-center">
                 Baqi yahan se nahi badalta — har tabdeeli khate me darj honi chahiye taake hisab saaf rahe.
               </p>
             </Panel>
           )}
 
-          <div className="rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 space-y-2">
+          <div className="rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 space-y-2">
             <button onClick={() => submit(false)} disabled={mut.isPending || !valid}
               className="w-full h-14 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-700 hover:from-teal-500 hover:to-emerald-600 disabled:opacity-40 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-teal-500/30 transition active:scale-[0.98]">
               {mut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
@@ -629,12 +629,12 @@ export default function SupplierFormPage() {
             </button>
             {!isEdit && (
               <button onClick={() => submit(true)} disabled={mut.isPending || !valid}
-                className="w-full h-12 rounded-2xl bg-[#ffffff] dark:bg-slate-900 border-2 border-teal-300 dark:border-teal-500/40 text-teal-700 dark:text-teal-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 disabled:opacity-40 transition">
+                className="w-full h-12 rounded-2xl bg-[#ffffff] dark:bg-ink-900 border-2 border-teal-300 dark:border-teal-500/40 text-teal-700 dark:text-teal-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 disabled:opacity-40 transition">
                 <Plus className="h-4 w-4" /> Save + Aik Aur
               </button>
             )}
             <Link to={isEdit ? `/suppliers/${id}` : '/suppliers'}
-              className="w-full h-11 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
+              className="w-full h-11 rounded-2xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
               <X className="h-4 w-4" /> Cancel
             </Link>
             <div className="flex items-center justify-center gap-2 pt-1 text-[0.6875rem] font-bold text-slate-400">
@@ -646,9 +646,9 @@ export default function SupplierFormPage() {
       </div>
 
       {/* ─────── MOBILE STICKY SAVE ─────── */}
-      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-800 p-3 flex gap-2">
+      <div className="xl:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#ffffff] dark:bg-ink-900 border-t-2 border-slate-200 dark:border-ink-800 p-3 flex gap-2">
         <Link to={isEdit ? `/suppliers/${id}` : '/suppliers'}
-          className="h-12 px-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-extrabold inline-flex items-center justify-center transition">
+          className="h-12 px-4 rounded-2xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-sm font-extrabold inline-flex items-center justify-center transition">
           <X className="h-4 w-4" />
         </Link>
         <button onClick={() => submit(false)} disabled={mut.isPending || !valid}
@@ -695,7 +695,7 @@ export default function SupplierFormPage() {
 /* ─────── chhote purzay ─────── */
 function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">
       {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
       {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
     </label>

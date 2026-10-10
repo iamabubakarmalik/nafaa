@@ -313,7 +313,7 @@ export default function IngredientsPage() {
           </p>
           <div className="flex gap-1.5">
             <button onClick={copyOrder}
-              className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/40 text-xs font-black text-amber-800 dark:text-amber-200 inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-300 dark:border-amber-500/40 text-xs font-black text-amber-800 dark:text-amber-200 inline-flex items-center gap-1.5 transition">
               {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
               {copied ? 'Copy hui' : 'List copy'}
             </button>
@@ -332,11 +332,11 @@ export default function IngredientsPage() {
             className={`h-14 rounded-2xl border-2 font-black text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === v
                 ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-violet-400'
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {v === 'list' && (
-              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{shown.length}</span>
+              <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'}`}>{shown.length}</span>
             )}
           </button>
         ))}
@@ -344,15 +344,15 @@ export default function IngredientsPage() {
 
       {tab === 'list' ? (
         <>
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
             <div className="flex gap-2 flex-wrap items-center">
               <div className="relative flex-1 min-w-[220px]">
                 <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                   placeholder="Naam, supplier, brand… (/ dabao)"
-                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition" />
+                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition" />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                     <X className="h-4 w-4 text-slate-400" />
                   </button>
                 )}
@@ -361,7 +361,7 @@ export default function IngredientsPage() {
                 className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                   activeFilters > 0
                     ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-violet-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-violet-400'
                 }`}>
                 <Layers className="h-4 w-4" /> Chaant
                 {activeFilters > 0 && <span className="text-[0.6875rem] px-1.5 py-0.5 rounded-lg bg-violet-600 text-white">{activeFilters}</span>}
@@ -375,23 +375,23 @@ export default function IngredientsPage() {
                   className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     filter === v
                       ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-violet-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-violet-400'
                   }`}>{l}</button>
               ))}
             </div>
 
             {showFilters && (
-              <div className="pt-2 border-t-2 border-slate-100 dark:border-slate-800">
+              <div className="pt-2 border-t-2 border-slate-100 dark:border-ink-800">
                 <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Category</label>
                 <div className="flex gap-1.5 flex-wrap">
                   <button onClick={() => setCategoryFilter('all')}
                     className={`h-9 px-2.5 rounded-lg border-2 text-[0.6875rem] font-black transition ${
-                      categoryFilter === 'all' ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      categoryFilter === 'all' ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                     }`}>Sab</button>
                   {CATEGORIES.map((c) => (
                     <button key={c.value} onClick={() => setCategoryFilter(c.value)}
                       className={`h-9 px-2.5 rounded-lg border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
-                        categoryFilter === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        categoryFilter === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700' : 'border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                       }`}>{c.emoji} {c.label}</button>
                   ))}
                 </div>
@@ -404,14 +404,14 @@ export default function IngredientsPage() {
               <div className="h-12 w-12 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
             </div>
           ) : shown.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 sm:p-14 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 sm:p-14 text-center">
               <div className="h-16 w-16 rounded-3xl bg-violet-100 dark:bg-violet-500/20 mx-auto flex items-center justify-center">
                 <Wheat className="h-8 w-8 text-violet-600 dark:text-violet-400" />
               </div>
-              <p className="mt-4 font-black text-slate-800 dark:text-slate-100 text-lg sm:text-xl">
+              <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg sm:text-xl">
                 {search || activeFilters > 0 ? 'Kuch nahi mila' : 'Abhi koi saamaan nahi'}
               </p>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold mt-1.5 max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5 max-w-md mx-auto">
                 Maida, cheeni, makkhan daalein — phir cake ki recipe me lag sakenge aur khatam
                 hone par khud warning aa jayegi.
               </p>
@@ -420,12 +420,12 @@ export default function IngredientsPage() {
               </Button>
             </div>
           ) : (
-            <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {shown.map((r) => {
                   const cat = catOf(r.category);
                   return (
-                    <div key={r.id} className="p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition avoid-break">
+                    <div key={r.id} className="p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition avoid-break">
                       <div className="flex items-center gap-3 flex-wrap">
                         <span className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 text-lg ${
                           r.isOut ? 'bg-rose-100 dark:bg-rose-500/20' : r.isLow ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-violet-100 dark:bg-violet-500/20'
@@ -433,7 +433,7 @@ export default function IngredientsPage() {
 
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.name}</span>
+                            <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.name}</span>
                             {r.isCritical && <Chip tone="rose">Zaroori</Chip>}
                             {r.requiresRefrigeration && <Chip tone="sky"><Snowflake className="h-2.5 w-2.5" /> Fridge</Chip>}
                             {r.isOut && <Chip tone="rose">Khatam</Chip>}
@@ -448,7 +448,7 @@ export default function IngredientsPage() {
 
                         <div className="text-right shrink-0">
                           <div className={`text-lg font-black tabular-nums ${
-                            r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-white'
+                            r.isOut ? 'text-rose-600' : r.isLow ? 'text-amber-600' : 'text-slate-900 dark:text-ink-white'
                           }`}>{fmtQty(r.have)} <span className="text-xs">{r.unit}</span></div>
                           <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">{formatPKR(r.value)}</div>
                         </div>
@@ -464,11 +464,11 @@ export default function IngredientsPage() {
                           <Trash2 className="h-3.5 w-3.5" /> Zaya hua
                         </button>
                         <button onClick={() => setStockOn({ item: r, mode: 'adjust' })}
-                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
+                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
                           <Scale className="h-3.5 w-3.5" /> Gin kar theek
                         </button>
                         <button onClick={() => setEditing(r)}
-                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
+                          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 hover:border-violet-400 transition">
                           <Edit3 className="h-3.5 w-3.5" /> Edit
                         </button>
                         {r.supplierPhone && (
@@ -479,7 +479,7 @@ export default function IngredientsPage() {
                           </a>
                         )}
                         <button onClick={() => { if (confirm(`"${r.name}" hata dein?`)) removeMut.mutate(r.id); }}
-                          className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:border-rose-400 ml-auto transition">
+                          className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:border-rose-400 ml-auto transition">
                           <Trash2 className="h-3.5 w-3.5 text-rose-500" />
                         </button>
                       </div>
@@ -615,13 +615,13 @@ function IngredientForm({ item, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/15 dark:to-purple-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
             <Wheat className="h-5 w-5" /> {isEdit ? 'Saamaan edit karein' : 'Naya saamaan'}
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -636,7 +636,7 @@ function IngredientForm({ item, onClose, onDone }: any) {
               {CATEGORIES.map((c) => (
                 <button key={c.value} onClick={() => set({ category: c.value })}
                   className={`h-10 px-1 rounded-lg border-2 text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
-                    f.category === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                    f.category === c.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300' : 'border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                   }`}>{c.emoji} <span className="truncate">{c.label}</span></button>
               ))}
             </div>
@@ -668,7 +668,7 @@ function IngredientForm({ item, onClose, onDone }: any) {
           </div>
 
           {isEdit && (
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 -mt-1">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 -mt-1">
               Stock yahan se nahi badalta — "Maal aaya" ya "Gin kar theek" se badlein, taake
               record me wajah bhi aa jaye.
             </p>
@@ -776,13 +776,13 @@ function StockModal({ item, mode, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2.5">
-          <span className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-            <Icon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+          <span className="h-10 w-10 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center">
+            <Icon className="h-5 w-5 text-slate-600 dark:text-ink-300" />
           </span>
           <div className="min-w-0">
-            <h3 className="font-black text-slate-900 dark:text-white">{cfg.title}</h3>
+            <h3 className="font-black text-slate-900 dark:text-ink-white">{cfg.title}</h3>
             <p className="text-[0.6875rem] font-bold text-slate-500 truncate">
               {item.name} · abhi {fmtQty(Number(item.currentStock))} {item.unit}
             </p>
@@ -794,13 +794,13 @@ function StockModal({ item, mode, onClose, onDone }: any) {
             <Field label={`Gin kar kitna nikla (${item.unit})`}>
               <input type="number" min={0} step="any" autoFocus value={newStock}
                 onChange={(e) => setNewStock(e.target.value === '' ? '' : Number(e.target.value))}
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
             </Field>
           ) : (
             <Field label={`Kitna (${item.unit})`}>
               <input type="number" min={0} step="any" autoFocus value={qty}
                 onChange={(e) => setQty(e.target.value === '' ? '' : Number(e.target.value))}
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
             </Field>
           )}
 
@@ -825,11 +825,11 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                   Ye hissa pehle tha hi nahi. Saamaan ka stock to barh
                   jata tha, magar paisa kitaab me kahin darj nahi hota —
                   na cash register me, na Money page me. */}
-              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-3">
+              <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 space-y-3">
                 <div className="flex items-center gap-2">
                   <Wallet className="h-4 w-4 text-emerald-600" />
-                  <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white">Paisa kaise diya</span>
-                  <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-white">
+                  <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-ink-white">Paisa kaise diya</span>
+                  <span className="ml-auto text-sm font-black tabular-nums text-slate-900 dark:text-ink-white">
                     {formatPKR(totalCost)}
                   </span>
                 </div>
@@ -838,7 +838,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                   {([['FULL', 'Poora diya'], ['PARTIAL', 'Kuch diya'], ['UDHAAR', 'Poora udhaar']] as const).map(([v, l]) => (
                     <button key={v} type="button" onClick={() => setPayMode(v as any)}
                       className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${
-                        payMode === v ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                        payMode === v ? 'bg-emerald-600 text-white' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                       }`}>{l}</button>
                   ))}
                 </div>
@@ -856,7 +856,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                     {PAY_WAYS.map(([v, l, Icon]) => (
                       <button key={v} type="button" onClick={() => setPayWay(v)}
                         className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
-                          payWay === v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                          payWay === v ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                         }`}>
                         <Icon className="h-3.5 w-3.5" /> {l}
                       </button>
@@ -877,7 +877,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                   </Field>
                 )}
 
-                <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5 space-y-1">
+                <div className="rounded-xl bg-white dark:bg-ink-900 p-2.5 space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="text-[0.6875rem] font-bold text-slate-500">Abhi diya</span>
                     <span className="text-[0.8125rem] font-black tabular-nums text-emerald-600 dark:text-emerald-400">{formatPKR(paid)}</span>
@@ -890,7 +890,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
                   )}
                 </div>
 
-                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                   {paid > 0 && udhaar > 0
                     ? <>Diya hua paisa <strong>kharch</strong> me jayega{payWay === 'CASH' ? ' (cash register se ghatega)' : ''}, aur baqi supplier ke <strong>khate</strong> me.</>
                     : udhaar > 0
@@ -933,7 +933,7 @@ function StockModal({ item, mode, onClose, onDone }: any) {
 }
 
 /* ═══ CHHOTE HISSE ═══ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500';
 
 function Field({ label, children }: any) {
   return (
@@ -948,12 +948,12 @@ function Toggle({ icon: Icon, label, value, onChange }: any) {
   return (
     <button type="button" onClick={() => onChange(!value)}
       className={`text-left rounded-xl border-2 p-2.5 flex items-center gap-2 transition ${
-        value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+        value ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
       }`}>
       <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-        value ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+        value ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'
       }`}><Icon className="h-4 w-4" /></span>
-      <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+      <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white leading-tight">{label}</span>
     </button>
   );
 }
@@ -977,14 +977,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
   const Comp: any = onClick ? 'button' : 'div';
   return (
     <Comp onClick={onClick}
-      className={`rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 shadow-sm text-left w-full transition-all ${
+      className={`rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm text-left w-full transition-all ${
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : ''
       }`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -996,8 +996,8 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-violet-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1012,17 +1012,17 @@ function EmptyBox({ text }: { text?: string }) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/15 dark:to-purple-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Saamaan ka safha
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Maida, cheeni, makkhan. <strong>Ye bikne ki cheezein nahi</strong> — POS aur catalog
             me kabhi nazar nahi aatin.
           </p>
@@ -1046,13 +1046,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
           <Tip icon={AlertTriangle} title="Zaroori cheez">
             "Bagair kaam nahi chalta" laga dein — khatam hone par sab se upar aayegi.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya saamaan</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> naya saamaan</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1069,8 +1069,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

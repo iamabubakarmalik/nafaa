@@ -51,7 +51,7 @@ export function PosUnitPickerModal({ product, units, onConfirm, onClose }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 text-white flex items-center gap-4 shrink-0">
           <div className="h-16 w-16 rounded-2xl bg-white/15 overflow-hidden shrink-0 flex items-center justify-center">
             {product.images?.[0]?.url ? <img src={product.images[0].url} alt="" className="w-full h-full object-cover" /> : <Package className="h-8 w-8 text-white/70" />}
@@ -75,7 +75,7 @@ export function PosUnitPickerModal({ product, units, onConfirm, onClose }: {
                   <button key={u.id} onClick={() => setSelectedId(u.id)}
                     className={['h-[88px] rounded-2xl border-4 transition-all flex flex-col items-center justify-center gap-1 active:scale-95',
                       active ? 'border-sky-600 bg-sky-600 text-white shadow-lg shadow-sky-500/40 scale-105'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:border-sky-400 shadow-sm'].join(' ')}>
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-800 dark:text-ink-200 hover:border-sky-400 shadow-sm'].join(' ')}>
                     <span className="text-2xl">{u.emoji}</span>
                     <span className="text-sm font-extrabold uppercase">{u.unitName}</span>
                     <span className={['text-xs font-bold tabular-nums', active ? 'text-cyan-100' : 'text-emerald-700 dark:text-emerald-400'].join(' ')}>{formatPKR(u.price)}</span>
@@ -92,7 +92,7 @@ export function PosUnitPickerModal({ product, units, onConfirm, onClose }: {
                 <button key={p} onClick={() => setQtyStr(String(p))}
                   className={['h-[64px] rounded-2xl border-4 font-extrabold text-lg tabular-nums transition-all active:scale-95',
                     active ? 'border-emerald-600 bg-emerald-600 text-white shadow-lg shadow-emerald-500/40'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:border-emerald-400 shadow-sm'].join(' ')}>
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-800 dark:text-ink-200 hover:border-emerald-400 shadow-sm'].join(' ')}>
                   {p}
                   <div className={['text-[0.6875rem] font-bold uppercase', active ? 'text-emerald-100' : 'text-slate-500'].join(' ')}>{unit.unitName}</div>
                 </button>
@@ -105,17 +105,17 @@ export function PosUnitPickerModal({ product, units, onConfirm, onClose }: {
             : 'bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-emerald-300 dark:border-emerald-500/40'].join(' ')}>
             <div className="flex items-center justify-between gap-3">
               <div className="flex-1">
-                <div className="text-xs uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider">Quantity</div>
+                <div className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider">Quantity</div>
                 <input type="number" step="any" value={qtyStr} autoFocus
                   onChange={(e) => setQtyStr(e.target.value)}
                   onFocus={(e) => e.target.select()}
-                  className="mt-1 h-14 w-full rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-3xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+                  className="mt-1 h-14 w-full rounded-xl border-2 border-slate-300 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-3xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
                 {unit.conversionRate !== 1 && (
-                  <div className="text-xs font-bold text-slate-600 dark:text-slate-400 mt-1">= {baseQty.toFixed(2)} {product.unit}</div>
+                  <div className="text-xs font-bold text-slate-600 dark:text-ink-400 mt-1">= {baseQty.toFixed(2)} {product.unit}</div>
                 )}
               </div>
               <div className="text-right shrink-0">
-                <div className="text-xs uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider">Total</div>
+                <div className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider">Total</div>
                 <div className="text-3xl sm:text-4xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none mt-1">{formatPKR(lineTotal)}</div>
               </div>
             </div>

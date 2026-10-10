@@ -52,7 +52,7 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+    <section className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
       <div className="mb-2 flex items-center gap-2">
         <span className="flex-1 text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Staff (customer ko nahi dikhta)</span>
         {canEdit && <Button size="xs" variant="ghost" leftIcon={<Pencil className="h-3.5 w-3.5" />} onClick={() => setEditOpen(true)}>Details badlein</Button>}
@@ -65,16 +65,16 @@ export function OrderExtras({ order: o, onChanged }: { order: OnlineOrderDetail;
       <div className="flex flex-wrap items-center gap-1.5">
         <Tag className="h-3.5 w-3.5 text-slate-400" />
         {tags.map((t) => (
-          <span key={t} className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-700 dark:bg-neutral-800 dark:text-slate-200">
+          <span key={t} className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[0.6875rem] font-bold text-slate-700 dark:bg-ink-800 dark:text-ink-200">
             {t}
             <button onClick={() => saveTags.mutate(tags.filter((x) => x !== t))} aria-label={`${t} hatao`}><X className="h-3 w-3" /></button>
           </span>
         ))}
         {QUICK_TAGS.filter((t) => !tags.includes(t)).slice(0, 4).map((t) => (
-          <button key={t} onClick={() => addTag(t)} className="rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-500 hover:border-slate-500 dark:border-neutral-700">+ {t}</button>
+          <button key={t} onClick={() => addTag(t)} className="rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-[0.6875rem] font-semibold text-slate-500 hover:border-slate-500 dark:border-ink-700">+ {t}</button>
         ))}
         <input value={tagDraft} onChange={(e) => setTagDraft(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') addTag(tagDraft); }}
-          placeholder="Naya tag…" maxLength={30} className="h-6 w-24 rounded-md border border-slate-200 bg-transparent px-2 text-[0.6875rem] outline-none dark:border-neutral-700" />
+          placeholder="Naya tag…" maxLength={30} className="h-6 w-24 rounded-md border border-slate-200 bg-transparent px-2 text-[0.6875rem] outline-none dark:border-ink-700" />
       </div>
 
       {/* Notes */}
@@ -154,7 +154,7 @@ function BlockModal({ o, onClose, onDone }: { o: OnlineOrderDetail; onClose: () 
       footer={<div className="flex w-full justify-end gap-2"><Button variant="ghost" onClick={onClose}>Nahi</Button><Button variant="danger" loading={block.isPending} onClick={() => block.mutate()}>Block</Button></div>}>
       <div className="flex flex-wrap gap-1.5">
         {['Fake order', 'Parcel wapas kiya', 'Phone nahi uthata', 'Badtameezi'].map((r) => (
-          <button key={r} onClick={() => setReason(r)} className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', reason === r ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-700 dark:border-neutral-700 dark:text-slate-200')}>{r}</button>
+          <button key={r} onClick={() => setReason(r)} className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', reason === r ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}>{r}</button>
         ))}
       </div>
       <input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Wajah (optional)" className={cn(inputCls, 'mt-2')} maxLength={200} />
@@ -163,6 +163,6 @@ function BlockModal({ o, onClose, onDone }: { o: OnlineOrderDetail; onClose: () 
 }
 
 function L({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>{children}</label>;
+  return <label className="block"><span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">{label}</span>{children}</label>;
 }
 

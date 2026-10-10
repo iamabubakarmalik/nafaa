@@ -55,7 +55,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
           className={cn(
             'rounded-full object-cover',
             sizeClasses[size],
-            ring && 'ring-2 ring-white dark:ring-neutral-900 ring-offset-2 ring-offset-brand-500',
+            ring && 'ring-2 ring-white dark:ring-ink-900 ring-offset-2 ring-offset-brand-500',
           )}
         />
       ) : (
@@ -64,7 +64,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
             'rounded-full bg-gradient-to-br text-white font-extrabold flex items-center justify-center shadow-sm',
             colorFromName(name),
             sizeClasses[size],
-            ring && 'ring-2 ring-white dark:ring-neutral-900 ring-offset-2 ring-offset-brand-500',
+            ring && 'ring-2 ring-white dark:ring-ink-900 ring-offset-2 ring-offset-brand-500',
           )}
         >
           {initials(name)}
@@ -72,7 +72,7 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
       )}
       {status && (
         <span className={cn(
-          'absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-neutral-900',
+          'absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-white dark:ring-ink-900',
           statusColor[status],
         )} />
       )}

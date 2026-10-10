@@ -234,7 +234,7 @@ export default function RestaurantStockReportPage() {
             <button key={t.v} onClick={() => setTab(t.v)}
               className={`rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on ? 'bg-gradient-to-br from-orange-600 to-amber-700 border-transparent text-white shadow-xl'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-orange-400'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-orange-400'
               }`}>
               <div className="flex items-center gap-3">
                 <span className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
@@ -243,7 +243,7 @@ export default function RestaurantStockReportPage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.l}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black ${on ? 'bg-black/25' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'}`}>{t.n}</span>
                   </span>
                   <span className={`block text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.h}</span>
                 </span>
@@ -253,32 +253,32 @@ export default function RestaurantStockReportPage() {
         })}
       </div>
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 print:hidden">
         <div className="relative">
           <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Cheez ka naam…"
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition" />
+            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition" />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         {filtered.length === 0 ? (
           <div className="p-12 text-center">
             <Boxes className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-base font-black text-slate-700 dark:text-slate-200">
+            <p className="text-base font-black text-slate-700 dark:text-ink-200">
               {tab === 'saamaan' ? 'Koi kacha saamaan nahi' : 'Koi bana banaya maal nahi'}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-100 dark:border-slate-800">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-100 dark:border-ink-800">
                 <tr>
                   <Th>Cheez</Th>
                   <Th className="text-right">Stock</Th>
@@ -287,14 +287,14 @@ export default function RestaurantStockReportPage() {
                   <Th>Haalat</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {filtered.map((r: any) => {
                   const blocks = blocking.get(r.name) ?? [];
                   return (
-                    <tr key={r.id} className={`transition ${r._out ? 'bg-rose-50/40 dark:bg-rose-500/5' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}`}>
+                    <tr key={r.id} className={`transition ${r._out ? 'bg-rose-50/40 dark:bg-rose-500/5' : 'hover:bg-slate-50 dark:hover:bg-ink-800/40'}`}>
                       <td className="px-3 py-2.5">
                         <Link to={`/products/${r.id}`} className="min-w-0 block group">
-                          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
+                          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-orange-600 transition">
                             {r.name}
                           </span>
                           {blocks.length > 0 && (
@@ -308,14 +308,14 @@ export default function RestaurantStockReportPage() {
                         <span className={`text-[0.8125rem] font-black tabular-nums ${
                           r._out ? 'text-rose-600 dark:text-rose-400'
                             : r._low ? 'text-amber-600 dark:text-amber-400'
-                              : 'text-slate-900 dark:text-white'
+                              : 'text-slate-900 dark:text-ink-white'
                         }`}>{Number(r._stock.toFixed(2))}</span>
                         <span className="text-[0.6875rem] font-bold text-slate-400 ml-1">{r.unit}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 tabular-nums">
                         {money(r._cost)}
                       </td>
-                      <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
+                      <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-ink-white tabular-nums">
                         {money(r._value)}
                       </td>
                       <td className="px-3 py-2.5">
@@ -331,9 +331,9 @@ export default function RestaurantStockReportPage() {
                   );
                 })}
               </tbody>
-              <tfoot className="bg-slate-50 dark:bg-slate-800/60 border-t-2 border-slate-200 dark:border-slate-700">
+              <tfoot className="bg-slate-50 dark:bg-ink-800/60 border-t-2 border-slate-200 dark:border-ink-700">
                 <tr>
-                  <td className="px-3 py-3 text-[0.6875rem] font-black uppercase tracking-wide text-slate-600 dark:text-slate-300" colSpan={3}>
+                  <td className="px-3 py-3 text-[0.6875rem] font-black uppercase tracking-wide text-slate-600 dark:text-ink-300" colSpan={3}>
                     Kul
                   </td>
                   <td className="px-3 py-3 text-right text-base font-black text-orange-700 dark:text-orange-400 tabular-nums">
@@ -356,7 +356,7 @@ const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border borde
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -364,14 +364,14 @@ function Th({ children, className = '' }: any) {
 
 function Kpi({ icon: Icon, label, value, sub, tone }: any) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</span>
       </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none truncate">
+      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none truncate">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
@@ -383,7 +383,7 @@ function Teacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -403,18 +403,18 @@ function Teacher({ onClose }: any) {
             { i: Flame, t: 'Laal naam ka matlab', d: 'Jis saamaan ke neeche laal likha ho ke "3 dish ruki" — wo sab se pehle mangwana hai, kyunke us ek cheez se kai dish ruk rahi hain.' },
             { i: Wallet, t: 'Kul qeemat se tarteeb', d: 'List us hisab se lagti hai ke kis cheez me sab se zyada paisa phansa hai. Upar wali cheezein sab se mehngi hain — un ka hisab sab se ahem hai.' },
           ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-600 to-amber-700 text-white flex items-center justify-center shrink-0">
                 <x.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-orange-600 to-amber-700">Samajh gaya</Button>
         </footer>
       </div>

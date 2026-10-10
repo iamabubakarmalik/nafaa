@@ -56,7 +56,7 @@ export default function AppointmentDetailPage() {
   });
 
   if (isLoading || !apt) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const statusCfg = STATUS_CONFIG[apt.status];
@@ -122,9 +122,9 @@ export default function AppointmentDetailPage() {
       </section>
 
       {/* Status flow */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Appointment Progress</h3>
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Appointment Progress</h3>
           {nextStatus && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(apt.status) && (
             <div className="flex gap-2">
               <Button size="sm" onClick={() => statusMutation.mutate(nextStatus)} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
@@ -168,7 +168,7 @@ export default function AppointmentDetailPage() {
                   <div className={
                     'h-10 w-10 rounded-full flex items-center justify-center transition ' +
                     (isCurrent ? cfg.color + ' text-white ring-4 ring-pink-200 dark:ring-pink-900 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-neutral-700 text-slate-500')
+                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
                   }>
                     {isActive && !isCurrent ? <CheckCircle2 className="h-5 w-5" /> : <StatusIcon className="h-4 w-4" />}
                   </div>
@@ -180,7 +180,7 @@ export default function AppointmentDetailPage() {
                   </span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-12 mx-1 ' + (i < currentIdx ? 'bg-pink-500' : 'bg-slate-200 dark:bg-neutral-700')} />
+                  <div className={'h-0.5 w-12 mx-1 ' + (i < currentIdx ? 'bg-pink-500' : 'bg-slate-200 dark:bg-ink-700')} />
                 )}
               </div>
             );
@@ -191,13 +191,13 @@ export default function AppointmentDetailPage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <section className="space-y-4">
           {/* Customer */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-pink-600" />
               Customer Information
             </h3>
             <div className="space-y-2 text-sm">
-              <div className="font-extrabold text-slate-900 dark:text-white text-base">{apt.customerName || 'Walk-in'}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-base">{apt.customerName || 'Walk-in'}</div>
               {apt.customerPhone && (
                 <a href={'tel:' + apt.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
                   <Phone className="h-3 w-3" />
@@ -219,8 +219,8 @@ export default function AppointmentDetailPage() {
           </div>
 
           {/* Timing */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4 text-blue-600" />
               Timing
             </h3>
@@ -251,22 +251,22 @@ export default function AppointmentDetailPage() {
           </div>
 
           {/* Services */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Scissors className="h-5 w-5 text-fuchsia-600" />
                 Services
               </h3>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold">
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-xs font-extrabold">
                 {apt.services.length} services
               </span>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {apt.services.map((svc: any) => (
                 <div key={svc.id} className="p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white">{svc.serviceName}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white">{svc.serviceName}</div>
                       {svc.staffName && (
                         <div className="mt-1 text-xs font-bold text-violet-600 inline-flex items-center gap-1">
                           <User className="h-3 w-3" />
@@ -410,9 +410,9 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Add Payment</h3>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -423,7 +423,7 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
-                <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold hover:bg-slate-200">
+                <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200">
                   {(f * 100).toFixed(0)}%
                 </button>
               ))}
@@ -435,12 +435,12 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={
                   'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                  (method === m ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/40 text-pink-800' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')
+                  (method === m ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/40 text-pink-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
                 }>{m}</button>
               ))}
             </div>
           </div>
-          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
@@ -465,9 +465,9 @@ function RatingModal({ apptId, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Rate Service</h3>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Rate Service</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -483,7 +483,7 @@ function RatingModal({ apptId, onClose, onDone }: any) {
             </div>
             <div className="text-2xl font-extrabold text-amber-700">{rating}/5</div>
           </div>
-          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback (optional)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback (optional)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600" onClick={() => rateMutation.mutate()} loading={rateMutation.isPending}>
@@ -521,9 +521,9 @@ function RescheduleModal({ apptId, scheduledStart, scheduledEnd, onClose, onDone
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Reschedule Appointment</h3>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Reschedule Appointment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -539,7 +539,7 @@ function RescheduleModal({ apptId, scheduledStart, scheduledEnd, onClose, onDone
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-11 w-full rounded-xl border-2 border-violet-300 bg-violet-50 dark:bg-violet-950/30 px-3 text-sm font-extrabold focus:outline-none focus:border-violet-500" />
             </div>
           </div>
-          <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason for rescheduling..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+          <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason for rescheduling..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => rescheduleMutation.mutate()} loading={rescheduleMutation.isPending}>

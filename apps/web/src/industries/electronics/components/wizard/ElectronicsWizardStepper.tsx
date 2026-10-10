@@ -38,18 +38,18 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
   };
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-2 overflow-hidden">
+    <div className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-2 overflow-hidden">
       {/* Progress */}
       <div className="px-2 pt-1.5 pb-2.5">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+          <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">
             Step {currentStep} / {STEPS.length}
           </span>
           <span className="text-[0.6875rem] font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">
             {pct}% mukammal
           </span>
         </div>
-        <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
           <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 transition-all duration-300"
             style={{ width: `${pct}%` }} />
         </div>
@@ -81,16 +81,16 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
                       : isPast
                         ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-800 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-500/20 border-2 border-blue-200 dark:border-blue-500/30'
                         : unlocked
-                          ? 'bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-2 border-transparent hover:bg-slate-100 dark:hover:bg-slate-800'
-                          : 'bg-slate-50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border-2 border-transparent opacity-60 cursor-not-allowed',
+                          ? 'bg-slate-50 dark:bg-ink-800/60 text-slate-500 dark:text-ink-400 border-2 border-transparent hover:bg-slate-100 dark:hover:bg-ink-800'
+                          : 'bg-slate-50 dark:bg-ink-800/40 text-slate-400 dark:text-ink-500 border-2 border-transparent opacity-60 cursor-not-allowed',
                 ].join(' ')}
               >
                 <div className={[
                   'h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition',
                   isActive ? 'bg-white/25 text-white'
-                    : hasError ? 'bg-white dark:bg-slate-800 text-rose-600 border-2 border-rose-300 dark:border-rose-500/50'
+                    : hasError ? 'bg-white dark:bg-ink-800 text-rose-600 border-2 border-rose-300 dark:border-rose-500/50'
                     : isPast && isComplete ? 'bg-blue-600 text-white'
-                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-2 border-slate-200 dark:border-slate-700',
+                    : 'bg-white dark:bg-ink-800 text-slate-500 dark:text-ink-400 border-2 border-slate-200 dark:border-ink-700',
                 ].join(' ')}>
                   {hasError ? <AlertCircle className="h-4 w-4 text-rose-600" />
                     : isPast && isComplete ? <Check className="h-4 w-4" />
@@ -100,7 +100,7 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
                 <div className="text-left min-w-0">
                   <div className={[
                     'text-[0.6875rem] uppercase tracking-wider font-extrabold',
-                    isActive ? 'text-white/90' : isPast ? 'text-blue-700 dark:text-blue-400' : 'text-slate-500 dark:text-slate-400',
+                    isActive ? 'text-white/90' : isPast ? 'text-blue-700 dark:text-blue-400' : 'text-slate-500 dark:text-ink-400',
                   ].join(' ')}>
                     Step {s.id}
                   </div>
@@ -110,14 +110,14 @@ export function ElectronicsWizardStepper({ currentStep, stepValidation, onStepCl
                   </div>
                   <div className={[
                     'text-[0.6875rem] font-bold leading-tight hidden sm:block truncate',
-                    isActive ? 'text-white/80' : hasError ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400',
+                    isActive ? 'text-white/80' : hasError ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-ink-400',
                   ].join(' ')}>{hasError ? 'Kuch cheez reh gayi' : s.desc}</div>
                 </div>
               </button>
 
               {idx < STEPS.length - 1 && (
                 <div className={['h-1 w-3 sm:w-4 rounded-full transition shrink-0',
-                  currentStep > s.id ? 'bg-blue-500' : 'bg-slate-200 dark:bg-slate-700'].join(' ')} />
+                  currentStep > s.id ? 'bg-blue-500' : 'bg-slate-200 dark:bg-ink-700'].join(' ')} />
               )}
             </div>
           );

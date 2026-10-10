@@ -140,7 +140,7 @@ export default function MobileKhataPage() {
       )}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-violet-700 dark:from-slate-950 dark:via-indigo-950 dark:to-violet-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-violet-700 dark:from-ink-950 dark:via-indigo-950 dark:to-violet-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-indigo-400/25 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-violet-400/20 blur-3xl pointer-events-none" />
 
@@ -205,13 +205,13 @@ export default function MobileKhataPage() {
 
       {/* ═══ TABS + SEARCH ═══ */}
       <div className="flex items-center gap-2 flex-wrap print:hidden">
-        <div className="flex gap-1.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-1">
+        <div className="flex gap-1.5 bg-white dark:bg-ink-900 rounded-xl border-2 border-slate-200 dark:border-ink-700 p-1">
           <button
             onClick={() => setTab('udhaar')}
             className={`h-9 px-3.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
               tab === 'udhaar'
                 ? 'bg-gradient-to-r from-indigo-600 to-violet-700 text-white shadow'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                : 'text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-800'
             }`}
           >
             <HandCoins className="h-3.5 w-3.5" /> Udhaar
@@ -222,7 +222,7 @@ export default function MobileKhataPage() {
             className={`h-9 px-3.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
               tab === 'emi'
                 ? 'bg-gradient-to-r from-indigo-600 to-violet-700 text-white shadow'
-                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                : 'text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-800'
             }`}
           >
             <CreditCard className="h-3.5 w-3.5" /> EMI
@@ -236,7 +236,7 @@ export default function MobileKhataPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Naam, number ya plan #..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-indigo-500 transition"
           />
         </div>
 
@@ -246,7 +246,7 @@ export default function MobileKhataPage() {
             className={`h-11 px-3.5 rounded-xl text-xs font-extrabold border-2 inline-flex items-center gap-1.5 transition ${
               onlyOverdue
                 ? 'bg-rose-600 text-white border-transparent shadow-lg shadow-rose-500/30'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'
+                : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-rose-300'
             }`}
           >
             <AlertTriangle className="h-3.5 w-3.5" /> Sirf late
@@ -256,30 +256,30 @@ export default function MobileKhataPage() {
 
       {/* ═══ UDHAAR LIST ═══ */}
       {tab === 'udhaar' && (
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
               <Users className="h-5 w-5" />
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
               Udhaar Wale{' '}
-              <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({debtors.length})</span>
+              <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({debtors.length})</span>
             </h3>
           </div>
 
           {debtors.length === 0 ? (
             <div className="p-12 text-center">
               <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              <p className="text-sm font-bold text-slate-700 dark:text-ink-300">
                 {search ? `"${search}" se koi nahi mila` : 'Kisi ka udhaar baqi nahi 🎉'}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {debtors.map((d) => {
                 const overLimit = d.creditLimit > 0 && d.balance > d.creditLimit;
                 return (
-                  <div key={d.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <div key={d.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center font-extrabold shrink-0">
                       {d.name.charAt(0).toUpperCase()}
                     </div>
@@ -287,11 +287,11 @@ export default function MobileKhataPage() {
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/customers/${d.id}`}
-                        className="font-extrabold text-slate-900 dark:text-white text-sm truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition inline-flex items-center gap-1"
+                        className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate hover:text-indigo-600 dark:hover:text-indigo-400 transition inline-flex items-center gap-1"
                       >
                         {d.name} <ChevronRight className="h-3 w-3 opacity-50" />
                       </Link>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         {d.phone && (
                           <span className="inline-flex items-center gap-1 font-mono">
                             <Phone className="h-3 w-3" /> {d.phone}
@@ -312,7 +312,7 @@ export default function MobileKhataPage() {
                       }`}>
                         {formatPKR(d.balance)}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">lena hai</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">lena hai</div>
                     </div>
 
                     <div className="flex gap-1.5 shrink-0 print:hidden">
@@ -347,35 +347,35 @@ export default function MobileKhataPage() {
 
       {/* ═══ EMI LIST ═══ */}
       {tab === 'emi' && (
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center">
               <CreditCard className="h-5 w-5" />
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
               EMI Plans{' '}
-              <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({emiPlans.length})</span>
+              <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({emiPlans.length})</span>
             </h3>
           </div>
 
           {emiPlans.length === 0 ? (
             <div className="p-12 text-center">
-              <CreditCard className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+              <CreditCard className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+              <p className="text-sm font-bold text-slate-700 dark:text-ink-300">
                 {onlyOverdue ? 'Koi qist late nahi 🎉' : search ? `"${search}" se koi plan nahi mila` : 'Koi active EMI plan nahi'}
               </p>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs font-semibold text-slate-500 dark:text-ink-400 mt-0.5">
                 POS se udhaar sale karne par EMI plan banane ka option aata hai
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {emiPlans.map((p) => {
                 const paidPct = p.totalAmount > 0 ? (p.paidAmount / p.totalAmount) * 100 : 0;
                 const late = p.overdueCount > 0;
                 const lateDays = p.nextDueDate ? daysLate(p.nextDueDate) : 0;
                 return (
-                  <div key={p.id} className="p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <div key={p.id} className="p-3 sm:p-4 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <div className="flex items-start gap-3">
                       <div className={`h-11 w-11 rounded-xl text-white flex items-center justify-center shrink-0 bg-gradient-to-br ${
                         late ? 'from-rose-500 to-red-600' : 'from-violet-500 to-fuchsia-600'
@@ -387,7 +387,7 @@ export default function MobileKhataPage() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <Link
                             to={`/emi-plans/${p.id}`}
-                            className="font-extrabold text-slate-900 dark:text-white text-sm truncate hover:text-violet-600 dark:hover:text-violet-400 transition"
+                            className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate hover:text-violet-600 dark:hover:text-violet-400 transition"
                           >
                             {p.customerName}
                           </Link>
@@ -406,7 +406,7 @@ export default function MobileKhataPage() {
                           )}
                         </div>
 
-                        <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                           {p.customerPhone && (
                             <span className="inline-flex items-center gap-1 font-mono">
                               <Phone className="h-3 w-3" /> {p.customerPhone}
@@ -426,11 +426,11 @@ export default function MobileKhataPage() {
 
                         {/* Progress */}
                         <div className="mt-2">
-                          <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                          <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mb-1">
                             <span>{formatPKR(p.paidAmount)} ada</span>
                             <span className="tabular-nums">{paidPct.toFixed(0)}%</span>
                           </div>
-                          <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                          <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                             <div
                               className={`h-full transition-all bg-gradient-to-r ${
                                 late ? 'from-rose-500 to-red-600' : 'from-violet-500 to-fuchsia-600'
@@ -447,7 +447,7 @@ export default function MobileKhataPage() {
                         }`}>
                           {formatPKR(p.remainingAmount)}
                         </div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">baqi</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">baqi</div>
                         {late && (
                           <div className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums mt-0.5">
                             {formatPKR(p.overdueAmount)} late
@@ -533,7 +533,7 @@ function ReceivePaymentModal({
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
       >
         <div className="relative overflow-hidden px-5 py-4 bg-gradient-to-br from-indigo-600 to-violet-700 text-white">
           <div className="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-violet-300/20 blur-3xl pointer-events-none" />
@@ -563,7 +563,7 @@ function ReceivePaymentModal({
 
           <div>
             <div className="flex items-baseline justify-between mb-1.5">
-              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+              <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">
                 Kitna mila
               </label>
               <button
@@ -579,8 +579,8 @@ function ReceivePaymentModal({
               inputMode="decimal"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className={`h-14 w-full rounded-2xl border-2 bg-white dark:bg-slate-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none transition ${
-                tooMuch ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700 focus:border-indigo-500'
+              className={`h-14 w-full rounded-2xl border-2 bg-white dark:bg-ink-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none transition ${
+                tooMuch ? 'border-rose-400' : 'border-slate-200 dark:border-ink-700 focus:border-indigo-500'
               }`}
             />
             {tooMuch && (
@@ -599,7 +599,7 @@ function ReceivePaymentModal({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="Note (optional)..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-indigo-500 transition"
           />
 
           <Button
@@ -645,13 +645,13 @@ const MINI_TONES: Record<string, string> = {
 
 function MiniStat({ label, value, icon: Icon, tone }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 flex items-center gap-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 flex items-center gap-3">
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${MINI_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">{label}</div>
-        <div className="font-extrabold text-slate-900 dark:text-white text-lg tabular-nums truncate">{value}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider truncate">{label}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-lg tabular-nums truncate">{value}</div>
       </div>
     </div>
   );

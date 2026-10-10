@@ -57,7 +57,7 @@ export default function CourierDetailPage() {
   const tab: Tab = want && tabs.some((t) => t.value === want) ? want : tabs[0]?.value ?? 'overview';
   const setTab = (t: Tab) => setParams((p) => { p.set('tab', t); return p; }, { replace: true });
 
-  if (isLoading) return <Page back={{ to: '/online-store/couriers', label: 'Couriers' }} title="…"><div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" /></Page>;
+  if (isLoading) return <Page back={{ to: '/online-store/couriers', label: 'Couriers' }} title="…"><div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" /></Page>;
   if (error || !c) {
     return (
       <Page back={{ to: '/online-store/couriers', label: 'Couriers' }} title="Courier nahi mila">
@@ -123,7 +123,7 @@ function HeaderActions({ c }: { c: CourierAccount }) {
       {c.connected && (
         <>
           <Btn loading={sync.isPending} onClick={() => sync.mutate()} icon={<RefreshCw className="h-4 w-4" />}>Abhi sync</Btn>
-          <span className="flex items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">
+          <span className="flex items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-ink-300">
             <Toggle checked={c.active} onChange={(v) => setActive.mutate(v)} disabled={setActive.isPending} /> Chalu
           </span>
         </>
@@ -152,7 +152,7 @@ function Overview({ c, onTab }: { c: CourierAccount; onTab: (t: Tab) => void }) 
 
       {isApi ? (
         <Card title="Kya kya khud hota hai">
-          <ul className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-slate-200 sm:grid-cols-2">
+          <ul className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-2">
             <Li>Order par &quot;{c.name} par book&quot; — CN khud</Li>
             {c.connect?.features.label
               ? <Li>{c.connect?.labelKind === 'pdf' ? 'Label PDF' : 'Label link'} ek click me print</Li>
@@ -171,7 +171,7 @@ function Overview({ c, onTab }: { c: CourierAccount; onTab: (t: Tab) => void }) 
         </Card>
       ) : (
         <Card title={`${c.name} kaise chalayein`}>
-          <ol className="space-y-2 text-[0.8125rem] text-slate-700 dark:text-slate-200">
+          <ol className="space-y-2 text-[0.8125rem] text-slate-700 dark:text-ink-200">
             <li>1. {c.name} ke portal par parcel book karein, CN lein</li>
             <li>2. Nafaa me order kholein → &quot;Rider/courier ko de diya&quot; → {c.name} chunein, CN daalein</li>
             <li>3. Deliver ho to &quot;Deliver ho gaya&quot;, wapas aaye to &quot;Wapas aaya (RTO)&quot; — stock khud wapas</li>
@@ -230,16 +230,16 @@ function BookTab({ c }: { c: CourierAccount }) {
           <Btn size="sm" variant="success" loading={bulk.isPending} onClick={() => bulk.mutate()} icon={<Zap className="h-3.5 w-3.5" />}>{c.name} par book</Btn>
         </div>
       )}
-      <div className="border-t border-slate-100 dark:border-slate-800">
+      <div className="border-t border-slate-100 dark:border-ink-800">
         {isLoading ? (
-          <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>
+          <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
         ) : error ? (
           <EmptyState title="List nahi khuli">{apiErrorMessage(error)}</EmptyState>
         ) : rows.length === 0 ? (
           <EmptyState icon={<CheckCircle2 className="h-5 w-5" />} title="Sab bhej diye">Koi accept hua order courier ka intezar nahi kar raha.</EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-            <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40 sm:px-5">
+          <ul className="divide-y divide-slate-100 dark:divide-ink-800">
+            <li className="flex items-center gap-3 bg-slate-50 px-4 py-2 text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40 sm:px-5">
               <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chuno"
                 checked={rows.every((r) => picked.has(r.id))}
                 onChange={(e) => setPicked(e.target.checked ? new Set(rows.map((r) => r.id)) : new Set())} />
@@ -250,18 +250,18 @@ function BookTab({ c }: { c: CourierAccount }) {
             </li>
             {rows.map((o) => (
               <li key={o.id}>
-                <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 sm:px-5">
+                <label className="flex cursor-pointer items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-ink-800/40 sm:px-5">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(o.id)} onChange={() => toggle(o.id)} />
                   <button type="button" onClick={(e) => { e.preventDefault(); navigate(`/online-orders?order=${o.id}`); }}
-                    className="w-20 text-left text-[0.8125rem] font-semibold text-slate-900 hover:underline dark:text-white">
+                    className="w-20 text-left text-[0.8125rem] font-semibold text-slate-900 hover:underline dark:text-ink-white">
                     #{o.externalOrderNumber ?? o.externalOrderId}
                   </button>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[0.8125rem] text-slate-700 dark:text-slate-200">{o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ' · shehar nahi likha'}</span>
+                    <span className="block truncate text-[0.8125rem] text-slate-700 dark:text-ink-200">{o.customerName}{o.customerCity ? ` · ${o.customerCity}` : ' · shehar nahi likha'}</span>
                     {failed[o.id] && <span className="block text-[0.75rem] font-medium text-rose-600">{failed[o.id]}</span>}
                   </span>
                   <span className="hidden w-16 text-right text-[0.8125rem] tabular-nums text-slate-600 sm:block">{o.pieces || 1}</span>
-                  <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-white">{o.paymentStatus === 'PAID' ? 'Paid' : rs(o.total)}</span>
+                  <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-ink-white">{o.paymentStatus === 'PAID' ? 'Paid' : rs(o.total)}</span>
                 </label>
               </li>
             ))}
@@ -336,7 +336,7 @@ function PortalParcels({ c }: { c: CourierAccount }) {
           {PORTAL_FILTERS.map((f) => (
             <button key={f.value} onClick={() => { setFilter(f.value); setPage(0); }}
               className={cn('rounded-md px-2.5 py-1 text-[0.78125rem] font-medium',
-                filter === f.value ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800')}>
+                filter === f.value ? 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900' : 'text-slate-600 hover:bg-slate-100 dark:text-ink-300 dark:hover:bg-ink-800')}>
               {f.label}
             </button>
           ))}
@@ -354,9 +354,9 @@ function PortalParcels({ c }: { c: CourierAccount }) {
           <Btn size="sm" variant="success" loading={labels.isPending} onClick={() => labels.mutate()} icon={<Printer className="h-3.5 w-3.5" />}>Labels print</Btn>
         </div>
       )}
-      <div className={cn('mt-3 border-t border-slate-100 dark:border-slate-800', isFetching && 'opacity-70')}>
+      <div className={cn('mt-3 border-t border-slate-100 dark:border-ink-800', isFetching && 'opacity-70')}>
         {isLoading ? (
-          <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>
+          <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
         ) : error ? (
           <EmptyState title="Parcels nahi khule">{apiErrorMessage(error)}</EmptyState>
         ) : rows.length === 0 ? (
@@ -366,7 +366,7 @@ function PortalParcels({ c }: { c: CourierAccount }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-[0.8125rem]">
-              <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+              <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
                 <tr>
                   <th className="w-10 px-4 py-2 sm:px-5">
                     <input type="checkbox" className="h-4 w-4 rounded border-slate-300" aria-label="Sab chuno"
@@ -380,18 +380,18 @@ function PortalParcels({ c }: { c: CourierAccount }) {
                   <th className="px-4 py-2 text-right sm:px-5">COD</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {rows.map((r) => {
                   const st = COURIER_STATE[r.state] ?? COURIER_STATE.UNKNOWN;
                   return (
-                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/30">
                       <td className="px-4 py-2.5 sm:px-5"><input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(r.trackingNumber)} onChange={() => toggle(r.trackingNumber)} /></td>
                       <td className="px-3 py-2.5">
-                        <button onClick={() => navigator.clipboard?.writeText(r.trackingNumber).then(() => toast.success('CN copy ho gaya'))} className="font-mono text-[0.78125rem] text-slate-800 hover:underline dark:text-slate-100">{r.trackingNumber}</button>
+                        <button onClick={() => navigator.clipboard?.writeText(r.trackingNumber).then(() => toast.success('CN copy ho gaya'))} className="font-mono text-[0.78125rem] text-slate-800 hover:underline dark:text-ink-100">{r.trackingNumber}</button>
                         <div className="text-[0.71875rem] text-slate-400">{whenText(r.bookedAt)}{r.orderRef ? ` · ref ${r.orderRef}` : ''}</div>
                       </td>
                       <td className="px-3 py-2.5">
-                        <div className="max-w-[200px] truncate text-slate-800 dark:text-slate-100">{r.customerName ?? '—'}</div>
+                        <div className="max-w-[200px] truncate text-slate-800 dark:text-ink-100">{r.customerName ?? '—'}</div>
                         <div className="text-[0.71875rem] text-slate-500">{[r.customerPhone, r.city].filter(Boolean).join(' · ') || '—'}</div>
                       </td>
                       <td className="px-3 py-2.5">
@@ -403,7 +403,7 @@ function PortalParcels({ c }: { c: CourierAccount }) {
                           ? <button onClick={() => navigate(`/online-orders?order=${r.order!.id}`)} className="font-semibold text-emerald-700 hover:underline dark:text-emerald-400">#{r.order.number}</button>
                           : <span className="text-[0.75rem] text-slate-400">Portal se book</span>}
                       </td>
-                      <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 dark:text-white sm:px-5">{rs(r.codAmount)}</td>
+                      <td className="px-4 py-2.5 text-right font-semibold tabular-nums text-slate-900 dark:text-ink-white sm:px-5">{rs(r.codAmount)}</td>
                     </tr>
                   );
                 })}
@@ -413,7 +413,7 @@ function PortalParcels({ c }: { c: CourierAccount }) {
         )}
       </div>
       {pages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-slate-800 sm:px-5">
+        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-ink-800 sm:px-5">
           <span>{data?.total} parcels</span>
           <div className="flex gap-1">
             <Btn size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Pichhe</Btn>
@@ -446,7 +446,7 @@ function NafaaParcels({ c }: { c: CourierAccount }) {
           {PARCEL_FILTERS.map((f) => (
             <button key={f.value} onClick={() => { setFilter(f.value); setPage(0); }}
               className={cn('rounded-md px-2.5 py-1 text-[0.78125rem] font-medium',
-                filter === f.value ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800')}>
+                filter === f.value ? 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900' : 'text-slate-600 hover:bg-slate-100 dark:text-ink-300 dark:hover:bg-ink-800')}>
               {f.label}
             </button>
           ))}
@@ -456,9 +456,9 @@ function NafaaParcels({ c }: { c: CourierAccount }) {
           <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }} placeholder="CN, order #, customer, phone…" className={cn(inputCls, 'pl-8')} />
         </div>
       </div>
-      <div className={cn('mt-3 border-t border-slate-100 dark:border-slate-800', isFetching && 'opacity-70')}>
+      <div className={cn('mt-3 border-t border-slate-100 dark:border-ink-800', isFetching && 'opacity-70')}>
         {isLoading ? (
-          <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>
+          <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
         ) : error ? (
           <EmptyState title="Parcels nahi khule">{apiErrorMessage(error)}</EmptyState>
         ) : rows.length === 0 ? (
@@ -466,7 +466,7 @@ function NafaaParcels({ c }: { c: CourierAccount }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] text-[0.8125rem]">
-              <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+              <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
                 <tr>
                   <th className="px-4 py-2 sm:px-5">Order</th>
                   <th className="px-3 py-2">CN</th>
@@ -477,7 +477,7 @@ function NafaaParcels({ c }: { c: CourierAccount }) {
                   <th className="px-4 py-2 sm:px-5" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {rows.map((o) => <ParcelRow key={o.id} o={o} c={c} onOpen={() => navigate(`/online-orders?order=${o.id}`)} />)}
               </tbody>
             </table>
@@ -485,7 +485,7 @@ function NafaaParcels({ c }: { c: CourierAccount }) {
         )}
       </div>
       {pages > 1 && (
-        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-slate-800 sm:px-5">
+        <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-ink-800 sm:px-5">
           <span>{data?.total} parcels</span>
           <div className="flex gap-1">
             <Btn size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Pichhe</Btn>
@@ -507,17 +507,17 @@ function ParcelRow({ o, c, onOpen }: { o: CourierShipment; c: CourierAccount; on
   const copy = () => o.trackingNumber && navigator.clipboard?.writeText(o.trackingNumber).then(() => toast.success('CN copy ho gaya'));
   const waitingDays = o.courierStatus === 'BOOKED' && o.courierBookedAt ? Math.floor((Date.now() - new Date(o.courierBookedAt).getTime()) / 86_400_000) : 0;
   return (
-    <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+    <tr className="hover:bg-slate-50 dark:hover:bg-ink-800/30">
       <td className="px-4 py-2.5 sm:px-5">
-        <button onClick={onOpen} className="font-semibold text-slate-900 hover:underline dark:text-white">#{o.externalOrderNumber ?? o.externalOrderId}</button>
+        <button onClick={onOpen} className="font-semibold text-slate-900 hover:underline dark:text-ink-white">#{o.externalOrderNumber ?? o.externalOrderId}</button>
         <div className="text-[0.71875rem] text-slate-400">{whenText(o.courierBookedAt ?? o.dispatchedAt)}</div>
       </td>
       <td className="px-3 py-2.5">
-        <button onClick={copy} className="font-mono text-[0.78125rem] text-slate-700 hover:underline dark:text-slate-200">{o.trackingNumber ?? '—'}</button>
+        <button onClick={copy} className="font-mono text-[0.78125rem] text-slate-700 hover:underline dark:text-ink-200">{o.trackingNumber ?? '—'}</button>
         {!o.viaApi && <div className="text-[0.6875rem] text-slate-400"><PenLine className="mr-0.5 inline h-3 w-3" />manual</div>}
       </td>
       <td className="px-3 py-2.5">
-        <div className="max-w-[180px] truncate text-slate-800 dark:text-slate-100">{o.customerName}</div>
+        <div className="max-w-[180px] truncate text-slate-800 dark:text-ink-100">{o.customerName}</div>
         <div className="text-[0.71875rem] text-slate-500">{o.customerCity ?? '—'}</div>
       </td>
       <td className="px-3 py-2.5">
@@ -527,7 +527,7 @@ function ParcelRow({ o, c, onOpen }: { o: CourierShipment; c: CourierAccount; on
       </td>
       <td className="px-3 py-2.5"><span className={cn('rounded-md px-1.5 py-0.5 text-[0.6875rem] font-semibold', ord?.tone)}>{ord?.short ?? o.orderStatus}</span></td>
       <td className="px-3 py-2.5 text-right tabular-nums">
-        <div className="font-semibold text-slate-900 dark:text-white">{rs(o.total)}</div>
+        <div className="font-semibold text-slate-900 dark:text-ink-white">{rs(o.total)}</div>
         <div className="text-[0.6875rem] text-slate-400">{o.paymentStatus === 'PAID' ? 'mil gaya' : o.paymentStatus === 'COLLECTED' ? 'courier ke paas' : o.paymentStatus === 'NOT_COLLECTED' ? 'nahi aayega' : 'COD'}</div>
       </td>
       <td className="px-4 py-2.5 text-right sm:px-5">
@@ -560,7 +560,7 @@ function ConnectionTab({ c, onConnected }: { c: CourierAccount; onConnected: () 
         <Card title="Connection" description={`${since ? `Jura: ${since}` : ''}${c.lastTestedAt ? ` · aakhri check ${timeAgo(c.lastTestedAt)}` : ''}`}>
           <div className="flex flex-wrap items-center gap-3">
             <KeyRound className="h-4 w-4 text-slate-400" />
-            <span className="font-mono text-[0.8125rem] text-slate-700 dark:text-slate-200">{c.maskedKey}</span>
+            <span className="font-mono text-[0.8125rem] text-slate-700 dark:text-ink-200">{c.maskedKey}</span>
             <span className="flex-1" />
             <Btn size="sm" loading={test.isPending} icon={<RefreshCw className="h-3.5 w-3.5" />} onClick={() => test.mutate()}>Check karein</Btn>
             <Btn size="sm" variant="plain" icon={<KeyRound className="h-3.5 w-3.5" />} onClick={() => setReplace((v) => !v)}>{replace ? 'Rehne dein' : 'Nayi key'}</Btn>

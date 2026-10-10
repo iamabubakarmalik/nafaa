@@ -219,7 +219,7 @@ export function IntegrationDetailModal({
       }
     >
       {/* Header strip */}
-      <div className="flex items-center gap-3 mb-4 p-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-800 dark:to-neutral-900">
+      <div className="flex items-center gap-3 mb-4 p-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-ink-800 dark:to-ink-900">
         <div
           className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
           style={{ backgroundColor: (meta.color ?? '#64748b') + '22' }}
@@ -227,7 +227,7 @@ export function IntegrationDetailModal({
           {meta.icon}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-black text-sm text-slate-900 dark:text-white truncate">
+          <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">
             {integration.displayName}
           </div>
           <div className="text-[0.6875rem] font-bold text-slate-500 uppercase tracking-wider">
@@ -245,7 +245,7 @@ export function IntegrationDetailModal({
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-neutral-800 rounded-xl mb-4 overflow-x-auto">
+      <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-ink-800 rounded-xl mb-4 overflow-x-auto">
         {tabs.map(([key, label]) => (
           <button
             key={key}
@@ -253,8 +253,8 @@ export function IntegrationDetailModal({
             className={cn(
               'px-3 py-1.5 rounded-lg text-xs font-extrabold transition whitespace-nowrap',
               tab === key
-                ? 'bg-white dark:bg-neutral-700 text-slate-900 dark:text-white shadow-sm'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300',
+                ? 'bg-white dark:bg-ink-700 text-slate-900 dark:text-ink-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-ink-300',
             )}
           >
             {label}
@@ -318,10 +318,10 @@ export function IntegrationDetailModal({
           </div>
 
           {integration.lastSyncAt && (
-            <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800 flex items-center gap-2 text-xs flex-wrap">
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-ink-800 flex items-center gap-2 text-xs flex-wrap">
               <Clock className="h-3.5 w-3.5 text-slate-400" />
-              <span className="text-slate-600 dark:text-slate-400 font-bold">Last sync:</span>
-              <span className="text-slate-900 dark:text-white font-black">
+              <span className="text-slate-600 dark:text-ink-400 font-bold">Last sync:</span>
+              <span className="text-slate-900 dark:text-ink-white font-black">
                 {new Date(integration.lastSyncAt).toLocaleString('en-PK')}
               </span>
               {integration.lastSyncStatus && (
@@ -442,7 +442,7 @@ export function IntegrationDetailModal({
             (integration.syncLogs ?? []).map((log) => (
               <div
                 key={log.id}
-                className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800/60 flex items-center gap-3"
+                className="p-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 flex items-center gap-3"
               >
                 <div
                   className={cn(
@@ -463,7 +463,7 @@ export function IntegrationDetailModal({
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-black text-slate-900 dark:text-white">
+                  <div className="text-xs font-black text-slate-900 dark:text-ink-white">
                     {log.operation} · {log.direction}
                   </div>
                   <div className="text-[0.6875rem] text-slate-500">
@@ -499,14 +499,14 @@ function MetricBox({
   danger?: boolean;
 }) {
   return (
-    <div className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800 text-center">
+    <div className="p-3 rounded-xl bg-slate-50 dark:bg-ink-800 text-center">
       <div className="text-[0.625rem] font-extrabold uppercase tracking-widest text-slate-500">
         {label}
       </div>
       <div
         className={cn(
           'text-xl font-black mt-0.5',
-          danger ? 'text-rose-600' : 'text-slate-900 dark:text-white',
+          danger ? 'text-rose-600' : 'text-slate-900 dark:text-ink-white',
         )}
       >
         {value}

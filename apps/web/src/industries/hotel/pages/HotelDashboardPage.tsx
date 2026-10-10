@@ -35,7 +35,7 @@ export default function HotelDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -164,10 +164,10 @@ export default function HotelDashboardPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Upcoming Arrivals */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <LogIn className="h-5 w-5 text-emerald-600" />
                 Upcoming Arrivals
               </h3>
@@ -177,7 +177,7 @@ export default function HotelDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {upcomingArrivals.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <LogIn className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -188,7 +188,7 @@ export default function HotelDashboardPage() {
                 const daysToArrival = Math.ceil((new Date(booking.checkInDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
                 const isToday = daysToArrival === 0;
                 return (
-                  <Link key={booking.id} to={'/hotel/bookings/' + booking.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                  <Link key={booking.id} to={'/hotel/bookings/' + booking.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shrink-0">
                       <LogIn className="h-5 w-5" />
                     </div>
@@ -214,10 +214,10 @@ export default function HotelDashboardPage() {
         </div>
 
         {/* Recent Bookings */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-600" />
                 Recent Bookings
               </h3>
@@ -226,7 +226,7 @@ export default function HotelDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {recentBookings.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Calendar className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -234,7 +234,7 @@ export default function HotelDashboardPage() {
               </div>
             ) : (
               recentBookings.map((b: any) => (
-                <Link key={b.id} to={'/hotel/bookings/' + b.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={b.id} to={'/hotel/bookings/' + b.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shrink-0">
                     {SOURCE_EMOJI[b.source] || '📌'}
                   </div>
@@ -264,8 +264,8 @@ export default function HotelDashboardPage() {
 
       {/* Guest stats + By Source */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-teal-600" />
             Guest Statistics
           </h3>
@@ -291,8 +291,8 @@ export default function HotelDashboardPage() {
           </div>
         </section>
 
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-violet-600" />
             Bookings by Source (30 days)
           </h3>
@@ -308,7 +308,7 @@ export default function HotelDashboardPage() {
                       <span className="text-xs font-extrabold">{s.source.replace('_', ' ')}</span>
                       <span className="text-xs font-bold text-slate-500 tabular-nums">{s._count._all}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-violet-500 to-purple-600" style={{ width: (s._count._all / bySource[0]._count._all * 100) + '%' }} />
                     </div>
                   </div>
@@ -331,11 +331,11 @@ function KpiCard({ label, value, icon: Icon, color, to }: any) {
     amber: 'from-amber-500 to-orange-600',
   };
   return (
-    <Link to={to} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm hover:shadow-md transition group">
+    <Link to={to} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm hover:shadow-md transition group">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition'}>
           <Icon className="h-6 w-6" />
@@ -357,11 +357,11 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
     violet: 'from-violet-500 to-purple-600',
   };
   return (
-    <Link to={to} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition">
+    <Link to={to} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition">
       <div className={'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition mb-2'}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

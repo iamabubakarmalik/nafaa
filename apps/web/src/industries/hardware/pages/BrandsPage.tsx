@@ -75,21 +75,21 @@ export default function BrandsPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search brand name, code..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search brand name, code..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500" />
         </div>
 
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setTierFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (tierFilter === 'all' ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (tierFilter === 'all' ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Tiers</button>
           {TIERS.map((t) => (
             <button key={t.value} onClick={() => setTierFilter(t.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tierFilter === t.value ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tierFilter === t.value ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {t.emoji} {t.label}
             </button>
@@ -111,10 +111,10 @@ export default function BrandsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : brands.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Award className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No brands yet</p>
           <Button className="mt-4 bg-gradient-to-r from-orange-600 to-amber-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -144,8 +144,8 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (brand.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+      (brand.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className={'relative aspect-video overflow-hidden bg-gradient-to-br ' + (tier?.gradient ?? 'from-slate-500 to-slate-700')}>
         {brand.logoUrl ? (
@@ -190,7 +190,7 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
 
       <div className="p-4 space-y-2">
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{brand.name}</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{brand.name}</h3>
           {brand.code && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{brand.code}</div>}
           {brand.countryOfOrigin && (
             <div className="text-xs font-bold text-slate-600 inline-flex items-center gap-1 mt-1">
@@ -201,7 +201,7 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
         </div>
 
         {brand.description && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold line-clamp-2">{brand.description}</p>
+          <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold line-clamp-2">{brand.description}</p>
         )}
 
         {(brand.supplierContact || brand.supplierPhone) && (
@@ -221,13 +221,13 @@ function BrandCard({ brand, onEdit, onToggleFeatured, onDelete }: any) {
           </div>
         )}
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 grid grid-cols-2 gap-2">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 grid grid-cols-2 gap-2">
           <div>
             <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 inline-flex items-center gap-0.5">
               <Package className="h-2.5 w-2.5" />
               Products
             </div>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{brand.productCount ?? brand.totalProducts}</div>
+            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{brand.productCount ?? brand.totalProducts}</div>
           </div>
           <div>
             <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 inline-flex items-center gap-0.5">
@@ -263,9 +263,9 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-orange-300 dark:border-orange-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Brand' : 'New Brand'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-orange-300 dark:border-orange-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Brand' : 'New Brand'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -275,10 +275,10 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Brand Name *</label>
-            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Fauji Cement, Amreli Steel" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Fauji Cement, Amreli Steel" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (FAUJI)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-          <input value={form.countryOfOrigin} onChange={(e) => setForm({ ...form, countryOfOrigin: e.target.value })} placeholder="Country of origin" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (FAUJI)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
+          <input value={form.countryOfOrigin} onChange={(e) => setForm({ ...form, countryOfOrigin: e.target.value })} placeholder="Country of origin" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
         </div>
 
         {/* Tier picker */}
@@ -295,18 +295,18 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
                     'p-3 rounded-xl border-2 text-center transition ' +
                     (active
                       ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 shadow'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-orange-300')
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-orange-300')
                   }
                 >
                   <div className="text-2xl mb-1">{t.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{t.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{t.label}</div>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Brand description, quality notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Brand description, quality notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
 
         {/* Logo */}
         <div>
@@ -342,11 +342,11 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Display Order</label>
-            <input type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
+            <input type="number" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-orange-500" />
           </div>
           <label className={
             'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-            (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')
+            (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
           }>
             <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
             <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
@@ -354,7 +354,7 @@ function BrandForm({ editing, onClose, onSaved }: { editing: HardwareBrand | nul
           </label>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-orange-600 to-amber-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim()}>
             <Save className="h-4 w-4" />

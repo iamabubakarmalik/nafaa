@@ -338,7 +338,7 @@ export default function BulkImportPage() {
   return (
     <div className="space-y-4 sm:space-y-5 pb-8">
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
@@ -412,7 +412,7 @@ export default function BulkImportPage() {
           onDragLeave={() => setDragOver(false)}
           onDrop={onDrop}
           className={[
-            'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-dashed shadow-sm p-6 sm:p-8 space-y-4 transition',
+            'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-dashed shadow-sm p-6 sm:p-8 space-y-4 transition',
             dragOver
               ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-500/10 scale-[1.01]'
               : 'border-blue-300 dark:border-blue-500/40',
@@ -425,10 +425,10 @@ export default function BulkImportPage() {
             ].join(' ')}>
               {dragOver ? <FileUp className="h-10 w-10" /> : <Upload className="h-10 w-10" />}
             </div>
-            <h3 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-white">
+            <h3 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-ink-white">
               {dragOver ? '👇 Yahan Chhor Do!' : 'File Upload Karo'}
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold">
+            <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold">
               CSV, Excel (.xlsx) <strong className="text-blue-700 dark:text-blue-300">drag & drop</strong> karo, ya Google Sheet se copy-paste
             </p>
 
@@ -468,8 +468,8 @@ export default function BulkImportPage() {
                   <h4 className="font-extrabold text-blue-900 dark:text-blue-200">Google Sheet ya Excel se Paste Karo</h4>
                   <p className="text-xs text-blue-800 dark:text-blue-300 font-semibold">Rows select karo (heading ke sath) → Ctrl+C → yahan Ctrl+V</p>
                 </div>
-                <button onClick={() => { setPasteMode(false); setPasteText(''); }} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-                  <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                <button onClick={() => { setPasteMode(false); setPasteText(''); }} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+                  <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
                 </button>
               </div>
               <textarea
@@ -478,7 +478,7 @@ export default function BulkImportPage() {
                 onChange={(e) => setPasteText(e.target.value)}
                 placeholder="name	sku	price	stock&#10;Milk 1L	MLK-1L	270	50&#10;Sugar 1kg	SGR	180	100"
                 rows={8}
-                className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 text-xs font-mono text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+                className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 text-xs font-mono text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
               />
               <Button
                 onClick={parsePaste}
@@ -502,7 +502,7 @@ export default function BulkImportPage() {
                   system samajh jayega. English, Urdu Roman, dono kaam karte hain.
                 </p>
                 <p className="text-xs text-blue-800 dark:text-blue-300 font-semibold mt-1.5">
-                  <strong>Sirf 1 column zaroori hai:</strong> <code className="bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded font-mono">name</code>. Aur:{' '}
+                  <strong>Sirf 1 column zaroori hai:</strong> <code className="bg-white dark:bg-ink-800 px-1.5 py-0.5 rounded font-mono">name</code>. Aur:{' '}
                   <span className="text-emerald-700 dark:text-emerald-400">✓ Auto-barcode jinke pass nahi</span> •{' '}
                   <span className="text-emerald-700 dark:text-emerald-400">✓ Auto-create categories/brands</span>
                 </p>
@@ -514,24 +514,24 @@ export default function BulkImportPage() {
 
       {/* ═══ PREVIEW + EDIT ═══ */}
       {preview && stats && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 dark:backdrop-blur-sm border-2 border-blue-300 dark:border-blue-500/40 shadow-lg overflow-hidden">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/90 dark:backdrop-blur-sm border-2 border-blue-300 dark:border-blue-500/40 shadow-lg overflow-hidden">
           <div className="px-5 py-3 border-b-2 border-blue-100 dark:border-blue-500/20 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between gap-3 flex-wrap">
             <div className="min-w-0">
-              <h3 className="font-extrabold text-slate-900 dark:text-white truncate">📄 {fileName}</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">📄 {fileName}</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">
                 {preview.length} rows detected • Column mapping aur data check karo
               </p>
             </div>
             <button
               onClick={() => { setPreview(null); setFileName(''); setRawHeaders([]); setColumnMap({}); }}
-              className="h-9 w-9 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition"
+              className="h-9 w-9 rounded-lg bg-white dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition"
             >
-              <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
             </button>
           </div>
 
           {/* Validation summary */}
-          <div className="px-5 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+          <div className="px-5 py-3 grid grid-cols-2 sm:grid-cols-4 gap-2 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40">
             <ValidCell label="Valid" value={preview.length - stats.noName - stats.noPrice} tone="emerald" icon={CheckCircle2} />
             <ValidCell label="Bina Price" value={stats.noPrice} tone="rose" icon={XCircle} />
             <ValidCell label="Bina Barcode" value={stats.noBarcode} tone="amber" icon={BarcodeIcon}
@@ -541,7 +541,7 @@ export default function BulkImportPage() {
 
           {/* Auto-barcode toggle */}
           {stats.noBarcode > 0 && (
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 bg-amber-50/50 dark:bg-amber-500/10">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-amber-50/50 dark:bg-amber-500/10">
               <label className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
@@ -564,8 +564,8 @@ export default function BulkImportPage() {
 
           {/* Column mapping */}
           {rawHeaders.length > 0 && (
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-300 mb-2">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-300 mb-2">
                 🔗 Column Mapping (auto-detected)
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -578,7 +578,7 @@ export default function BulkImportPage() {
                         'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold',
                         field
                           ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
-                          : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+                          : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-slate-500 dark:text-ink-400',
                       ].join(' ')}
                     >
                       <span className="font-mono">{h}</span>
@@ -589,7 +589,7 @@ export default function BulkImportPage() {
                           <CheckCircle2 className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                         </>
                       ) : (
-                        <span className="text-slate-400 dark:text-slate-500">— ignored</span>
+                        <span className="text-slate-400 dark:text-ink-500">— ignored</span>
                       )}
                     </div>
                   );
@@ -601,19 +601,19 @@ export default function BulkImportPage() {
           {/* Editable table */}
           <div className="max-h-[400px] overflow-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/80 sticky top-0 z-10">
+              <thead className="bg-slate-50 dark:bg-ink-800/80 sticky top-0 z-10">
                 <tr>
                   <Th>#</Th><Th>Name *</Th><Th>SKU</Th><Th>Barcode</Th><Th>Cat</Th>
                   <Th>Brand</Th><Th>Unit</Th><Th className="text-right">Cost</Th>
                   <Th className="text-right">Sale *</Th><Th className="text-right">Stock</Th><Th></Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {preview.slice(0, 200).map((row, i) => {
                   const hasError = !row.name?.trim() || !row.price || row.price <= 0;
                   return (
                     <tr key={i} className={`hover:bg-blue-50/40 dark:hover:bg-blue-500/5 ${hasError ? 'bg-rose-50/40 dark:bg-rose-500/10' : ''}`}>
-                      <td className="px-2 py-1 text-xs text-slate-500 dark:text-slate-400 font-mono">{i + 1}</td>
+                      <td className="px-2 py-1 text-xs text-slate-500 dark:text-ink-400 font-mono">{i + 1}</td>
                       <TdInput value={row.name} onChange={(v: string) => updateRow(i, { name: v })} required error={!row.name?.trim()} />
                       <TdInput value={row.sku || ''} onChange={(v: string) => updateRow(i, { sku: v })} mono />
                       <TdInput value={row.barcode || ''} onChange={(v: string) => updateRow(i, { barcode: v })} mono placeholder={autoBarcodes ? 'auto' : ''} />
@@ -636,7 +636,7 @@ export default function BulkImportPage() {
                 })}
                 {preview.length > 200 && (
                   <tr>
-                    <td colSpan={11} className="px-3 py-2 text-xs text-center font-bold text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60">
+                    <td colSpan={11} className="px-3 py-2 text-xs text-center font-bold text-slate-500 dark:text-ink-400 bg-slate-50 dark:bg-ink-800/60">
                       +{preview.length - 200} rows aur bhi... (import mein sab ayenge)
                     </td>
                   </tr>
@@ -645,8 +645,8 @@ export default function BulkImportPage() {
             </table>
           </div>
 
-          <div className="px-5 py-3 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center justify-between gap-2 flex-wrap">
-            <div className="text-xs font-extrabold text-slate-600 dark:text-slate-300">
+          <div className="px-5 py-3 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40 flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-xs font-extrabold text-slate-600 dark:text-ink-300">
               <strong className="text-emerald-700 dark:text-emerald-400 tabular-nums">{preview.length}</strong> rows tayyar
               {stats.noName > 0 && <span className="text-rose-700 dark:text-rose-400 ml-2">• {stats.noName} bina naam skip honge</span>}
             </div>
@@ -668,24 +668,24 @@ export default function BulkImportPage() {
       )}
 
       {/* ═══ HISTORY ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">📜 Import History</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Purani import jobs ka record</p>
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">📜 Import History</h3>
+          <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Purani import jobs ka record</p>
         </div>
 
         {isLoading ? (
           <div className="p-6 space-y-2">
-            {[1, 2, 3].map((i) => <div key={i} className="h-16 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-16 rounded-lg bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : jobs.length === 0 ? (
           <div className="p-12 text-center">
-            <FileSpreadsheet className="h-14 w-14 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="font-extrabold text-slate-700 dark:text-slate-200">Abhi tak koi import nahi</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Pehla CSV upload karo</p>
+            <FileSpreadsheet className="h-14 w-14 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+            <p className="font-extrabold text-slate-700 dark:text-ink-200">Abhi tak koi import nahi</p>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">Pehla CSV upload karo</p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {jobs.map((job) => <JobRow key={job.id} job={job} onView={() => setSelectedJob(job)} />)}
           </div>
         )}
@@ -710,20 +710,20 @@ function BulkImportTeacher({ hasJobs, onClose, onDownloadTemplate }: {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Bulk Import Kaise Karte Hain?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             100-500 products <strong>ek-ek karke daalne mein ghanton</strong> lagte hain.
             Bulk Import se aap <strong>Excel file se sab kuch 1 minute mein</strong> daal sakte ho.
             Purani dukan ka data ho ya supplier ki list — sab chalega.
@@ -734,8 +734,8 @@ function BulkImportTeacher({ hasJobs, onClose, onDownloadTemplate }: {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               📊 Misal: Supplier ki Rate List
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2 font-mono text-[0.6875rem] leading-relaxed">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2 font-mono text-[0.6875rem] leading-relaxed">
                 naam, kharid, rate, qty<br />
                 Milk 1L, 240, 270, 50<br />
                 Sugar 1kg, 160, 180, 100
@@ -758,7 +758,7 @@ function BulkImportTeacher({ hasJobs, onClose, onDownloadTemplate }: {
           </div>
 
           {/* Tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="flex items-start gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <span><strong>Sirf "name" zaroori hai</strong> — baqi sab optional, baad mein bhi edit ho sakta hai</span>
@@ -792,10 +792,10 @@ function BulkImportTeacher({ hasJobs, onClose, onDownloadTemplate }: {
 
 function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -850,7 +850,7 @@ function ValidCell({ label, value, tone, icon: Icon, hint }: any) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-2 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-700 dark:text-slate-300 whitespace-nowrap ${className}`}>
+    <th className={`px-2 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-700 dark:text-ink-300 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -872,11 +872,11 @@ function TdInput({ value, onChange, mono, required, error, placeholder }: {
         placeholder={placeholder}
         className={[
           'w-full h-8 px-2 rounded border text-xs',
-          'bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500',
+          'bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500',
           mono ? 'font-mono' : 'font-bold',
           error ? 'border-rose-400 dark:border-rose-500/60 bg-rose-50 dark:bg-rose-500/10 focus:border-rose-600'
-            : required ? 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
-              : 'border-slate-100 dark:border-slate-700/60 focus:border-blue-400',
+            : required ? 'border-slate-200 dark:border-ink-700 focus:border-blue-500'
+              : 'border-slate-100 dark:border-ink-700/60 focus:border-blue-400',
           'focus:outline-none',
         ].join(' ')}
       />
@@ -902,8 +902,8 @@ function TdNumber({ value, onChange, error, tone }: {
         onChange={(e) => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
         className={[
           'w-full h-8 px-2 rounded border text-xs font-extrabold tabular-nums text-right focus:outline-none',
-          'bg-white dark:bg-slate-800 text-slate-900 dark:text-white',
-          error ? 'border-rose-400 dark:border-rose-500/60 bg-rose-50 dark:bg-rose-500/10' : tone ? tones[tone] : 'border-slate-100 dark:border-slate-700/60 focus:border-blue-400',
+          'bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white',
+          error ? 'border-rose-400 dark:border-rose-500/60 bg-rose-50 dark:bg-rose-500/10' : tone ? tones[tone] : 'border-slate-100 dark:border-ink-700/60 focus:border-blue-400',
         ].join(' ')}
       />
     </td>
@@ -928,14 +928,14 @@ function JobRow({ job, onView }: { job: BulkImportJob; onView: () => void }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{job.fileName || 'Untitled'}</span>
+          <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{job.fileName || 'Untitled'}</span>
           <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ${c.color}`}>
             <Icon className={`h-2.5 w-2.5 ${job.status === 'PROCESSING' ? 'animate-spin' : ''}`} />
             {c.label}
           </span>
         </div>
-        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400 font-bold flex-wrap">
-          <span>Rows: <strong className="text-slate-700 dark:text-slate-200 tabular-nums">{job.totalRows}</strong></span>
+        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-ink-400 font-bold flex-wrap">
+          <span>Rows: <strong className="text-slate-700 dark:text-ink-200 tabular-nums">{job.totalRows}</strong></span>
           <span>•</span>
           <span className="text-emerald-700 dark:text-emerald-400">✓ {job.successCount}</span>
           {job.errorCount > 0 && <span className="text-rose-700 dark:text-rose-400">✗ {job.errorCount}</span>}
@@ -946,7 +946,7 @@ function JobRow({ job, onView }: { job: BulkImportJob; onView: () => void }) {
       </div>
       <button
         onClick={onView}
-        className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1 transition shrink-0"
+        className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1 transition shrink-0"
       >
         <Eye className="h-3.5 w-3.5" /> Dekho
       </button>
@@ -963,16 +963,16 @@ function JobDetailModal({ job, onClose }: { job: BulkImportJob; onClose: () => v
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        className="w-full max-w-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 border-b-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between">
+        <div className="px-5 py-4 border-b-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">{job.fileName}</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Import job ki tafseel</p>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{job.fileName}</h3>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Import job ki tafseel</p>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -985,14 +985,14 @@ function JobDetailModal({ job, onClose }: { job: BulkImportJob; onClose: () => v
 
           {errors.length > 0 && (
             <div>
-              <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mb-2">Errors ({errors.length})</h4>
+              <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm mb-2">Errors ({errors.length})</h4>
               <div className="rounded-xl border-2 border-rose-200 dark:border-rose-500/30 divide-y divide-rose-100 dark:divide-rose-500/20 max-h-72 overflow-y-auto">
                 {errors.map((err: any, i: number) => (
                   <div key={i} className="p-2.5 flex items-start gap-2 text-xs">
                     <XCircle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-slate-700 dark:text-slate-200">
-                        Row {err.row}: <span className="font-mono text-slate-900 dark:text-white">{err.name}</span>
+                      <div className="font-bold text-slate-700 dark:text-ink-200">
+                        Row {err.row}: <span className="font-mono text-slate-900 dark:text-ink-white">{err.name}</span>
                       </div>
                       <div className="text-rose-700 dark:text-rose-400 font-semibold">{err.error}</div>
                     </div>

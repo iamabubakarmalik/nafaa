@@ -108,29 +108,29 @@ export default function RoomsPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search room number, floor..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-purple-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search room number, floor..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-purple-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setStatusFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === 'all' ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === 'all' ? 'bg-purple-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Status</button>
           {Object.entries(STATUS_CONFIG).map(([k, v]) => (
             <button key={k} onClick={() => setStatusFilter(k)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === k ? v.bg + ' text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === k ? v.bg + ' text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{v.label}</button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
-          <select value={roomTypeFilter} onChange={(e) => setRoomTypeFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold focus:outline-none focus:border-purple-500">
+          <select value={roomTypeFilter} onChange={(e) => setRoomTypeFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-purple-500">
             <option value="all">All Types</option>
             {roomTypes.map((rt) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
           </select>
-          <input value={floorFilter} onChange={(e) => setFloorFilter(e.target.value)} placeholder="Filter by floor..." className="h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold focus:outline-none focus:border-purple-500" />
+          <input value={floorFilter} onChange={(e) => setFloorFilter(e.target.value)} placeholder="Filter by floor..." className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-purple-500" />
         </div>
       </section>
 
@@ -145,10 +145,10 @@ export default function RoomsPage() {
 
       {isLoading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rooms.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Home className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No rooms yet</p>
         </div>
@@ -172,12 +172,12 @@ export default function RoomsPage() {
 
 function StatusCounter({ label, value, bg }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
       <div className="flex items-center gap-3">
         <div className={'h-3 w-3 rounded-full ' + bg} />
         <div className="flex-1 min-w-0">
           <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-          <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
       </div>
     </div>
@@ -195,13 +195,13 @@ function RoomCard({ room, onStatusChange, onHkChange, onEdit, onDelete }: any) {
        room.status === 'OCCUPIED' ? 'border-blue-300 bg-blue-50 dark:bg-blue-950/20' :
        room.status === 'CLEANING' ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/20' :
        room.status === 'MAINTENANCE' ? 'border-rose-300 bg-rose-50 dark:bg-rose-950/20' :
-       'border-slate-300 bg-slate-50 dark:bg-slate-950/20')
+       'border-slate-300 bg-slate-50 dark:bg-ink-950/20')
     }>
       <div className={'h-1.5 ' + cfg.bg} />
       <div className="p-3 space-y-2">
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none">{room.roomNumber}</div>
+            <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums leading-none">{room.roomNumber}</div>
             {room.floor && <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">Floor {room.floor}</div>}
           </div>
           <button onClick={() => setShowMenu(!showMenu)} className="h-6 w-6 rounded hover:bg-white flex items-center justify-center">
@@ -277,7 +277,7 @@ function RoomForm({ editing, roomTypes, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-purple-300 dark:border-purple-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-purple-300 dark:border-purple-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-purple-50 dark:bg-purple-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Room' : 'Add Room'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -286,24 +286,24 @@ function RoomForm({ editing, roomTypes, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-3">
         <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.roomTypeId} onChange={(e) => setForm({ ...form, roomTypeId: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500">
+          <select value={form.roomTypeId} onChange={(e) => setForm({ ...form, roomTypeId: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500">
             {roomTypes.map((rt: any) => <option key={rt.id} value={rt.id}>{rt.name}</option>)}
           </select>
-          <input autoFocus value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} placeholder="Room Number *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-purple-500" />
+          <input autoFocus value={form.roomNumber} onChange={(e) => setForm({ ...form, roomNumber: e.target.value })} placeholder="Room Number *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-purple-500" />
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} placeholder="Floor" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
-          <input value={form.building} onChange={(e) => setForm({ ...form, building: e.target.value })} placeholder="Building" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
-          <input value={form.wing} onChange={(e) => setForm({ ...form, wing: e.target.value })} placeholder="Wing" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+          <input value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} placeholder="Floor" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+          <input value={form.building} onChange={(e) => setForm({ ...form, building: e.target.value })} placeholder="Building" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+          <input value={form.wing} onChange={(e) => setForm({ ...form, wing: e.target.value })} placeholder="Wing" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.viewType} onChange={(e) => setForm({ ...form, viewType: e.target.value })} placeholder="View (Sea, Garden...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
-          <input value={form.facing} onChange={(e) => setForm({ ...form, facing: e.target.value })} placeholder="Facing (North, South...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
-          <input type="number" value={form.customPrice} onChange={(e) => setForm({ ...form, customPrice: e.target.value })} placeholder="Custom price" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
+          <input value={form.viewType} onChange={(e) => setForm({ ...form, viewType: e.target.value })} placeholder="View (Sea, Garden...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+          <input value={form.facing} onChange={(e) => setForm({ ...form, facing: e.target.value })} placeholder="Facing (North, South...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+          <input type="number" value={form.customPrice} onChange={(e) => setForm({ ...form, customPrice: e.target.value })} placeholder="Custom price" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-purple-500" />
         </div>
-        <textarea rows={2} value={form.customNotes} onChange={(e) => setForm({ ...form, customNotes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none" />
+        <textarea rows={2} value={form.customNotes} onChange={(e) => setForm({ ...form, customNotes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-purple-600 to-fuchsia-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.roomNumber || !form.roomTypeId}>
             <Save className="h-4 w-4" />

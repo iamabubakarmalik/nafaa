@@ -372,7 +372,7 @@ export default function ElectronicsReceiptPage() {
   /* ── States ── */
   if (isLoading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-neutral-950">
+      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-ink-950">
         <div className="flex flex-col items-center gap-3 text-neutral-500">
           <Loader2 className="h-8 w-8 animate-spin" />
           <p className="text-sm font-medium">Receipt load ho rahi hai…</p>
@@ -383,17 +383,17 @@ export default function ElectronicsReceiptPage() {
 
   if (isError || !sale) {
     return (
-      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-neutral-950 p-6">
-        <div className="max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-lg">
+      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-ink-950 p-6">
+        <div className="max-w-sm w-full rounded-2xl bg-white dark:bg-ink-900 p-8 text-center shadow-lg">
           <AlertTriangle className="h-10 w-10 mx-auto text-amber-500" />
-          <h2 className="mt-4 text-lg font-extrabold dark:text-neutral-100">Receipt nahi mili</h2>
+          <h2 className="mt-4 text-lg font-extrabold dark:text-ink-100">Receipt nahi mili</h2>
           <p className="mt-1 text-sm text-neutral-500">Sale ID ghalat hai ya record delete ho chuka hai.</p>
           <div className="mt-6 flex gap-2 justify-center">
             <button onClick={() => refetch()}
-              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-white dark:text-neutral-900 text-white px-4 py-2 text-sm font-extrabold">
+              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-ink-white dark:text-ink-900 text-white px-4 py-2 text-sm font-extrabold">
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Retry
             </button>
-            <button onClick={() => navigate(-1)} className="rounded-xl border px-4 py-2 text-sm font-extrabold dark:text-neutral-200">Wapas</button>
+            <button onClick={() => navigate(-1)} className="rounded-xl border px-4 py-2 text-sm font-extrabold dark:text-ink-200">Wapas</button>
           </div>
         </div>
       </div>
@@ -404,7 +404,7 @@ export default function ElectronicsReceiptPage() {
 
   /* ── UI ── */
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 pb-28 print:bg-white">
+    <div className="min-h-screen bg-neutral-100 dark:bg-ink-950 pb-28 print:bg-white">
       <ReceiptPrintStyles />
 
       {/* ══ Auto-opened success banner ══ */}
@@ -427,31 +427,31 @@ export default function ElectronicsReceiptPage() {
       )}
 
       {/* ══ Toolbar ══ */}
-      <div className="print:hidden sticky top-0 z-20 bg-white/90 dark:bg-neutral-900/90 backdrop-blur border-b dark:border-neutral-800">
+      <div className="print:hidden sticky top-0 z-20 bg-white/90 dark:bg-ink-900/90 backdrop-blur border-b dark:border-ink-800">
         <div className="max-w-2xl mx-auto flex items-center gap-2 px-3 py-2.5">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Back">
-            <ArrowLeft className="h-5 w-5 dark:text-neutral-200" />
+          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Back">
+            <ArrowLeft className="h-5 w-5 dark:text-ink-200" />
           </button>
-          <h1 className="font-extrabold text-sm flex items-center gap-2 dark:text-neutral-100">
+          <h1 className="font-extrabold text-sm flex items-center gap-2 dark:text-ink-100">
             <ReceiptText className="h-4 w-4" /> Receipt
           </h1>
 
           <div className="ml-auto flex items-center gap-1.5">
-            <div className="flex rounded-xl border dark:border-neutral-700 overflow-hidden">
+            <div className="flex rounded-xl border dark:border-ink-700 overflow-hidden">
               <button onClick={() => setMode('short')}
-                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${!full ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'dark:text-neutral-300'}`}>
+                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${!full ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : 'dark:text-ink-300'}`}>
                 <Minimize2 className="h-3.5 w-3.5" /> Short
               </button>
               <button onClick={() => setMode('full')}
-                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${full ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'dark:text-neutral-300'}`}>
+                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${full ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : 'dark:text-ink-300'}`}>
                 <Maximize2 className="h-3.5 w-3.5" /> Full
               </button>
             </div>
 
-            <div className="hidden sm:flex rounded-xl border dark:border-neutral-700 overflow-hidden">
+            <div className="hidden sm:flex rounded-xl border dark:border-ink-700 overflow-hidden">
               {(['a4', '80', '58'] as Format[]).map((f) => (
                 <button key={f} onClick={() => setFormat(f)}
-                  className={`px-2.5 py-1.5 text-xs font-extrabold tabular-nums ${format === f ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'dark:text-neutral-300'}`}>
+                  className={`px-2.5 py-1.5 text-xs font-extrabold tabular-nums ${format === f ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : 'dark:text-ink-300'}`}>
                   {f === 'a4' ? 'A4' : `${f}mm`}
                 </button>
               ))}
@@ -462,11 +462,11 @@ export default function ElectronicsReceiptPage() {
               aria-label="WhatsApp" title={sale.customerPhone ? 'Customer ko WhatsApp' : 'WhatsApp pe share'}>
               <MessageCircle className="h-4 w-4" />
             </button>
-            <button onClick={shareNative} className="p-2 rounded-xl border dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Share">
-              <Share2 className="h-4 w-4 dark:text-neutral-300" />
+            <button onClick={shareNative} className="p-2 rounded-xl border dark:border-ink-700 hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Share">
+              <Share2 className="h-4 w-4 dark:text-ink-300" />
             </button>
-            <button onClick={copyLink} className="p-2 rounded-xl border dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Copy link">
-              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 dark:text-neutral-300" />}
+            <button onClick={copyLink} className="p-2 rounded-xl border dark:border-ink-700 hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Copy link">
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 dark:text-ink-300" />}
             </button>
             {!sale.isVoided && (
               <button onClick={() => { const r = prompt('Void reason?'); if (r !== null) voidMutation.mutate(r); }}
@@ -495,7 +495,7 @@ export default function ElectronicsReceiptPage() {
       {/* ══ Warranty summary (screen only — dukandar ko foran nazar aaye) ══ */}
       {hasWarranty && !sale.isVoided && (
         <div className="print:hidden max-w-2xl mx-auto px-3 pt-3">
-          <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-emerald-200 dark:border-emerald-500/30 p-4">
+          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-emerald-200 dark:border-emerald-500/30 p-4">
             <div className="flex items-center gap-2 mb-2">
               <ShieldCheck className="h-4 w-4 text-emerald-600" />
               <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
@@ -505,14 +505,14 @@ export default function ElectronicsReceiptPage() {
             <div className="space-y-1.5">
               {allSerials.filter((s) => s.warrantyEndDate).map((s, i) => (
                 <div key={i} className="flex items-center gap-2 flex-wrap text-xs">
-                  <span className="font-mono font-extrabold text-neutral-900 dark:text-neutral-100">{s.serialNumber}</span>
+                  <span className="font-mono font-extrabold text-neutral-900 dark:text-ink-100">{s.serialNumber}</span>
                   <button onClick={() => copySerial(s.serialNumber)}
-                    className="p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-neutral-800" title="Serial copy">
+                    className="p-1 rounded-md hover:bg-neutral-100 dark:hover:bg-ink-800" title="Serial copy">
                     <Copy className="h-3 w-3 text-neutral-400" />
                   </button>
                   <span className={`px-2 py-0.5 rounded-lg font-extrabold ${
                     s.daysLeft != null && s.daysLeft < 0
-                      ? 'bg-neutral-200 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'
+                      ? 'bg-neutral-200 text-neutral-600 dark:bg-ink-800 dark:text-ink-400'
                       : s.daysLeft != null && s.daysLeft <= 30
                       ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
                       : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
@@ -788,7 +788,7 @@ export default function ElectronicsReceiptPage() {
       </div>
 
       {/* ══ Mobile bottom bar ══ */}
-      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur border-t dark:border-neutral-800 p-3 sm:hidden">
+      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-ink-900/95 backdrop-blur border-t dark:border-ink-800 p-3 sm:hidden">
         <div className="flex gap-2 max-w-2xl mx-auto">
           <button onClick={doPrint}
             className="flex-1 inline-flex justify-center items-center gap-2 rounded-xl bg-indigo-600 text-white py-3 text-sm font-extrabold">

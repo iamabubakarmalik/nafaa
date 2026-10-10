@@ -42,7 +42,7 @@ const STATUS: Record<OrderStatus, {
 }> = {
   DRAFT: {
     label: 'Adhoora', hint: 'Abhi poora nahi hua', color: 'bg-slate-500',
-    pill: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    pill: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
     next: 'CONFIRMED', nextLabel: 'Pakka karein',
   },
   PENDING: {
@@ -484,7 +484,7 @@ export default function BulkOrdersPage() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.todayList.map((r: any) => (
                 <Link key={r.id} to={`/agri/bulk-orders/${r.id}`}
-                  className={`px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 text-[0.6875rem] font-extrabold transition ${
+                  className={`px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 text-[0.6875rem] font-extrabold transition ${
                     r.lateDelivery
                       ? 'border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-rose-900 dark:text-rose-200'
                       : 'border-sky-200 dark:border-sky-500/40 hover:border-sky-400 text-sky-900 dark:text-sky-200'
@@ -519,7 +519,7 @@ export default function BulkOrdersPage() {
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={copyChase}
-              className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black inline-flex items-center gap-1.5 transition">
               {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copy hui' : 'List'}
             </button>
@@ -560,13 +560,13 @@ export default function BulkOrdersPage() {
             className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             {count !== undefined && (
               <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
-                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
               }`}>{count}</span>
             )}
             <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
@@ -585,7 +585,7 @@ export default function BulkOrdersPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : tab === 'analytics' ? (
         <Analytics stats={stats} statusPie={statusPie} monthChart={monthChart}
@@ -597,15 +597,15 @@ export default function BulkOrdersPage() {
       ) : (
         <>
           {/* ═══ TOOLBAR ═══ */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
             <div className="relative">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Order number, farmer, phone, cheez, fasal… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -624,7 +624,7 @@ export default function BulkOrdersPage() {
                 <button key={s.v} onClick={() => setStatusFilter(s.v)}
                   className={`shrink-0 h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     statusFilter === s.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>{s.label}</button>
               ))}
             </div>
@@ -633,13 +633,13 @@ export default function BulkOrdersPage() {
               <button onClick={() => setSeasonFilter('all')}
                 className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                   seasonFilter === 'all' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                 }`}>Har mausam</button>
               {SEASONS.map((s) => (
                 <button key={s.v} onClick={() => setSeasonFilter(s.v)}
                   className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     seasonFilter === s.v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>{s.e} {s.l}</button>
               ))}
               {hasFilters && (
@@ -648,7 +648,7 @@ export default function BulkOrdersPage() {
                   <X className="h-3 w-3" /> Chaant hatao
                 </button>
               )}
-              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
                 {shown.length} orders
               </div>
             </div>
@@ -704,11 +704,11 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
     ? (Number(order.paidAmount || 0) / Number(order.total)) * 100 : 0;
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 shadow-sm p-4 space-y-3 avoid-break transition hover:shadow-lg ${
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 avoid-break transition hover:shadow-lg ${
       order.lateDelivery ? 'border-rose-300 dark:border-rose-500/50'
         : order.deliverToday ? 'border-sky-300 dark:border-sky-500/50'
         : order.overdueCredit ? 'border-amber-300 dark:border-amber-500/50'
-        : 'border-slate-200 dark:border-slate-800 hover:border-emerald-300'
+        : 'border-slate-200 dark:border-ink-800 hover:border-emerald-300'
     }`}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -722,7 +722,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
               <Link to={`/agri/bulk-orders/${order.id}`}
-                className="font-mono font-extrabold text-slate-900 dark:text-white hover:text-emerald-600 transition">
+                className="font-mono font-extrabold text-slate-900 dark:text-ink-white hover:text-emerald-600 transition">
                 {order.orderNumber}
               </Link>
               <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ${cfg.color}`}>
@@ -750,7 +750,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
               )}
             </div>
 
-            <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold flex-wrap">
+            <div className="mt-2 flex items-center gap-3 text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold flex-wrap">
               {order.customerName && (
                 <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{order.customerName}</span>
               )}
@@ -767,7 +767,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
                 <span className={`inline-flex items-center gap-1 font-extrabold ${
                   order.lateDelivery ? 'text-rose-600 dark:text-rose-400'
                     : order.deliverToday ? 'text-sky-600 dark:text-sky-400'
-                    : 'text-slate-700 dark:text-slate-300'
+                    : 'text-slate-700 dark:text-ink-300'
                 }`}>
                   <Calendar className="h-3 w-3" />
                   {new Date(order.deliveryDate).toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
@@ -777,7 +777,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
             </div>
 
             {order.deliveryAddress && (
-              <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-start gap-1">
+              <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 inline-flex items-start gap-1">
                 <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
                 <span className="line-clamp-1">{order.deliveryAddress}</span>
               </div>
@@ -786,12 +786,12 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
             <div className="mt-2 flex flex-wrap gap-1">
               {(order.items ?? []).slice(0, 4).map((it: any, i: number) => (
                 <span key={i}
-                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">
+                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold">
                   {it.productName} · {fmtQty(it.quantity)} {it.unit}
                 </span>
               ))}
               {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[0.6875rem] font-extrabold">
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-500 text-[0.6875rem] font-extrabold">
                   +{(order.items?.length || 0) - 4} aur
                 </span>
               )}
@@ -803,7 +803,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
           <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">
             {fmtQty(order.qty)} cheezein
           </div>
-          <div className="text-xl font-black text-slate-900 dark:text-white tabular-nums leading-none mt-0.5">
+          <div className="text-xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none mt-0.5">
             {formatPKR(order.total)}
           </div>
           {order.remaining > 0 ? (
@@ -824,7 +824,7 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
       {/* Paisa ki patti */}
       {Number(order.total) > 0 && order.remaining > 0 && (
         <div>
-          <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
             <div className={`h-full rounded-full ${order.overdueCredit ? 'bg-rose-500' : 'bg-emerald-500'}`}
               style={{ width: `${Math.min(paidPct, 100)}%` }} />
           </div>
@@ -834,9 +834,9 @@ function OrderCard({ order, onAdvance, onPay, onCancel, busy }: any) {
         </div>
       )}
 
-      <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap print:hidden">
+      <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-ink-800 flex-wrap print:hidden">
         <Link to={`/agri/bulk-orders/${order.id}`}
-          className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
+          className="h-9 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
           Poora dekhein
         </Link>
 
@@ -882,12 +882,12 @@ function Board({ rows, onAdvance, busy }: {
 }) {
   if (rows.length === 0) {
     return (
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-14 text-center">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-14 text-center">
         <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
           <CheckCircle2 className="h-8 w-8 text-white" />
         </div>
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Koi order chal nahi raha</h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold">
+        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Koi order chal nahi raha</h3>
+        <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold">
           Sab kuch pahunch chuka hai. Naya order banayein to yahan aa jayega.
         </p>
       </section>
@@ -918,25 +918,25 @@ function Board({ rows, onAdvance, busy }: {
 
               <div className="space-y-2">
                 {list.length === 0 ? (
-                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-4 text-center text-[0.6875rem] font-bold text-slate-400">
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-ink-700 p-4 text-center text-[0.6875rem] font-bold text-slate-400">
                     Khali
                   </div>
                 ) : list.map((r) => (
                   <div key={r.id}
-                    className={`rounded-xl bg-white dark:bg-slate-900 border-2 p-3 shadow-sm transition hover:shadow-md ${
+                    className={`rounded-xl bg-white dark:bg-ink-900 border-2 p-3 shadow-sm transition hover:shadow-md ${
                       r.lateDelivery ? 'border-rose-300 dark:border-rose-500/50'
                         : r.deliverToday ? 'border-sky-300 dark:border-sky-500/50'
-                        : 'border-slate-200 dark:border-slate-800'
+                        : 'border-slate-200 dark:border-ink-800'
                     }`}>
                     <Link to={`/agri/bulk-orders/${r.id}`}
-                      className="font-mono font-extrabold text-[0.75rem] text-slate-900 dark:text-white hover:text-emerald-600 block truncate transition">
+                      className="font-mono font-extrabold text-[0.75rem] text-slate-900 dark:text-ink-white hover:text-emerald-600 block truncate transition">
                       {r.orderNumber}
                     </Link>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                       {r.customerName || 'Farmer'}
                     </div>
                     <div className="mt-1 flex items-center justify-between gap-2">
-                      <span className="text-[0.75rem] font-black text-slate-900 dark:text-white tabular-nums">
+                      <span className="text-[0.75rem] font-black text-slate-900 dark:text-ink-white tabular-nums">
                         {formatPKR(r.total)}
                       </span>
                       <span className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">
@@ -992,7 +992,7 @@ function PaymentModal({ order, onClose, onConfirm, saving }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-emerald-600 to-lime-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -1020,14 +1020,14 @@ function PaymentModal({ order, onClose, onConfirm, saving }: any) {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {[0.25, 0.5, 1].map((f) => (
                 <button key={f} onClick={() => setAmount(Math.round(remaining * f))}
-                  className="px-3 py-1.5 rounded-xl border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition">
+                  className="px-3 py-1.5 rounded-xl border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-ink-800 hover:bg-emerald-50 dark:hover:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition">
                   {f === 1 ? 'Poora' : `${f * 100}%`} ({formatPKR(remaining * f)})
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center justify-between gap-3">
             <div>
               <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Ab baqi rahega</div>
               <div className={`text-2xl font-black tabular-nums ${
@@ -1086,7 +1086,7 @@ function CancelModal({ order, onClose, onConfirm, saving }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -1110,13 +1110,13 @@ function CancelModal({ order, onClose, onConfirm, saving }: any) {
             </label>
             <textarea rows={3} autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
               placeholder="Wajah likhein — baad me samajhne me aasani hogi…"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500 resize-none transition" />
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500 resize-none transition" />
           </div>
 
           <div className="flex flex-wrap gap-1.5">
             {CANCEL_REASONS.map((r) => (
               <button key={r} type="button" onClick={() => setReason(r)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 transition">
                 {r}
               </button>
             ))}
@@ -1257,19 +1257,19 @@ function Analytics({ stats, statusPie, monthChart, seasonChart, topProducts, row
       </div>
 
       {topFarmers.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
             <User className="h-4 w-4 text-emerald-600" />
-            <h3 className="font-black text-slate-900 dark:text-white">Sab se bare farmer</h3>
+            <h3 className="font-black text-slate-900 dark:text-ink-white">Sab se bare farmer</h3>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topFarmers.map((f, i) => (
               <div key={i} className="p-3 flex items-center gap-3">
                 <span className="h-8 w-8 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center text-xs font-black text-emerald-700 dark:text-emerald-300 shrink-0">
                   {i + 1}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{f.name}</div>
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{f.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400">
                     {f.n} order{f.phone ? ` · ${f.phone}` : ''}
                   </div>
@@ -1279,7 +1279,7 @@ function Analytics({ stats, statusPie, monthChart, seasonChart, topProducts, row
                     baqi {formatPKR(f.baqi)}
                   </span>
                 )}
-                <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">
+                <span className="text-sm font-black tabular-nums text-slate-900 dark:text-ink-white shrink-0">
                   {formatPKR(f.total)}
                 </span>
               </div>
@@ -1305,15 +1305,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
-        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1329,12 +1329,12 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     amber: 'text-amber-600 dark:text-amber-400', rose: 'text-rose-600 dark:text-rose-400',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
         <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
-      <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
+      <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words">{value}</div>
       {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
@@ -1342,8 +1342,8 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1357,14 +1357,14 @@ function EmptyBox({ text }: { text: string }) {
 
 function Empty({ hasFilters, onClear, onGuide }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Package className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
         {hasFilters ? 'Is chaant par kuch nahi mila' : 'Abhi koi bara order nahi'}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
         {hasFilters
           ? 'Chaant badal kar dekhein'
           : 'Jab koi farmer 20-50 bori ka sauda kare, wo yahan banayein — delivery, udhaar aur wusooli sab ka hisab rahega.'}
@@ -1392,14 +1392,14 @@ function Empty({ hasFilters, onClear, onGuide }: any) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Bare order kaise chalte hain
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
@@ -1434,13 +1434,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Wajah zaroor likhein. Aur agar us order par paisa pehle hi aa chuka hai to system
             khud wapas nahi karega — wo aap ko khud sambhalna hoga.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">Enter</kbd> payment save</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-3</kbd> tabs</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">Enter</kbd> payment save</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1457,8 +1457,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ export default function ClinicDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -129,10 +129,10 @@ export default function ClinicDashboardPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* UPCOMING */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-blue-600" />
                 Today's Queue
               </h3>
@@ -142,7 +142,7 @@ export default function ClinicDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {upcoming.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Calendar className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -153,13 +153,13 @@ export default function ClinicDashboardPage() {
                 const minsToStart = differenceInMinutes(new Date(apt.scheduledStart), new Date());
                 const isSoon = minsToStart <= 30 && minsToStart >= 0;
                 return (
-                  <Link key={apt.id} to={'/clinic/appointments/' + apt.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                  <Link key={apt.id} to={'/clinic/appointments/' + apt.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shrink-0 text-xs font-extrabold">
                       #{apt.tokenNumber || '?'}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">
                           {apt.patient?.fullName || apt.appointmentNumber}
                         </span>
                         {isSoon && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase animate-pulse">SOON</span>}
@@ -172,7 +172,7 @@ export default function ClinicDashboardPage() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                      <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">
                         {format(new Date(apt.scheduledStart), 'HH:mm')}
                       </div>
                       <div className={
@@ -192,17 +192,17 @@ export default function ClinicDashboardPage() {
         </div>
 
         {/* TOP DOCTORS */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <UserCog className="h-5 w-5 text-amber-600" />
                 Top Doctors (30 days)
               </h3>
               <p className="text-xs text-slate-500 font-semibold">By revenue performance</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topDoctors.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <UserCog className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -243,8 +243,8 @@ export default function ClinicDashboardPage() {
 
       {/* BY GENDER */}
       {byGender.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-fuchsia-600" />
             Patients by Gender
           </h3>
@@ -252,12 +252,12 @@ export default function ClinicDashboardPage() {
             {byGender.map((g: any) => {
               const emoji = g.gender === 'MALE' ? '👨' : g.gender === 'FEMALE' ? '👩' : g.gender === 'OTHER' ? '🧑' : '❓';
               return (
-                <div key={g.gender ?? 'unknown'} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-800 dark:to-neutral-800/50 p-4 border-2 border-slate-200 dark:border-neutral-700 text-center">
+                <div key={g.gender ?? 'unknown'} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-ink-800 dark:to-ink-800/50 p-4 border-2 border-slate-200 dark:border-ink-700 text-center">
                   <div className="text-4xl mb-2">{emoji}</div>
-                  <div className="text-xs font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  <div className="text-xs font-extrabold uppercase text-slate-700 dark:text-ink-300 mb-1">
                     {g.gender?.replace('_', ' ') || 'Unknown'}
                   </div>
-                  <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{g._count._all}</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{g._count._all}</div>
                 </div>
               );
             })}
@@ -276,12 +276,12 @@ function KpiCard({ label, value, sub, icon: Icon, color }: any) {
     fuchsia: 'from-fuchsia-500 to-pink-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm hover:shadow-md transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={
           'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] +
@@ -307,7 +307,7 @@ function MiniKpi({ label, value, icon: Icon, color, to, highlight }: any) {
       to={to}
       className={
         'group rounded-2xl border-2 p-4 hover:shadow-lg hover:-translate-y-0.5 transition text-center ' +
-        (highlight ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-300 animate-pulse' : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800')
+        (highlight ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-300 animate-pulse' : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')
       }
     >
       <div className={
@@ -316,7 +316,7 @@ function MiniKpi({ label, value, icon: Icon, color, to, highlight }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+      <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
       <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
     </Link>
   );
@@ -336,7 +336,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -344,7 +344,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

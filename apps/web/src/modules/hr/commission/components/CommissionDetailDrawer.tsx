@@ -75,7 +75,7 @@ export function CommissionDetailDrawer({
   return (
     <div className="fixed inset-0 z-[75] bg-slate-950/70 backdrop-blur-sm flex justify-end" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-3xl h-full bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-3xl h-full bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
 
         {/* ── Upar ── */}
         <header className={`p-5 bg-gradient-to-br ${tone.grad} text-white shrink-0`}>
@@ -126,12 +126,12 @@ export function CommissionDetailDrawer({
         </header>
 
         {/* ── Hisab kaise bana ── */}
-        <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 shrink-0">
-          <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2 inline-flex items-center gap-1.5">
+        <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 shrink-0">
+          <p className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 mb-2 inline-flex items-center gap-1.5">
             <Gauge className="h-3 w-3" /> Hisab kaise bana
           </p>
           {row.lines.length === 0 ? (
-            <p className="text-[0.75rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.75rem] font-bold text-slate-500 dark:text-ink-400">
               {row.blockedByMin
                 ? `Hadd ${money(row.blockedByMin.need)} hai aur abhi ${money(row.blockedByMin.short)} kam hai — commission nahi bani.`
                 : 'Is bande par koi chaalu rule lagu nahi hota.'}
@@ -139,11 +139,11 @@ export function CommissionDetailDrawer({
           ) : (
             <div className="space-y-1.5">
               {row.lines.map((l, i) => (
-                <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-3 py-2">
+                <div key={i} className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-3 py-2">
                   <div className="min-w-0">
-                    <div className="text-[0.75rem] font-black text-slate-800 dark:text-slate-100 truncate">{l.label}</div>
+                    <div className="text-[0.75rem] font-black text-slate-800 dark:text-ink-100 truncate">{l.label}</div>
                     {l.rate > 0 && (
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                         {l.valueType === 'PERCENT'
                           ? `${money(l.base)} ka ${l.rate}%`
                           : `${qty(l.base)} × ${formatPKR(l.rate)}`}
@@ -164,11 +164,11 @@ export function CommissionDetailDrawer({
               className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition ${
                 tab === x.v
                   ? `border-transparent bg-gradient-to-r ${tone.grad} text-white shadow`
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-slate-400'
               }`}>
               <x.i className="h-3.5 w-3.5" /> {x.l}
               {x.n !== undefined && (
-                <span className={`px-1.5 rounded-md text-[0.625rem] ${tab === x.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                <span className={`px-1.5 rounded-md text-[0.625rem] ${tab === x.v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-700'}`}>
                   {x.n}
                 </span>
               )}
@@ -180,7 +180,7 @@ export function CommissionDetailDrawer({
         <div className="flex-1 overflow-y-auto p-4 sm:p-5">
           {isLoading ? (
             <div className="space-y-2">
-              {[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+              {[0, 1, 2, 3, 4].map((i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : isError || !data ? (
             <div className="py-12 text-center">
@@ -193,14 +193,14 @@ export function CommissionDetailDrawer({
                   const max = data.byProduct[0]?.commission || 1;
                   return (
                     <div key={p.productId}
-                      className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                      className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             {i === 0 && p.commission > 0 && <Trophy className="h-3.5 w-3.5 text-amber-500 shrink-0" />}
-                            <span className="text-sm font-black text-slate-900 dark:text-white truncate">{p.name}</span>
+                            <span className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{p.name}</span>
                           </div>
-                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                             {p.categoryName ?? 'Bina category'} · {p.bills} bill par
                           </div>
                         </div>
@@ -224,7 +224,7 @@ export function CommissionDetailDrawer({
                         </p>
                       )}
 
-                      <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                      <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-ink-700 overflow-hidden">
                         <div className={`h-full rounded-full bg-gradient-to-r ${tone.grad}`}
                           style={{ width: `${Math.max((p.commission / max) * 100, 1)}%` }} />
                       </div>
@@ -240,11 +240,11 @@ export function CommissionDetailDrawer({
                   const max = data.byCategory[0]?.commission || 1;
                   return (
                     <div key={cat.categoryId ?? `none-${i}`}
-                      className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
+                      className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="text-sm font-black text-slate-900 dark:text-white truncate">{cat.name}</div>
-                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                          <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{cat.name}</div>
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                             {cat.items} cheezein · {qty(cat.qty)} miqdar · {money(cat.sale)}
                           </div>
                         </div>
@@ -252,7 +252,7 @@ export function CommissionDetailDrawer({
                           {money(cat.commission)}
                         </div>
                       </div>
-                      <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
+                      <div className="mt-2 h-2 rounded-full bg-slate-100 dark:bg-ink-700 overflow-hidden">
                         <div className={`h-full rounded-full bg-gradient-to-r ${tone.grad}`}
                           style={{ width: `${Math.max((cat.commission / max) * 100, 1)}%` }} />
                       </div>
@@ -263,28 +263,28 @@ export function CommissionDetailDrawer({
             )
           ) : (
             data.billList.length === 0 ? <Empty text="Koi bill nahi" /> : (
-              <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800">
                   {data.billList.map((b) => (
                     <Link key={b.id} to={`/sales/${b.id}/receipt`} target="_blank"
-                      className="px-3 py-2.5 flex items-center gap-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                      className="px-3 py-2.5 flex items-center gap-3 bg-white dark:bg-ink-800 hover:bg-slate-50 dark:hover:bg-ink-700/50 transition">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[0.75rem] font-black text-slate-900 dark:text-white">{b.saleNumber}</span>
+                          <span className="font-mono text-[0.75rem] font-black text-slate-900 dark:text-ink-white">{b.saleNumber}</span>
                           {b.status === 'PARTIALLY_RETURNED' && (
                             <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-[0.625rem] font-black text-amber-700 dark:text-amber-300">
                               Kuch wapsi
                             </span>
                           )}
                         </div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                           {new Intl.DateTimeFormat('en-PK', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(b.soldAt))}
                           {' · '}{b.customer ?? 'Walk-in'}{' · '}{b.items} cheezein
                           {b.discount > 0 && ` · ${money(b.discount)} chhoot`}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">{money(b.total)}</div>
+                        <div className="text-[0.8125rem] font-black text-slate-900 dark:text-ink-white tabular-nums">{money(b.total)}</div>
                         <div className="text-[0.625rem] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                           munafa {money(b.profit)}
                         </div>
@@ -294,7 +294,7 @@ export function CommissionDetailDrawer({
                   ))}
                 </div>
                 {data.billList.length >= 200 && (
-                  <p className="px-3 py-2 bg-slate-50 dark:bg-slate-900 text-[0.6875rem] font-bold text-slate-500 text-center">
+                  <p className="px-3 py-2 bg-slate-50 dark:bg-ink-900 text-[0.6875rem] font-bold text-slate-500 text-center">
                     Pehle 200 bill — poori list ke liye Bikri ka safha dekhein
                   </p>
                 )}
@@ -320,7 +320,7 @@ function Cell({ label, value, tone }: any) {
   return (
     <div className="min-w-0">
       <div className="text-[0.625rem] font-black uppercase tracking-wide text-slate-400 truncate">{label}</div>
-      <div className={`text-[0.75rem] font-black tabular-nums truncate ${tone ?? 'text-slate-800 dark:text-slate-100'}`}>
+      <div className={`text-[0.75rem] font-black tabular-nums truncate ${tone ?? 'text-slate-800 dark:text-ink-100'}`}>
         {value}
       </div>
     </div>
@@ -330,7 +330,7 @@ function Cell({ label, value, tone }: any) {
 function Empty({ text }: { text: string }) {
   return (
     <div className="py-16 text-center">
-      <TrendingUp className="h-10 w-10 text-slate-200 dark:text-slate-700 mx-auto mb-2" />
+      <TrendingUp className="h-10 w-10 text-slate-200 dark:text-ink-700 mx-auto mb-2" />
       <p className="text-sm font-black text-slate-400">{text}</p>
     </div>
   );

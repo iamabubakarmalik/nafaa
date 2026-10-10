@@ -87,10 +87,10 @@ export default function MetalRatesPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rates.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Coins className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No rates set yet</p>
           <Button className="mt-4 bg-gradient-to-r from-amber-600 to-yellow-700" onClick={() => setShowForm(true)}>
@@ -154,14 +154,14 @@ export default function MetalRatesPage() {
 
       {/* Rate History */}
       {history.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-amber-600" />
               Rate History
             </h3>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {history.map((rate) => {
               const metal = METAL_TYPES.find((m) => m.value === rate.metalType);
               const purity = PURITIES.find((p) => p.value === rate.purity);
@@ -173,7 +173,7 @@ export default function MetalRatesPage() {
                     <div className="text-[0.6875rem] font-bold text-slate-500">{format(new Date(rate.effectiveDate), 'dd MMM yyyy, HH:mm')}</div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">Rs {rate.ratePerGram.toLocaleString()}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">Rs {rate.ratePerGram.toLocaleString()}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-500">per gram</div>
                   </div>
                 </div>
@@ -217,7 +217,7 @@ function RateForm({ onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">💰 Update Metal Rate</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -232,7 +232,7 @@ function RateForm({ onClose, onSaved }: any) {
               {METAL_TYPES.map((m) => (
                 <button key={m.value} onClick={() => setForm({ ...form, metalType: m.value })} className={
                   'p-3 rounded-xl border-2 text-center transition ' +
-                  (form.metalType === m.value ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-amber-300')
+                  (form.metalType === m.value ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300')
                 }>
                   <div className="text-2xl mb-1">{m.emoji}</div>
                   <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
@@ -242,7 +242,7 @@ function RateForm({ onClose, onSaved }: any) {
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Purity *</label>
-            <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+            <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
               {PURITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
           </div>
@@ -270,10 +270,10 @@ function RateForm({ onClose, onSaved }: any) {
           </div>
         </div>
 
-        <input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Source (e.g. Karachi Jewellers, MCX)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Source (e.g. Karachi Jewellers, MCX)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-yellow-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.ratePerGram}>
             <Save className="h-4 w-4" />

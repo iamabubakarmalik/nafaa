@@ -22,7 +22,7 @@ export function DesktopReloadButton() {
             clearCacheAndReload().then(() => toast.success('Cache cleared'));
           }
         }}
-        className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 transition"
+        className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center text-slate-700 dark:text-ink-300 transition"
         title="Reload (Ctrl+R) — Right-click: force reload"
       >
         <RefreshCw className="h-4 w-4" />

@@ -594,7 +594,7 @@ export default function BookingFormPage() {
           onClick={() => setShowCustomerAdd(false)}
         >
           <div
-            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700"
+            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-5 flex items-center justify-between">
@@ -642,7 +642,7 @@ export default function BookingFormPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <Link
             to="/bookings"
-            className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Bookings
           </Link>
@@ -655,7 +655,7 @@ export default function BookingFormPage() {
         </div>
 
         {/* ═══ HERO ═══ */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-6 shadow-2xl">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-6 shadow-2xl">
           <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl animate-pulse" />
           <div className="absolute -bottom-16 -left-16 h-56 w-56 rounded-full bg-amber-400/15 blur-3xl" />
           <div className="relative flex items-start justify-between gap-4 flex-wrap">
@@ -718,7 +718,7 @@ export default function BookingFormPage() {
             {/* Customer */}
             <Card>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-2">
                   <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   Customer <span className="text-rose-500">*</span>
                 </h3>
@@ -736,9 +736,9 @@ export default function BookingFormPage() {
                     {selectedCustomer.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white">{selectedCustomer.name}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedCustomer.name}</div>
                     {selectedCustomer.phone && (
-                      <div className="text-xs text-slate-600 dark:text-slate-300 inline-flex items-center gap-1">
+                      <div className="text-xs text-slate-600 dark:text-ink-300 inline-flex items-center gap-1">
                         <Phone className="h-3 w-3" /> {selectedCustomer.phone}
                       </div>
                     )}
@@ -750,7 +750,7 @@ export default function BookingFormPage() {
                   </div>
                   <button
                     onClick={() => { setCustomerId(''); setCustomerSearch(''); setTimeout(() => customerInputRef.current?.focus(), 50); }}
-                    className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-600 flex items-center justify-center border border-slate-200 dark:border-slate-700 transition"
+                    className="h-8 w-8 rounded-lg bg-white dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/20 text-slate-600 dark:text-ink-300 hover:text-rose-600 flex items-center justify-center border border-slate-200 dark:border-ink-700 transition"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -761,7 +761,7 @@ export default function BookingFormPage() {
                     <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       ref={customerInputRef}
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
+                      className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400"
                       placeholder="Search customer by name or phone... (↑↓ Enter)"
                       value={customerSearch}
                       onChange={(e) => setCustomerSearch(e.target.value)}
@@ -770,7 +770,7 @@ export default function BookingFormPage() {
                     />
                   </div>
                   {filteredCustomers.length > 0 && (
-                    <div className="mt-2 rounded-xl border border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
+                    <div className="mt-2 rounded-xl border border-slate-200 dark:border-ink-700 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-ink-700 bg-white dark:bg-ink-800">
                       {filteredCustomers.map((c, idx) => (
                         <button
                           key={c.id}
@@ -782,12 +782,12 @@ export default function BookingFormPage() {
                               : 'hover:bg-blue-50 dark:hover:bg-blue-500/10'
                           }`}
                         >
-                          <div className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center font-extrabold text-xs">
+                          <div className="h-8 w-8 rounded-lg bg-slate-200 dark:bg-ink-600 text-slate-700 dark:text-ink-200 flex items-center justify-center font-extrabold text-xs">
                             {c.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="font-bold text-sm truncate text-slate-900 dark:text-white">{c.name}</div>
-                            {c.phone && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400">{c.phone}</div>}
+                            <div className="font-bold text-sm truncate text-slate-900 dark:text-ink-white">{c.name}</div>
+                            {c.phone && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400">{c.phone}</div>}
                           </div>
                           {c.balance > 0 && (
                             <span className="text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/20 px-1.5 py-0.5 rounded">
@@ -815,7 +815,7 @@ export default function BookingFormPage() {
 
             {/* Products */}
             <Card>
-              <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 inline-flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-3 inline-flex items-center gap-2">
                 <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 Items to Reserve <span className="text-rose-500">*</span>
                 {cart.length > 0 && (
@@ -829,7 +829,7 @@ export default function BookingFormPage() {
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   ref={productInputRef}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400"
                   placeholder="Search product by name or SKU... (↑↓ Enter)"
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
@@ -838,7 +838,7 @@ export default function BookingFormPage() {
               </div>
 
               {productSearch && filteredProducts.length > 0 && (
-                <div className="mt-2 rounded-xl border border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700 bg-white dark:bg-slate-800">
+                <div className="mt-2 rounded-xl border border-slate-200 dark:border-ink-700 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-ink-700 bg-white dark:bg-ink-800">
                   {filteredProducts.map((p, idx) => {
                     const isCarpet = isCarpetProduct(p);
                     const carpetData = isCarpet ? carpetSummaryMap.get(p.id) : undefined;
@@ -861,7 +861,7 @@ export default function BookingFormPage() {
                             : 'hover:bg-emerald-50 dark:hover:bg-emerald-500/10'
                         }`}
                       >
-                        <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                        <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-700 overflow-hidden flex items-center justify-center shrink-0">
                           {p.images?.[0]?.url ? (
                             <img src={p.images[0].url} alt={p.name} className="h-full w-full object-cover" />
                           ) : (
@@ -869,7 +869,7 @@ export default function BookingFormPage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-sm truncate flex items-center gap-1 text-slate-900 dark:text-white">
+                          <div className="font-bold text-sm truncate flex items-center gap-1 text-slate-900 dark:text-ink-white">
                             {p.name}
                             {isCarpet && (
                               <span className="inline-flex items-center gap-0.5 text-[0.625rem] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1 py-0.5 rounded">
@@ -885,14 +885,14 @@ export default function BookingFormPage() {
                               <span className="text-[0.625rem] font-extrabold bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 px-1 py-0.5 rounded">VAR</span>
                             )}
                           </div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400">
                             {formatPKR(p.price)}
                             {isCarpet ? (
                               <span className={carpetSqft > 0 ? 'text-emerald-700 dark:text-emerald-400 ml-1 font-bold' : 'text-rose-700 dark:text-rose-400 ml-1 font-bold'}>
                                 • {carpetSqft.toFixed(0)} {p.unit} ({rollCount} rolls)
                               </span>
                             ) : (
-                              <span className={p.stock > 0 ? 'text-slate-600 dark:text-slate-400 ml-1' : 'text-rose-700 dark:text-rose-400 ml-1 font-bold'}>
+                              <span className={p.stock > 0 ? 'text-slate-600 dark:text-ink-400 ml-1' : 'text-rose-700 dark:text-rose-400 ml-1 font-bold'}>
                                 • Stock: {p.stock} {p.unit}
                               </span>
                             )}
@@ -910,10 +910,10 @@ export default function BookingFormPage() {
               )}
 
               {cart.length === 0 ? (
-                <div className="mt-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-                  <ShoppingCart className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-slate-500 dark:text-slate-400">Koi item nahi</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Search karo aur item add karo</p>
+                <div className="mt-4 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-8 text-center">
+                  <ShoppingCart className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <p className="text-sm font-bold text-slate-500 dark:text-ink-400">Koi item nahi</p>
+                  <p className="text-xs text-slate-400 dark:text-ink-500 mt-1">Search karo aur item add karo</p>
                 </div>
               ) : (
                 <div className="mt-4 space-y-2">
@@ -924,11 +924,11 @@ export default function BookingFormPage() {
                         item.rollId ? 'border-emerald-200 dark:border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-500/5' :
                         item.cutPieceId ? 'border-violet-200 dark:border-violet-500/40 bg-violet-50/30 dark:bg-violet-500/5' :
                         item.imeiId ? 'border-blue-200 dark:border-blue-500/40 bg-blue-50/30 dark:bg-blue-500/5' :
-                        'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50'
+                        'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/50'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-700 overflow-hidden flex items-center justify-center shrink-0">
                           {item.variantImageUrl ? (
                             <img src={item.variantImageUrl} alt={item.productName} className="h-full w-full object-cover" />
                           ) : item.variantColorHex ? (
@@ -938,7 +938,7 @@ export default function BookingFormPage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{item.productName}</div>
+                          <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{item.productName}</div>
                           {item.variantName && (
                             <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-300">{item.variantName}</div>
                           )}
@@ -965,7 +965,7 @@ export default function BookingFormPage() {
                           </div>
                           <div className="grid grid-cols-3 gap-2 mt-2">
                             <div>
-                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">
+                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 block mb-0.5">
                                 Qty ({item.unit}) {(item.rollId || item.cutPieceId || item.imeiId) && '🔒'}
                               </label>
                               <input
@@ -975,11 +975,11 @@ export default function BookingFormPage() {
                                 value={item.quantity}
                                 onChange={(e) => updateItem(item.cartLineId, { quantity: Number(e.target.value) || 0 })}
                                 disabled={!!(item.rollId || item.cutPieceId || item.imeiId)}
-                                className="h-8 w-full rounded-md border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 disabled:bg-slate-50 dark:disabled:bg-slate-800/60 disabled:text-slate-500"
+                                className="h-8 w-full rounded-md border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 disabled:bg-slate-50 dark:disabled:bg-ink-800/60 disabled:text-slate-500"
                               />
                             </div>
                             <div>
-                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">
+                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 block mb-0.5">
                                 Rate (PKR){item.rollId && ' /sqft'}
                               </label>
                               <input
@@ -987,18 +987,18 @@ export default function BookingFormPage() {
                                 step="0.01"
                                 value={item.price}
                                 onChange={(e) => updateItem(item.cartLineId, { price: Number(e.target.value) || 0 })}
-                                className="h-8 w-full rounded-md border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                                className="h-8 w-full rounded-md border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
                               />
                             </div>
                             <div>
-                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 block mb-0.5">Discount</label>
+                              <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 block mb-0.5">Discount</label>
                               <input
                                 type="number"
                                 step="0.01"
                                 min="0"
                                 value={item.lineDiscount ?? 0}
                                 onChange={(e) => updateItem(item.cartLineId, { lineDiscount: Number(e.target.value) || 0 })}
-                                className="h-8 w-full rounded-md border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                                className="h-8 w-full rounded-md border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
                               />
                             </div>
                           </div>
@@ -1024,7 +1024,7 @@ export default function BookingFormPage() {
 
             {/* Timeline */}
             <Card>
-              <h3 className="font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2 mb-3">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-2 mb-3">
                 <Calendar className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 Timeline
               </h3>
@@ -1068,7 +1068,7 @@ export default function BookingFormPage() {
             {/* Service charges */}
             {isCarpetBusiness && (
               <Card>
-                <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 inline-flex items-center gap-2">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-3 inline-flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-amber-500" />
                   Service Charges
                 </h3>
@@ -1078,7 +1078,7 @@ export default function BookingFormPage() {
 
             {/* Notes */}
             <Card>
-              <h3 className="font-extrabold text-slate-900 dark:text-white mb-3">Notes</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-3">Notes</h3>
               <div className="space-y-3">
                 <div>
                   <label className="text-[0.6875rem] font-extrabold uppercase text-amber-700 dark:text-amber-300 mb-1 block">
@@ -1089,11 +1089,11 @@ export default function BookingFormPage() {
                     onChange={(e) => setNotes(e.target.value)}
                     rows={2}
                     placeholder='"Yeh maal special order hai, kal delivery"'
-                    className="w-full rounded-lg border-2 border-amber-200 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/10 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500"
+                    className="w-full rounded-lg border-2 border-amber-200 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/10 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[0.6875rem] font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1 block">
+                  <label className="text-[0.6875rem] font-extrabold uppercase text-slate-700 dark:text-ink-300 mb-1 block">
                     Internal Note (team-only, receipt pe nahi)
                   </label>
                   <textarea
@@ -1101,7 +1101,7 @@ export default function BookingFormPage() {
                     onChange={(e) => setInternalNotes(e.target.value)}
                     rows={2}
                     placeholder='"VIP customer, priority handle karna"'
-                    className="w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500"
+                    className="w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-slate-500"
                   />
                 </div>
               </div>
@@ -1111,7 +1111,7 @@ export default function BookingFormPage() {
           {/* RIGHT — Summary */}
           <aside className="space-y-4 xl:sticky xl:top-4 xl:self-start">
             {/* Totals */}
-            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 dark:from-slate-950 dark:to-blue-950 text-white p-5 shadow-xl border border-white/10">
+            <div className="rounded-3xl bg-gradient-to-br from-slate-950 to-blue-900 dark:from-ink-950 dark:to-blue-950 text-white p-5 shadow-xl border border-white/10">
               <div className="text-xs uppercase tracking-wider font-extrabold text-white/70 mb-3 inline-flex items-center gap-1">
                 <DollarSign className="h-3 w-3" />
                 Booking Summary
@@ -1175,7 +1175,7 @@ export default function BookingFormPage() {
                     key={pct}
                     onClick={() => applyAdvancePercent(pct)}
                     disabled={total <= 0}
-                    className="h-8 px-2.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border-2 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-40 transition"
+                    className="h-8 px-2.5 rounded-lg bg-white dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 border-2 border-emerald-200 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-40 transition"
                   >
                     <Percent className="h-2.5 w-2.5" /> {(pct * 100).toFixed(0)}%
                   </button>
@@ -1201,13 +1201,13 @@ export default function BookingFormPage() {
                 />
                 {advance > 0 && (
                   <div>
-                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">
+                    <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">
                       Payment Method
                     </label>
                     <select
                       value={paymentMethod}
                       onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                      className="h-10 w-full rounded-lg border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                      className="h-10 w-full rounded-lg border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
                     >
                       <option value="CASH">💵 Cash</option>
                       <option value="CARD">💳 Card</option>
@@ -1221,16 +1221,16 @@ export default function BookingFormPage() {
             </div>
 
             {/* Quick summary */}
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-700 p-4">
+            <div className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-700 p-4">
               <div className="grid grid-cols-2 gap-3 text-center">
                 <div>
-                  <div className="text-[0.6875rem] uppercase font-bold text-slate-500 dark:text-slate-400">Advance</div>
+                  <div className="text-[0.6875rem] uppercase font-bold text-slate-500 dark:text-ink-400">Advance</div>
                   <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                     {formatPKR(advance)}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[0.6875rem] uppercase font-bold text-slate-500 dark:text-slate-400">Balance</div>
+                  <div className="text-[0.6875rem] uppercase font-bold text-slate-500 dark:text-ink-400">Balance</div>
                   <div className="text-lg font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
                     {formatPKR(balance)}
                   </div>
@@ -1240,13 +1240,13 @@ export default function BookingFormPage() {
               {/* Advance progress bar */}
               {total > 0 && (
                 <div className="mt-3">
-                  <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-emerald-500 to-green-600 transition-all duration-300"
                       style={{ width: `${Math.min(advancePercent, 100)}%` }}
                     />
                   </div>
-                  <div className="text-center text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-center text-[0.625rem] font-extrabold text-slate-500 dark:text-ink-400 mt-1">
                     {advancePercent.toFixed(1)}% paid
                   </div>
                 </div>
@@ -1264,7 +1264,7 @@ export default function BookingFormPage() {
               Create Booking · {formatPKR(total)}
             </Button>
 
-            <div className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <div className="text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               <Kbd small>Ctrl</Kbd>+<Kbd small>Enter</Kbd> se bhi submit ho jayega
             </div>
           </aside>
@@ -1279,7 +1279,7 @@ export default function BookingFormPage() {
    ═════════════════════════════════════════════════════════════ */
 function Card({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
+    <div className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
       {children}
     </div>
   );
@@ -1301,7 +1301,7 @@ function Kbd({ children, small }: { children: React.ReactNode; small?: boolean }
     <kbd
       className={`px-1.5 py-0.5 rounded font-mono font-bold shadow-sm ${
         small
-          ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.625rem] border border-slate-300 dark:border-slate-600'
+          ? 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-200 text-[0.625rem] border border-slate-300 dark:border-ink-600'
           : 'bg-white/15 border border-white/25 text-white text-[0.625rem]'
       }`}
     >
@@ -1317,20 +1317,20 @@ function BookingFormTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Booking Form — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Booking form 4 steps:</strong> Customer → Items → Timeline → Advance. Har step optional
             hai except customer aur items.
           </p>
@@ -1339,7 +1339,7 @@ function BookingFormTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
               💡 Pro Tips
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <Tip><strong>↑↓ Enter</strong> — dropdown me tez selection</Tip>
               <Tip><strong>Percent chips</strong> — 10/25/50/100% advance ek click me</Tip>
               <Tip><strong>Timeline presets</strong> — "Kal", "1 hafta", "1 mahina"</Tip>
@@ -1352,7 +1352,7 @@ function BookingFormTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
               🔒 Locked Items
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <Tip><strong>Carpet roll cut</strong> — qty locked (roll piece se calculate hoti hai)</Tip>
               <Tip><strong>IMEI mobile</strong> — qty always 1 (specific piece reserved)</Tip>
               <Tip><strong>Cut piece</strong> — qty locked (physical piece hai)</Tip>
@@ -1360,7 +1360,7 @@ function BookingFormTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💰 <strong>Advance = customer ka paisa aap ke paas</strong>. Delivery pe baqi milega. Cancel
             hone pe refund entry ban jati hai — sab record ho jata hai.
           </div>

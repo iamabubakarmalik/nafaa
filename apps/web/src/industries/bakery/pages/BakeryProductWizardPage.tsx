@@ -1035,14 +1035,14 @@ export default function BakeryProductWizardPage() {
   if (progress.stage === 'done' && progress.productId) {
     return (
       <div className="max-w-lg mx-auto py-16">
-        <div className="rounded-3xl bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 dark:from-pink-950/40 dark:via-neutral-900 dark:to-fuchsia-950/40 border-2 border-pink-200 dark:border-pink-800 shadow-xl p-8 text-center">
+        <div className="rounded-3xl bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 dark:from-pink-950/40 dark:via-ink-900 dark:to-fuchsia-950/40 border-2 border-pink-200 dark:border-pink-800 shadow-xl p-8 text-center">
           <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-pink-500 to-fuchsia-600 mx-auto flex items-center justify-center shadow-lg mb-4">
             <CheckCircle2 className="h-10 w-10 text-white" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+          <h2 className="text-2xl font-black text-slate-900 dark:text-ink-white">
             {isEdit ? 'Save ho gaya!' : 'Ban gaya!'}
           </h2>
-          <p className="text-slate-600 dark:text-slate-300 font-bold mt-2">
+          <p className="text-slate-600 dark:text-ink-300 font-bold mt-2">
             <strong className="text-pink-700 dark:text-pink-300">{draft.basic.name}</strong>
             {type === 'RAW' ? ' ab Ingredients me hai' : ' ab POS aur catalog dono par hai'}
           </p>
@@ -1055,10 +1055,10 @@ export default function BakeryProductWizardPage() {
   if (saving) {
     return (
       <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 shadow-2xl p-8 max-w-sm w-full text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 shadow-2xl p-8 max-w-sm w-full text-center">
           <div className="h-16 w-16 rounded-full border-4 border-pink-200 border-t-pink-600 animate-spin mx-auto mb-4" />
-          <h3 className="text-lg font-black text-slate-900 dark:text-white">Save ho raha hai…</h3>
-          <p className="text-slate-500 dark:text-slate-400 font-bold text-sm mt-1">{progress.message}</p>
+          <h3 className="text-lg font-black text-slate-900 dark:text-ink-white">Save ho raha hai…</h3>
+          <p className="text-slate-500 dark:text-ink-400 font-bold text-sm mt-1">{progress.message}</p>
         </div>
       </div>
     );
@@ -1077,11 +1077,11 @@ export default function BakeryProductWizardPage() {
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={() => { if (confirm('Naye sire se shuru karein?')) { w.reset(); setShowDraft(false); } }}
-              className="h-9 px-3 rounded-lg bg-white dark:bg-neutral-800 border-2 border-amber-300 text-amber-800 dark:text-amber-200 text-[0.6875rem] font-black inline-flex items-center gap-1 transition">
+              className="h-9 px-3 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-300 text-amber-800 dark:text-amber-200 text-[0.6875rem] font-black inline-flex items-center gap-1 transition">
               <Trash2 className="h-3 w-3" /> Naya shuru
             </button>
             <button onClick={() => setShowDraft(false)}
-              className="h-9 w-9 rounded-lg bg-white dark:bg-neutral-800 border-2 border-amber-300 flex items-center justify-center">
+              className="h-9 w-9 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-300 flex items-center justify-center">
               <X className="h-3.5 w-3.5 text-amber-800" />
             </button>
           </div>
@@ -1090,7 +1090,7 @@ export default function BakeryProductWizardPage() {
 
       {/* ── Upar ── */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <Link to="/products" className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-pink-600 transition">
+        <Link to="/products" className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-ink-400 hover:text-pink-600 transition">
           <ArrowLeft className="h-4 w-4" /> Products
         </Link>
         <div className="flex gap-2">
@@ -1100,7 +1100,7 @@ export default function BakeryProductWizardPage() {
           </button>
           {isEdit && (
             <Link to={`/bakery-products/${id}`}
-              className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300 text-xs font-black inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-xs font-black inline-flex items-center gap-1.5 transition">
               <ExternalLink className="h-4 w-4" /> Detail
             </Link>
           )}
@@ -1253,7 +1253,7 @@ function StepItemType({ value, onChange, locked }: {
                 'text-left rounded-2xl border-2 p-4 transition-all relative',
                 locked && !on ? 'opacity-40 cursor-not-allowed' : 'hover:-translate-y-0.5 hover:shadow-md',
                 on ? `${o.ring} ring-4 bg-gradient-to-br ${o.bg} shadow-lg`
-                   : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800',
+                   : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
               ].join(' ')}>
               {on && (
                 <span className="absolute top-3 right-3 h-6 w-6 rounded-full bg-emerald-500 text-white flex items-center justify-center">
@@ -1261,11 +1261,11 @@ function StepItemType({ value, onChange, locked }: {
                 </span>
               )}
               <div className="text-3xl">{o.emoji}</div>
-              <div className="mt-2 font-black text-sm text-slate-900 dark:text-white flex items-center gap-1.5">
+              <div className="mt-2 font-black text-sm text-slate-900 dark:text-ink-white flex items-center gap-1.5">
                 <Icon className="h-4 w-4 shrink-0" /> {o.title}
               </div>
-              <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mt-1">{o.eg}</div>
-              <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-1.5 leading-snug">{o.note}</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 mt-1">{o.eg}</div>
+              <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-1.5 leading-snug">{o.note}</div>
             </button>
           );
         })}
@@ -1309,7 +1309,7 @@ function StepBar({ current, type, validation, onGo }: {
   if (steps.length <= 1) return null;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-2 overflow-x-auto">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-2 overflow-x-auto">
       <div className="flex items-center gap-2 min-w-max">
         {steps.map((s, i) => {
           const active = current === s.id;
@@ -1326,11 +1326,11 @@ function StepBar({ current, type, validation, onGo }: {
                   'flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all',
                   active ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white shadow-md'
                     : past ? 'bg-pink-50 dark:bg-pink-500/10 text-pink-800 dark:text-pink-200 border-2 border-pink-200 dark:border-pink-500/30'
-                    : 'bg-slate-50 dark:bg-neutral-800 text-slate-500 border-2 border-transparent hover:bg-slate-100',
+                    : 'bg-slate-50 dark:bg-ink-800 text-slate-500 border-2 border-transparent hover:bg-slate-100',
                 ].join(' ')}>
                 <span className={[
                   'h-8 w-8 rounded-lg flex items-center justify-center shrink-0',
-                  active ? 'bg-white/25' : done ? 'bg-pink-600 text-white' : bad ? 'bg-rose-100 dark:bg-rose-500/20' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700',
+                  active ? 'bg-white/25' : done ? 'bg-pink-600 text-white' : bad ? 'bg-rose-100 dark:bg-rose-500/20' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700',
                 ].join(' ')}>
                   {bad ? <AlertTriangle className="h-4 w-4 text-rose-500" />
                     : done ? <Check className="h-4 w-4" />
@@ -1347,7 +1347,7 @@ function StepBar({ current, type, validation, onGo }: {
                 </span>
               </button>
               {i < steps.length - 1 && (
-                <span className={`h-0.5 w-8 rounded-full ${current > s.id ? 'bg-pink-500' : 'bg-slate-200 dark:bg-neutral-700'}`} />
+                <span className={`h-0.5 w-8 rounded-full ${current > s.id ? 'bg-pink-500' : 'bg-slate-200 dark:bg-ink-700'}`} />
               )}
             </div>
           );
@@ -1457,17 +1457,17 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
                 className={[
                   'rounded-2xl border-2 p-2.5 text-center transition-all',
                   on ? 'border-pink-500 bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 ring-2 ring-pink-200 dark:ring-pink-500/25 shadow-md'
-                     : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-300 hover:-translate-y-0.5',
+                     : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-pink-300 hover:-translate-y-0.5',
                 ].join(' ')}>
                 <div className="text-2xl">{u.emoji}</div>
-                <div className={`mt-1 text-[0.6875rem] font-black ${on ? 'text-pink-800 dark:text-pink-300' : 'text-slate-700 dark:text-slate-300'}`}>
+                <div className={`mt-1 text-[0.6875rem] font-black ${on ? 'text-pink-800 dark:text-pink-300' : 'text-slate-700 dark:text-ink-300'}`}>
                   {u.label}
                 </div>
               </button>
             );
           })}
         </div>
-        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{def.hint}</p>
+        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{def.hint}</p>
 
         {base === 'custom' && (
           <Field label="Apne naap ka naam" req>
@@ -1543,13 +1543,13 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
               counter par yehi hoga.
             </Note>
           ) : (
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Counter par abhi <strong>{originalStock}</strong> hai. Haath na lagayein to waisa hi
               rahega — badalna ho to number likh dein.
             </p>
           )
         ) : (
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Ye shuruaati stock hai. Baad me kharidari ya stock adjustment se badalta rahega.
           </p>
         )}
@@ -1565,20 +1565,20 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
               const rate = rateBetween(k, base, { weightGrams: basic.weightGrams, slices: basic.numberOfSlices });
               const d = unitDef(k);
               return (
-                <div key={k} className="rounded-2xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800/60 p-3 flex items-center gap-2.5 flex-wrap">
+                <div key={k} className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-3 flex items-center gap-2.5 flex-wrap">
                   <span className="text-xl shrink-0">{d.emoji}</span>
-                  <span className="font-extrabold text-sm text-slate-900 dark:text-white shrink-0">Per {d.label}</span>
+                  <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white shrink-0">Per {d.label}</span>
                   <input type="number" min={0} step="any" autoFocus={added.includes(k)}
                     value={(basic as any)[priceField[k]] ?? ''}
                     onChange={(e) => onChange({ [priceField[k]]: e.target.value === '' ? '' : Number(e.target.value) } as any)}
                     placeholder="Rate"
-                    className="h-10 w-28 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 text-sm font-extrabold text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-pink-500" />
-                  <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                    className="h-10 w-28 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2 text-sm font-extrabold text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-pink-500" />
+                  <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                     1 {d.label.toLowerCase()} = <strong>{rate.toFixed(rate < 1 ? 3 : 2)}</strong> {baseName} stock se
                   </span>
                   <button type="button"
                     onClick={() => { setAdded((xs) => xs.filter((x) => x !== k)); onChange({ [priceField[k]]: '' } as any); }}
-                    className="h-9 w-9 rounded-lg bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 flex items-center justify-center shrink-0 hover:border-rose-400 ml-auto transition">
+                    className="h-9 w-9 rounded-lg bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center shrink-0 hover:border-rose-400 ml-auto transition">
                     <X className="h-3.5 w-3.5 text-rose-500" />
                   </button>
                 </div>
@@ -1594,7 +1594,7 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
               return (
                 <button key={k} type="button"
                   onClick={() => setAdded((xs) => (xs.includes(k) ? xs : [...xs, k]))}
-                  className="h-10 px-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-400 hover:bg-pink-50 dark:hover:bg-pink-500/10 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+                  className="h-10 px-3 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-pink-400 hover:bg-pink-50 dark:hover:bg-pink-500/10 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition">
                   <Plus className="h-3.5 w-3.5 text-pink-500" /> {d.emoji} Per {d.label}
                 </button>
               );
@@ -1622,7 +1622,7 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
               <input value={basic.barcode} onChange={(e) => onChange({ barcode: e.target.value })}
                 placeholder="8901234567890" className={`${inp} flex-1 min-w-0 font-mono`} />
               <button type="button" onClick={() => setScan(true)}
-                className="h-11 px-3 rounded-xl bg-slate-900 dark:bg-neutral-700 hover:bg-slate-800 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shrink-0 transition">
+                className="h-11 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 hover:bg-slate-800 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shrink-0 transition">
                 <Camera className="h-4 w-4" /> Scan
               </button>
             </div>
@@ -1649,7 +1649,7 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
         {basic.imageUrls.length > 0 && (
           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-6 gap-2">
             {basic.imageUrls.map((url, i) => (
-              <div key={i} className="relative aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700 group">
+              <div key={i} className="relative aspect-square rounded-xl overflow-hidden border-2 border-slate-200 dark:border-ink-700 group">
                 <img src={url} alt="" className="h-full w-full object-cover" />
                 {i === 0 && <span className="absolute top-1 left-1 text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded bg-pink-600 text-white">Main</span>}
                 <button type="button" onClick={() => onChange({ imageUrls: basic.imageUrls.filter((_, x) => x !== i) })}
@@ -1678,12 +1678,12 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
             return (
               <button key={k} type="button" onClick={() => onChange({ [k]: !on } as any)}
                 className={`rounded-xl border-2 p-2.5 text-left flex items-center gap-2 transition ${
-                  on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/10' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-300'
+                  on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-pink-300'
                 }`}>
                 <span className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                  on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-neutral-700 text-slate-500'
+                  on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'
                 }`}><Icon className="h-4 w-4" /></span>
-                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white leading-tight">{label}</span>
               </button>
             );
           })}
@@ -1706,7 +1706,7 @@ function Step1({ basic, onChange, onNext, validation, cakeLike, isEdit, original
                     onClick={() => onChange({ tagIds: on ? basic.tagIds.filter((x) => x !== t.id) : [...basic.tagIds, t.id] })}
                     className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                       on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
-                        : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 dark:text-slate-300'
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                     }`}>{t.name}</button>
                 );
               })}
@@ -1792,10 +1792,10 @@ function Step2({ cake, onChange, onToggleDecoration, cakeLike, itemName, onBack,
                   return (
                     <button key={s.value} type="button" onClick={() => onChange({ defaultShape: s.value })}
                       className={`p-2 rounded-xl border-2 flex flex-col items-center gap-1 transition ${
-                        on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 ring-2 ring-pink-200' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-300'
+                        on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 ring-2 ring-pink-200' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-pink-300'
                       }`}>
                       <span className="text-xl">{s.emoji}</span>
-                      <span className={`text-[0.625rem] font-extrabold text-center ${on ? 'text-pink-800 dark:text-pink-300' : 'text-slate-700 dark:text-slate-300'}`}>{s.label}</span>
+                      <span className={`text-[0.625rem] font-extrabold text-center ${on ? 'text-pink-800 dark:text-pink-300' : 'text-slate-700 dark:text-ink-300'}`}>{s.label}</span>
                     </button>
                   );
                 })}
@@ -1814,10 +1814,10 @@ function Step2({ cake, onChange, onToggleDecoration, cakeLike, itemName, onBack,
                   return (
                     <button key={c.value} type="button" onClick={() => onChange({ defaultCreamType: c.value })}
                       className={`p-2 rounded-xl border-2 flex flex-col items-center gap-1 transition ${
-                        on ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 ring-2 ring-amber-200' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-amber-300'
+                        on ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 ring-2 ring-amber-200' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300'
                       }`}>
                       <span className="text-xl">{c.emoji}</span>
-                      <span className={`text-[0.625rem] font-extrabold text-center ${on ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-slate-300'}`}>{c.label}</span>
+                      <span className={`text-[0.625rem] font-extrabold text-center ${on ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-ink-300'}`}>{c.label}</span>
                     </button>
                   );
                 })}
@@ -1844,12 +1844,12 @@ function Step2({ cake, onChange, onToggleDecoration, cakeLike, itemName, onBack,
                 return (
                   <button key={k} type="button" onClick={() => onChange({ [k]: !on } as any)}
                     className={`rounded-xl border-2 p-3 text-left flex items-center gap-2.5 transition ${
-                      on ? 'border-pink-500 bg-white dark:bg-neutral-900' : 'border-slate-200 dark:border-neutral-700 bg-white/60 dark:bg-neutral-800'
+                      on ? 'border-pink-500 bg-white dark:bg-ink-900' : 'border-slate-200 dark:border-ink-700 bg-white/60 dark:bg-ink-800'
                     }`}>
                     <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
-                      on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-neutral-700 text-slate-500'
+                      on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'
                     }`}><Icon className="h-4 w-4" /></span>
-                    <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
+                    <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-ink-white leading-tight">{label}</span>
                   </button>
                 );
               })}
@@ -1865,7 +1865,7 @@ function Step2({ cake, onChange, onToggleDecoration, cakeLike, itemName, onBack,
                   <button key={d} type="button" onClick={() => onToggleDecoration(d)}
                     className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                       on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
-                        : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 dark:text-slate-300'
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                     }`}>{d}</button>
                 );
               })}
@@ -1958,7 +1958,7 @@ function Step3({ production, onChange, onToggleAllergen, onBack, onSubmit, savin
           {[1, 2, 3, 7, 15, 30, 90].map((d) => (
             <button key={d} type="button" onClick={() => onChange({ shelfLifeDays: d, shelfLifeHours: '' })}
               className={`h-10 px-3 rounded-xl text-xs font-black transition ${
-                production.shelfLifeDays === d ? 'bg-pink-600 text-white' : 'bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300'
+                production.shelfLifeDays === d ? 'bg-pink-600 text-white' : 'bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
               }`}>{d} din</button>
           ))}
         </div>
@@ -2009,10 +2009,10 @@ function Step3({ production, onChange, onToggleAllergen, onBack, onSubmit, savin
             return (
               <button key={k} type="button" onClick={() => onChange({ [k]: !on } as any)}
                 className={`rounded-xl border-2 p-3 flex flex-col items-center gap-1.5 transition ${
-                  on ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800'
+                  on ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
                 }`}>
                 <Icon className={`h-5 w-5 ${on ? 'text-amber-600' : 'text-slate-400'}`} />
-                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white">{label}</span>
+                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white">{label}</span>
                 <span className={`text-[0.625rem] font-black uppercase ${on ? 'text-amber-600' : 'text-slate-400'}`}>{on ? 'Haan' : 'Nahi'}</span>
               </button>
             );
@@ -2030,7 +2030,7 @@ function Step3({ production, onChange, onToggleAllergen, onBack, onSubmit, savin
                 <button key={k} type="button" onClick={() => onChange({ [k]: !on } as any)}
                   className={`h-11 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 dark:text-slate-300'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                   }`}>{label}</button>
               );
             })}
@@ -2045,7 +2045,7 @@ function Step3({ production, onChange, onToggleAllergen, onBack, onSubmit, savin
                 <button key={a} type="button" onClick={() => onToggleAllergen(a)}
                   className={`h-9 px-3 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                     on ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 dark:text-slate-300'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                   }`}>{a}</button>
               );
             })}
@@ -2125,7 +2125,7 @@ function RawForm({ basic, raw, onBasic, onRaw, onSubmit, saving, validation }: {
               <button key={c.v} type="button" onClick={() => onRaw({ category: c.v })}
                 className={`h-11 px-2 rounded-xl border-2 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 transition ${
                   raw.category === c.v ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300'
-                    : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 dark:text-slate-300 hover:border-violet-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-violet-400'
                 }`}>{c.e} <span className="truncate">{c.l}</span></button>
             ))}
           </div>
@@ -2257,27 +2257,27 @@ function RecipeBuilder({ recipe, yieldQty, onAdd, onUpdate, onRemove, onYield, o
             return (
               <div key={r.ingredientId}
                 className={`rounded-2xl border-2 p-3 flex items-center gap-2.5 ${
-                  bad ? 'border-rose-300 bg-rose-50 dark:bg-rose-500/10' : 'border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800/60'
+                  bad ? 'border-rose-300 bg-rose-50 dark:bg-rose-500/10' : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60'
                 }`}>
                 <span className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 flex items-center justify-center shrink-0">
                   <Wheat className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.name}</div>
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 tabular-nums">{formatPKR(r.costPerUnit)} / {r.unit}</div>
                 </div>
                 <input type="number" min={0} step="any" value={r.qty}
                   onChange={(e) => onUpdate(r.ingredientId, { qty: e.target.value === '' ? '' : Number(e.target.value) })}
                   placeholder="0"
-                  className={`h-10 w-24 rounded-xl border-2 bg-white dark:bg-neutral-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none ${
-                    bad ? 'border-rose-400' : 'border-slate-200 dark:border-neutral-700 focus:border-violet-500'
+                  className={`h-10 w-24 rounded-xl border-2 bg-white dark:bg-ink-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none ${
+                    bad ? 'border-rose-400' : 'border-slate-200 dark:border-ink-700 focus:border-violet-500'
                   }`} />
                 <span className="text-[0.6875rem] font-black text-slate-500 w-10 shrink-0">{r.unit}</span>
-                <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white w-20 text-right shrink-0">
+                <span className="text-sm font-black tabular-nums text-slate-900 dark:text-ink-white w-20 text-right shrink-0">
                   {formatPKR(Number(r.qty || 0) * Number(r.costPerUnit || 0))}
                 </span>
                 <button type="button" onClick={() => onRemove(r.ingredientId)}
-                  className="h-9 w-9 rounded-xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 hover:border-rose-400 flex items-center justify-center shrink-0 transition">
+                  className="h-9 w-9 rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-rose-400 flex items-center justify-center shrink-0 transition">
                   <Trash2 className="h-4 w-4 text-rose-500" />
                 </button>
               </div>
@@ -2290,20 +2290,20 @@ function RecipeBuilder({ recipe, yieldQty, onAdd, onUpdate, onRemove, onYield, o
         <div className="rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 border-2 border-violet-200 dark:border-violet-500/30 p-4 space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Calculator className="h-4 w-4 text-violet-600" />
-            <span className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+            <span className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
               Itna saamaan lagane se kitni cheezein banti hain?
             </span>
             <input type="number" min={1} step="any" value={yieldQty}
               onChange={(e) => onYield(Math.max(Number(e.target.value) || 1, 0.01))}
-              className="h-10 w-24 rounded-xl border-2 border-violet-200 dark:border-violet-500/30 bg-white dark:bg-neutral-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-violet-500" />
+              className="h-10 w-24 rounded-xl border-2 border-violet-200 dark:border-violet-500/30 bg-white dark:bg-ink-900 px-2 text-sm font-extrabold text-center tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-2">
-            <div className="rounded-xl bg-white dark:bg-neutral-900 p-3">
+            <div className="rounded-xl bg-white dark:bg-ink-900 p-3">
               <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Poore batch ka</div>
-              <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(batch)}</div>
+              <div className="text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(batch)}</div>
             </div>
-            <div className="rounded-xl bg-white dark:bg-neutral-900 p-3">
+            <div className="rounded-xl bg-white dark:bg-ink-900 p-3">
               <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Ek cheez ka</div>
               <div className="text-lg font-black text-violet-700 dark:text-violet-300 tabular-nums">{formatPKR(per)}</div>
             </div>
@@ -2338,16 +2338,16 @@ function RecipeBuilder({ recipe, yieldQty, onAdd, onUpdate, onRemove, onYield, o
           {options.map((i: any) => (
             <button key={i.id} type="button"
               onClick={() => { onAdd({ ingredientId: i.id, name: i.name, qty: '', unit: i.unit, costPerUnit: Number(i.costPerUnit) || 0 }); setQ(''); }}
-              className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-400 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-400 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition">
               <Plus className="h-3.5 w-3.5 text-violet-500" /> {i.name}
               <span className="text-[0.6875rem] text-slate-400 tabular-nums">{formatPKR(i.costPerUnit)}/{i.unit}</span>
             </button>
           ))}
         </div>
       ) : ingredients.length === 0 ? (
-        <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800 border-2 border-dashed border-slate-300 dark:border-neutral-700 p-4 text-center">
+        <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-dashed border-slate-300 dark:border-ink-700 p-4 text-center">
           <Wheat className="h-6 w-6 text-slate-400 mx-auto" />
-          <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200 mt-2">Abhi koi saamaan nahi</p>
+          <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200 mt-2">Abhi koi saamaan nahi</p>
           <p className="text-[0.6875rem] font-bold text-slate-500 mt-1">
             Pehle maida, cheeni, makkhan daalein — phir yahan chun sakenge.
           </p>
@@ -2413,7 +2413,7 @@ function CategoryPicker({ value, onChange, productName }: {
           Category <span className="text-rose-500">*</span>
         </label>
         {selected && (
-          <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
+          <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 inline-flex items-center gap-1">
             <Sparkles className="h-3 w-3 text-pink-500" />
             System samjha: <strong className="text-pink-600 dark:text-pink-400">{prettyCategory(derived)}</strong>
           </span>
@@ -2427,20 +2427,20 @@ function CategoryPicker({ value, onChange, productName }: {
             {selected.name.charAt(0).toUpperCase()}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{selected.name}</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{selected.name}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {selected._count?.products ?? 0} cheezein is me
             </div>
           </div>
           <button type="button" onClick={() => onChange('', '')}
-            className="h-9 w-9 rounded-xl bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 flex items-center justify-center shrink-0 hover:border-rose-400 transition">
+            className="h-9 w-9 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center shrink-0 hover:border-rose-400 transition">
             <X className="h-4 w-4 text-slate-500" />
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-neutral-700 p-3 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-3 text-center">
           <Tag className="h-5 w-5 text-slate-400 mx-auto" />
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs font-bold text-slate-500 dark:text-ink-400 mt-1">
             Koi category nahi chuni — neeche se chunein ya apni banayein
           </p>
         </div>
@@ -2471,7 +2471,7 @@ function CategoryPicker({ value, onChange, productName }: {
               <button key={c.id} type="button" onClick={() => onChange(c.id, c.name)}
                 className={`h-10 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                   on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
-                    : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 dark:text-slate-200 hover:border-pink-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-pink-400'
                 }`}>
                 <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: c.color || '#94a3b8' }} />
                 {c.name}{on && <Check className="h-3.5 w-3.5" />}
@@ -2482,7 +2482,7 @@ function CategoryPicker({ value, onChange, productName }: {
       ) : null}
 
       {openSuggestions.length > 0 && (
-        <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800/60 border-2 border-slate-200 dark:border-neutral-700 p-3">
+        <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
           <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
             Ready categories — click karein to ban jayegi
           </div>
@@ -2494,7 +2494,7 @@ function CategoryPicker({ value, onChange, productName }: {
                   if (ex) return onChange(ex.id, ex.name);
                   create.mutate(s.name);
                 }}
-                className="h-9 px-2.5 rounded-lg bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 hover:border-pink-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 disabled:opacity-50 transition">
+                className="h-9 px-2.5 rounded-lg bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-pink-400 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 disabled:opacity-50 transition">
                 <span>{s.emoji}</span> {s.name}
               </button>
             ))}
@@ -2556,28 +2556,28 @@ function Summary({ draft, stats, allValid, cakeLike }: {
             </div>}
       </div>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-        <div className="px-4 py-2.5 border-b-2 border-slate-100 dark:border-neutral-800 flex items-center gap-2">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 py-2.5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <DollarSign className="h-4 w-4 text-pink-600" />
-          <span className="font-extrabold text-sm text-slate-900 dark:text-white">Kaise bech rahe hain</span>
+          <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white">Kaise bech rahe hain</span>
         </div>
         <div className="p-3 space-y-2">
-          <div className="rounded-xl bg-gradient-to-br from-pink-50 to-white dark:from-pink-950/30 dark:to-neutral-900 border-2 border-pink-200 dark:border-pink-800 p-3">
+          <div className="rounded-xl bg-gradient-to-br from-pink-50 to-white dark:from-pink-950/30 dark:to-ink-900 border-2 border-pink-200 dark:border-pink-800 p-3">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-pink-700 dark:text-pink-300">
               {baseDef.emoji} Per {baseName}
             </div>
             <div className="text-xl font-black text-pink-900 dark:text-pink-100 tabular-nums leading-tight">
               {basePrice > 0 ? formatPKRFull(basePrice) : '—'}
             </div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">Stock isi naap me ginta hai</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">Stock isi naap me ginta hai</div>
           </div>
 
           {extras.map((x) => (
-            <div key={x.key} className="rounded-xl bg-slate-50 dark:bg-neutral-800/60 border-2 border-slate-200 dark:border-neutral-700 p-2.5">
+            <div key={x.key} className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-2.5">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm">{x.emoji}</span>
-                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white">Per {x.label}</span>
-                <span className="ml-auto text-[0.75rem] font-black tabular-nums text-slate-900 dark:text-white">{formatPKRFull(x.price)}</span>
+                <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white">Per {x.label}</span>
+                <span className="ml-auto text-[0.75rem] font-black tabular-nums text-slate-900 dark:text-ink-white">{formatPKRFull(x.price)}</span>
               </div>
               <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">= {x.rate.toFixed(x.rate < 1 ? 3 : 2)} {baseName}</div>
             </div>
@@ -2591,20 +2591,20 @@ function Summary({ draft, stats, allValid, cakeLike }: {
           )}
         </div>
 
-        <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-neutral-800 border-t-2 border-slate-100 dark:border-neutral-800">
+        <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-ink-800 border-t-2 border-slate-100 dark:border-ink-800">
           <div className="p-3 text-center">
             <div className="text-[0.625rem] font-black uppercase tracking-widest text-slate-500">Photos</div>
-            <div className="text-base font-black text-slate-900 dark:text-white">{stats.imageCount}</div>
+            <div className="text-base font-black text-slate-900 dark:text-ink-white">{stats.imageCount}</div>
           </div>
           <div className="p-3 text-center">
             <div className="text-[0.625rem] font-black uppercase tracking-widest text-slate-500">Diet</div>
-            <div className="text-base font-black text-slate-900 dark:text-white">{stats.dietaryScore}/4</div>
+            <div className="text-base font-black text-slate-900 dark:text-ink-white">{stats.dietaryScore}/4</div>
           </div>
         </div>
       </div>
 
       {cakeLike && flavor && (
-        <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-3">
+        <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3">
           <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Flavour</div>
           <div className={`rounded-xl bg-gradient-to-br ${flavor.color} p-3 text-white text-center`}>
             <div className="text-2xl">{flavor.emoji}</div>
@@ -2623,14 +2623,14 @@ function Summary({ draft, stats, allValid, cakeLike }: {
    naam alag, shakal alag. Ab ek hi jagah, is liye safha har jagah
    ek jaisa lagta hai.
    ═════════════════════════════════════════════════════════════ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-pink-500 transition';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-pink-500 transition';
 
 function Card({ tone, children }: { tone?: 'pink'; children: any }) {
   return (
     <section className={`rounded-3xl border-2 shadow-sm p-5 space-y-3.5 ${
       tone === 'pink'
-        ? 'bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 dark:from-pink-950/30 dark:via-neutral-900 dark:to-fuchsia-950/30 border-pink-200 dark:border-pink-800'
-        : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800'
+        ? 'bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 dark:from-pink-950/30 dark:via-ink-900 dark:to-fuchsia-950/30 border-pink-200 dark:border-pink-800'
+        : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800'
     }`}>{children}</section>
   );
 }
@@ -2642,8 +2642,8 @@ function CardHead({ icon: Icon, title, desc }: { icon: any; title: string; desc:
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <h3 className="font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{desc}</p>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white leading-tight">{title}</h3>
+        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{desc}</p>
       </div>
     </div>
   );
@@ -2668,14 +2668,14 @@ function Toggle({ icon: Icon, label, hint, on, onChange }: {
   return (
     <button type="button" onClick={() => onChange(!on)}
       className={`text-left rounded-2xl border-2 p-3 flex items-start gap-2.5 transition ${
-        on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/10' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-300'
+        on ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/10' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-pink-300'
       }`}>
       <span className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
-        on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-neutral-700 text-slate-500'
+        on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-500'
       }`}><Icon className="h-4 w-4" /></span>
       <span className="min-w-0">
-        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white leading-tight">{label}</span>
-        {hint && <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</span>}
+        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white leading-tight">{label}</span>
+        {hint && <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{hint}</span>}
       </span>
     </button>
   );
@@ -2683,7 +2683,7 @@ function Toggle({ icon: Icon, label, hint, on, onChange }: {
 
 function Note({ tone = 'slate', icon: Icon, children }: { tone?: string; icon?: any; children: any }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-50 dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300',
     amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200',
@@ -2707,11 +2707,11 @@ function CustomName({ label, placeholder, value, onChange }: {
       empty ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10'
             : 'border-pink-300 dark:border-pink-500/40 bg-pink-50 dark:bg-pink-500/10'
     }`}>
-      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
+      <label className="block text-[0.6875rem] font-black uppercase tracking-widest text-slate-600 dark:text-ink-300">
         {label} <span className="text-rose-500">*</span>
       </label>
       <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoFocus className={inp} />
-      <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+      <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
         Jo aap likhenge wohi POS aur catalog par nazar aayega.
       </p>
     </div>
@@ -2738,17 +2738,17 @@ function Errors({ errors, show }: { errors: string[]; show: boolean }) {
 function Guide({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Cheez kaise banayein
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Pehla sawal: <strong>ye cheez kya hai?</strong> Bakery me teen tarah ki cheezein hoti
             hain, aur teenon ka hisab alag chalta hai.
           </p>
@@ -2778,8 +2778,8 @@ function Guide({ onClose }: { onClose: () => void }) {
             "Kitni der theek rehti hai" se hi expiry ki warning aati hai — warna bana hua maal
             chup-chaap kharab ho jata hai.
           </GTip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800 p-3">
-            <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
+            <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
               Adhoora chhor dein to kuch nahi jata — draft khud save ho jata hai, wapas aakar
               wahin se shuru kar sakte hain.
             </p>
@@ -2798,8 +2798,8 @@ function GTip({ icon: Icon, title, children }: { icon: any; title: string; child
         <Icon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

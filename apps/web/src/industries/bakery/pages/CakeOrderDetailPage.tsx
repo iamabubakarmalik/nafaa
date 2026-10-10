@@ -61,7 +61,7 @@ export default function CakeOrderDetailPage() {
   });
 
   if (isLoading || !order) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const statusCfg = STATUS_CONFIG[order.status];
@@ -114,9 +114,9 @@ export default function CakeOrderDetailPage() {
       </section>
 
       {/* Status flow */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Order Workflow</h3>
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Order Workflow</h3>
           {nextStatus && !['CANCELLED', 'REFUNDED', 'DELIVERED'].includes(order.status) && (
             <div className="flex gap-2">
               <Button size="sm" onClick={() => statusMutation.mutate(nextStatus)} loading={statusMutation.isPending} className={STATUS_CONFIG[nextStatus].color + ' text-white'}>
@@ -152,19 +152,19 @@ export default function CakeOrderDetailPage() {
                   <div className={
                     'h-10 w-10 rounded-full flex items-center justify-center transition ' +
                     (isCurrent ? cfg.color + ' text-white ring-4 ring-pink-200 dark:ring-pink-900 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-neutral-700 text-slate-500')
+                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
                   }>
                     {isActive && !isCurrent ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-4 w-4" />}
                   </div>
                   <span className={
                     'text-[0.625rem] font-extrabold uppercase ' +
-                    (isActive ? 'text-slate-900 dark:text-white' : 'text-slate-400')
+                    (isActive ? 'text-slate-900 dark:text-ink-white' : 'text-slate-400')
                   }>
                     {cfg.label}
                   </span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-8 mx-1 ' + (i < currentIdx ? 'bg-pink-500' : 'bg-slate-200 dark:bg-neutral-700')} />
+                  <div className={'h-0.5 w-8 mx-1 ' + (i < currentIdx ? 'bg-pink-500' : 'bg-slate-200 dark:bg-ink-700')} />
                 )}
               </div>
             );
@@ -204,13 +204,13 @@ export default function CakeOrderDetailPage() {
           </div>
 
           {/* Customer info */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-pink-600" />
               Customer
             </h3>
             <div className="space-y-2 text-sm">
-              <div className="font-extrabold text-slate-900 dark:text-white text-base">{order.customerName}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-base">{order.customerName}</div>
               <a href={'tel:' + order.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
                 <Phone className="h-3 w-3" />
                 {order.customerPhone}
@@ -226,8 +226,8 @@ export default function CakeOrderDetailPage() {
 
           {/* Photo cake / references */}
           {(order.hasPhotoOnCake || order.designReferenceUrls?.length > 0) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Camera className="h-4 w-4 text-fuchsia-600" />
                 Design & Photos
               </h3>
@@ -252,7 +252,7 @@ export default function CakeOrderDetailPage() {
                 </div>
               )}
               {order.designInstructions && (
-                <div className="rounded-lg bg-violet-50 dark:bg-violet-950/30 border border-violet-200 p-3 text-sm text-slate-800 dark:text-slate-200">
+                <div className="rounded-lg bg-violet-50 dark:bg-violet-950/30 border border-violet-200 p-3 text-sm text-slate-800 dark:text-ink-200">
                   {order.designInstructions}
                 </div>
               )}
@@ -267,8 +267,8 @@ export default function CakeOrderDetailPage() {
           )}
 
           {/* Occasion + Event */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-fuchsia-600" />
               Event Details
             </h3>
@@ -306,8 +306,8 @@ export default function CakeOrderDetailPage() {
 
           {/* Dietary + Extras */}
           {(order.isEggless || order.isSugarFree || order.isVegan || order.cakeStand || order.cakeKnife || (order.candlesRequired ?? 0) > 0) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-2">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-2">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Heart className="h-4 w-4 text-emerald-600" />
                 Dietary & Extras
               </h3>
@@ -336,8 +336,8 @@ export default function CakeOrderDetailPage() {
           )}
 
           {/* Delivery */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-2">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-2">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Truck className="h-4 w-4 text-blue-600" />
               Delivery
             </h3>
@@ -353,7 +353,7 @@ export default function CakeOrderDetailPage() {
               )}
             </div>
             {order.deliveryAddress && (
-              <div className="text-sm text-slate-700 dark:text-slate-300">
+              <div className="text-sm text-slate-700 dark:text-ink-300">
                 <MapPin className="h-3 w-3 inline mr-1" />
                 {order.deliveryAddress}
               </div>
@@ -396,7 +396,7 @@ export default function CakeOrderDetailPage() {
           {order.specialInstructions && (
             <div className="rounded-2xl bg-fuchsia-50 dark:bg-fuchsia-950/30 border-2 border-fuchsia-200 dark:border-fuchsia-800 p-4">
               <div className="text-sm font-extrabold text-fuchsia-900 mb-1">📝 Special Instructions</div>
-              <p className="text-sm text-slate-800 dark:text-slate-200">{order.specialInstructions}</p>
+              <p className="text-sm text-slate-800 dark:text-ink-200">{order.specialInstructions}</p>
             </div>
           )}
 
@@ -496,7 +496,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -507,7 +507,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
           <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
           <div className="flex gap-1">
             {[0.25, 0.5, 0.75, 1].map((f) => (
-              <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold hover:bg-slate-200">
+              <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200">
                 {(f * 100).toFixed(0)}%
               </button>
             ))}
@@ -537,7 +537,7 @@ function RatingModal({ orderId, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Rate Order</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -555,7 +555,7 @@ function RatingModal({ orderId, onClose, onDone }: any) {
             </div>
             <div className="text-2xl font-extrabold text-amber-700">{rating}/5</div>
           </div>
-          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Customer feedback..." className="w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Customer feedback..." className="w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Final Delivery Photos</label>
             {photoUrls.length > 0 && (

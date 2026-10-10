@@ -189,19 +189,19 @@ export default function RetailProductWizardPage() {
           </button>
           <button
             onClick={() => navigate(`/retail-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md p-5 flex flex-col items-center gap-2 transition hover:-translate-y-0.5"
+            className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md p-5 flex flex-col items-center gap-2 transition hover:-translate-y-0.5"
           >
             <Eye className="h-6 w-6 text-sky-600 dark:text-sky-400" />
-            <div className="font-extrabold text-slate-900 dark:text-white">View Product</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">Details dekho</div>
+            <div className="font-extrabold text-slate-900 dark:text-ink-white">View Product</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">Details dekho</div>
           </button>
           <button
             onClick={() => navigate('/products')}
-            className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md p-5 flex flex-col items-center gap-2 transition hover:-translate-y-0.5"
+            className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md p-5 flex flex-col items-center gap-2 transition hover:-translate-y-0.5"
           >
             <ShoppingBag className="h-6 w-6 text-sky-600 dark:text-sky-400" />
-            <div className="font-extrabold text-slate-900 dark:text-white">All Products</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">List pe wapas</div>
+            <div className="font-extrabold text-slate-900 dark:text-ink-white">All Products</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">List pe wapas</div>
           </button>
         </div>
       </div>
@@ -219,7 +219,7 @@ export default function RetailProductWizardPage() {
           </div>
           <button
             onClick={() => { if (confirm('Draft delete kar ke naya start karein?')) reset(); }}
-            className="px-3 py-1 rounded-lg bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-rose-700 dark:text-rose-400 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200 dark:border-rose-500/40 transition"
+            className="px-3 py-1 rounded-lg bg-white dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-rose-700 dark:text-rose-400 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200 dark:border-rose-500/40 transition"
           >
             <Trash2 className="h-3 w-3" /> Fresh Start
           </button>
@@ -243,14 +243,14 @@ export default function RetailProductWizardPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <button
           onClick={() => navigate(isEdit ? `/retail-products/${id}` : '/retail/dashboard')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold transition"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold transition"
         >
           <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Dashboard'}
         </button>
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-3 flex-wrap">
@@ -340,12 +340,12 @@ export default function RetailProductWizardPage() {
       </div>
 
       {/* ═══ FIXED BOTTOM BAR ═══ */}
-      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
+      <div className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 dark:border-ink-800 bg-white/95 dark:bg-ink-950/95 backdrop-blur px-4 py-3 lg:pl-[300px]">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           <button
             onClick={prevStep}
             disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition disabled:opacity-40"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition disabled:opacity-40"
           >
             <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back</span>
           </button>
@@ -358,12 +358,12 @@ export default function RetailProductWizardPage() {
                   key={s}
                   className={[
                     'h-2 rounded-full transition-all',
-                    draft.step === s ? 'w-6 bg-sky-600' : draft.step > s ? 'w-2 bg-emerald-500' : 'w-2 bg-slate-300 dark:bg-slate-600',
+                    draft.step === s ? 'w-6 bg-sky-600' : draft.step > s ? 'w-2 bg-emerald-500' : 'w-2 bg-slate-300 dark:bg-ink-600',
                   ].join(' ')}
                 />
               ))}
             </div>
-            <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 hidden sm:block truncate">
+            <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 hidden sm:block truncate">
               Step {draft.step} of 3
               {!currentValidation.valid && (
                 <span className="ml-2 inline-flex items-center gap-1 text-rose-700 dark:text-rose-400">
@@ -372,7 +372,7 @@ export default function RetailProductWizardPage() {
                 </span>
               )}
               {draft.step === 3 && canSave && (
-                <span className="ml-2 text-slate-400 dark:text-slate-500 font-bold">
+                <span className="ml-2 text-slate-400 dark:text-ink-500 font-bold">
                   <Keyboard className="h-3 w-3 inline" /> Ctrl+Enter = save
                 </span>
               )}
@@ -414,20 +414,20 @@ function WizardTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: () => vo
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Product Wizard Kaise Kaam Karta Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye wizard <strong>3 easy steps</strong> mein product banata hai. Har step ke saath
             <strong> right side pe live summary</strong> dikhti hai — naam, rate, stock, faida sab ek nazar mein.
           </p>
@@ -452,7 +452,7 @@ function WizardTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: () => vo
           </div>
 
           {/* Tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="flex items-start gap-2">
               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
               <span><strong>💾 Draft khud save hota hai</strong> — page band ho jaye to wapas aake wahin se shuru</span>
@@ -493,18 +493,18 @@ function TeacherRow({ n, icon: Icon, tone, title, desc, chips }: {
     emerald: 'from-emerald-500 to-teal-600',
   };
   return (
-    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 flex items-start gap-3">
+    <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-3 flex items-start gap-3">
       <div className={`h-9 w-9 rounded-lg bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shrink-0 shadow-md`}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-xs font-extrabold text-slate-900 dark:text-white">
-          <span className="text-slate-400 dark:text-slate-500">Step {n}:</span> {title}
+        <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">
+          <span className="text-slate-400 dark:text-ink-500">Step {n}:</span> {title}
         </div>
-        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{desc}</div>
+        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5">{desc}</div>
         <div className="flex flex-wrap gap-1 mt-1.5">
           {chips.map((c) => (
-            <span key={c} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-300">
+            <span key={c} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-700 text-[0.625rem] font-extrabold text-slate-600 dark:text-ink-300">
               {c}
             </span>
           ))}
@@ -516,7 +516,7 @@ function TeacherRow({ n, icon: Icon, tone, title, desc, chips }: {
 
 function SuccessStat({ label, value }: { label: string; value: number | string }) {
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-800/80 border-2 border-sky-200 dark:border-sky-500/30 p-3">
+    <div className="rounded-xl bg-white dark:bg-ink-800/80 border-2 border-sky-200 dark:border-sky-500/30 p-3">
       <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-sky-700 dark:text-sky-400">{label}</div>
       <div className="text-2xl font-extrabold text-sky-900 dark:text-sky-200 tabular-nums mt-0.5">{value}</div>
     </div>

@@ -257,17 +257,17 @@ export default function RestaurantProductsListPage() {
   if (productsQ.isLoading) {
     return (
       <div className="space-y-4 pb-24 animate-pulse">
-        <div className="rounded-3xl bg-slate-200 dark:bg-slate-800 h-44" />
+        <div className="rounded-3xl bg-slate-200 dark:bg-ink-800 h-44" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-24" />)}
+          {[0, 1, 2, 3].map((i) => <div key={i} className="rounded-2xl bg-slate-200 dark:bg-ink-800 h-24" />)}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 overflow-hidden">
-              <div className="aspect-[4/3] bg-slate-200 dark:bg-slate-800" />
+            <div key={i} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 overflow-hidden">
+              <div className="aspect-[4/3] bg-slate-200 dark:bg-ink-800" />
               <div className="p-2.5 space-y-2">
-                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-4/5" />
-                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-2/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-ink-800 w-4/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-ink-800 w-2/5" />
               </div>
             </div>
           ))}
@@ -379,7 +379,7 @@ export default function RestaurantProductsListPage() {
                   <button key={r.id}
                     onClick={() => r._menu && toggleMenu.mutate(r._menu.id)}
                     disabled={toggleMenu.isPending}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 inline-flex items-center gap-1 disabled:opacity-50 transition">
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-rose-200 dark:border-rose-500/40 hover:border-rose-400 text-[0.6875rem] font-black text-rose-900 dark:text-rose-200 inline-flex items-center gap-1 disabled:opacity-50 transition">
                     <EyeOff className="h-3 w-3" /> {r.name}
                   </button>
                 ))}
@@ -395,15 +395,15 @@ export default function RestaurantProductsListPage() {
 
       {/* ═══ TOOLBAR ═══ */}
       <section className="sticky top-0 z-30 -mx-1 px-1 py-1 print:hidden">
-        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-800 shadow-lg p-3 sm:p-4 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-ink-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-ink-800 shadow-lg p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Dish ka naam, SKU, barcode… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-500/30 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-500/30 transition" />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -417,23 +417,23 @@ export default function RestaurantProductsListPage() {
             <button onClick={() => setShowFilters((v) => !v)}
               className={`lg:hidden h-12 px-4 rounded-2xl border-2 text-sm font-extrabold inline-flex items-center gap-1.5 transition ${
                 showFilters ? 'border-orange-500 bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200'
               }`}>
               <SlidersHorizontal className="h-4 w-4" /> Chaant
               {hasFilters && <span className="h-2 w-2 rounded-full bg-amber-500" />}
             </button>
 
-            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
               {([['grid', Grid3x3], ['table', ListIcon]] as const).map(([v, Icon], i) => (
                 <button key={v} onClick={() => setView(v)} title={v === 'grid' ? 'Khane' : 'List'}
-                  className={`px-4 h-12 transition ${i ? 'border-l-2 border-slate-200 dark:border-slate-700' : ''} ${
-                    view === v ? 'bg-orange-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                  className={`px-4 h-12 transition ${i ? 'border-l-2 border-slate-200 dark:border-ink-700' : ''} ${
+                    view === v ? 'bg-orange-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
                   }`}><Icon className="h-4 w-4" /></button>
               ))}
             </div>
 
             <button onClick={exportCsv}
-              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-orange-300 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition">
+              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-orange-300 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition">
               <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
             </button>
           </div>
@@ -453,7 +453,7 @@ export default function RestaurantProductsListPage() {
                     ? v === 'dead'
                       ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
                       : 'border-orange-500 bg-orange-50 dark:bg-orange-500/15 text-orange-700 dark:text-orange-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-orange-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-orange-400'
                 }`}>
                 <Icon className="h-3.5 w-3.5" /> {label}
               </button>
@@ -475,7 +475,7 @@ export default function RestaurantProductsListPage() {
                 <X className="h-3 w-3" /> Chaant hatao
               </button>
             )}
-            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
               {filtered.length} dish
             </div>
           </div>
@@ -484,15 +484,15 @@ export default function RestaurantProductsListPage() {
 
       {/* ═══ LIST ═══ */}
       {filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 text-center">
           <UtensilsCrossed className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-base font-black text-slate-700 dark:text-slate-200">Kuch nahi mila</p>
+          <p className="text-base font-black text-slate-700 dark:text-ink-200">Kuch nahi mila</p>
           <p className="text-xs font-bold text-slate-400 mt-1">
             {hasFilters ? 'Chaant badal kar dekhein' : 'Pehli dish menu me daalein'}
           </p>
           <div className="mt-4 flex gap-2 justify-center flex-wrap">
             {hasFilters && (
-              <button onClick={clearFilters} className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-xs font-black transition">
+              <button onClick={clearFilters} className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-xs font-black transition">
                 Chaant hatayein
               </button>
             )}
@@ -514,17 +514,17 @@ export default function RestaurantProductsListPage() {
           </div>
           {filtered.length > visible.length && (
             <button onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-              className="w-full h-12 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-black text-slate-600 dark:text-slate-300 hover:border-orange-400 transition print:hidden">
+              className="w-full h-12 rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-white dark:bg-ink-900 text-sm font-black text-slate-600 dark:text-ink-300 hover:border-orange-400 transition print:hidden">
               Aur {Math.min(PAGE_SIZE, filtered.length - visible.length)} dikhayein
               <span className="text-slate-400"> · {filtered.length - visible.length} baqi</span>
             </button>
           )}
         </>
       ) : (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-100 dark:border-slate-800">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-100 dark:border-ink-800">
                 <tr>
                   <Th>Dish</Th><Th>Category</Th>
                   <Th className="text-right">Rate</Th>
@@ -534,14 +534,14 @@ export default function RestaurantProductsListPage() {
                   <Th className="text-right print:hidden">Menu par</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {visible.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <td className="px-3 py-2.5">
                       <Link to={`/restaurant-menu/${r.id}`} className="flex items-center gap-2 min-w-0 group">
                         <Thumb p={r} />
                         <span className="min-w-0">
-                          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
+                          <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-orange-600 transition">
                             {r.name} {r._spice}
                           </span>
                           <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -550,10 +550,10 @@ export default function RestaurantProductsListPage() {
                         </span>
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 truncate">
+                    <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 truncate">
                       {r.category?.name ?? '—'}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-ink-white tabular-nums">
                       {formatPKR(r.price)}
                     </td>
                     <td className="px-3 py-2.5 text-right">
@@ -569,10 +569,10 @@ export default function RestaurantProductsListPage() {
                         : <span className={`text-[0.75rem] font-black tabular-nums ${
                             r._canMake === 0 ? 'text-rose-600 dark:text-rose-400'
                               : r._canMake <= 5 ? 'text-amber-600 dark:text-amber-400'
-                                : 'text-slate-600 dark:text-slate-300'
+                                : 'text-slate-600 dark:text-ink-300'
                           }`}>{r._canMake}</span>}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 tabular-nums">
                       {r._sold || '—'}
                     </td>
                     <td className="px-3 py-2.5 text-right print:hidden">
@@ -580,7 +580,7 @@ export default function RestaurantProductsListPage() {
                         disabled={!r._menu || toggleMenu.isPending}
                         role="switch" aria-checked={r._onMenu}
                         className={`relative h-6 w-11 rounded-full shrink-0 disabled:opacity-40 transition ${
-                          r._onMenu ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-600'
+                          r._onMenu ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-ink-600'
                         }`}>
                         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
                           r._onMenu ? 'left-[22px]' : 'left-0.5'
@@ -611,11 +611,11 @@ export default function RestaurantProductsListPage() {
 /* ════════════════ CHHOTE HISSE ════════════════ */
 
 const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-black inline-flex items-center gap-1.5 backdrop-blur transition';
-const sel = 'h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition';
+const sel = 'h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition';
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -624,7 +624,7 @@ function Th({ children, className = '' }: any) {
 function Thumb({ p }: any) {
   const img = p.images?.find((i: any) => i.isPrimary)?.url ?? p.images?.[0]?.url ?? p._menu?.imageUrl;
   return (
-    <span className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+    <span className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center overflow-hidden shrink-0">
       {img ? <img src={img} alt="" loading="lazy" className="h-full w-full object-cover" />
         : <span className="text-base">{productEmoji(p.name, p.category?.name)}</span>}
     </span>
@@ -643,14 +643,14 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
 
   return (
     <div className={[
-      'group relative rounded-2xl bg-white dark:bg-slate-900/80 border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 avoid-break',
+      'group relative rounded-2xl bg-white dark:bg-ink-900/80 border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1 avoid-break',
       dead ? 'border-rose-300 dark:border-rose-500/40'
         : tight ? 'border-amber-300 dark:border-amber-500/40'
-          : 'border-slate-200 dark:border-slate-800 hover:border-orange-300 dark:hover:border-orange-500/40',
+          : 'border-slate-200 dark:border-ink-800 hover:border-orange-300 dark:hover:border-orange-500/40',
       !r._onMenu ? 'opacity-60' : '',
     ].join(' ')}>
       <Link to={`/restaurant-menu/${r.id}`} className="block">
-        <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        <div className="relative aspect-[4/3] bg-slate-100 dark:bg-ink-800 overflow-hidden">
           {img ? (
             <img src={img} alt={r.name} loading="lazy"
               className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -706,7 +706,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
         </div>
 
         <div className="p-2.5">
-          <div className="font-extrabold text-slate-900 dark:text-white text-xs leading-tight line-clamp-2 min-h-[2rem] group-hover:text-orange-600">
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs leading-tight line-clamp-2 min-h-[2rem] group-hover:text-orange-600">
             {r.name}
           </div>
 
@@ -723,7 +723,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
               </span>
             )}
             {!r._hasRecipe && (
-              <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500">
+              <span className="text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-500">
                 recipe nahi
               </span>
             )}
@@ -734,15 +734,15 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
               <div className="text-base font-extrabold text-orange-700 dark:text-orange-400 tabular-nums leading-none">
                 {formatPKR(r.price || 0)}
               </div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                 {hideCost || !r._cost ? `per ${r.unit}` : `lagat ${formatPKR(r._cost)}`}
               </div>
             </div>
             <div className="text-right shrink-0">
-              <div className="text-sm font-extrabold tabular-nums leading-none text-slate-700 dark:text-slate-300">
+              <div className="text-sm font-extrabold tabular-nums leading-none text-slate-700 dark:text-ink-300">
                 {r._sold || 0}
               </div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">biki</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">biki</div>
             </div>
           </div>
         </div>
@@ -754,7 +754,7 @@ function DishCard({ r, hideCost, busy, onToggleMenu, onStock }: any) {
           className={`flex-1 h-9 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1 disabled:opacity-40 transition active:scale-[0.97] ${
             r._onMenu
               ? 'bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300'
-              : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300'
+              : 'bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-600 dark:text-ink-300'
           }`}>
           {r._onMenu ? <><Eye className="h-3 w-3" /> Menu par</> : <><EyeOff className="h-3 w-3" /> Band hai</>}
         </button>
@@ -777,7 +777,7 @@ function Teacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -798,17 +798,17 @@ function Teacher({ onClose }: any) {
             { i: Timer, t: 'Banane ka waqt likh dein', d: 'Har dish par minute likhe hon to counter wala grahak ko sach bata sakta hai, aur KOT par kitchen ko tarteeb samajh aati hai.' },
             { i: Barcode, t: 'Scan bhi chalta hai', d: 'Packed cheezein (bottle, chips) barcode se foran mil jati hain — B dabayein.' },
           ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-600 to-amber-700 text-white flex items-center justify-center shrink-0">
                 <x.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['/', 'Dhoondein'], ['B', 'Scan'], ['G', 'Ye safha'], ['R', 'Taaza'], ['Esc', 'Band']].map(([k, l]) => (
@@ -819,7 +819,7 @@ function Teacher({ onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-orange-600 to-amber-700">Samajh gaya</Button>
         </footer>
       </div>

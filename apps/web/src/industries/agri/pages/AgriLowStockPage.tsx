@@ -482,12 +482,12 @@ export default function AgriLowStockPage() {
             className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${
-              tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+              tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
             }`}>{count}</span>
             <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
@@ -495,16 +495,16 @@ export default function AgriLowStockPage() {
       </div>
 
       {/* ═══ SEARCH + FILTER ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
         <div className="flex gap-2 flex-wrap items-center">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Naam, category, brand, fasal… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -516,14 +516,14 @@ export default function AgriLowStockPage() {
                 className={`h-12 px-3.5 rounded-2xl border-2 text-xs font-black transition ${
                   urgency === v
                     ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                 }`}>{l}</button>
             ))}
           </div>
 
           <div className="flex gap-1.5">
             <button onClick={copyList}
-              className="h-12 px-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 hover:border-emerald-400 inline-flex items-center gap-1.5 transition">
+              className="h-12 px-3.5 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs font-black text-slate-700 dark:text-ink-200 hover:border-emerald-400 inline-flex items-center gap-1.5 transition">
               {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
               <span className="hidden sm:inline">{copied ? 'Copy hui' : 'List copy'}</span>
             </button>
@@ -634,10 +634,10 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
         </ChartCard>
       </div>
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+            <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
               <tr>
                 <Th>Cheez</Th>
                 <Th>Qism</Th>
@@ -648,18 +648,18 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
                 <Th className="text-right print:hidden">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {rows.map((r) => {
                 const out = r.have === 0;
                 return (
                   <tr key={r.productId} className={`transition avoid-break ${out ? 'bg-rose-50/60 dark:bg-rose-500/5' : 'hover:bg-emerald-50/40 dark:hover:bg-emerald-500/5'}`}>
                     <td className="px-3 py-2.5">
                       <Link to={`/agri-products/${r.productId}`} className="group flex items-center gap-2.5">
-                        <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">
+                        <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-lg shrink-0">
                           {AGRI_KIND_EMOJI[r.kind as AgriKind]}
                         </span>
                         <span className="min-w-0">
-                          <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
+                          <span className="block font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-emerald-600">
                             {r.productName}
                           </span>
                           <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -670,7 +670,7 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
                       </Link>
                     </td>
                     <td className="px-3 py-2.5">
-                      <span className="text-[0.6875rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                      <span className="text-[0.6875rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">
                         {prettyAgriKind(r.kind)}
                       </span>
                     </td>
@@ -688,7 +688,7 @@ function OrderTab({ rows, chart, kindChart, totalCost, onStock }: {
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-ink-300 tabular-nums">
                       {formatPKR(r.short * Number(r.costPrice || 0))}
                     </td>
                     <td className="px-3 py-2.5 print:hidden">
@@ -758,19 +758,19 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
             </ResponsiveContainer>
           </ChartCard>
 
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
-            <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4 text-rose-600" /> Sab se pehle ye
             </h3>
             <div className="space-y-2">
               {rows.slice(0, 6).map((r) => (
                 <Link key={r.productId} to={`/agri-products/${r.productId}/edit`}
-                  className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition group">
+                  className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-ink-800 transition group">
                   <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${
                     r.cert.state === 'expired' ? 'bg-rose-500' : r.cert.state === 'soon' ? 'bg-amber-500' : 'bg-slate-400'
                   }`} />
                   <span className="min-w-0 flex-1">
-                    <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate group-hover:text-emerald-600">
+                    <span className="block font-extrabold text-sm text-slate-900 dark:text-ink-white truncate group-hover:text-emerald-600">
                       {r.productName}
                     </span>
                     <span className="block text-[0.6875rem] font-bold text-slate-500">
@@ -785,10 +785,10 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
         </div>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+            <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
               <tr>
                 <Th>Cheez</Th>
                 <Th>Reg number</Th>
@@ -799,7 +799,7 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                 <Th className="text-right print:hidden">Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {rows.map((r) => {
                 const gone = r.cert.state === 'expired';
                 const blocked = Number(r.stock || 0) * Number(r.salePrice || 0);
@@ -807,21 +807,21 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                   <tr key={r.productId} className={`transition avoid-break ${gone ? 'bg-rose-50/60 dark:bg-rose-500/5' : 'hover:bg-amber-50/40 dark:hover:bg-amber-500/5'}`}>
                     <td className="px-3 py-2.5">
                       <Link to={`/agri-products/${r.productId}`} className="group flex items-center gap-2.5">
-                        <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">
+                        <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-lg shrink-0">
                           {AGRI_KIND_EMOJI[r.kind as AgriKind]}
                         </span>
                         <span className="min-w-0">
-                          <span className="block font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-emerald-600">
+                          <span className="block font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-emerald-600">
                             {r.productName}
                           </span>
                           <span className="block text-[0.6875rem] font-bold text-slate-400">{prettyAgriKind(r.kind)}</span>
                         </span>
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 font-mono text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <td className="px-3 py-2.5 font-mono text-xs font-bold text-slate-600 dark:text-ink-300">
                       {r.profile?.govtRegNumber || <span className="text-amber-600 font-sans">Nahi bhara</span>}
                     </td>
-                    <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                       {r.profile?.govtRegExpiry
                         ? new Date(r.profile.govtRegExpiry).toLocaleDateString('en-PK', { dateStyle: 'medium' })
                         : <span className="text-amber-600">—</span>}
@@ -831,7 +831,7 @@ function CertTab({ rows, pie, blockedValue }: { rows: any[]; pie: any[]; blocked
                         : r.cert.state === 'soon' ? <Pill tone="amber">{r.cert.days} din</Pill>
                         : <Pill tone="slate">Nahi likhi</Pill>}
                     </td>
-                    <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">
+                    <td className="px-3 py-2.5 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                       {fmtQty(Number(r.stock || 0))} <span className="text-[0.6875rem] font-bold text-slate-500">{r.unit}</span>
                     </td>
                     <td className={`px-3 py-2.5 text-right text-xs font-black tabular-nums ${gone ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500'}`}>
@@ -911,7 +911,7 @@ function SeasonBanner({ nowDef, comingDef }: { nowDef: any[]; comingDef: any }) 
             {nowDef[0]?.hint}
             {comingDef && ` • Aage ${comingDef.e} ${comingDef.l} aa raha hai — ${comingDef.hint}`}
           </p>
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1">
             Season se pehle mangwa lein — baad me rate barh jata hai aur maal milta bhi nahi.
           </p>
         </div>
@@ -927,23 +927,23 @@ function SeasonGroup({ title, tone, rows, onStock }: {
     ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200'
     : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200';
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className={`px-4 py-3 border-b-2 font-black text-sm ${head}`}>{title} · {rows.length}</div>
-      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+      <div className="divide-y divide-slate-100 dark:divide-ink-800">
         {rows.map((r) => {
           const s = SEASONS.find((x) => x.v === r.season);
           const crops = r.profile?.targetCrops ?? [];
           return (
-            <div key={r.productId} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition avoid-break">
-              <span className="h-11 w-11 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">
+            <div key={r.productId} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition avoid-break">
+              <span className="h-11 w-11 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xl shrink-0">
                 {AGRI_KIND_EMOJI[r.kind as AgriKind]}
               </span>
               <div className="min-w-0 flex-1">
                 <Link to={`/agri-products/${r.productId}`}
-                  className="font-extrabold text-sm text-slate-900 dark:text-white truncate hover:text-emerald-600 block">
+                  className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate hover:text-emerald-600 block">
                   {r.productName}
                 </Link>
-                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                   {s ? `${s.e} ${s.l}` : ''}
                   {crops.length > 0 && ` • 🌾 ${crops.slice(0, 3).join(', ')}`}
                 </div>
@@ -982,15 +982,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
-        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1002,8 +1002,8 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
 
 function ChartCard({ icon: Icon, title, children }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1016,7 +1016,7 @@ function EmptyChart() {
 }
 
 function Th({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>{children}</th>;
 }
 
 function Pill({ tone, children }: any) {
@@ -1024,19 +1024,19 @@ function Pill({ tone, children }: any) {
     emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
-    slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
   };
   return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
 
 function Empty({ icon: Icon, title, sub }: { icon: any; title: string; sub: string }) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Icon className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">{title}</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">{sub}</p>
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">{title}</h3>
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">{sub}</p>
       <Link to="/agri/products"
         className="mt-5 h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold inline-flex items-center gap-1.5 transition">
         <Package className="h-4 w-4" /> Saara maal dekhein
@@ -1048,18 +1048,18 @@ function Empty({ icon: Icon, title, sub }: { icon: any; title: string; sub: stri
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye safha kaise chalta hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Roz subah ye safha kholein — teen cheezein foran samne aa jayengi.
           </p>
           <Tip icon={Truck} title="1. Mangwana hai">
@@ -1083,13 +1083,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Har row par "Stock" ka button — maal aate hi wahin se daal dein, safha chhorne ki
             zaroorat nahi.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> guide</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-3</kbd> tabs</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">G</kbd> guide</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1106,8 +1106,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

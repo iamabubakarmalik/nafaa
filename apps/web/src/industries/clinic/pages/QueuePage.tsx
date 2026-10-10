@@ -57,20 +57,20 @@ export default function QueuePage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="grid sm:grid-cols-2 gap-3">
-          <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
+          <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
             <option value="">-- Select Doctor --</option>
             {doctors.map((d) => (
               <option key={d.id} value={d.id}>{d.title} {d.fullName} • {d.specialties[0]?.replace(/_/g, ' ')}</option>
             ))}
           </select>
-          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
         </div>
       </section>
 
       {!selectedDoctorId ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Timer className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">Select a doctor to view queue</p>
         </div>
@@ -98,14 +98,14 @@ export default function QueuePage() {
 
           {/* Waiting Queue */}
           <div className="grid lg:grid-cols-2 gap-4">
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-200 dark:border-blue-800 shadow-sm overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-200 dark:border-blue-800 shadow-sm overflow-hidden">
               <div className="px-5 py-3 bg-blue-50 dark:bg-blue-950/30 border-b border-blue-100">
                 <h3 className="font-extrabold text-blue-900 flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   Waiting ({waiting.length})
                 </h3>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
                 {waiting.length === 0 ? (
                   <div className="py-12 text-center text-sm text-slate-500 font-semibold">No patients waiting</div>
                 ) : (
@@ -152,14 +152,14 @@ export default function QueuePage() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm overflow-hidden">
               <div className="px-5 py-3 bg-emerald-50 dark:bg-emerald-950/30 border-b border-emerald-100">
                 <h3 className="font-extrabold text-emerald-900 flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4" />
                   Completed ({completed.length})
                 </h3>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
                 {completed.length === 0 ? (
                   <div className="py-12 text-center text-sm text-slate-500 font-semibold">No consultations completed yet</div>
                 ) : (

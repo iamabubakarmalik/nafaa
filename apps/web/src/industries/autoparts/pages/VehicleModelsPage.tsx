@@ -74,17 +74,17 @@ export default function VehicleModelsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search models..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search models..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
         </div>
         <div className="grid sm:grid-cols-2 gap-2">
-          <select value={makeFilter} onChange={(e) => setMakeFilter(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+          <select value={makeFilter} onChange={(e) => setMakeFilter(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
             <option value="">All Makes</option>
             {makes.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
             <option value="all">All Types</option>
             {VEHICLE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>)}
           </select>
@@ -97,10 +97,10 @@ export default function VehicleModelsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : models.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Cog className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No models yet</p>
         </div>
@@ -109,7 +109,7 @@ export default function VehicleModelsPage() {
           {models.map((model) => {
             const type = VEHICLE_TYPES.find((t) => t.value === model.vehicleType);
             return (
-              <div key={model.id} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition overflow-hidden">
+              <div key={model.id} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition overflow-hidden">
                 <div className="aspect-video bg-gradient-to-br from-fuchsia-500 to-pink-600 flex items-center justify-center relative">
                   {model.imageUrl ? <img src={model.imageUrl} alt="" className="w-full h-full object-cover" /> : <span className="text-6xl">{type?.emoji}</span>}
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition flex gap-1">
@@ -123,7 +123,7 @@ export default function VehicleModelsPage() {
                 </div>
                 <div className="p-4 space-y-2">
                   <div>
-                    <h3 className="font-extrabold text-slate-900 dark:text-white">{model.name}</h3>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{model.name}</h3>
                     <div className="text-xs font-extrabold text-fuchsia-600">{model.make?.name}</div>
                   </div>
                   <div className="flex flex-wrap gap-1">
@@ -131,7 +131,7 @@ export default function VehicleModelsPage() {
                       {type?.emoji} {type?.label}
                     </span>
                     {(model.yearFrom || model.yearTo) && (
-                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.6875rem] font-extrabold inline-flex items-center gap-0.5">
                         <Calendar className="h-2.5 w-2.5" />
                         {model.yearFrom || '?'} - {model.yearTo || 'Present'}
                       </span>
@@ -178,25 +178,25 @@ function ModelForm({ editing, makes, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Model' : 'New Model'}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Model' : 'New Model'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
       </div>
       <div className="p-5 space-y-3">
-        <select value={form.makeId} onChange={(e) => setForm({ ...form, makeId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+        <select value={form.makeId} onChange={(e) => setForm({ ...form, makeId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
           <option value="">Select Make *</option>
           {makes.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
         </select>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Model name * (e.g. Corolla)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-        <select value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Model name * (e.g. Corolla)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+        <select value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
           {VEHICLE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>)}
         </select>
         <div className="grid grid-cols-2 gap-2">
-          <input type="number" value={form.yearFrom} onChange={(e) => setForm({ ...form, yearFrom: e.target.value })} placeholder="Year from" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
-          <input type="number" value={form.yearTo} onChange={(e) => setForm({ ...form, yearTo: e.target.value })} placeholder="Year to" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+          <input type="number" value={form.yearFrom} onChange={(e) => setForm({ ...form, yearFrom: e.target.value })} placeholder="Year from" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+          <input type="number" value={form.yearTo} onChange={(e) => setForm({ ...form, yearTo: e.target.value })} placeholder="Year to" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
         </div>
-        <input value={form.engineOptions} onChange={(e) => setForm({ ...form, engineOptions: e.target.value })} placeholder="Engine options (comma separated) e.g. 1300cc, 1800cc" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+        <input value={form.engineOptions} onChange={(e) => setForm({ ...form, engineOptions: e.target.value })} placeholder="Engine options (comma separated) e.g. 1300cc, 1800cc" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
         <div className="flex gap-2 pt-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.makeId}>

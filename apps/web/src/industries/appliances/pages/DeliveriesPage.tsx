@@ -331,11 +331,11 @@ export default function DeliveriesPage() {
             className={`h-11 px-4 rounded-2xl text-sm font-extrabold inline-flex items-center gap-2 shrink-0 transition ${
               tab === t.v
                 ? 'bg-gradient-to-r from-cyan-600 to-teal-700 text-white shadow-lg shadow-cyan-500/30'
-                : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-ink-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -352,7 +352,7 @@ export default function DeliveriesPage() {
                 className={inputCls('h-12 pl-9 pr-9')} />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
                   <X className="h-3.5 w-3.5 text-slate-500" />
                 </button>
               )}
@@ -382,10 +382,10 @@ export default function DeliveriesPage() {
             {Object.entries(DELIVERY_STATUS_META).map(([k, m]) => {
               const items = board[k] ?? [];
               return (
-                <div key={k} className="rounded-2xl bg-slate-50 dark:bg-slate-900/60 border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
-                  <div className="px-3 py-2.5 flex items-center justify-between gap-2 border-b-2 border-slate-200 dark:border-slate-800"
+                <div key={k} className="rounded-2xl bg-slate-50 dark:bg-ink-900/60 border-2 border-slate-200 dark:border-ink-800 overflow-hidden">
+                  <div className="px-3 py-2.5 flex items-center justify-between gap-2 border-b-2 border-slate-200 dark:border-ink-800"
                     style={{ background: `${m.hex}18` }}>
-                    <span className="text-xs font-black text-slate-800 dark:text-slate-100">{m.emoji} {m.label}</span>
+                    <span className="text-xs font-black text-slate-800 dark:text-ink-100">{m.emoji} {m.label}</span>
                     <span className="h-6 min-w-[24px] px-1.5 rounded-lg text-[0.6875rem] font-black text-white flex items-center justify-center tabular-nums"
                       style={{ background: m.hex }}>{items.length}</span>
                   </div>
@@ -452,8 +452,8 @@ export default function DeliveriesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-1.5 mt-2">
                     {chargeData.map((c) => (
-                      <div key={c.name} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 flex items-center justify-between">
-                        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">{c.name}</span>
+                      <div key={c.name} className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 flex items-center justify-between">
+                        <span className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300">{c.name}</span>
                         <span className="text-xs font-black tabular-nums" style={{ color: c.hex }}>{money(c.value)}</span>
                       </div>
                     ))}
@@ -510,14 +510,14 @@ export default function DeliveriesPage() {
                       <Wrench className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{d.customerName}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{d.customerName}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 font-mono truncate">
                         {d.deliveryNumber} · di gayi {d.deliveredAt ? fmtDate(d.deliveredAt) : '—'}
                       </div>
                     </div>
                     {d.customerPhone && (
                       <a href={`tel:${d.customerPhone}`}
-                        className="h-9 px-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
+                        className="h-9 px-3 rounded-xl bg-white dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 shrink-0 transition">
                         <Phone className="h-3.5 w-3.5" /> Call
                       </a>
                     )}
@@ -632,21 +632,21 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
   const wa = (d.customerPhone ?? '').replace(/\D/g, '').replace(/^0/, '92');
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 overflow-hidden transition hover:shadow-lg ${
-      overdue ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800'
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 overflow-hidden transition hover:shadow-lg ${
+      overdue ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800'
     }`}>
       <div className="h-1.5" style={{ background: meta.hex }} />
       <div className={compact ? 'p-2.5 space-y-2' : 'p-4 space-y-3'}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="font-mono text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400">{d.deliveryNumber}</div>
-            <div className={`font-black text-slate-900 dark:text-white truncate ${compact ? 'text-sm' : ''}`}>{d.customerName}</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{d.customerPhone}</div>
+            <div className="font-mono text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400">{d.deliveryNumber}</div>
+            <div className={`font-black text-slate-900 dark:text-ink-white truncate ${compact ? 'text-sm' : ''}`}>{d.customerName}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{d.customerPhone}</div>
           </div>
           {!compact && <StatusBadge meta={meta} size="xs" />}
         </div>
 
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+        <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
           <div className="flex items-start gap-1.5">
             <MapPin className="h-3.5 w-3.5 shrink-0 mt-0.5 text-slate-400" />
             <span className="min-w-0">{[d.deliveryAddress, d.area, d.city].filter(Boolean).join(', ') || 'Pata darj nahi'}</span>
@@ -654,7 +654,7 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
           {(d.floorNumber || d.hasLift !== undefined) && (
             <div className="flex items-center gap-2 mt-1 pl-5 flex-wrap">
               {!!d.floorNumber && (
-                <span className="px-1.5 rounded bg-white dark:bg-slate-900 inline-flex items-center gap-0.5">
+                <span className="px-1.5 rounded bg-white dark:bg-ink-900 inline-flex items-center gap-0.5">
                   <Building2 className="h-3 w-3" /> {d.floorNumber} manzil
                 </span>
               )}
@@ -669,7 +669,7 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
           {d.scheduledDate && (
             <span className={`px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
               overdue ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
             }`}>
               <Clock className="h-3 w-3" /> {fmtDate(d.scheduledDate)}{d.scheduledSlot ? ` · ${d.scheduledSlot}` : ''}
             </span>
@@ -716,7 +716,7 @@ function DeliveryCard({ d, money, compact, onVehicle, onConfirm, onStatus }: {
             const m = delStatusMeta(st);
             return (
               <button key={st} onClick={() => onStatus(st)}
-                className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold transition">
+                className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold transition">
                 {m.emoji} {m.label}
               </button>
             );

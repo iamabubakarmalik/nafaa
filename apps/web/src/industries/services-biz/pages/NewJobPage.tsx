@@ -185,8 +185,8 @@ export default function NewJobPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Customer */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-blue-600" />
               Customer
             </h3>
@@ -222,18 +222,18 @@ export default function NewJobPage() {
                 )}
 
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.customerAltPhone} onChange={(e) => setForm({ ...form, customerAltPhone: e.target.value })} placeholder="Alternate phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input value={form.customerAltPhone} onChange={(e) => setForm({ ...form, customerAltPhone: e.target.value })} placeholder="Alternate phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                 </div>
               </>
             )}
           </section>
 
           {/* Service */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Wrench className="h-4 w-4 text-cyan-600" />
               Service Details
             </h3>
@@ -241,7 +241,7 @@ export default function NewJobPage() {
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service *</label>
               <div className="flex gap-2">
-                <input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} placeholder="Service name" className="h-11 flex-1 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+                <input value={form.serviceName} onChange={(e) => setForm({ ...form, serviceName: e.target.value })} placeholder="Service name" className="h-11 flex-1 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
                 <Button variant="secondary" onClick={() => setShowServicePicker(true)}>
                   <Search className="h-4 w-4" />
                   Pick
@@ -255,7 +255,7 @@ export default function NewJobPage() {
                 {PRIORITIES.map((p) => (
                   <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
                     'p-2 rounded-xl border-2 text-center transition ' +
-                    (form.priority === p.value ? p.color + ' border-transparent text-white shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-blue-300')
+                    (form.priority === p.value ? p.color + ' border-transparent text-white shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-blue-300')
                   }>
                     <div className="text-xl">{p.emoji}</div>
                     <div className="text-[0.625rem] font-extrabold mt-0.5">{p.label}</div>
@@ -264,17 +264,17 @@ export default function NewJobPage() {
               </div>
             </div>
 
-            <textarea rows={3} value={form.problemDescription} onChange={(e) => setForm({ ...form, problemDescription: e.target.value })} placeholder="Problem description * (what's the issue?)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+            <textarea rows={3} value={form.problemDescription} onChange={(e) => setForm({ ...form, problemDescription: e.target.value })} placeholder="Problem description * (what's the issue?)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
 
             {['URGENT', 'EMERGENCY'].includes(form.priority) && (
               <input value={form.urgencyReason} onChange={(e) => setForm({ ...form, urgencyReason: e.target.value })} placeholder="Why is this urgent?" className="h-11 w-full rounded-xl border-2 border-red-300 bg-red-50 dark:bg-red-950/30 px-3 text-sm font-bold focus:outline-none focus:border-red-500" />
             )}
 
             <div className="grid sm:grid-cols-4 gap-2">
-              <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-              <input value={form.modelNumber} onChange={(e) => setForm({ ...form, modelNumber: e.target.value })} placeholder="Model" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-              <input value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} placeholder="Serial #" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-              <input type="number" value={form.yearPurchased} onChange={(e) => setForm({ ...form, yearPurchased: e.target.value })} placeholder="Year" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
+              <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+              <input value={form.modelNumber} onChange={(e) => setForm({ ...form, modelNumber: e.target.value })} placeholder="Model" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
+              <input value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} placeholder="Serial #" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
+              <input type="number" value={form.yearPurchased} onChange={(e) => setForm({ ...form, yearPurchased: e.target.value })} placeholder="Year" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
             </div>
 
             <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 cursor-pointer">
@@ -290,8 +290,8 @@ export default function NewJobPage() {
           </section>
 
           {/* Location */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <MapPin className="h-4 w-4 text-rose-600" />
               Service Location
             </h3>
@@ -299,7 +299,7 @@ export default function NewJobPage() {
               {LOCATIONS.map((l) => (
                 <button key={l.value} onClick={() => setForm({ ...form, locationType: l.value })} className={
                   'p-3 rounded-xl border-2 text-center transition ' +
-                  (form.locationType === l.value ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-rose-300')
+                  (form.locationType === l.value ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300')
                 }>
                   <div className="text-2xl mb-1">{l.emoji}</div>
                   <div className="text-[0.6875rem] font-extrabold">{l.label.replace(/^[\S]+ /, '')}</div>
@@ -307,20 +307,20 @@ export default function NewJobPage() {
               ))}
             </div>
 
-            <textarea rows={2} value={form.serviceAddress} onChange={(e) => setForm({ ...form, serviceAddress: e.target.value })} placeholder="Service address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+            <textarea rows={2} value={form.serviceAddress} onChange={(e) => setForm({ ...form, serviceAddress: e.target.value })} placeholder="Service address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
 
             <div className="grid sm:grid-cols-3 gap-3">
-              <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} placeholder="Area / Sector" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-              <input value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} placeholder="Landmark" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+              <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+              <input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} placeholder="Area / Sector" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+              <input value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} placeholder="Landmark" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
             </div>
 
-            <textarea rows={2} value={form.entryInstructions} onChange={(e) => setForm({ ...form, entryInstructions: e.target.value })} placeholder="Entry instructions (gate code, floor, security, pets...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+            <textarea rows={2} value={form.entryInstructions} onChange={(e) => setForm({ ...form, entryInstructions: e.target.value })} placeholder="Entry instructions (gate code, floor, security, pets...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
           </section>
 
           {/* Schedule + Technician */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Calendar className="h-4 w-4 text-violet-600" />
               Schedule & Assignment
             </h3>
@@ -335,11 +335,11 @@ export default function NewJobPage() {
               </div>
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time Slot</label>
-                <input value={form.preferredTimeSlot} onChange={(e) => setForm({ ...form, preferredTimeSlot: e.target.value })} placeholder="e.g. Morning 9-12" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                <input value={form.preferredTimeSlot} onChange={(e) => setForm({ ...form, preferredTimeSlot: e.target.value })} placeholder="e.g. Morning 9-12" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
               </div>
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Assign Technician</label>
-                <select value={form.primaryTechnicianId} onChange={(e) => setForm({ ...form, primaryTechnicianId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+                <select value={form.primaryTechnicianId} onChange={(e) => setForm({ ...form, primaryTechnicianId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">-- Assign later --</option>
                   {technicians.map((t) => {
                     const nm = t.staff ? ((t.staff.firstName || '') + ' ' + (t.staff.lastName || '')).trim() : '';
@@ -351,9 +351,9 @@ export default function NewJobPage() {
           </section>
 
           {/* Parts */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Package className="h-4 w-4 text-orange-600" />
                 Parts / Materials ({parts.length})
               </h3>
@@ -370,7 +370,7 @@ export default function NewJobPage() {
             ) : (
               <div className="space-y-2">
                 {parts.map((p, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 p-3 space-y-2">
+                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Part #{i + 1}</span>
                       <button onClick={() => removePart(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -378,9 +378,9 @@ export default function NewJobPage() {
                       </button>
                     </div>
                     <div className="grid sm:grid-cols-3 gap-2">
-                      <input value={p.partName} onChange={(e) => updatePart(i, { partName: e.target.value })} placeholder="Part name *" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
-                      <input value={p.partNumber || ''} onChange={(e) => updatePart(i, { partNumber: e.target.value })} placeholder="Part number" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-                      <input value={p.brand || ''} onChange={(e) => updatePart(i, { brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
+                      <input value={p.partName} onChange={(e) => updatePart(i, { partName: e.target.value })} placeholder="Part name *" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
+                      <input value={p.partNumber || ''} onChange={(e) => updatePart(i, { partNumber: e.target.value })} placeholder="Part number" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
+                      <input value={p.brand || ''} onChange={(e) => updatePart(i, { brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500" />
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                       <div>
@@ -399,7 +399,7 @@ export default function NewJobPage() {
                       </div>
                       <div>
                         <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Warranty (d)</label>
-                        <input type="number" value={p.warrantyDays} onChange={(e) => updatePart(i, { warrantyDays: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold tabular-nums text-center focus:outline-none focus:border-orange-500" />
+                        <input type="number" value={p.warrantyDays} onChange={(e) => updatePart(i, { warrantyDays: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums text-center focus:outline-none focus:border-orange-500" />
                       </div>
                     </div>
                     <div className="flex gap-2 text-xs">
@@ -419,15 +419,15 @@ export default function NewJobPage() {
           </section>
 
           {/* Notes */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Technician Notes</label>
-                <textarea rows={2} value={form.technicianNotes} onChange={(e) => setForm({ ...form, technicianNotes: e.target.value })} placeholder="Notes for technician..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+                <textarea rows={2} value={form.technicianNotes} onChange={(e) => setForm({ ...form, technicianNotes: e.target.value })} placeholder="Notes for technician..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
               </div>
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Internal Notes</label>
-                <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal only..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+                <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal only..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
               </div>
             </div>
 
@@ -524,7 +524,7 @@ export default function NewJobPage() {
       {/* Service picker modal */}
       {showServicePicker && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
               <h3 className="font-extrabold">Pick a Service</h3>
               <button onClick={() => setShowServicePicker(false)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -533,7 +533,7 @@ export default function NewJobPage() {
             </div>
             <div className="flex-1 overflow-y-auto p-4 grid sm:grid-cols-2 gap-2">
               {services.map((svc) => (
-                <button key={svc.id} onClick={() => selectService(svc)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 hover:border-cyan-500 hover:shadow-lg text-left">
+                <button key={svc.id} onClick={() => selectService(svc)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-cyan-500 hover:shadow-lg text-left">
                   <div className="font-extrabold text-sm truncate">{svc.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.category.replace('_', ' ')}</div>
                   <div className="mt-1 flex items-center gap-2">

@@ -296,7 +296,7 @@ export default function RetailProductDetailPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap print:hidden">
         <button
           onClick={() => navigate('/products')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold transition"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-sky-600 dark:hover:text-sky-400 font-bold transition"
         >
           <ArrowLeft className="h-4 w-4" /> Sab Products
         </button>
@@ -310,7 +310,7 @@ export default function RetailProductDetailPage() {
           </button>
           <button
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition"
           >
             <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
           </button>
@@ -328,7 +328,7 @@ export default function RetailProductDetailPage() {
           </Link>
           <Link
             to="/pos"
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition"
           >
             <ShoppingCart className="h-4 w-4" /> POS
           </Link>
@@ -336,7 +336,7 @@ export default function RetailProductDetailPage() {
           <Link
             to="/retail/barcode-labels"
             state={{ productIds: [id] }}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition"
           >
             <Barcode className="h-4 w-4" /> Label
           </Link>
@@ -351,7 +351,7 @@ export default function RetailProductDetailPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900 text-white shadow-2xl print:shadow-none print:rounded-xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-sky-950 dark:to-cyan-900 text-white shadow-2xl print:shadow-none print:rounded-xl">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-sky-400/20 blur-3xl pointer-events-none print:hidden" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl pointer-events-none print:hidden" />
 
@@ -523,7 +523,7 @@ export default function RetailProductDetailPage() {
       )}
 
       {/* ═══ TABS ═══ */}
-      <section className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-2 overflow-x-auto print:hidden">
+      <section className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-2 overflow-x-auto print:hidden">
         <div className="flex gap-1.5 min-w-max">
           {TABS.map((t, i) => {
             const active = tab === t.id;
@@ -536,17 +536,17 @@ export default function RetailProductDetailPage() {
                   'px-4 py-2.5 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition',
                   active
                     ? 'bg-gradient-to-br from-sky-600 to-cyan-700 text-white shadow-md'
-                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800',
+                    : 'text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-800',
                 ].join(' ')}
               >
                 <Icon className="h-4 w-4" />
                 {t.label}
                 {t.count !== undefined && (
-                  <span className={['px-1.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
+                  <span className={['px-1.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300'].join(' ')}>
                     {t.count}
                   </span>
                 )}
-                <span className={['hidden lg:inline text-[0.625rem] font-mono font-bold', active ? 'text-white/60' : 'text-slate-400 dark:text-slate-500'].join(' ')}>{i + 1}</span>
+                <span className={['hidden lg:inline text-[0.625rem] font-mono font-bold', active ? 'text-white/60' : 'text-slate-400 dark:text-ink-500'].join(' ')}>{i + 1}</span>
               </button>
             );
           })}
@@ -556,14 +556,14 @@ export default function RetailProductDetailPage() {
       {/* ═══ OVERVIEW ═══ */}
       {tab === 'overview' && (
         <div className="space-y-5 print:space-y-3">
-          <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-5 print:shadow-none print:rounded-xl">
+          <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-5 print:shadow-none print:rounded-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md">
                 <BarChart3 className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Pichle 30 Din ki Sale</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Pichle 30 Din ki Sale</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                   {stats.sold30} {product.unit} bika • roz ka average {stats.perDay.toFixed(1)} {product.unit}
                 </p>
               </div>
@@ -591,35 +591,35 @@ export default function RetailProductDetailPage() {
               </div>
             ) : (
               <div className="h-[200px] flex flex-col items-center justify-center gap-2 print:h-auto print:py-6">
-                <Receipt className="h-10 w-10 text-slate-300 dark:text-slate-600 print:hidden" />
-                <p className="text-sm font-extrabold text-slate-700 dark:text-slate-300">Pichle 30 din me koi sale nahi</p>
+                <Receipt className="h-10 w-10 text-slate-300 dark:text-ink-600 print:hidden" />
+                <p className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Pichle 30 din me koi sale nahi</p>
               </div>
             )}
           </section>
 
           {/* Unit converter */}
-          <section className="rounded-3xl bg-gradient-to-br from-sky-50 to-white dark:from-sky-500/10 dark:to-slate-900/80 border-2 border-sky-200 dark:border-sky-500/30 shadow-sm dark:shadow-black/20 p-5 space-y-4 print:hidden">
+          <section className="rounded-3xl bg-gradient-to-br from-sky-50 to-white dark:from-sky-500/10 dark:to-ink-900/80 border-2 border-sky-200 dark:border-sky-500/30 shadow-sm dark:shadow-black/20 p-5 space-y-4 print:hidden">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-md">
                 <ArrowRightLeft className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Unit Calculator</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Kitne me kitna banega — foran check karein</p>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Unit Calculator</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Kitne me kitna banega — foran check karein</p>
               </div>
             </div>
 
             <div className="grid sm:grid-cols-[120px_1fr] gap-3">
               <div>
-                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Quantity</label>
+                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1">Quantity</label>
                 <input
                   type="number" min={0} value={convQty}
                   onChange={(e) => setConvQty(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="h-12 w-full rounded-xl border-2 border-sky-300 dark:border-sky-500/40 bg-white dark:bg-slate-800 px-3 text-center text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-600 dark:focus:border-sky-400 transition"
+                  className="h-12 w-full rounded-xl border-2 border-sky-300 dark:border-sky-500/40 bg-white dark:bg-ink-800 px-3 text-center text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-600 dark:focus:border-sky-400 transition"
                 />
               </div>
               <div>
-                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-slate-400 mb-1">Unit</label>
+                <label className="block text-[0.6875rem] font-extrabold uppercase text-slate-600 dark:text-ink-400 mb-1">Unit</label>
                 <div className="flex flex-wrap gap-1.5">
                   {allUnitOptions.map((u) => (
                     <button
@@ -629,7 +629,7 @@ export default function RetailProductDetailPage() {
                         'px-3 h-12 rounded-xl border-2 text-sm font-extrabold capitalize transition',
                         (activeConv?.key === u.key)
                           ? 'border-sky-600 bg-sky-600 text-white shadow-md'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-400 dark:hover:border-sky-500/50',
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-sky-400 dark:hover:border-sky-500/50',
                       ].join(' ')}
                     >
                       {u.name}
@@ -639,7 +639,7 @@ export default function RetailProductDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-2xl bg-white dark:bg-slate-800/80 border-2 border-slate-200 dark:border-slate-700 p-4 grid sm:grid-cols-3 gap-3">
+            <div className="rounded-2xl bg-white dark:bg-ink-800/80 border-2 border-slate-200 dark:border-ink-700 p-4 grid sm:grid-cols-3 gap-3">
               <ConvCell label="Base quantity" value={`${convBaseQty.toFixed(2)} ${product.unit}`} tone="sky" />
               <ConvCell label="Kitne paise banenge" value={formatPKRFull(Number(convQty || 0) * (activeConv?.price || 0))} tone="emerald" />
               <ConvCell
@@ -665,28 +665,28 @@ export default function RetailProductDetailPage() {
 
           {/* Related */}
           {related.length > 0 && (
-            <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:hidden">
-              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:hidden">
+              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Isi Category ke Products</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{product.category?.name}</p>
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Isi Category ke Products</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{product.category?.name}</p>
                 </div>
               </div>
               <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {related.map((r) => (
-                  <Link key={r.id} to={`/retail-products/${r.id}`} className="group rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md dark:hover:shadow-sky-500/10 overflow-hidden transition bg-white dark:bg-slate-800/60">
-                    <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <Link key={r.id} to={`/retail-products/${r.id}`} className="group rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md dark:hover:shadow-sky-500/10 overflow-hidden transition bg-white dark:bg-ink-800/60">
+                    <div className="aspect-square bg-slate-100 dark:bg-ink-800 overflow-hidden">
                       {r.images?.[0]?.url ? (
                         <img src={r.images[0].url} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-slate-300 dark:text-slate-600" /></div>
+                        <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-slate-300 dark:text-ink-600" /></div>
                       )}
                     </div>
                     <div className="p-2">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight min-h-[1.8rem]">{r.name}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white line-clamp-2 leading-tight min-h-[1.8rem]">{r.name}</div>
                       <div className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums mt-0.5">{formatPKR(r.price)}</div>
                     </div>
                   </Link>
@@ -706,7 +706,7 @@ export default function RetailProductDetailPage() {
         >
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <Th2>Unit</Th2>
                   <Th2>Conversion</Th2>
@@ -717,22 +717,22 @@ export default function RetailProductDetailPage() {
                   <Th2>Barcode</Th2>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {(units as any[]).map((u) => {
                   const profit = Number(u.price || 0) - Number(u.costPrice || 0);
                   return (
-                    <tr key={u.id} className={u.isBase ? 'bg-emerald-50/40 dark:bg-emerald-500/10' : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition'}>
+                    <tr key={u.id} className={u.isBase ? 'bg-emerald-50/40 dark:bg-emerald-500/10' : 'hover:bg-slate-50/60 dark:hover:bg-ink-800/40 transition'}>
                       <td className="px-3 py-2.5">
                         <div className="flex items-center gap-2">
                           {u.isBase && <Star className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 fill-emerald-600 dark:fill-emerald-400" />}
-                          <span className="font-extrabold text-slate-900 dark:text-white capitalize">{u.unitName}</span>
+                          <span className="font-extrabold text-slate-900 dark:text-ink-white capitalize">{u.unitName}</span>
                           {u.isBase && <span className="px-1.5 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold">BASE</span>}
                         </div>
                       </td>
-                      <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
-                        1 {u.unitName} = <strong className="text-slate-900 dark:text-white">{u.conversionRate}</strong> {product.unit}
+                      <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
+                        1 {u.unitName} = <strong className="text-slate-900 dark:text-ink-white">{u.conversionRate}</strong> {product.unit}
                       </td>
-                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums">{formatPKR(u.costPrice || 0)}</td>}
+                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums">{formatPKR(u.costPrice || 0)}</td>}
                       <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(u.price || 0)}</td>
                       <td className="px-3 py-2.5 text-right text-xs font-bold text-violet-700 dark:text-violet-400 tabular-nums">{u.wholesalePrice ? formatPKR(u.wholesalePrice) : '—'}</td>
                       {!hideCost && (
@@ -740,7 +740,7 @@ export default function RetailProductDetailPage() {
                           {formatPKR(profit)}
                         </td>
                       )}
-                      <td className="px-3 py-2.5 text-[0.6875rem] font-mono text-slate-600 dark:text-slate-400">{u.barcode || '—'}</td>
+                      <td className="px-3 py-2.5 text-[0.6875rem] font-mono text-slate-600 dark:text-ink-400">{u.barcode || '—'}</td>
                     </tr>
                   );
                 })}
@@ -770,23 +770,23 @@ export default function RetailProductDetailPage() {
                       ? 'border-rose-200 dark:border-rose-500/40 bg-rose-50/40 dark:bg-rose-500/10'
                       : vLow
                         ? 'border-amber-200 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/10'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60',
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60',
                   ].join(' ')}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{v.name}</div>
-                      <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 mt-0.5">{v.sku || v.barcode || '—'}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{v.name}</div>
+                      <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-ink-400 mt-0.5">{v.sku || v.barcode || '—'}</div>
                     </div>
-                    {v.colorHex && <span className="h-5 w-5 rounded-full border-2 border-white dark:border-slate-700 shadow shrink-0" style={{ backgroundColor: v.colorHex }} />}
+                    {v.colorHex && <span className="h-5 w-5 rounded-full border-2 border-white dark:border-ink-700 shadow shrink-0" style={{ backgroundColor: v.colorHex }} />}
                   </div>
                   <div className="mt-2 flex items-end justify-between">
                     <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKRFull(v.price)}</div>
                     <div className={[
                       'text-sm font-extrabold tabular-nums',
-                      vStock <= 0 ? 'text-rose-700 dark:text-rose-400' : vLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300',
+                      vStock <= 0 ? 'text-rose-700 dark:text-rose-400' : vLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-ink-300',
                     ].join(' ')}>
-                      {vStock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{product.unit}</span>
+                      {vStock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{product.unit}</span>
                     </div>
                   </div>
                 </div>
@@ -805,7 +805,7 @@ export default function RetailProductDetailPage() {
         >
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <Th2>Batch #</Th2><Th2>Mfg</Th2><Th2>Expiry</Th2>
                   <Th2 className="text-right">Qty</Th2>
@@ -813,7 +813,7 @@ export default function RetailProductDetailPage() {
                   <Th2 className="text-center">Status</Th2>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {[...(batches as any[])].sort((a, b) => new Date(a.expiryDate || 0).getTime() - new Date(b.expiryDate || 0).getTime()).map((b) => {
                   const days = b.expiryDate ? (new Date(b.expiryDate).getTime() - Date.now()) / 86400000 : null;
                   const expired = days !== null && days < 0;
@@ -826,16 +826,16 @@ export default function RetailProductDetailPage() {
                           ? 'bg-rose-50/50 dark:bg-rose-500/10'
                           : soon
                             ? 'bg-amber-50/40 dark:bg-amber-500/10'
-                            : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition'
+                            : 'hover:bg-slate-50/60 dark:hover:bg-ink-800/40 transition'
                       }
                     >
-                      <td className="px-3 py-2.5 font-mono font-extrabold text-slate-900 dark:text-white text-xs">{b.batchNumber}</td>
-                      <td className="px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{b.manufactureDate ? new Date(b.manufactureDate).toLocaleDateString('en-PK') : '—'}</td>
-                      <td className="px-3 py-2.5 text-xs font-extrabold text-slate-700 dark:text-slate-200">
+                      <td className="px-3 py-2.5 font-mono font-extrabold text-slate-900 dark:text-ink-white text-xs">{b.batchNumber}</td>
+                      <td className="px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-ink-300">{b.manufactureDate ? new Date(b.manufactureDate).toLocaleDateString('en-PK') : '—'}</td>
+                      <td className="px-3 py-2.5 text-xs font-extrabold text-slate-700 dark:text-ink-200">
                         {b.expiryDate ? new Date(b.expiryDate).toLocaleDateString('en-PK') : '—'}
                       </td>
-                      <td className="px-3 py-2.5 text-right font-extrabold tabular-nums text-slate-900 dark:text-white">{b.quantity}</td>
-                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-slate-300 tabular-nums">{formatPKR(b.costPrice || 0)}</td>}
+                      <td className="px-3 py-2.5 text-right font-extrabold tabular-nums text-slate-900 dark:text-ink-white">{b.quantity}</td>
+                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-ink-300 tabular-nums">{formatPKR(b.costPrice || 0)}</td>}
                       <td className="px-3 py-2.5 text-center">
                         {expired ? <Pill2 tone="rose">Expired</Pill2>
                           : soon ? <Pill2 tone="amber">{Math.floor(days!)} din</Pill2>
@@ -854,7 +854,7 @@ export default function RetailProductDetailPage() {
       {tab === 'sales' && (
         <Panel icon={Receipt} title="Sales History" desc={`${salesForProduct.length} recent • ${stats.totalSold} ${product.unit} bika`} tone="emerald"
           empty={salesForProduct.length === 0} emptyText="Abhi tak koi sale nahi hui">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
             {salesForProduct.map((s: any) => {
               const lines = s.items.filter((it: any) => it.product.id === id);
               const qty = lines.reduce((a: number, it: any) => a + Number(it.quantity || 0), 0);
@@ -864,21 +864,21 @@ export default function RetailProductDetailPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span>
-                        <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+                        <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-ink-white">{s.saleNumber}</span>
+                        <span className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                           {new Date(s.soldAt).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                         {s.creditAmount > 0 && <Pill2 tone="amber">Udhaar</Pill2>}
                       </div>
-                      <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-0.5">
+                      <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-0.5">
                         {s.customer?.name || 'Walk-in'} • {qty} {product.unit}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKRFull(rev)}</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">of {formatPKR(s.total)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">of {formatPKR(s.total)}</div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-slate-300 dark:text-ink-600 shrink-0" />
                   </div>
                 </Link>
               );
@@ -891,12 +891,12 @@ export default function RetailProductDetailPage() {
       {tab === 'log' && (
         <Panel icon={History} title="Stock Movement Log" desc={`${movements.length} entries`} tone="slate"
           empty={movements.length === 0} emptyText="Koi stock movement record nahi mila">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
             {movements.map((m: any, i: number) => {
               const qty = Number(m.quantity ?? m.qty ?? 0);
               const isIn = qty > 0 || String(m.type || '').includes('IN') || String(m.type || '').includes('PURCHASE');
               return (
-                <div key={m.id ?? i} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+                <div key={m.id ?? i} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50/60 dark:hover:bg-ink-800/40 transition">
                   <div className={[
                     'h-9 w-9 rounded-xl flex items-center justify-center shrink-0',
                     isIn ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
@@ -904,14 +904,14 @@ export default function RetailProductDetailPage() {
                     {isIn ? <Plus className="h-4 w-4" /> : <PackageX className="h-4 w-4" />}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm">{String(m.type || 'MOVEMENT').replace(/_/g, ' ')}</div>
-                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold truncate">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{String(m.type || 'MOVEMENT').replace(/_/g, ' ')}</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold truncate">
                       {m.note || m.reason || m.reference || '—'}
                       {m.createdAt && ` • ${new Date(m.createdAt).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}`}
                     </div>
                   </div>
                   <div className={['font-extrabold tabular-nums shrink-0', isIn ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'].join(' ')}>
-                    {isIn && qty > 0 ? '+' : ''}{qty} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{product.unit}</span>
+                    {isIn && qty > 0 ? '+' : ''}{qty} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{product.unit}</span>
                   </div>
                 </div>
               );
@@ -956,20 +956,20 @@ function DetailTeacher({ onClose, productName }: { onClose: () => void; productN
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Product Detail — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye <strong>"{productName}"</strong> ka poora hisaab-kitaab hai — rate, stock, sale, profit, sab ek jagah.
           </p>
 
@@ -977,7 +977,7 @@ function DetailTeacher({ onClose, productName }: { onClose: () => void; productN
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-sky-700 dark:text-sky-300">
               📑 6 Tabs kya dikhate hain
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>1️⃣ Overview</strong> — 30 din ka sale graph + unit calculator</TipRow>
               <TipRow><strong>2️⃣ Units</strong> — dozen/carton ke alag rates</TipRow>
               <TipRow><strong>3️⃣ Variants</strong> — size/color wise stock</TipRow>
@@ -987,7 +987,7 @@ function DetailTeacher({ onClose, productName }: { onClose: () => void; productN
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⌨️ E</strong> — edit kholo &nbsp;•&nbsp; <strong>S</strong> — stock add &nbsp;•&nbsp; <strong>1-6</strong> — tabs</TipRow>
             <TipRow><strong>🟠 Reorder suggestion</strong> — pichli bikri se hisaab, kitna maal mangwao</TipRow>
             <TipRow><strong>Unit Calculator</strong> — "5 dozen kitne ka?" foran jawab</TipRow>
@@ -1066,9 +1066,9 @@ function HeroStat({ icon: Icon, label, value, sub, tone }: any) {
 
 function AlertCard({ tone, icon: Icon, title, body, action }: any) {
   const tones: Record<string, string> = {
-    rose: 'from-rose-50 to-white dark:from-rose-500/10 dark:to-slate-900/60 border-rose-300 dark:border-rose-500/40 text-rose-900 dark:text-rose-200',
-    amber: 'from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900/60 border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200',
-    sky: 'from-sky-50 to-white dark:from-sky-500/10 dark:to-slate-900/60 border-sky-300 dark:border-sky-500/40 text-sky-900 dark:text-sky-200',
+    rose: 'from-rose-50 to-white dark:from-rose-500/10 dark:to-ink-900/60 border-rose-300 dark:border-rose-500/40 text-rose-900 dark:text-rose-200',
+    amber: 'from-amber-50 to-white dark:from-amber-500/10 dark:to-ink-900/60 border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-200',
+    sky: 'from-sky-50 to-white dark:from-sky-500/10 dark:to-ink-900/60 border-sky-300 dark:border-sky-500/40 text-sky-900 dark:text-sky-200',
   };
   const btn: Record<string, string> = {
     rose: 'bg-rose-600 hover:bg-rose-700',
@@ -1108,20 +1108,20 @@ function Panel({ icon: Icon, title, desc, tone, children, empty, emptyText, empt
     slate: 'from-slate-500 to-slate-700',
   };
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:shadow-none print:rounded-xl">
-      <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+    <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:shadow-none print:rounded-xl">
+      <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md`}>
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{title}</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{desc}</p>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{title}</h3>
+          <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{desc}</p>
         </div>
       </div>
       {empty ? (
         <div className="p-12 text-center">
-          <Icon className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-          <div className="font-extrabold text-slate-700 dark:text-slate-300">{emptyText}</div>
+          <Icon className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+          <div className="font-extrabold text-slate-700 dark:text-ink-300">{emptyText}</div>
           {emptyAction && <div className="mt-4 flex justify-center print:hidden">{emptyAction}</div>}
         </div>
       ) : children}
@@ -1130,7 +1130,7 @@ function Panel({ icon: Icon, title, desc, tone, children, empty, emptyText, empt
 }
 
 function Th2({ children, className = '' }: any) {
-  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>{children}</th>;
+  return <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>{children}</th>;
 }
 
 function Pill2({ tone, children }: any) {
@@ -1147,11 +1147,11 @@ function ConvCell({ label, value, tone }: any) {
     sky: 'text-sky-700 dark:text-sky-400',
     emerald: 'text-emerald-700 dark:text-emerald-400',
     rose: 'text-rose-700 dark:text-rose-400',
-    slate: 'text-slate-700 dark:text-slate-300',
+    slate: 'text-slate-700 dark:text-ink-300',
   };
   return (
     <div>
-      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
       <div className={['text-xl font-extrabold tabular-nums mt-0.5', tones[tone]].join(' ')}>{value}</div>
     </div>
   );
@@ -1166,16 +1166,16 @@ function QuickLink({ to, icon: Icon, title, desc, tone }: any) {
   return (
     <Link
       to={to}
-      className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md dark:hover:shadow-sky-500/10 p-4 flex items-center gap-3 transition group"
+      className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 hover:border-sky-400 dark:hover:border-sky-500/50 hover:shadow-md dark:hover:shadow-sky-500/10 p-4 flex items-center gap-3 transition group"
     >
       <div className={`h-11 w-11 rounded-xl flex items-center justify-center transition group-hover:text-white ${tones[tone]}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{title}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">{desc}</div>
       </div>
-      <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+      <ChevronRight className="h-4 w-4 text-slate-400 dark:text-ink-500" />
     </Link>
   );
 }

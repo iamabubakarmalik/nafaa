@@ -115,32 +115,32 @@ const removeMutation = useMutation({
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products, SKU..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products, SKU..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setCategoryFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (categoryFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (categoryFilter === c.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{c.emoji} {c.label}</button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
           <button onClick={() => setMetalFilter('all')} className={
             'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (metalFilter === 'all' ? 'bg-yellow-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (metalFilter === 'all' ? 'bg-yellow-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Metals</button>
           {METAL_TYPES.map((m) => (
             <button key={m.value} onClick={() => setMetalFilter(m.value)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (metalFilter === m.value ? 'bg-yellow-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (metalFilter === m.value ? 'bg-yellow-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{m.emoji} {m.label}</button>
           ))}
           <div className="w-px bg-slate-200 mx-1" />
@@ -153,7 +153,7 @@ const removeMutation = useMutation({
           ].map((t) => (
             <button key={t.v} onClick={() => setTagFilter(t.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === t.v ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === t.v ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.label}</button>
           ))}
         </div>
@@ -161,10 +161,10 @@ const removeMutation = useMutation({
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : profiles.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Gem className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No jewelry products yet</p>
         </div>
@@ -191,8 +191,8 @@ function ProductCard({ profile, onDelete }: any) {
 
   return (
     <Link to={'/products/' + profile.productId + '/edit'} className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (profile.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+      (profile.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="relative aspect-square bg-gradient-to-br from-amber-500 via-yellow-600 to-amber-700 overflow-hidden">
         {product?.images?.[0]?.url ? (
@@ -237,7 +237,7 @@ function ProductCard({ profile, onDelete }: any) {
 
       <div className="p-3 space-y-2">
         <div>
-          <h3 className="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1">{product?.name}</h3>
+          <h3 className="font-extrabold text-sm text-slate-900 dark:text-ink-white line-clamp-1">{product?.name}</h3>
           {profile.itemCode && <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{profile.itemCode}</div>}
           <div className="text-[0.6875rem] font-extrabold uppercase text-amber-600">{category?.label}</div>
         </div>
@@ -269,7 +269,7 @@ function ProductCard({ profile, onDelete }: any) {
           </div>
         )}
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(product?.price ?? 0)}</div>
             <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">Estimated</div>

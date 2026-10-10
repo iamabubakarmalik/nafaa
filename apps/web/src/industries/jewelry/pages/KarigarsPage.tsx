@@ -73,7 +73,7 @@ export default function KarigarsPage() {
 
       <div className="relative">
         <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search karigars..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
+        <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search karigars..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
       </div>
 
       {showForm && (
@@ -102,16 +102,16 @@ export default function KarigarsPage() {
       )}
 
       {isLoading ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">{[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : karigars.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No karigars yet</p>
         </div>
       ) : (
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {karigars.map((k) => (
-            <div key={k.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+            <div key={k.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
               <div className="flex items-start gap-3">
                 {k.photoUrl ? (
                   <img src={k.photoUrl} alt="" className="h-16 w-16 rounded-2xl object-cover ring-2 ring-slate-200 shrink-0" />
@@ -155,7 +155,7 @@ export default function KarigarsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-neutral-800">
+              <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-ink-800">
                 <div><span className="text-slate-500 font-semibold">Orders:</span> <span className="font-extrabold">{k.completedOrders}/{k.totalOrders}</span></div>
                 <div><span className="text-slate-500 font-semibold">Earnings:</span> <span className="font-extrabold text-emerald-700">{formatPKR(k.totalEarnings)}</span></div>
               </div>
@@ -169,7 +169,7 @@ export default function KarigarsPage() {
                 </div>
               )}
 
-              <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+              <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
                 <button onClick={() => setIssuingMetal(k)} className="flex-1 h-9 rounded-lg bg-amber-100 dark:bg-amber-950/40 hover:bg-amber-200 text-amber-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
                   <ArrowUp className="h-3 w-3" />
                   Issue
@@ -178,7 +178,7 @@ export default function KarigarsPage() {
                   <ArrowDown className="h-3 w-3" />
                   Receive
                 </button>
-                <button onClick={() => { setEditing(k); setShowForm(true); }} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+                <button onClick={() => { setEditing(k); setShowForm(true); }} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
                 <button onClick={() => { if (confirm('Deactivate ' + k.fullName + '?')) removeMutation.mutate(k.id); }} className="h-9 w-9 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -199,11 +199,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     amber: 'from-amber-500 to-yellow-600', emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow'}>
           <Icon className="h-5 w-5" />
@@ -256,7 +256,7 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Karigar' : 'Add New Karigar'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
@@ -279,20 +279,20 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} placeholder="Father's Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input autoFocus value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} placeholder="Father's Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
         </div>
 
-        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.skillLevel} onChange={(e) => setForm({ ...form, skillLevel: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+          <select value={form.skillLevel} onChange={(e) => setForm({ ...form, skillLevel: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             <option value="">-- Skill Level --</option>
             {SKILL_LEVELS.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          <input type="number" value={form.yearsExperience} onChange={(e) => setForm({ ...form, yearsExperience: e.target.value })} placeholder="Years of experience" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.yearsExperience} onChange={(e) => setForm({ ...form, yearsExperience: e.target.value })} placeholder="Years of experience" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
@@ -301,7 +301,7 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
             {SPECIALIZATIONS.map((s) => (
               <button key={s} onClick={() => toggleSpec(s)} className={
                 'px-2 py-1 rounded-lg text-xs font-extrabold border-2 ' +
-                (form.specializations.includes(s) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 hover:border-blue-300')
+                (form.specializations.includes(s) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-blue-300')
               }>{s}</button>
             ))}
           </div>
@@ -336,9 +336,9 @@ function KarigarForm({ editing, onClose, onSaved }: any) {
           </div>
         </label>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.fullName || !form.phone}>
             <Save className="h-4 w-4" />
@@ -364,7 +364,7 @@ function MetalTransferModal({ karigar, direction, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className={'px-5 py-3 border-b flex items-center justify-between ' + (direction === 'issue' ? 'bg-amber-50 dark:bg-amber-950/30' : 'bg-emerald-50 dark:bg-emerald-950/30')}>
           <div>
             <h3 className="font-extrabold">{direction === 'issue' ? '📤 Issue Metal' : '📥 Receive Metal'}</h3>

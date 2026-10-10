@@ -46,12 +46,12 @@ export default function AccountingPage() {
 
   return (
     <Page title="Accounting" subtitle="Har din ka hisaab khud aap ke accounting software me — sale, udhaar, refund, kharche.">
-      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Accounting nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
         : !data.connected ? (
           <>
             <Card title="Kaise kaam karta hai">
-              <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-slate-200 sm:grid-cols-3">
+              <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-3">
                 <li><b>1.</b> Apna software jorein (login → Allow)</li>
                 <li><b>2.</b> Batayein kaun sa Nafaa hisaab kis account me jaye (ek dafa)</li>
                 <li><b>3.</b> Har raat kal ka ek journal khud — ya haath se kisi bhi din ka</li>
@@ -113,7 +113,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
         actions={<Btn size="sm" variant="plain" className="text-rose-600" loading={disconnect.isPending} icon={<Unplug className="h-3.5 w-3.5" />}
           onClick={() => { if (confirm(`${c.name} hatayein? Bheje hue journals wahin rahenge.`)) disconnect.mutate(); }}>Hatayein</Btn>}>
         {c.lastError && <Banner tone="critical" title="Aakhri sync me masla">{c.lastError}</Banner>}
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           <SettingRow title="Har raat khud bhejo" help="Raat ~12:40 baje kal ka journal; fail hue din 7 din tak dobara"
             control={<Toggle checked={c.autoSync} onChange={(v) => save.mutate({ autoSync: v })} />} />
           <SettingRow title="Kharche bhi bhejo" help="Nafaa ke kharche (category ke hisaab se)"
@@ -128,7 +128,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
         {c.provider === 'XERO' && (
           <div className="mb-3"><Banner tone="info" title="Xero ka qaida">Xero manual journal me Bank aur system accounts nahi leta — is liye list me nahi dikhte. Har payment tareeqe (Cash, Card, JazzCash…) ke liye Xero me ek "Current" type ka clearing account banayein (jaise "POS Cash clearing"), phir yahan chunein.</Banner></div>
         )}
-        {accLoading ? <div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
+        {accLoading ? <div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />
           : accErr ? <p className="text-[0.8125rem] text-rose-600">{apiErrorMessage(accErr)}</p>
           : (
             <div className="space-y-5">
@@ -143,7 +143,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
                   <Pick key={m.key} label={m.label} hint={m.hint} value={map.methods?.[m.key]} onChange={(v) => set({ methods: { ...(map.methods ?? {}), [m.key]: v } })} options={byType(/cash|bank|asset/i)} />
                 ))}
                 <label className="block">
-                  <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300">Udhaar wapsi kis tareeqe se aati hai</span>
+                  <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">Udhaar wapsi kis tareeqe se aati hai</span>
                   <select value={map.collectionMethod ?? 'CASH'} onChange={(e) => set({ collectionMethod: e.target.value as PayMethod })} className={inputCls}>
                     {METHODS.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
                   </select>
@@ -181,7 +181,7 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
         {preview.data && (
           <div className="mt-4">
             {preview.data.missing.length > 0 && <Banner tone="warning" title="Ye accounts abhi nahi chune">{preview.data.missing.join(', ')}</Banner>}
-            <div className="mt-2 grid grid-cols-2 gap-2 text-[0.78125rem] text-slate-600 dark:text-slate-300 sm:grid-cols-4">
+            <div className="mt-2 grid grid-cols-2 gap-2 text-[0.78125rem] text-slate-600 dark:text-ink-300 sm:grid-cols-4">
               <span>{preview.data.totals.bills} bill · {rs(preview.data.totals.sales)}</span>
               <span>Udhaar {rs(preview.data.totals.credit)}</span>
               <span>Refund {rs(preview.data.totals.refunds)}</span>
@@ -190,10 +190,10 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
             {preview.data.lines.length === 0 ? <p className="mt-3 text-[0.8125rem] text-slate-500">Is din koi entry nahi.</p> : (
               <table className="mt-3 w-full text-[0.8125rem]">
                 <thead className="text-left text-[0.71875rem] uppercase tracking-wide text-slate-500"><tr><th className="py-1">Account</th><th className="py-1 text-right">Debit</th><th className="py-1 text-right">Credit</th></tr></thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                   {preview.data.lines.map((l, i) => (
                     <tr key={i}>
-                      <td className="py-1.5"><div className="font-medium text-slate-900 dark:text-white">{nameOf(l.accountId)}</div><div className="text-[0.71875rem] text-slate-400">{l.description}</div></td>
+                      <td className="py-1.5"><div className="font-medium text-slate-900 dark:text-ink-white">{nameOf(l.accountId)}</div><div className="text-[0.71875rem] text-slate-400">{l.description}</div></td>
                       <td className="py-1.5 text-right tabular-nums">{l.side === 'debit' ? rs(l.amount) : ''}</td>
                       <td className="py-1.5 text-right tabular-nums">{l.side === 'credit' ? rs(l.amount) : ''}</td>
                     </tr>
@@ -207,12 +207,12 @@ function Connected({ data: c, onChange }: { data: NonNullable<Awaited<ReturnType
 
       <Card title="Pichhle din" flush>
         {c.history.length === 0 ? <EmptyState title="Abhi kuch nahi bheja" /> : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {c.history.map((h) => (
               <li key={h.day} className="flex flex-wrap items-center gap-3 px-4 py-2.5 text-[0.8125rem] sm:px-5">
                 {h.status === 'SUCCESS' ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : h.status === 'FAILED' ? <XCircle className="h-4 w-4 text-rose-600" /> : <span className="h-4 w-4 rounded-full border border-slate-300" />}
-                <span className="w-24 font-semibold text-slate-900 dark:text-white">{h.day}</span>
-                <span className="min-w-0 flex-1 truncate text-slate-600 dark:text-slate-300">
+                <span className="w-24 font-semibold text-slate-900 dark:text-ink-white">{h.day}</span>
+                <span className="min-w-0 flex-1 truncate text-slate-600 dark:text-ink-300">
                   {h.status === 'SUCCESS' ? `Bheja${h.totals ? ` · ${h.totals.bills} bill, ${rs(h.totals.sales)}` : ''}${h.journalId ? ` · #${h.journalId}` : ''}` : h.error}
                 </span>
                 {h.status !== 'SUCCESS' && <Btn size="sm" variant="plain" onClick={() => { setDay(h.day); setTimeout(() => sync.mutate(false), 0); }}>Dobara</Btn>}
@@ -237,7 +237,7 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 function Pick({ label, hint, value, onChange, options, placeholder }: { label: string; hint?: string; value?: string | null; onChange: (v: string | null) => void; options: AcctAccount[]; placeholder?: string }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300">{label}{hint ? <span className="font-normal text-slate-400"> · {hint}</span> : null}</span>
+      <span className="mb-1 block text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">{label}{hint ? <span className="font-normal text-slate-400"> · {hint}</span> : null}</span>
       <select value={value ?? ''} onChange={(e) => onChange(e.target.value || null)} className={cn(inputCls, !value && 'text-slate-400')}>
         <option value="">{placeholder ?? '— chunein —'}</option>
         {options.map((a) => <option key={a.id} value={a.id}>{a.code ? `${a.code} · ` : ''}{a.name} ({a.type})</option>)}

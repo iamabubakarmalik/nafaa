@@ -27,7 +27,7 @@ export function PosHoldCartsModal({
   const deleteHeld = onDelete;
   return (
 <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-  <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+  <div className="w-full max-w-lg bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
     <div className="px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Pause className="h-6 w-6" />
@@ -40,17 +40,17 @@ export function PosHoldCartsModal({
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {heldCarts.length === 0 ? (
         <div className="text-center py-12">
-          <Pause className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-          <p className="font-extrabold text-slate-700 dark:text-slate-200">Koi hold cart nahi</p>
+          <Pause className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+          <p className="font-extrabold text-slate-700 dark:text-ink-200">Koi hold cart nahi</p>
         </div>
       ) : heldCarts.map((h) => (
-        <div key={h.id} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 flex items-center gap-3">
+        <div key={h.id} className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-3 flex items-center gap-3">
           <div className="h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
             <ShoppingCart className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-extrabold text-slate-900 dark:text-white text-sm">{h.lines.length} items • {formatPKR(h.total)}</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{h.lines.length} items • {formatPKR(h.total)}</div>
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-bold">
               {new Date(h.heldAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>

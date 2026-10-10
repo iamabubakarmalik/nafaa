@@ -25,13 +25,13 @@ export function EmptyState({
       {emoji ? (
         <div className={cn('mb-4 grayscale-[10%]', sizes.emoji)}>{emoji}</div>
       ) : Icon ? (
-        <div className={cn('mb-4 rounded-3xl bg-slate-100 dark:bg-neutral-800 flex items-center justify-center', sizes.iconWrap)}>
-          <Icon className={cn('text-slate-400 dark:text-slate-500', sizes.icon)} />
+        <div className={cn('mb-4 rounded-3xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center', sizes.iconWrap)}>
+          <Icon className={cn('text-slate-400 dark:text-ink-500', sizes.icon)} />
         </div>
       ) : null}
-      <h3 className={cn('font-extrabold text-slate-900 dark:text-white', sizes.title)}>{title}</h3>
+      <h3 className={cn('font-extrabold text-slate-900 dark:text-ink-white', sizes.title)}>{title}</h3>
       {description && (
-        <p className={cn('mt-1.5 max-w-sm text-slate-500 dark:text-slate-400', sizes.desc)}>{description}</p>
+        <p className={cn('mt-1.5 max-w-sm text-slate-500 dark:text-ink-400', sizes.desc)}>{description}</p>
       )}
       {action && <div className="mt-5">{action}</div>}
     </div>

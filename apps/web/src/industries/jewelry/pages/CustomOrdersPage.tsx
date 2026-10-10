@@ -73,16 +73,16 @@ export default function CustomOrdersPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order #, customer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search order #, customer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {['active', 'all', ...STATUS_FLOW, 'CANCELLED'].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s === 'active' ? '🔥 Active' : s === 'all' ? 'All' : s.replace('_', ' ')}</button>
           ))}
         </div>
@@ -96,9 +96,9 @@ export default function CustomOrdersPage() {
       )}
 
       {isLoading ? (
-        <div className="grid sm:grid-cols-2 gap-4">{[1, 2, 3, 4].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid sm:grid-cols-2 gap-4">{[1, 2, 3, 4].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Palette className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No custom orders yet</p>
         </div>
@@ -108,7 +108,7 @@ export default function CustomOrdersPage() {
             const currentIdx = STATUS_FLOW.indexOf(order.status);
             const nextStatus = currentIdx >= 0 && currentIdx < STATUS_FLOW.length - 1 ? STATUS_FLOW[currentIdx + 1] : null;
             return (
-              <div key={order.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+              <div key={order.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow shrink-0">
@@ -135,7 +135,7 @@ export default function CustomOrdersPage() {
                   </div>
                 </div>
 
-                <div className="text-xs italic text-slate-600 line-clamp-2 border-t border-slate-100 dark:border-neutral-800 pt-2">
+                <div className="text-xs italic text-slate-600 line-clamp-2 border-t border-slate-100 dark:border-ink-800 pt-2">
                   📝 {order.designDescription}
                 </div>
 
@@ -170,7 +170,7 @@ export default function CustomOrdersPage() {
                 )}
 
                 {nextStatus && !['DELIVERED', 'CANCELLED'].includes(order.status) && (
-                  <div className="pt-2 border-t border-slate-100 dark:border-neutral-800">
+                  <div className="pt-2 border-t border-slate-100 dark:border-ink-800">
                     <button onClick={() => statusMutation.mutate({ id: order.id, status: nextStatus })} className="w-full h-9 rounded-lg bg-gradient-to-r from-rose-600 to-pink-700 text-white text-xs font-extrabold inline-flex items-center justify-center gap-1">
                       <ArrowRight className="h-3 w-3" />
                       Mark: {nextStatus.replace('_', ' ')}
@@ -223,27 +223,27 @@ function CustomOrderForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">🎨 New Custom Order</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input type="date" value={form.promisedDate} onChange={(e) => setForm({ ...form, promisedDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input type="date" value={form.promisedDate} onChange={(e) => setForm({ ...form, promisedDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
             {['RING', 'NECKLACE', 'EARRINGS', 'BANGLE', 'PENDANT', 'CHAIN', 'BRIDAL_SET', 'CHOKER'].map((c) => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
           </select>
-          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
+          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
             <option value="GOLD">🥇 Gold</option><option value="SILVER">🥈 Silver</option><option value="PLATINUM">💠 Platinum</option>
           </select>
-          <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
+          <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
             {['KARAT_24', 'KARAT_22', 'KARAT_21', 'KARAT_18', 'SILVER_925', 'PLATINUM_950'].map((p) => <option key={p} value={p}>{p.replace('KARAT_', '').replace('SILVER_', 'S')}K</option>)}
           </select>
         </div>
@@ -290,7 +290,7 @@ function CustomOrderForm({ onClose, onSaved }: any) {
           <select value={form.assignedKarigarId} onChange={(e) => {
             const k = karigars.find((x) => x.id === e.target.value);
             setForm({ ...form, assignedKarigarId: e.target.value, assignedKarigarName: k?.fullName || '' });
-          }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
+          }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
             <option value="">-- Select karigar --</option>
             {karigars.map((k) => <option key={k.id} value={k.id}>{k.fullName} ({k.skillLevel || 'N/A'})</option>)}
           </select>
@@ -310,9 +310,9 @@ function CustomOrderForm({ onClose, onSaved }: any) {
           <input value={form.engravingText} onChange={(e) => setForm({ ...form, engravingText: e.target.value })} placeholder="Engraving text (e.g. 'M ❤️ S 2024')" className="h-11 w-full rounded-xl border-2 border-purple-300 bg-purple-50 dark:bg-purple-950/30 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
         )}
 
-        <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+        <textarea rows={2} value={form.internalNotes} onChange={(e) => setForm({ ...form, internalNotes: e.target.value })} placeholder="Internal notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-rose-600 to-pink-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName || !form.customerPhone || !form.designDescription}>
             <Save className="h-4 w-4" />

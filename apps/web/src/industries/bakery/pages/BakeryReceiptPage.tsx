@@ -304,9 +304,9 @@ export default function BakeryReceiptPage() {
   if (saleQ.isError || !sale) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
-        <div className="max-w-sm w-full rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-8 text-center shadow-lg">
+        <div className="max-w-sm w-full rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-8 text-center shadow-lg">
           <AlertTriangle className="h-10 w-10 mx-auto text-amber-500" />
-          <h2 className="mt-4 text-lg font-black text-slate-900 dark:text-white">Bill nahi mila</h2>
+          <h2 className="mt-4 text-lg font-black text-slate-900 dark:text-ink-white">Bill nahi mila</h2>
           <p className="mt-1 text-sm font-bold text-slate-500">Bill ka number ghalat hai ya record hat chuka hai.</p>
           <div className="mt-6 flex gap-2 justify-center">
             <button onClick={() => saleQ.refetch()}
@@ -314,7 +314,7 @@ export default function BakeryReceiptPage() {
               <RefreshCw className={`h-4 w-4 ${saleQ.isRefetching ? 'animate-spin' : ''}`} /> Dobara
             </button>
             <button onClick={() => navigate('/sales')}
-              className="rounded-xl border-2 border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-black text-slate-700 dark:text-slate-200">
+              className="rounded-xl border-2 border-slate-200 dark:border-ink-700 px-4 py-2 text-sm font-black text-slate-700 dark:text-ink-200">
               Bikri ki list
             </button>
           </div>
@@ -325,33 +325,33 @@ export default function BakeryReceiptPage() {
 
   const full = mode === 'full';
   const date = new Date(sale.createdAt);
-  const tb = 'h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 hover:border-pink-400 transition';
+  const tb = 'h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs font-black text-slate-700 dark:text-ink-200 inline-flex items-center justify-center gap-1.5 hover:border-pink-400 transition';
 
   return (
     <div className="pb-24 sm:pb-10">
       <PrintStyles />
 
       {/* ═══ TOOLBAR ═══ */}
-      <div className="print:hidden sticky top-0 z-20 -mx-1 px-1 py-2 mb-4 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur">
+      <div className="print:hidden sticky top-0 z-20 -mx-1 px-1 py-2 mb-4 bg-slate-50/90 dark:bg-ink-950/90 backdrop-blur">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <button onClick={goBack} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-pink-600 transition">
+          <button onClick={goBack} className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-ink-400 hover:text-pink-600 transition">
             <ArrowLeft className="h-4 w-4" /> Wapas
           </button>
 
           <div className="flex gap-1.5 flex-wrap items-center">
-            <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
+            <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden bg-white dark:bg-ink-800">
               {([['short', 'Chhota', Minimize2], ['full', 'Poora', Maximize2]] as const).map(([m, l, I]) => (
                 <button key={m} onClick={() => setMode(m)} title="F"
                   className={`h-9 px-2.5 text-[11px] font-black inline-flex items-center gap-1 transition ${
-                    mode === m ? 'bg-pink-600 text-white' : 'text-slate-600 dark:text-slate-300'
+                    mode === m ? 'bg-pink-600 text-white' : 'text-slate-600 dark:text-ink-300'
                   }`}><I className="h-3.5 w-3.5" /> {l}</button>
               ))}
             </div>
-            <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800">
+            <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden bg-white dark:bg-ink-800">
               {(['58', '80'] as const).map((w) => (
                 <button key={w} onClick={() => setPaper(w)}
                   className={`h-9 px-2.5 text-[11px] font-black tabular-nums transition ${
-                    paper === w ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'text-slate-600 dark:text-slate-300'
+                    paper === w ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'text-slate-600 dark:text-ink-300'
                   }`}>{w}mm</button>
               ))}
             </div>
@@ -497,7 +497,7 @@ export default function BakeryReceiptPage() {
       </div>
 
       {/* Mobile */}
-      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-t-2 border-slate-200 dark:border-slate-800 p-3 sm:hidden">
+      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-ink-900/95 backdrop-blur border-t-2 border-slate-200 dark:border-ink-800 p-3 sm:hidden">
         <div className="flex gap-2">
           <button onClick={doPrint} className="flex-1 h-12 rounded-xl bg-pink-600 text-white font-black inline-flex items-center justify-center gap-2">
             <Printer className="h-4 w-4" /> Print
@@ -506,8 +506,8 @@ export default function BakeryReceiptPage() {
             className="flex-1 h-12 rounded-xl bg-emerald-600 text-white font-black inline-flex items-center justify-center gap-2">
             <MessageCircle className="h-4 w-4" /> WhatsApp
           </a>
-          <button onClick={shareNative} className="h-12 w-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center">
-            <Share2 className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={shareNative} className="h-12 w-12 rounded-xl border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center">
+            <Share2 className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
       </div>

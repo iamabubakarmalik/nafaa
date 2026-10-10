@@ -289,10 +289,10 @@ export default function ReferralsPage() {
   if (isLoading || !data) {
     return (
       <div className="space-y-4">
-        <div className="h-44 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-44 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       </div>
@@ -304,7 +304,7 @@ export default function ReferralsPage() {
       {showTeacher && <ReferralsTeacher onClose={() => setShowTeacher(false)} rewardAmount={safeData.stats.rewardAmount} rewardPercentage={safeData.stats.rewardPercentage} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-pink-700 dark:from-slate-950 dark:via-pink-950 dark:to-rose-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-pink-900 to-pink-700 dark:from-ink-950 dark:via-pink-950 dark:to-rose-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-pink-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
 
@@ -398,7 +398,7 @@ export default function ReferralsPage() {
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition border-2 ${
                 active
                   ? 'bg-pink-600 text-white border-pink-600 shadow-lg shadow-pink-500/30'
-                  : 'bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-500/50'
+                  : 'bg-white dark:bg-ink-900/80 text-slate-700 dark:text-ink-300 border-slate-200 dark:border-ink-700 hover:border-pink-300 dark:hover:border-pink-500/50'
               }`}
             >
               <Icon className="h-4 w-4" />
@@ -561,11 +561,11 @@ export default function ReferralsPage() {
             </div>
 
             {/* Status pie chart */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Status Breakdown</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Referral lifecycle stages</p>
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Status Breakdown</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Referral lifecycle stages</p>
                 </div>
                 <Filter className="h-5 w-5 text-pink-500 dark:text-pink-400" />
               </div>
@@ -594,19 +594,19 @@ export default function ReferralsPage() {
                   <div className="h-14 w-14 rounded-2xl bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center">
                     <Users className="h-7 w-7 text-pink-400 dark:text-pink-300" />
                   </div>
-                  <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Abhi koi referral nahi</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Code share karo — earning start karo!</p>
+                  <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Abhi koi referral nahi</p>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Code share karo — earning start karo!</p>
                 </div>
               )}
             </div>
           </section>
 
           {/* 30-day trend */}
-          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
             <div className="flex items-center justify-between mb-5">
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">30-Day Trend</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Daily signups & earnings pattern</p>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">30-Day Trend</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Daily signups & earnings pattern</p>
               </div>
               <BarChart3 className="h-5 w-5 text-pink-500 dark:text-pink-400" />
             </div>
@@ -643,8 +643,8 @@ export default function ReferralsPage() {
                 <div className="h-14 w-14 rounded-2xl bg-pink-100 dark:bg-pink-500/20 flex items-center justify-center">
                   <TrendingUp className="h-7 w-7 text-pink-400 dark:text-pink-300" />
                 </div>
-                <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Last 30 days me koi referral nahi</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Code share karo — activity track hogi</p>
+                <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Last 30 days me koi referral nahi</p>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Code share karo — activity track hogi</p>
               </div>
             )}
           </section>
@@ -675,16 +675,16 @@ export default function ReferralsPage() {
                 ].map((step) => {
                   const Icon = step.icon;
                   return (
-                    <div key={step.num} className="rounded-2xl bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border-2 border-white dark:border-slate-700 shadow-sm p-3 flex items-start gap-3">
+                    <div key={step.num} className="rounded-2xl bg-white/80 dark:bg-ink-900/60 backdrop-blur-md border-2 border-white dark:border-ink-700 shadow-sm p-3 flex items-start gap-3">
                       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${step.color} text-white flex items-center justify-center font-extrabold text-base shadow-md shrink-0`}>
                         {step.num}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-1.5">
                           <Icon className="h-3.5 w-3.5" />
                           {step.title}
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold leading-snug">{step.desc}</p>
+                        <p className="text-xs text-slate-600 dark:text-ink-300 mt-0.5 font-semibold leading-snug">{step.desc}</p>
                       </div>
                     </div>
                   );
@@ -693,32 +693,32 @@ export default function ReferralsPage() {
             </div>
 
             {/* Recent activity */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-br from-slate-50/80 to-white dark:from-slate-800/40 dark:to-slate-900/60 flex items-center justify-between">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-br from-slate-50/80 to-white dark:from-ink-800/40 dark:to-ink-900/60 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-pink-600 dark:text-pink-400" />
                   <div>
-                    <h3 className="font-extrabold text-slate-900 dark:text-white">Recent Activity</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Latest events</p>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Recent Activity</h3>
+                    <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Latest events</p>
                   </div>
                 </div>
               </div>
 
               {recentActivity.length === 0 ? (
                 <div className="p-8 text-center">
-                  <Activity className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Abhi koi activity nahi</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Code share karna shuru karo!</p>
+                  <Activity className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Abhi koi activity nahi</p>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">Code share karna shuru karo!</p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[400px] overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[400px] overflow-y-auto">
                   {recentActivity.map((item: any, idx) => {
                     const isReferral = item.type === 'referral';
                     const statusCfg = isReferral ? statusConfig[item.status] : null;
                     const Icon = isReferral ? (statusCfg?.icon || Users) : Wallet;
                     const isPositive = !isReferral && item.amount > 0;
                     return (
-                      <div key={idx} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <div key={idx} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                         <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
                           isReferral
                             ? `${statusCfg?.bg} ${statusCfg?.text} ${statusCfg?.darkBg} ${statusCfg?.darkText}`
@@ -729,8 +729,8 @@ export default function ReferralsPage() {
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{item.title}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{formatRelative(item.date)}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{item.title}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5">{formatRelative(item.date)}</div>
                         </div>
                         <div className="text-right shrink-0">
                           {isReferral ? (
@@ -764,12 +764,12 @@ export default function ReferralsPage() {
 
       {/* ═══ REFERRALS TAB ═══ */}
       {tab === 'referrals' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-slate-800 space-y-3 bg-gradient-to-br from-slate-50/50 to-white dark:from-slate-800/40 dark:to-slate-900/60">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-ink-800 space-y-3 bg-gradient-to-br from-slate-50/50 to-white dark:from-ink-800/40 dark:to-ink-900/60">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">All Referrals</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">All Referrals</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                   {filteredReferrals.length} of {safeData.referrals.length}
                   {hasFilters && <span className="ml-1 font-extrabold text-pink-700 dark:text-pink-400">• filtered</span>}
                 </p>
@@ -777,7 +777,7 @@ export default function ReferralsPage() {
               {filteredReferrals.length > 0 && (
                 <button
                   onClick={exportReferrals}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-500/50 px-3 py-2 text-xs font-extrabold text-slate-700 dark:text-slate-300 transition"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-pink-300 dark:hover:border-pink-500/50 px-3 py-2 text-xs font-extrabold text-slate-700 dark:text-ink-300 transition"
                 >
                   <Download className="h-3.5 w-3.5" /> Export CSV
                 </button>
@@ -788,7 +788,7 @@ export default function ReferralsPage() {
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 ref={searchRef}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition shadow-sm"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition shadow-sm"
                 placeholder="Referee name dhundo... (/)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -801,11 +801,11 @@ export default function ReferralsPage() {
             </div>
 
             <div className="flex gap-1 flex-wrap items-center">
-              <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mr-1">Status:</span>
+              <span className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold mr-1">Status:</span>
               <button
                 onClick={() => setStatusFilter('all')}
                 className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
-                  statusFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  statusFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                 }`}
               >
                 All
@@ -820,7 +820,7 @@ export default function ReferralsPage() {
                     className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 ${
                       statusFilter === key
                         ? `${cfg.bg} ${cfg.text} ${cfg.darkBg} ${cfg.darkText} ring-2 ring-pink-200 dark:ring-pink-500/40`
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                     }`}
                   >
                     <cfg.icon className="h-2.5 w-2.5" />
@@ -837,10 +837,10 @@ export default function ReferralsPage() {
               <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-pink-100 to-rose-200 dark:from-pink-500/20 dark:to-rose-500/20 flex items-center justify-center shadow-inner">
                 <Users className="h-9 w-9 text-pink-600 dark:text-pink-400" />
               </div>
-              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
                 {hasFilters ? 'Kuch nahi mila' : 'Abhi koi referral nahi'}
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1.5 font-semibold">
                 {hasFilters ? 'Filter change karo' : 'Code share karo — earning start karo!'}
               </p>
               {!hasFilters && (
@@ -854,25 +854,25 @@ export default function ReferralsPage() {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
               {filteredReferrals.map((r: any) => {
                 const statusCfg = statusConfig[r.status];
                 const StatusIcon = statusCfg?.icon || Clock;
                 return (
-                  <div key={r.id} className="px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition group">
+                  <div key={r.id} className="px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition group">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center font-extrabold shadow-lg ring-2 ring-white dark:ring-slate-900 text-base shrink-0">
+                      <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center font-extrabold shadow-lg ring-2 ring-white dark:ring-ink-900 text-base shrink-0">
                         {r.referee?.name?.charAt(0).toUpperCase() || '?'}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 dark:text-white truncate">{r.referee?.name || 'Unknown'}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold flex items-center gap-2 flex-wrap mt-0.5">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{r.referee?.name || 'Unknown'}</div>
+                        <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold flex items-center gap-2 flex-wrap mt-0.5">
                           <span className="inline-flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             {formatDate(r.createdAt)}
                           </span>
                           <span className="opacity-50">•</span>
-                          <span className="text-slate-400 dark:text-slate-500">{formatRelative(r.createdAt)}</span>
+                          <span className="text-slate-400 dark:text-ink-500">{formatRelative(r.createdAt)}</span>
                         </div>
                       </div>
                     </div>
@@ -898,14 +898,14 @@ export default function ReferralsPage() {
 
       {/* ═══ CREDITS TAB ═══ */}
       {tab === 'credits' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-500/10 dark:to-slate-900/60 flex items-center justify-between flex-wrap gap-2">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-500/10 dark:to-ink-900/60 flex items-center justify-between flex-wrap gap-2">
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 Credit History
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                 Current balance: <strong className="text-emerald-700 dark:text-emerald-400">{formatPKR(safeData.stats.currentCredit)}</strong>
               </p>
             </div>
@@ -916,17 +916,17 @@ export default function ReferralsPage() {
               <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-green-200 dark:from-emerald-500/20 dark:to-green-500/20 flex items-center justify-center shadow-inner">
                 <Wallet className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Abhi koi credit nahi</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 font-semibold">
+              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Abhi koi credit nahi</h4>
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1.5 font-semibold">
                 Refer karo aur credits earn karo!
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[600px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
               {safeData.credits.map((c: any) => {
                 const isPositive = c.amount > 0;
                 return (
-                  <div key={c.id} className="px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                  <div key={c.id} className="px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
                         isPositive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
@@ -934,15 +934,15 @@ export default function ReferralsPage() {
                         {isPositive ? <ArrowDownRight className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{c.note || c.type}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{formatDateTime(c.createdAt)}</div>
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{c.note || c.type}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5">{formatDateTime(c.createdAt)}</div>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`font-extrabold text-base tabular-nums ${isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                         {isPositive ? '+' : ''}{formatPKR(c.amount)}
                       </div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                         Balance: <span className="font-extrabold">{formatPKR(c.balanceAfter)}</span>
                       </div>
                     </div>
@@ -980,20 +980,20 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-500/15 dark:to-rose-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Referral Program — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Referral marketing = free advertising jo aap ko paise deta hai.</strong> Word-of-mouth se aya customer 4× zyada loyal hota hai, aur 25% zyada spend karta hai (BCG study).
           </p>
 
@@ -1002,7 +1002,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Trophy className="h-3 w-3" /> Achievement System
             </div>
-            <div className="space-y-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1 text-xs font-semibold text-slate-700 dark:text-ink-200">
               {[
                 { emoji: '🌱', label: 'Beginner', min: 0 },
                 { emoji: '🥉', label: 'Bronze', min: 1 },
@@ -1011,7 +1011,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
                 { emoji: '🏆', label: 'Platinum', min: 25 },
                 { emoji: '💎', label: 'Diamond', min: 50 },
               ].map((t) => (
-                <div key={t.label} className="flex items-center justify-between rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5">
+                <div key={t.label} className="flex items-center justify-between rounded-lg bg-white dark:bg-ink-800 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5">
                   <span className="flex items-center gap-1.5">
                     <span className="text-lg">{t.emoji}</span>
                     <strong>{t.label}</strong>
@@ -1029,7 +1029,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Banknote className="h-3 w-3" /> Reward — Kaise Milta Hai
             </div>
-            <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
               💰 Per conversion: <strong>Rs {rewardAmount}</strong> minimum <em>ya</em> <strong>{rewardPercentage}%</strong> of unke first sale — <strong>jo bhi zyada ho</strong>.
             </div>
             <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2 text-xs font-extrabold text-emerald-800 dark:text-emerald-200">
@@ -1038,7 +1038,7 @@ function ReferralsTeacher({ onClose, rewardAmount, rewardPercentage }: { onClose
           </div>
 
           {/* Best Practices */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>🎯 Target audience</strong> — Shop owners, chhote businesses, freelancers. Random logon ko mat bhejo — waste hai.</TipRow>
             <TipRow><strong>💬 WhatsApp groups</strong> — Business groups, trader associations, market unions me share karo. Ek group = 50+ potential leads.</TipRow>
             <TipRow><strong>📱 Personal touch</strong> — "Try karo" ki jagah "Mein use karta hoon, meri sales badh gayi" — proof do.</TipRow>
@@ -1092,15 +1092,15 @@ function StatCard({ label, value, sub, icon: Icon, color, isText, isHighlight }:
     <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm hover:shadow-md transition ${
       isHighlight
         ? 'bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-emerald-300 dark:border-emerald-500/40'
-        : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800'
+        : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800'
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${isText ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate ${isText ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
             {value}
           </div>
-          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

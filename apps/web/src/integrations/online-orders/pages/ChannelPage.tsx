@@ -33,7 +33,7 @@ type Tab = 'overview' | 'products' | 'settings' | 'developer' | 'activity';
 /** Purana /online-store/website — pehle channel par, ya jorne ke safhe par */
 export function WebsiteRedirect() {
   const { data, isLoading } = useSalesChannels();
-  if (isLoading) return <div className="h-48 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />;
+  if (isLoading) return <div className="h-48 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />;
   const first = data?.find((c) => c.isWebsite);
   return <Navigate to={first ? `/online-store/channels/${first.id}` : '/online-store/connect'} replace />;
 }
@@ -64,9 +64,9 @@ export default function ChannelPage() {
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl space-y-4">
-        <div className="h-14 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
-        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />)}</div>
-        <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+        <div className="h-14 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
+        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />)}</div>
+        <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
       </div>
     );
   }
@@ -125,7 +125,7 @@ function Channel({ id, data, onChange, tab, setTab }: {
       badge={<Badge tone={status.tone} dot>{status.text}</Badge>}
       subtitle={<span className="inline-flex flex-wrap items-center gap-x-2">
         <span>{meta.label}{automatic ? ' · automatic' : ' · manual'}</span>
-        {cfg.siteUrl && <a href={cfg.siteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-slate-900 dark:hover:text-white">{cfg.siteUrl.replace(/^https?:\/\//, '')} <ExternalLink className="h-3 w-3" /></a>}
+        {cfg.siteUrl && <a href={cfg.siteUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-slate-900 dark:hover:text-ink-white">{cfg.siteUrl.replace(/^https?:\/\//, '')} <ExternalLink className="h-3 w-3" /></a>}
       </span>}
       actions={<>
         <Btn variant="secondary" loading={test.isPending} onClick={() => test.mutate()} icon={<Send className="h-4 w-4" />}>Test order</Btn>
@@ -206,16 +206,16 @@ function Overview({ id, data, platform, onChange, setTab }: {
               ? <EmptyState icon={<ShoppingBag className="h-5 w-5" />} title="Is branch me abhi koi order nahi">Is channel ke {stats.allBranchesOrders} order doosri branches me hain — upar se branch badal kar dekhein.</EmptyState>
               : <EmptyState icon={<ShoppingBag className="h-5 w-5" />} title="Abhi koi order nahi">Website par order hote hi yahan aayega aur ghanti bajegi.</EmptyState>
           ) : (
-            <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
+            <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-ink-800 dark:border-ink-800">
               {orders.items.map((o) => {
                 const st = STATUS_LABEL[o.orderStatus as keyof typeof STATUS_LABEL] ?? STATUS_LABEL.PENDING;
                 return (
                   <li key={o.id}>
-                    <Link to={`/online-orders?order=${o.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/40 sm:px-5">
-                      <span className="w-20 shrink-0 text-[0.8125rem] font-semibold text-slate-900 dark:text-white">#{o.externalOrderNumber ?? o.externalOrderId}</span>
-                      <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-600 dark:text-slate-300">{o.customerName} · {o.items.length} item</span>
+                    <Link to={`/online-orders?order=${o.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-ink-800/40 sm:px-5">
+                      <span className="w-20 shrink-0 text-[0.8125rem] font-semibold text-slate-900 dark:text-ink-white">#{o.externalOrderNumber ?? o.externalOrderId}</span>
+                      <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-600 dark:text-ink-300">{o.customerName} · {o.items.length} item</span>
                       <span className={cn('rounded-md px-1.5 py-0.5 text-[0.71875rem] font-semibold', st.tone)}>{st.short}</span>
-                      <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-white">{rs(o.total)}</span>
+                      <span className="w-24 text-right text-[0.8125rem] font-semibold tabular-nums text-slate-900 dark:text-ink-white">{rs(o.total)}</span>
                       <span className="hidden w-24 text-right text-[0.75rem] text-slate-500 sm:block">{timeAgo(o.receivedAt)}</span>
                     </Link>
                   </li>
@@ -228,15 +228,15 @@ function Overview({ id, data, platform, onChange, setTab }: {
 
       <aside className="space-y-4">
         <Card title="Setup" actions={<span className="text-[0.78125rem] font-semibold tabular-nums text-slate-500">{done}/{steps.length}</span>}>
-          <div className="-mt-1 mb-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="-mt-1 mb-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-ink-800">
             <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${(done / steps.length) * 100}%` }} />
           </div>
           <ul className="space-y-1">
             {steps.map((s) => (
               <li key={s.label}>
-                <button onClick={() => setTab(s.tab)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                <button onClick={() => setTab(s.tab)} className="flex w-full items-center gap-2.5 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 dark:hover:bg-ink-800/60">
                   {s.done ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <Circle className="h-4 w-4 shrink-0 text-slate-300" />}
-                  <span className={cn('text-[0.8125rem]', s.done ? 'text-slate-500 line-through' : 'font-medium text-slate-900 dark:text-white')}>{s.label}</span>
+                  <span className={cn('text-[0.8125rem]', s.done ? 'text-slate-500 line-through' : 'font-medium text-slate-900 dark:text-ink-white')}>{s.label}</span>
                 </button>
               </li>
             ))}
@@ -244,7 +244,7 @@ function Overview({ id, data, platform, onChange, setTab }: {
         </Card>
         <HelpCard />
         <Card title="Stock ka hisaab">
-          <p className="text-[0.8125rem] leading-relaxed text-slate-600 dark:text-slate-300">
+          <p className="text-[0.8125rem] leading-relaxed text-slate-600 dark:text-ink-300">
             Stock ka malik <b>Nafaa</b> hai. Jore hue product ka stock <b>{i.config.shopId ? 'chuni hui branch' : 'main branch'}</b> se website par jata hai —
             har 15 minute, aur har accept/cancel par foran. Jo order accept nahi hua, us ka maal pehle hi minus hota hai.
           </p>
@@ -295,10 +295,10 @@ function ConnectionCard({ id, data, platform, onChange, setTab }: {
 
       {connected && conn.phase !== 'waiting' ? (
         <>
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-ink-700">
             <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
             <div className="min-w-0 flex-1">
-              <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{name} se jura hai</div>
+              <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{name} se jura hai</div>
               <div className="truncate text-[0.78125rem] text-slate-500">
                 {platform === 'shopify' ? i.shopify?.shop : i.config.siteUrl}
                 {platform === 'shopify' && i.shopify?.locationName ? ` · stock location: ${i.shopify.locationName}` : ''}
@@ -309,26 +309,26 @@ function ConnectionCard({ id, data, platform, onChange, setTab }: {
             <Btn size="sm" loading={repair.isPending} onClick={() => repair.mutate()} icon={<Wrench className="h-3.5 w-3.5" />}>Check</Btn>
             <Btn size="sm" variant="plain" loading={conn.phase === 'starting'} onClick={start}>Dobara {platform === 'shopify' ? 'install' : 'approve'}</Btn>
           </div>
-          <ul className="mt-3 grid gap-2 text-[0.78125rem] text-slate-600 dark:text-slate-300 sm:grid-cols-3">
+          <ul className="mt-3 grid gap-2 text-[0.78125rem] text-slate-600 dark:text-ink-300 sm:grid-cols-3">
             <li className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Orders khud aate hain</li>
             <li className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> {platform === 'shopify' ? 'Fulfillment + tracking wapas' : 'Status wapas website par'}</li>
             <li className="flex items-center gap-1.5"><CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Stock har 15 minute</li>
           </ul>
         </>
       ) : conn.phase === 'waiting' ? (
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-3 dark:border-ink-700">
           <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
-          <div className="min-w-0 flex-1 text-[0.8125rem] font-medium text-slate-900 dark:text-white">
+          <div className="min-w-0 flex-1 text-[0.8125rem] font-medium text-slate-900 dark:text-ink-white">
             {name} window me "{platform === 'shopify' ? 'Install' : 'Approve'}" dabayein…
           </div>
           <Btn size="sm" onClick={() => conn.reopen()} icon={<ExternalLink className="h-3.5 w-3.5" />}>Window dobara kholo</Btn>
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-lg border-2 border-slate-900 p-4 dark:border-white">
+          <div className="rounded-lg border-2 border-slate-900 p-4 dark:border-ink-white">
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4" />
-              <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">Automatic</span>
+              <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">Automatic</span>
               <Badge tone="success">Recommended</Badge>
             </div>
             <p className="mt-1 text-[0.78125rem] text-slate-500">Popup me {name} kholein, {platform === 'shopify' ? 'Install' : 'Approve'} dabayein — baaqi sab Nafaa khud.</p>
@@ -344,10 +344,10 @@ function ConnectionCard({ id, data, platform, onChange, setTab }: {
             {conn.phase === 'denied' && <p className="mt-2 text-[0.78125rem] text-rose-600">Ijazat nahi di gayi — dobara koshish karein.</p>}
             {!conn.oneClickReady && conn.publicApi && <p className="mt-2 text-[0.75rem] text-amber-700">{conn.publicApi.reason}</p>}
           </div>
-          <div className="rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+          <div className="rounded-lg border border-slate-200 p-4 dark:border-ink-700">
             <div className="flex items-center gap-2">
               <KeyRound className="h-4 w-4" />
-              <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">Manual</span>
+              <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">Manual</span>
             </div>
             <p className="mt-1 text-[0.78125rem] text-slate-500">
               {platform === 'shopify' ? 'Shopify admin me webhook URL khud paste karein.' : 'WooCommerce ki REST keys, Nafaa plugin, ya webhook khud lagayein.'}
@@ -386,12 +386,12 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
   return (
     <div className="grid gap-4 lg:grid-cols-[240px_minmax(0,1fr)]">
       <div className="text-[0.8125rem] text-slate-500 lg:pt-4">
-        <div className="font-semibold text-slate-900 dark:text-white">Order aane par</div>
+        <div className="font-semibold text-slate-900 dark:text-ink-white">Order aane par</div>
         Kitna kaam Nafaa khud kare.
         <div className="mt-1"><DocsLink anchor="setting-auto-accept">Kaise?</DocsLink></div>
       </div>
       <Card>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           <SettingRow title="Order aate hi khud accept" help="Bill aur stock khud. Stock kam ho ya product na jura ho to order 'Naya' me ruk jata hai."
             control={<Toggle checked={cfg.autoAccept} onChange={(v) => save.mutate({ autoAccept: v })} />} />
           <SettingRow title="Accept par receipt kholo" help="Accept dabate hi receipt ka safha (POS auto-print on ho to print bhi)."
@@ -400,7 +400,7 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
       </Card>
 
       <div className="text-[0.8125rem] text-slate-500 lg:pt-4">
-        <div className="font-semibold text-slate-900 dark:text-white">Stock aur qeemat</div>
+        <div className="font-semibold text-slate-900 dark:text-ink-white">Stock aur qeemat</div>
         Kis branch ka maal, bill me kaun si qeemat.
         <div className="mt-1 flex flex-col gap-1"><DocsLink anchor="setting-stock-branch">Branch kaise?</DocsLink><DocsLink anchor="setting-delivery">Delivery charges kaise?</DocsLink></div>
       </div>
@@ -427,7 +427,7 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
           </Field>
         </div>
         {automatic && (platform === 'woocommerce' || platform === 'shopify') && (
-          <div className="mt-4 border-t border-slate-100 pt-2 dark:border-slate-800">
+          <div className="mt-4 border-t border-slate-100 pt-2 dark:border-ink-800">
             <SettingRow title="Nafaa ki qeemat website par bhi"
               help="Nafaa me product ki qeemat badlein → jore hue product ki website qeemat 1-2 minute me khud badle. Website par sale/offer chalate hon to band rakhein."
               control={<Toggle checked={!!cfg.pushPrice} onChange={(v) => save.mutate({ pushPrice: v })} />} />
@@ -438,13 +438,13 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
       </Card>
 
       <div className="text-[0.8125rem] text-slate-500 lg:pt-4">
-        <div className="font-semibold text-slate-900 dark:text-white">Website ko status</div>
+        <div className="font-semibold text-slate-900 dark:text-ink-white">Website ko status</div>
         Accept, raste me, deliver, cancel.
         <div className="mt-1"><DocsLink anchor="setting-status-url">Kaise?</DocsLink></div>
       </div>
       <Card>
         {automatic ? (
-          <div className="flex items-start gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">
+          <div className="flex items-start gap-2 text-[0.8125rem] text-slate-600 dark:text-ink-300">
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
             <span className="flex-1">
               Khud ho raha hai — koi URL nahi chahiye.{' '}
@@ -466,11 +466,11 @@ function SettingsTab({ id, cfg, name, platform, automatic, onChange }: {
       </Card>
 
       <div className="text-[0.8125rem] text-slate-500 lg:pt-4">
-        <div className="font-semibold text-slate-900 dark:text-white">Hifazat aur naam</div>
+        <div className="font-semibold text-slate-900 dark:text-ink-white">Hifazat aur naam</div>
         <div className="mt-1"><DocsLink anchor="setting-signed">Kaise?</DocsLink></div>
       </div>
       <Card>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           <SettingRow title="Sirf signed orders" help="Bina signature wala order reject. Automatic connection aur plugin khud sign karte hain — Indolj sign nahi karta, us ke liye band rakhein."
             control={<Toggle checked={cfg.requireSignature} onChange={(v) => save.mutate({ requireSignature: v })} />} />
           {platform === 'shopify' && !automatic && (
@@ -564,9 +564,9 @@ function ActivityTab({ logs }: { logs: WebsiteOverview['logs'] }) {
   const rows = useMemo(() => logs.filter((l) => f === 'all' || !l.ok), [logs, f]);
   return (
     <Card flush title="Activity" description="Website se aane aur jaane wali har request — ghalti ho to wajah yahin likhi hoti hai"
-      actions={<div className="inline-flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800">
+      actions={<div className="inline-flex rounded-lg bg-slate-100 p-0.5 dark:bg-ink-800">
         {(['all', 'err'] as const).map((k) => (
-          <button key={k} onClick={() => setF(k)} className={cn('h-7 rounded-md px-2.5 text-[0.78125rem] font-semibold', f === k ? 'bg-white shadow-sm dark:bg-slate-900' : 'text-slate-500')}>
+          <button key={k} onClick={() => setF(k)} className={cn('h-7 rounded-md px-2.5 text-[0.78125rem] font-semibold', f === k ? 'bg-white shadow-sm dark:bg-ink-900' : 'text-slate-500')}>
             {k === 'all' ? `Sab ${logs.length}` : `Ghaltiyan ${logs.filter((l) => !l.ok).length}`}
           </button>
         ))}
@@ -574,7 +574,7 @@ function ActivityTab({ logs }: { logs: WebsiteOverview['logs'] }) {
       {rows.length === 0 ? (
         <EmptyState icon={<Activity className="h-5 w-5" />} title="Abhi kuch nahi">Test order bhejein — pehli line yahan aayegi.</EmptyState>
       ) : (
-        <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
+        <ul className="divide-y divide-slate-100 border-t border-slate-100 dark:divide-ink-800 dark:border-ink-800">
           {rows.map((l) => (
             <li key={l.id} className="flex items-start gap-3 px-4 py-2.5 sm:px-5">
               <span className={cn('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md', l.kind === 'IN' ? 'bg-sky-50 text-sky-600 dark:bg-sky-500/10' : 'bg-violet-50 text-violet-600 dark:bg-violet-500/10')}>
@@ -582,7 +582,7 @@ function ActivityTab({ logs }: { logs: WebsiteOverview['logs'] }) {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[0.78125rem] font-semibold text-slate-900 dark:text-white">{l.label}</span>
+                  <span className="font-mono text-[0.78125rem] font-semibold text-slate-900 dark:text-ink-white">{l.label}</span>
                   <Badge tone={l.ok ? 'success' : 'critical'}>{l.ok ? 'Theek' : 'Ghalti'}</Badge>
                 </div>
                 {l.error && <div className="mt-0.5 break-words text-[0.78125rem] text-rose-600">{l.error}</div>}
@@ -635,8 +635,8 @@ function MoreMenu({ id, data, onChange }: { id: string; data: WebsiteOverview; o
     <div ref={ref} className="relative">
       <Btn variant="secondary" onClick={() => setOpen((v) => !v)} icon={<MoreHorizontal className="h-4 w-4" />} aria-label="Aur" />
       {open && (
-        <div className="absolute right-0 z-40 mt-1 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
-          <button onClick={() => pause.mutate()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50 dark:hover:bg-slate-800">
+        <div className="absolute right-0 z-40 mt-1 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-ink-700 dark:bg-ink-900">
+          <button onClick={() => pause.mutate()} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-[0.8125rem] hover:bg-slate-50 dark:hover:bg-ink-800">
             {i.isActive ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />} {i.isActive ? 'Channel band karo' : 'Channel chalu karo'}
           </button>
           <button onClick={() => { if (confirm(`"${i.displayName}" hata dein? Naye orders aana band ho jayenge. Purane orders aur bills mehfooz rahenge.`)) remove.mutate(); }}
@@ -657,7 +657,7 @@ function BranchScopeNote({ total, all }: { total: number; all: number }) {
   const name = list.find((s) => s.id === shopId)?.name ?? 'is branch';
   return (
     <p className="-mt-1 text-[0.78125rem] text-slate-500">
-      Ye ginti sirf <b className="text-slate-700 dark:text-slate-200">{name}</b> ki hai — {total} order. Poore channel (sab branches) me kul <b className="text-slate-700 dark:text-slate-200">{all}</b>.
+      Ye ginti sirf <b className="text-slate-700 dark:text-ink-200">{name}</b> ki hai — {total} order. Poore channel (sab branches) me kul <b className="text-slate-700 dark:text-ink-200">{all}</b>.
     </p>
   );
 }
@@ -685,11 +685,11 @@ function ConnectionSummary({ data, platform, setTab }: { data: WebsiteOverview; 
     <Card title={<span className="flex items-center gap-2">Connection {joined ? <Badge tone="success" dot>{name}</Badge> : <Badge tone="warning" dot>Jorna baqi</Badge>}</span>}
       actions={<Btn size="sm" variant={joined ? 'secondary' : 'primary'} onClick={() => setTab('developer')} icon={<Wrench className="h-3.5 w-3.5" />}>{joined ? 'Setup' : 'Setup kholein'}</Btn>}>
       {!joined && (
-        <p className="mb-3 text-[0.8125rem] text-slate-600 dark:text-slate-300">
+        <p className="mb-3 text-[0.8125rem] text-slate-600 dark:text-ink-300">
           {name} ko Nafaa se jorne ka har qadam <b>Setup</b> tab me hai — keys aur URL copy button ke saath. Developer ho to wahan se link bhej dein.
         </p>
       )}
-      <ul className="space-y-2 text-[0.8125rem] text-slate-700 dark:text-slate-200">
+      <ul className="space-y-2 text-[0.8125rem] text-slate-700 dark:text-ink-200">
         {lines.map((l, n) => (
           <li key={n} className="flex items-center gap-2">
             {l.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> : <Circle className="h-4 w-4 shrink-0 text-amber-500" />} <span>{l.text}</span>
@@ -714,15 +714,15 @@ function BranchesCard({ branches }: { branches: NonNullable<WebsiteOverview['bra
   const current = useAuthStore((s) => s.currentShopId);
   return (
     <Card title="Branches" description="Is channel ke orders har branch me" flush>
-      <table className="w-full border-t border-slate-100 text-[0.8125rem] dark:border-slate-800">
+      <table className="w-full border-t border-slate-100 text-[0.8125rem] dark:border-ink-800">
         <thead className="text-left text-[0.75rem] text-slate-500">
           <tr><th className="px-4 py-2 font-medium sm:px-5">Branch</th><th className="px-2 py-2 text-right font-medium">Aaj</th><th className="px-2 py-2 text-right font-medium">Naye</th><th className="px-4 py-2 text-right font-medium sm:px-5">Kul</th></tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+        <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
           {branches.map((b) => (
             <tr key={b.shopId ?? 'none'} className={cn(b.shopId && b.shopId === current && 'bg-emerald-50/60 dark:bg-emerald-500/5')}>
               <td className="px-4 py-2 sm:px-5">
-                <span className="font-medium text-slate-900 dark:text-white">{b.name}</span>
+                <span className="font-medium text-slate-900 dark:text-ink-white">{b.name}</span>
                 {b.isDefault && <span className="ml-1.5 text-[0.71875rem] text-slate-500">(main)</span>}
               </td>
               <td className="px-2 py-2 text-right tabular-nums">{b.today}</td>

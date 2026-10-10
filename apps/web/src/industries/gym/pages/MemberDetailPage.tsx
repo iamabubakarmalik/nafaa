@@ -47,7 +47,7 @@ export default function MemberDetailPage() {
   });
 
   if (isLoading || !member) {
-    return <div className="h-96 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-96 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const activeMembership = member.memberships?.find((m: any) => m.status === 'ACTIVE');
@@ -142,7 +142,7 @@ export default function MemberDetailPage() {
           return (
             <button key={t.v} onClick={() => setTab(t.v as any)} className={
               'shrink-0 px-4 py-2 rounded-xl text-sm font-extrabold inline-flex items-center gap-2 transition ' +
-              (tab === t.v ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+              (tab === t.v ? 'bg-red-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
             }>
               <Icon className="h-4 w-4" />
               {t.label}
@@ -155,8 +155,8 @@ export default function MemberDetailPage() {
       {tab === 'overview' && (
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Personal Info */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-red-600" />
               Personal Information
             </h3>
@@ -173,8 +173,8 @@ export default function MemberDetailPage() {
           </div>
 
           {/* Physical Stats */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Weight className="h-4 w-4 text-blue-600" />
               Physical Stats
             </h3>
@@ -189,8 +189,8 @@ export default function MemberDetailPage() {
           </div>
 
           {/* Goals */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Target className="h-4 w-4 text-fuchsia-600" />
               Fitness Goals
             </h3>
@@ -205,7 +205,7 @@ export default function MemberDetailPage() {
                 <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Secondary Goals</div>
                 <div className="flex flex-wrap gap-1">
                   {member.secondaryGoals.map((g: string, i: number) => (
-                    <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-xs font-extrabold uppercase">{g.replace('_', ' ')}</span>
+                    <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-xs font-extrabold uppercase">{g.replace('_', ' ')}</span>
                   ))}
                 </div>
               </div>
@@ -214,7 +214,7 @@ export default function MemberDetailPage() {
 
           {/* Medical */}
           {(member.medicalConditions || member.allergies?.length > 0 || member.injuries || !member.doctorClearance) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-rose-200 dark:border-rose-800 shadow-sm p-5 space-y-3">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-800 shadow-sm p-5 space-y-3">
               <h3 className="font-extrabold text-rose-900 dark:text-rose-300 flex items-center gap-2">
                 <Heart className="h-4 w-4" />
                 Medical Information
@@ -258,8 +258,8 @@ export default function MemberDetailPage() {
 
           {/* Emergency Contact */}
           {member.emergencyContactName && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-2">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <AlertCircle className="h-4 w-4 text-amber-600" />
                 Emergency Contact
               </h3>
@@ -327,14 +327,14 @@ export default function MemberDetailPage() {
           )}
 
           {progressData?.changes && (
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-emerald-600" />
                 Progress (First → Latest)
               </h3>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {Object.entries(progressData.changes).map(([key, val]: any) => (
-                  <div key={key} className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 p-4">
+                  <div key={key} className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 p-4">
                     <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{key}</div>
                     <div className="mt-1 flex items-baseline gap-1">
                       <span className="text-slate-400 tabular-nums text-sm">{val.from?.toFixed(1)}</span>
@@ -356,7 +356,7 @@ export default function MemberDetailPage() {
           {member.measurements && member.measurements.length > 0 ? (
             <section className="grid gap-3">
               {member.measurements.map((m: any) => (
-                <div key={m.id} className="rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+                <div key={m.id} className="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="font-extrabold text-slate-900">{format(new Date(m.measurementDate), 'dd MMM yyyy, HH:mm')}</div>
                   </div>
@@ -375,7 +375,7 @@ export default function MemberDetailPage() {
               ))}
             </section>
           ) : (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
               <Ruler className="h-16 w-16 text-slate-400 mx-auto mb-3" />
               <p className="font-extrabold text-slate-700">No measurements recorded</p>
             </div>
@@ -398,7 +398,7 @@ export default function MemberDetailPage() {
           {workouts.length > 0 ? (
             <section className="grid gap-3">
               {workouts.map((w: any) => (
-                <div key={w.id} className="rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+                <div key={w.id} className="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <div className="font-extrabold">{w.workoutType || 'Workout'}</div>
@@ -424,7 +424,7 @@ export default function MemberDetailPage() {
               ))}
             </section>
           ) : (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
               <Activity className="h-16 w-16 text-slate-400 mx-auto mb-3" />
               <p className="font-extrabold text-slate-700">No workout sessions logged</p>
             </div>
@@ -442,7 +442,7 @@ export default function MemberDetailPage() {
                 ? differenceInMinutes(new Date(a.checkOutAt), new Date(a.checkInAt))
                 : differenceInMinutes(new Date(), new Date(a.checkInAt));
               return (
-                <div key={a.id} className="rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex items-center gap-3">
+                <div key={a.id} className="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex items-center gap-3">
                   <div className={
                     'h-10 w-10 rounded-xl text-white flex items-center justify-center shrink-0 ' +
                     (isInside ? 'bg-gradient-to-br from-emerald-500 to-green-600' : 'bg-gradient-to-br from-slate-400 to-slate-600')
@@ -463,7 +463,7 @@ export default function MemberDetailPage() {
               );
             })
           ) : (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
               <Clock className="h-16 w-16 text-slate-400 mx-auto mb-3" />
               <p className="font-extrabold text-slate-700">No attendance records</p>
             </div>
@@ -478,7 +478,7 @@ function InfoField({ label, value }: any) {
   return (
     <div>
       <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{label}</div>
-      <div className="font-extrabold text-slate-900 dark:text-white">{value || '—'}</div>
+      <div className="font-extrabold text-slate-900 dark:text-ink-white">{value || '—'}</div>
     </div>
   );
 }
@@ -503,7 +503,7 @@ function StatBox({ label, value, color }: any) {
 
 function MeasurementBox({ label, value }: any) {
   return (
-    <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+    <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
       <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{label}</div>
       <div className="text-sm font-extrabold tabular-nums">{value}</div>
     </div>
@@ -539,7 +539,7 @@ function MeasurementForm({ memberId, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">📏 New Body Measurement</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -599,9 +599,9 @@ function MeasurementForm({ memberId, onClose, onSaved }: any) {
           </div>
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending}>
             <Save className="h-4 w-4" />

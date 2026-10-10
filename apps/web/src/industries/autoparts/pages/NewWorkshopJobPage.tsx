@@ -153,8 +153,8 @@ export default function NewWorkshopJobPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Vehicle */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Car className="h-4 w-4 text-blue-600" />
               Vehicle
             </h3>
@@ -163,7 +163,7 @@ export default function NewWorkshopJobPage() {
               <div className="rounded-xl bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-200 p-3 flex items-center gap-3">
                 <Car className="h-5 w-5 text-blue-600" />
                 <div className="flex-1">
-                  <div className="font-extrabold text-slate-900 dark:text-white">{selectedVehicle.registrationNumber}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedVehicle.registrationNumber}</div>
                   <div className="text-xs font-bold text-slate-600">{selectedVehicle.makeName} {selectedVehicle.modelName} {selectedVehicle.year}</div>
                   {selectedVehicle.ownerName && <div className="text-xs font-bold text-slate-500">{selectedVehicle.ownerName} • {selectedVehicle.ownerPhone}</div>}
                 </div>
@@ -187,15 +187,15 @@ export default function NewWorkshopJobPage() {
             )}
 
             <div className="grid sm:grid-cols-2 gap-2">
-              <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name (or walk-in)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name (or walk-in)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
-            <input type="number" value={form.odometerKm} onChange={(e) => setForm({ ...form, odometerKm: e.target.value })} placeholder="Current Odometer (km)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+            <input type="number" value={form.odometerKm} onChange={(e) => setForm({ ...form, odometerKm: e.target.value })} placeholder="Current Odometer (km)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
           </section>
 
           {/* Job Details */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Wrench className="h-4 w-4 text-orange-600" />
               Job Details
             </h3>
@@ -206,7 +206,7 @@ export default function NewWorkshopJobPage() {
                 {JOB_TYPES.map((t) => (
                   <button key={t.value} onClick={() => setForm({ ...form, jobType: t.value })} className={
                     'px-2 py-1 rounded-lg text-xs font-extrabold border-2 ' +
-                    (form.jobType === t.value ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 hover:border-orange-300')
+                    (form.jobType === t.value ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-orange-300')
                   }>{t.emoji} {t.label}</button>
                 ))}
               </div>
@@ -218,37 +218,37 @@ export default function NewWorkshopJobPage() {
                 {PRIORITIES.map((p) => (
                   <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
                     'p-2 rounded-xl border-2 text-xs font-extrabold ' +
-                    (form.priority === p.value ? p.color + ' border-transparent text-white' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 hover:border-orange-300')
+                    (form.priority === p.value ? p.color + ' border-transparent text-white' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-orange-300')
                   }>{p.label}</button>
                 ))}
               </div>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3">
-              <select value={form.primaryMechanicId} onChange={(e) => setForm({ ...form, primaryMechanicId: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
+              <select value={form.primaryMechanicId} onChange={(e) => setForm({ ...form, primaryMechanicId: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500">
                 <option value="">Assign Mechanic</option>
                 {mechanics.map((m) => {
                   const nm = m.staff ? ((m.staff as any).firstName || '') + ' ' + ((m.staff as any).lastName || '') : '';
                   return <option key={m.id} value={m.id}>{nm.trim() || 'Mechanic'} • Rs {m.hourlyRate}/hr</option>;
                 })}
               </select>
-              <input value={form.bayNumber} onChange={(e) => setForm({ ...form, bayNumber: e.target.value })} placeholder="Bay # (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+              <input value={form.bayNumber} onChange={(e) => setForm({ ...form, bayNumber: e.target.value })} placeholder="Bay # (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
             </div>
 
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Promised Delivery</label>
-              <input type="datetime-local" value={form.promisedAt} onChange={(e) => setForm({ ...form, promisedAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+              <input type="datetime-local" value={form.promisedAt} onChange={(e) => setForm({ ...form, promisedAt: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
             </div>
 
-            <textarea rows={2} value={form.customerComplaint} onChange={(e) => setForm({ ...form, customerComplaint: e.target.value })} placeholder="Customer complaint / problem description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
-            <textarea rows={2} value={form.diagnosis} onChange={(e) => setForm({ ...form, diagnosis: e.target.value })} placeholder="Diagnosis / findings..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
-            <textarea rows={2} value={form.workDescription} onChange={(e) => setForm({ ...form, workDescription: e.target.value })} placeholder="Work to be done..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
+            <textarea rows={2} value={form.customerComplaint} onChange={(e) => setForm({ ...form, customerComplaint: e.target.value })} placeholder="Customer complaint / problem description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
+            <textarea rows={2} value={form.diagnosis} onChange={(e) => setForm({ ...form, diagnosis: e.target.value })} placeholder="Diagnosis / findings..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
+            <textarea rows={2} value={form.workDescription} onChange={(e) => setForm({ ...form, workDescription: e.target.value })} placeholder="Work to be done..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-orange-500 resize-none" />
           </section>
 
           {/* Labor Items */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Wrench className="h-4 w-4 text-orange-600" />
                 Labor ({laborItems.length})
               </h3>
@@ -278,9 +278,9 @@ export default function NewWorkshopJobPage() {
           </section>
 
           {/* Parts */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Package className="h-4 w-4 text-amber-600" />
                 Parts Used ({partsUsed.length})
               </h3>
@@ -324,9 +324,9 @@ export default function NewWorkshopJobPage() {
           </section>
 
           {/* External Work */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white">🏢 External Work ({externalWork.length})</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">🏢 External Work ({externalWork.length})</h3>
               <Button size="sm" onClick={() => setExternalWork([...externalWork, { description: '', vendorName: '', cost: 0, markup: 0 }])} className="bg-gradient-to-r from-violet-600 to-purple-700">
                 <Plus className="h-3.5 w-3.5" />
                 Add External

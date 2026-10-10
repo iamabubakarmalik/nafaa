@@ -53,16 +53,16 @@ export default function MonthlyBillsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex gap-3 flex-wrap items-end">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex gap-3 flex-wrap items-end">
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Month</label>
-          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
+          <select value={month} onChange={(e) => setMonth(Number(e.target.value))} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500">
             {MONTHS.map((m, i) => <option key={i} value={i + 1}>{m}</option>)}
           </select>
         </div>
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Year</label>
-          <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-10 w-24 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
+          <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="h-10 w-24 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500" />
         </div>
         <div className="flex gap-1.5">
           {[
@@ -72,7 +72,7 @@ export default function MonthlyBillsPage() {
           ].map((f) => (
             <button key={f.v} onClick={() => setPaidFilter(f.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (paidFilter === f.v ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (paidFilter === f.v ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{f.label}</button>
           ))}
         </div>
@@ -95,9 +95,9 @@ export default function MonthlyBillsPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : bills.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <FileText className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No bills generated for {MONTHS[month - 1]} {year}</p>
           <Button className="mt-4 bg-gradient-to-r from-pink-600 to-rose-700" onClick={() => setShowBulk(true)}>
@@ -108,7 +108,7 @@ export default function MonthlyBillsPage() {
         <section className="grid gap-2">
           {bills.map((b) => (
             <div key={b.id} className={
-              'rounded-xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-3 ' +
+              'rounded-xl bg-white dark:bg-ink-900 border-2 shadow-sm p-3 ' +
               (b.isPaid ? 'border-emerald-300' : b.remainingAmount > 0 ? 'border-amber-300' : 'border-slate-200')
             }>
               <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -172,7 +172,7 @@ function BulkGenModal({ month, year, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 bg-pink-50 flex items-center justify-between">
           <h3 className="font-extrabold">Bulk Generate Monthly Bills</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -211,7 +211,7 @@ function PayBillModal({ bill, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 bg-emerald-50 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold">Pay Bill</h3>
@@ -231,7 +231,7 @@ function PayBillModal({ bill, onClose, onDone }: any) {
               }>{m}</button>
             ))}
           </div>
-          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending}>

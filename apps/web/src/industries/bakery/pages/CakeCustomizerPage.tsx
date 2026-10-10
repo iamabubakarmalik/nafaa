@@ -213,8 +213,8 @@ export default function CakeCustomizerPage() {
         <div className="space-y-6">
           {/* STEP 1: Customer */}
           {step === 1 && (
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                 <User className="h-5 w-5 text-pink-600" />
                 Who is this cake for?
               </h3>
@@ -261,11 +261,11 @@ export default function CakeCustomizerPage() {
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Customer Name *</label>
-                      <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Full name" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+                      <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Full name" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
                     </div>
                     <div>
                       <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Phone *</label>
-                      <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="03xx-xxxxxxx" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+                      <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="03xx-xxxxxxx" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
                     </div>
                   </div>
                 </>
@@ -273,7 +273,7 @@ export default function CakeCustomizerPage() {
 
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Email (optional)</label>
-                <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="email@example.com" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+                <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="email@example.com" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
               </div>
             </section>
           )}
@@ -281,8 +281,8 @@ export default function CakeCustomizerPage() {
           {/* STEP 2: Cake Basics */}
           {step === 2 && (
             <>
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Cake className="h-5 w-5 text-pink-600" />
                   Choose Size
                 </h3>
@@ -293,7 +293,7 @@ export default function CakeCustomizerPage() {
                       onClick={() => setForm({ ...form, size: s.value })}
                       className={
                         'p-3 rounded-xl border-2 text-center transition ' +
-                        (form.size === s.value ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/40 shadow ring-2 ring-pink-100' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-pink-300')
+                        (form.size === s.value ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/40 shadow ring-2 ring-pink-100' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-pink-300')
                       }
                     >
                       <div className="text-2xl">{s.emoji}</div>
@@ -307,8 +307,8 @@ export default function CakeCustomizerPage() {
                 )}
               </section>
 
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Palette className="h-5 w-5 text-fuchsia-600" />
                   Choose Shape
                 </h3>
@@ -319,7 +319,7 @@ export default function CakeCustomizerPage() {
                       onClick={() => setForm({ ...form, shape: s.value })}
                       className={
                         'p-3 rounded-xl border-2 text-center transition ' +
-                        (form.shape === s.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow ring-2 ring-fuchsia-100' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                        (form.shape === s.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow ring-2 ring-fuchsia-100' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
                       }
                     >
                       <div className="text-3xl">{s.emoji}</div>
@@ -349,8 +349,8 @@ export default function CakeCustomizerPage() {
           {/* STEP 3: Flavor & Cream */}
           {step === 3 && (
             <>
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Palette className="h-5 w-5 text-pink-600" />
                   Choose Flavor
                 </h3>
@@ -361,13 +361,13 @@ export default function CakeCustomizerPage() {
                       onClick={() => setForm({ ...form, flavor: f.value })}
                       className={
                         'relative p-3 rounded-xl border-2 text-center transition overflow-hidden ' +
-                        (form.flavor === f.value ? 'border-pink-500 shadow-lg ring-2 ring-pink-200 scale-105' : 'border-slate-200 dark:border-neutral-700 hover:border-pink-300')
+                        (form.flavor === f.value ? 'border-pink-500 shadow-lg ring-2 ring-pink-200 scale-105' : 'border-slate-200 dark:border-ink-700 hover:border-pink-300')
                       }
                     >
                       <div className={'absolute inset-0 bg-gradient-to-br ' + f.color + ' opacity-30'} />
                       <div className="relative">
                         <div className="text-2xl">{f.emoji}</div>
-                        <div className="text-[0.6875rem] font-extrabold mt-1 text-slate-900 dark:text-white">{f.label}</div>
+                        <div className="text-[0.6875rem] font-extrabold mt-1 text-slate-900 dark:text-ink-white">{f.label}</div>
                       </div>
                     </button>
                   ))}
@@ -378,8 +378,8 @@ export default function CakeCustomizerPage() {
                 )}
               </section>
 
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Palette className="h-5 w-5 text-fuchsia-600" />
                   Cream Type
                 </h3>
@@ -390,7 +390,7 @@ export default function CakeCustomizerPage() {
                       onClick={() => setForm({ ...form, creamType: c.value })}
                       className={
                         'p-3 rounded-xl border-2 text-center transition ' +
-                        (form.creamType === c.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                        (form.creamType === c.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
                       }
                     >
                       <div className="text-2xl">{c.emoji}</div>
@@ -401,35 +401,35 @@ export default function CakeCustomizerPage() {
               </section>
 
               {/* Dietary */}
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-3">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-3">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Heart className="h-5 w-5 text-emerald-600" />
                   Dietary Preferences
                 </h3>
                 <div className="grid grid-cols-3 gap-2">
                   <label className={
                     'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                    (form.isEggless ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-neutral-700')
+                    (form.isEggless ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-ink-700')
                   }>
                     <input type="checkbox" checked={form.isEggless} onChange={(e) => setForm({ ...form, isEggless: e.target.checked })} className="h-4 w-4 rounded" />
                     <span className="text-sm font-extrabold">🥚 Eggless</span>
                   </label>
                   <label className={
                     'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                    (form.isSugarFree ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-neutral-700')
+                    (form.isSugarFree ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-ink-700')
                   }>
                     <input type="checkbox" checked={form.isSugarFree} onChange={(e) => setForm({ ...form, isSugarFree: e.target.checked })} className="h-4 w-4 rounded" />
                     <span className="text-sm font-extrabold">🍬 Sugar-free</span>
                   </label>
                   <label className={
                     'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                    (form.isVegan ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-neutral-700')
+                    (form.isVegan ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-ink-700')
                   }>
                     <input type="checkbox" checked={form.isVegan} onChange={(e) => setForm({ ...form, isVegan: e.target.checked })} className="h-4 w-4 rounded" />
                     <span className="text-sm font-extrabold">🌱 Vegan</span>
                   </label>
                 </div>
-                <textarea rows={2} value={form.dietaryNotes} onChange={(e) => setForm({ ...form, dietaryNotes: e.target.value })} placeholder="Any allergies or dietary notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+                <textarea rows={2} value={form.dietaryNotes} onChange={(e) => setForm({ ...form, dietaryNotes: e.target.value })} placeholder="Any allergies or dietary notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
               </section>
             </>
           )}
@@ -437,24 +437,24 @@ export default function CakeCustomizerPage() {
           {/* STEP 4: Personalization */}
           {step === 4 && (
             <>
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Type className="h-5 w-5 text-pink-600" />
                   Message on Cake
                 </h3>
                 <input value={form.messageOnCake} onChange={(e) => setForm({ ...form, messageOnCake: e.target.value })} placeholder="Happy Birthday Ali!" maxLength={100} className="h-14 w-full rounded-xl border-2 border-pink-300 bg-pink-50 dark:bg-pink-950/30 px-4 text-xl font-extrabold focus:outline-none focus:border-pink-500" />
                 <div className="text-[0.6875rem] text-slate-500 text-right">{form.messageOnCake.length}/100 characters</div>
-                <input value={form.messageColor} onChange={(e) => setForm({ ...form, messageColor: e.target.value })} placeholder="Message color (White, Gold, Red...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
+                <input value={form.messageColor} onChange={(e) => setForm({ ...form, messageColor: e.target.value })} placeholder="Message color (White, Gold, Red...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500" />
               </section>
 
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-200 dark:border-fuchsia-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-200 dark:border-fuchsia-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Camera className="h-5 w-5 text-fuchsia-600" />
                   Photo Cake
                 </h3>
                 <label className={
                   'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                  (form.hasPhotoOnCake ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40' : 'border-slate-200 dark:border-neutral-700')
+                  (form.hasPhotoOnCake ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40' : 'border-slate-200 dark:border-ink-700')
                 }>
                   <input type="checkbox" checked={form.hasPhotoOnCake} onChange={(e) => setForm({ ...form, hasPhotoOnCake: e.target.checked })} className="h-5 w-5 rounded" />
                   <Camera className="h-5 w-5 text-fuchsia-600" />
@@ -488,8 +488,8 @@ export default function CakeCustomizerPage() {
                 )}
               </section>
 
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-200 dark:border-violet-800 shadow-sm p-5 space-y-4">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-200 dark:border-violet-800 shadow-sm p-5 space-y-4">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Palette className="h-5 w-5 text-violet-600" />
                   Design & Theme
                 </h3>
@@ -514,40 +514,40 @@ export default function CakeCustomizerPage() {
                 </div>
 
                 <div className="grid sm:grid-cols-3 gap-3">
-                  <input value={form.colorTheme} onChange={(e) => setForm({ ...form, colorTheme: e.target.value })} placeholder="Theme (Frozen, Cars...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                  <input value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} placeholder="Primary color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                  <input value={form.secondaryColor} onChange={(e) => setForm({ ...form, secondaryColor: e.target.value })} placeholder="Secondary color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                  <input value={form.colorTheme} onChange={(e) => setForm({ ...form, colorTheme: e.target.value })} placeholder="Theme (Frozen, Cars...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                  <input value={form.primaryColor} onChange={(e) => setForm({ ...form, primaryColor: e.target.value })} placeholder="Primary color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                  <input value={form.secondaryColor} onChange={(e) => setForm({ ...form, secondaryColor: e.target.value })} placeholder="Secondary color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
                 </div>
 
-                <textarea rows={3} value={form.designInstructions} onChange={(e) => setForm({ ...form, designInstructions: e.target.value })} placeholder="Specific design instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+                <textarea rows={3} value={form.designInstructions} onChange={(e) => setForm({ ...form, designInstructions: e.target.value })} placeholder="Specific design instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
               </section>
 
-              <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-200 dark:border-amber-800 shadow-sm p-5 space-y-3">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+              <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-200 dark:border-amber-800 shadow-sm p-5 space-y-3">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                   <Sparkles className="h-5 w-5 text-amber-600" />
                   Extras
                 </h3>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Candles Required</label>
-                    <input type="number" min="0" value={form.candlesRequired} onChange={(e) => setForm({ ...form, candlesRequired: e.target.value })} placeholder="0" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
+                    <input type="number" min="0" value={form.candlesRequired} onChange={(e) => setForm({ ...form, candlesRequired: e.target.value })} placeholder="0" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
                   </div>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Candle Type</label>
-                    <input value={form.candleType} onChange={(e) => setForm({ ...form, candleType: e.target.value })} placeholder="Number candles, sparklers..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+                    <input value={form.candleType} onChange={(e) => setForm({ ...form, candleType: e.target.value })} placeholder="Number candles, sparklers..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className={
                     'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-                    (form.cakeStand ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700')
+                    (form.cakeStand ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')
                   }>
                     <input type="checkbox" checked={form.cakeStand} onChange={(e) => setForm({ ...form, cakeStand: e.target.checked })} className="h-4 w-4 rounded" />
                     <span className="text-sm font-extrabold">🎂 Cake Stand</span>
                   </label>
                   <label className={
                     'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-                    (form.cakeKnife ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700')
+                    (form.cakeKnife ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')
                   }>
                     <input type="checkbox" checked={form.cakeKnife} onChange={(e) => setForm({ ...form, cakeKnife: e.target.checked })} className="h-4 w-4 rounded" />
                     <span className="text-sm font-extrabold">🔪 Cake Knife</span>
@@ -559,8 +559,8 @@ export default function CakeCustomizerPage() {
 
           {/* STEP 5: Occasion */}
           {step === 5 && (
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-200 dark:border-fuchsia-800 shadow-sm p-5 space-y-4">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-200 dark:border-fuchsia-800 shadow-sm p-5 space-y-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                 <Sparkles className="h-5 w-5 text-fuchsia-600" />
                 Occasion & Event
               </h3>
@@ -571,7 +571,7 @@ export default function CakeCustomizerPage() {
                     onClick={() => setForm({ ...form, occasion: o.value })}
                     className={
                       'p-3 rounded-xl border-2 text-center transition ' +
-                      (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow ring-2 ring-fuchsia-100' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                      (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow ring-2 ring-fuchsia-100' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
                     }
                   >
                     <div className="text-2xl">{o.emoji}</div>
@@ -583,30 +583,30 @@ export default function CakeCustomizerPage() {
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Celebrant Name</label>
-                  <input value={form.celebrantName} onChange={(e) => setForm({ ...form, celebrantName: e.target.value })} placeholder="Who is this for?" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+                  <input value={form.celebrantName} onChange={(e) => setForm({ ...form, celebrantName: e.target.value })} placeholder="Who is this for?" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
                   <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Age (if birthday)</label>
-                  <input type="number" value={form.celebrantAge} onChange={(e) => setForm({ ...form, celebrantAge: e.target.value })} placeholder="25" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+                  <input type="number" value={form.celebrantAge} onChange={(e) => setForm({ ...form, celebrantAge: e.target.value })} placeholder="25" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
                   <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Event Date</label>
-                  <input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+                  <input type="date" value={form.eventDate} onChange={(e) => setForm({ ...form, eventDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
                 <div>
                   <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Event Time</label>
-                  <input type="time" value={form.eventTime} onChange={(e) => setForm({ ...form, eventTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+                  <input type="time" value={form.eventTime} onChange={(e) => setForm({ ...form, eventTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
                 </div>
               </div>
 
-              <input value={form.eventVenue} onChange={(e) => setForm({ ...form, eventVenue: e.target.value })} placeholder="Event venue (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+              <input value={form.eventVenue} onChange={(e) => setForm({ ...form, eventVenue: e.target.value })} placeholder="Event venue (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
             </section>
           )}
 
           {/* STEP 6: Delivery */}
           {step === 6 && (
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-200 dark:border-blue-800 shadow-sm p-5 space-y-4">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-200 dark:border-blue-800 shadow-sm p-5 space-y-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                 <Truck className="h-5 w-5 text-blue-600" />
                 Delivery Details
               </h3>
@@ -620,7 +620,7 @@ export default function CakeCustomizerPage() {
                       onClick={() => setForm({ ...form, deliveryType: d.value })}
                       className={
                         'p-3 rounded-xl border-2 text-center transition ' +
-                        (form.deliveryType === d.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-blue-300')
+                        (form.deliveryType === d.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300')
                       }
                     >
                       <div className="text-2xl mb-1">{d.emoji}</div>
@@ -637,7 +637,7 @@ export default function CakeCustomizerPage() {
                 </div>
                 <div>
                   <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Preferred Time</label>
-                  <input type="time" value={form.deliveryTime} onChange={(e) => setForm({ ...form, deliveryTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input type="time" value={form.deliveryTime} onChange={(e) => setForm({ ...form, deliveryTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                 </div>
               </div>
 
@@ -645,11 +645,11 @@ export default function CakeCustomizerPage() {
                 <>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Delivery Address *</label>
-                    <textarea rows={3} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Full delivery address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+                    <textarea rows={3} value={form.deliveryAddress} onChange={(e) => setForm({ ...form, deliveryAddress: e.target.value })} placeholder="Full delivery address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
-                    <input value={form.deliveryLandmark} onChange={(e) => setForm({ ...form, deliveryLandmark: e.target.value })} placeholder="Landmark" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                    <input type="number" value={form.deliveryCharges} onChange={(e) => setForm({ ...form, deliveryCharges: e.target.value })} placeholder="Delivery charges" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
+                    <input value={form.deliveryLandmark} onChange={(e) => setForm({ ...form, deliveryLandmark: e.target.value })} placeholder="Landmark" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                    <input type="number" value={form.deliveryCharges} onChange={(e) => setForm({ ...form, deliveryCharges: e.target.value })} placeholder="Delivery charges" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
                   </div>
                 </>
               )}
@@ -658,8 +658,8 @@ export default function CakeCustomizerPage() {
 
           {/* STEP 7: Review */}
           {step === 7 && (
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-lg">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-lg">
                 <Check className="h-5 w-5 text-emerald-600" />
                 Review & Confirm
               </h3>
@@ -667,7 +667,7 @@ export default function CakeCustomizerPage() {
               <div className="rounded-2xl bg-gradient-to-br from-pink-50 via-white to-fuchsia-50 dark:from-pink-950/30 dark:to-fuchsia-950/30 border-2 border-pink-200 p-5 space-y-3">
                 <div className="text-center">
                   <div className="text-5xl mb-2">{selectedOccasion?.emoji} {selectedFlavor?.emoji}</div>
-                  <div className="text-lg font-extrabold text-slate-900 dark:text-white">
+                  <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white">
                     {selectedOccasion?.label} Cake for {form.celebrantName || form.customerName}
                   </div>
                 </div>
@@ -678,9 +678,9 @@ export default function CakeCustomizerPage() {
                   <div><span className="text-slate-500 font-semibold">Cream:</span> <span className="font-extrabold">{selectedCream?.emoji} {selectedCream?.label}</span></div>
                 </div>
                 {form.messageOnCake && (
-                  <div className="rounded-xl bg-white dark:bg-neutral-800 border-2 border-pink-300 p-3 text-center">
+                  <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-pink-300 p-3 text-center">
                     <div className="text-[0.6875rem] uppercase font-extrabold text-pink-700">Message</div>
-                    <div className="text-lg font-extrabold text-slate-900 dark:text-white">"{form.messageOnCake}"</div>
+                    <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white">"{form.messageOnCake}"</div>
                   </div>
                 )}
                 {(form.isEggless || form.isSugarFree || form.isVegan) && (
@@ -705,30 +705,30 @@ export default function CakeCustomizerPage() {
                   </div>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Customization</label>
-                    <input type="number" value={form.customizationCharges} onChange={(e) => setForm({ ...form, customizationCharges: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+                    <input type="number" value={form.customizationCharges} onChange={(e) => setForm({ ...form, customizationCharges: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-fuchsia-700 mb-1 block">Photo Cake</label>
-                    <input type="number" value={form.photoCakeCharges} onChange={(e) => setForm({ ...form, photoCakeCharges: e.target.value })} className="h-14 w-full rounded-xl border-2 border-fuchsia-200 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+                    <input type="number" value={form.photoCakeCharges} onChange={(e) => setForm({ ...form, photoCakeCharges: e.target.value })} className="h-14 w-full rounded-xl border-2 border-fuchsia-200 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Tax</label>
-                    <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+                    <input type="number" value={form.taxAmount} onChange={(e) => setForm({ ...form, taxAmount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
                   </div>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-rose-700 mb-1 block">Discount</label>
-                    <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
+                    <input type="number" value={form.discount} onChange={(e) => setForm({ ...form, discount: e.target.value })} className="h-11 w-full rounded-xl border-2 border-rose-200 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
                   </div>
                   <div>
                     <label className="text-[0.6875rem] uppercase font-extrabold text-amber-700 mb-1 block">Advance Paid</label>
-                    <input type="number" value={form.advancePaid} onChange={(e) => setForm({ ...form, advancePaid: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
+                    <input type="number" value={form.advancePaid} onChange={(e) => setForm({ ...form, advancePaid: e.target.value })} className="h-11 w-full rounded-xl border-2 border-amber-200 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
                   </div>
                 </div>
               </div>
 
-              <textarea rows={3} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Any special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+              <textarea rows={3} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Any special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
             </section>
           )}
 

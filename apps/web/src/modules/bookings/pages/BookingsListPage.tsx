@@ -27,7 +27,7 @@ const formatShortDate = (v: string) =>
   new Intl.DateTimeFormat('en-PK', { month: 'short', day: 'numeric' }).format(new Date(v));
 
 const statusConfig: Record<BookingStatus, { label: string; color: string; bg: string; darkBg: string; icon: any }> = {
-  PENDING:          { label: 'Pending',      color: '#64748b', bg: 'bg-slate-100 text-slate-700 border-slate-300',      darkBg: 'dark:bg-slate-500/20 dark:text-slate-300 dark:border-slate-500/40',    icon: Hourglass },
+  PENDING:          { label: 'Pending',      color: '#64748b', bg: 'bg-slate-100 text-slate-700 border-slate-300',      darkBg: 'dark:bg-ink-500/20 dark:text-ink-300 dark:border-ink-500/40',    icon: Hourglass },
   ADVANCE_PAID:     { label: 'Advance Paid', color: '#f59e0b', bg: 'bg-amber-100 text-amber-800 border-amber-300',      darkBg: 'dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40',    icon: Wallet },
   READY_FOR_PICKUP: { label: 'Ready',        color: '#3b82f6', bg: 'bg-blue-100 text-blue-800 border-blue-300',         darkBg: 'dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/40',       icon: Zap },
   CONVERTED:        { label: 'Converted',    color: '#10b981', bg: 'bg-emerald-100 text-emerald-800 border-emerald-300', darkBg: 'dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-500/40', icon: CheckCircle2 },
@@ -169,7 +169,7 @@ export default function BookingsListPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
 
@@ -262,7 +262,7 @@ export default function BookingsListPage() {
                     <Link
                       key={b.id}
                       to={`/bookings/${b.id}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
                     >
                       {b.bookingNumber}
                       <span className="text-amber-600 dark:text-amber-400">· {days === 0 ? 'Aaj' : `${days}d`}</span>
@@ -308,7 +308,7 @@ export default function BookingsListPage() {
       </section>
 
       {/* ═══ FILTERS ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
@@ -316,12 +316,12 @@ export default function BookingsListPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Booking #, customer, phone... (/ shortcut)"
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
             >
               <X className="h-4 w-4 text-slate-400" />
             </button>
@@ -336,7 +336,7 @@ export default function BookingsListPage() {
           <FilterChip active={statusFilter === 'CONVERTED'} onClick={() => setStatusFilter('CONVERTED')} label="Converted" count={summary?.counts.converted ?? 0} color="emerald" />
           <FilterChip active={statusFilter === 'CANCELLED'} onClick={() => setStatusFilter('CANCELLED')} label="Cancelled" count={summary?.counts.cancelled ?? 0} color="rose" />
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} bookings
           </div>
         </div>
@@ -346,18 +346,18 @@ export default function BookingsListPage() {
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
           <div className="mx-auto h-20 w-20 rounded-3xl bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center">
             <BookmarkPlus className="h-9 w-9 text-blue-500 dark:text-blue-400" />
           </div>
-          <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             {search || statusFilter !== 'all' ? 'Kuch nahi mila' : 'Abhi koi booking nahi'}
           </h4>
-          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
             {search || statusFilter !== 'all'
               ? 'Filter change kar ke dekho ya search clear karo'
               : 'Customer se advance le kar item reserve karo — full payment aur pickup baad me'}
@@ -397,7 +397,7 @@ export default function BookingsListPage() {
               <Link
                 key={booking.id}
                 to={`/bookings/${booking.id}`}
-                className="block rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/10 transition p-4 group"
+                className="block rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/10 transition p-4 group"
               >
                 <div className="flex items-start gap-3 sm:gap-4">
                   {/* Icon */}
@@ -411,7 +411,7 @@ export default function BookingsListPage() {
                   {/* Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">
+                      <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-sm">
                         {booking.bookingNumber}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.bg} ${cfg.darkBg}`}>
@@ -425,9 +425,9 @@ export default function BookingsListPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-600 dark:text-slate-300">
+                    <div className="flex items-center gap-2 mt-1 text-xs text-slate-600 dark:text-ink-300">
                       <User className="h-3 w-3" />
-                      <span className="font-semibold text-slate-800 dark:text-slate-200">{booking.customer?.name}</span>
+                      <span className="font-semibold text-slate-800 dark:text-ink-200">{booking.customer?.name}</span>
                       {booking.customer?.phone && (
                         <>
                           <span className="opacity-50">•</span>
@@ -436,7 +436,7 @@ export default function BookingsListPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500 dark:text-ink-400 flex-wrap">
                       <span className="inline-flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
                         Banayi {formatShortDate(booking.createdAt)}
@@ -454,7 +454,7 @@ export default function BookingsListPage() {
                     </div>
 
                     {booking.notes && (
-                      <div className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400 italic line-clamp-1">
+                      <div className="mt-1.5 text-[0.6875rem] text-slate-500 dark:text-ink-400 italic line-clamp-1">
                         📝 {booking.notes}
                       </div>
                     )}
@@ -462,7 +462,7 @@ export default function BookingsListPage() {
 
                   {/* Amounts */}
                   <div className="text-right shrink-0">
-                    <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
+                    <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                       {formatPKR(booking.total)}
                     </div>
                     <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5">
@@ -519,20 +519,20 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Bookings — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Booking = advance/token.</strong> Customer ne cheez pasand ki, thora paisa diya,
             baaki delivery pe dega. Tab tak item aap ki taraf reserved.
           </p>
@@ -542,8 +542,8 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               💍 Misal: Sonar ki dukan
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 <strong>Total:</strong> Rs 80,000 (haar) &nbsp;•&nbsp; <strong>Advance:</strong> Rs 20,000 today
               </div>
               <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2 font-extrabold text-emerald-700 dark:text-emerald-300">
@@ -553,11 +553,11 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Statuses explained */}
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 p-4 space-y-1.5">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/60 dark:bg-ink-800/40 p-4 space-y-1.5">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-2">
               📊 6 Statuses ka matlab
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-ink-200">
               <div>⏳ <strong>Pending</strong> — abhi paisa nahi diya</div>
               <div>💰 <strong>Advance Paid</strong> — token mila, kaam chal raha</div>
               <div>⚡ <strong>Ready</strong> — item tayyar, pickup ka intezaar</div>
@@ -567,7 +567,7 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>💼 Kaunse dhande me?</strong> — Jeweler, tailor, mobile (order booking), carpet (custom), electronics — jahan advance chalta hai</TipRow>
             <TipRow><strong>💰 Advance Held</strong> — customer ka paisa aap ke paas hai (KPI me total dikhta hai)</TipRow>
             <TipRow><strong>⏰ Expiring Soon banner</strong> — 3 din me pickup wali bookings alag dikhti hain — customer ko WhatsApp karo!</TipRow>
@@ -575,7 +575,7 @@ function BookingsTeacher({ onClose }: { onClose: () => void }) {
             <TipRow><strong>⌨️ N</strong> — nayi booking &nbsp;•&nbsp; <strong>1-6</strong> — filters &nbsp;•&nbsp; <strong>/</strong> — search</TipRow>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💡 <strong>Poora chakkar:</strong> Customer aaye → advance liya (Booking) → item tayyar (Ready) →
             pickup pe baqi payment (Converted). Ek page pe sab track!
           </div>
@@ -625,14 +625,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, isHighlight, onClick }: any)
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         isHighlight
           ? 'bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-emerald-300 dark:border-emerald-500/40'
-          : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800',
+          : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -646,7 +646,7 @@ function FilterChip({ active, onClick, label, count, color }: {
   active: boolean; onClick: () => void; label: string; count: number; color?: string;
 }) {
   const colorMap: Record<string, string> = {
-    slate: 'border-slate-400 bg-slate-100 text-slate-700 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200',
+    slate: 'border-slate-400 bg-slate-100 text-slate-700 dark:border-ink-500 dark:bg-ink-700 dark:text-ink-200',
     amber: 'border-amber-400 bg-amber-100 text-amber-700 dark:border-amber-500 dark:bg-amber-500/20 dark:text-amber-300',
     blue: 'border-blue-400 bg-blue-100 text-blue-700 dark:border-blue-500 dark:bg-blue-500/20 dark:text-blue-300',
     emerald: 'border-emerald-400 bg-emerald-100 text-emerald-700 dark:border-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-300',
@@ -662,11 +662,11 @@ function FilterChip({ active, onClick, label, count, color }: {
       className={`h-9 px-3 rounded-xl border-2 font-extrabold text-xs inline-flex items-center gap-2 transition ${
         active
           ? `${activeColor} shadow-sm`
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
       }`}
     >
       {label}
-      <span className={`px-1.5 py-0 rounded text-[0.6875rem] tabular-nums ${active ? 'bg-white/60 dark:bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+      <span className={`px-1.5 py-0 rounded text-[0.6875rem] tabular-nums ${active ? 'bg-white/60 dark:bg-ink-white/20' : 'bg-slate-100 dark:bg-ink-700'}`}>
         {count}
       </span>
     </button>

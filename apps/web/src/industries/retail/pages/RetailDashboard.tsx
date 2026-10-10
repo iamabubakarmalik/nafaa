@@ -223,7 +223,7 @@ export default function RetailDashboardV2() {
       {/* ═══════════════════════════════════════════════════════
           HERO — greeting + KPIs + actions
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-indigo-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-indigo-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
         {/* Glowing blobs */}
         <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-sky-400/30 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
@@ -360,7 +360,7 @@ export default function RetailDashboardV2() {
             subtitle={range === '30d' ? '30 din ka data' : '7 din ka data'}
             tone="sky"
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1 text-[0.6875rem] font-extrabold">
                 {(['7d', '30d'] as Range[]).map((r) => (
                   <button
                     key={r}
@@ -368,8 +368,8 @@ export default function RetailDashboardV2() {
                     className={[
                       'px-3 py-1.5 rounded-lg transition-all',
                       range === r
-                        ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-md'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                        ? 'bg-white dark:bg-ink-900 text-sky-700 dark:text-sky-300 shadow-md'
+                        : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-200',
                     ].join(' ')}
                   >
                     {r === '7d' ? '7 Din' : '30 Din'}
@@ -392,9 +392,9 @@ export default function RetailDashboardV2() {
                       <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
-                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.4} />
+                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                   <Tooltip
                     formatter={(v: any) => formatPKR(Number(v))}
                     contentStyle={{
@@ -428,7 +428,7 @@ export default function RetailDashboardV2() {
             subtitle={hourDays === 1 ? 'Aaj kis waqt zyada bika' : '7 din ka rozana ausat'}
             tone="violet"
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1 text-[0.6875rem] font-extrabold">
                 {([[1, 'Aaj'], [7, '7 Din']] as const).map(([d, l]) => (
                   <button
                     key={d}
@@ -436,8 +436,8 @@ export default function RetailDashboardV2() {
                     className={[
                       'px-3 py-1.5 rounded-lg transition-all',
                       hourDays === d
-                        ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 shadow-md'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                        ? 'bg-white dark:bg-ink-900 text-violet-700 dark:text-violet-300 shadow-md'
+                        : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-200',
                     ].join(' ')}
                   >
                     {l}
@@ -457,9 +457,9 @@ export default function RetailDashboardV2() {
                 <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
                   Sab se masroof waqt
                 </div>
-                <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">
                   {hourLabel(peakHour)} – {hourLabel((peakHour + 1) % 24)}
-                  <span className="text-slate-500 dark:text-slate-400 font-bold">
+                  <span className="text-slate-500 dark:text-ink-400 font-bold">
                     {' • '}{formatPKR((hourly as any)?.peakTotal ?? 0)}
                     {hourDays > 1 ? ' rozana' : ''}
                   </span>
@@ -482,9 +482,9 @@ export default function RetailDashboardV2() {
                       <stop offset="100%" stopColor="#ea580c" stopOpacity={0.8} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
-                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
-                  <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.4} />
+                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
+                  <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                   <Tooltip
                     formatter={(v: any, _n: any, item: any) => [
                       formatPKR(Number(v)),
@@ -537,8 +537,8 @@ export default function RetailDashboardV2() {
               <PiggyBank className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Paisa Kahan Hai 💰</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Paisa Kahan Hai 💰</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">
                 Maal, kharcha, lena aur dena — sab ek nazar me
               </p>
             </div>
@@ -593,7 +593,7 @@ export default function RetailDashboardV2() {
                 <Hourglass className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
                   {formatPKR(money.inventory.deadStockValue)} ka maal phansa hua hai
                 </div>
                 <div className="text-xs font-bold text-rose-700 dark:text-rose-300">
@@ -633,13 +633,13 @@ export default function RetailDashboardV2() {
           </Card>
 
           <Card noPad>
-            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/40">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Maal Ki Kharidari</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Maal Ki Kharidari</h3>
+                <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">
                   Aaj {formatPKR(money.purchases.todayTotal)} • mahine {formatPKR(money.purchases.monthTotal)}
                 </p>
               </div>
@@ -647,27 +647,27 @@ export default function RetailDashboardV2() {
                 Sab <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[340px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[340px] overflow-y-auto">
               {money.purchases.recent?.length ? (
                 money.purchases.recent.map((pu: any) => {
                   const due = Number(pu.total) - Number(pu.paidAmount);
                   return (
                     <Link key={pu.id} to={`/purchases/${pu.id}`}
-                      className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                      className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                     >
                       <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center shrink-0">
                         <Package className="h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">
                           {pu.supplier?.name || 'Supplier'}
                         </div>
-                        <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
+                        <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold truncate font-mono">
                           {pu.purchaseNumber} • {formatDate(pu.purchasedAt)}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm tabular-nums">
                           {formatPKR(pu.total)}
                         </div>
                         {due > 0 && (
@@ -726,26 +726,26 @@ export default function RetailDashboardV2() {
 
             {/* Aaj ka apna hisaab — mahine ka bara number rozmarra ka
                 sawal nahi. */}
-            <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3 flex-wrap">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 shrink-0">
+            <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 px-4 py-3 flex items-center gap-3 flex-wrap">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 shrink-0">
                 Aaj
               </div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Sale</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-ink-400">Sale</span>
                 <span className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                   {formatPKR(s.salesToday ?? 0)}
                 </span>
               </div>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-slate-300 dark:text-ink-600">•</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Kharcha</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-ink-400">Kharcha</span>
                 <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
                   {formatPKR(money?.expenses?.today ?? s.expensesToday ?? 0)}
                 </span>
               </div>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-slate-300 dark:text-ink-600">•</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Bacha</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-ink-400">Bacha</span>
                 <span className={[
                   'text-sm font-extrabold tabular-nums',
                   (money?.profit?.todayNet ?? s.netProfitToday ?? 0) >= 0
@@ -794,9 +794,9 @@ export default function RetailDashboardV2() {
                         <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm" style={{ backgroundColor: p.color }}>
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="font-extrabold text-slate-700 dark:text-slate-200 min-w-0 flex-1 truncate">{p.name}</span>
-                        <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">{pct.toFixed(0)}%</span>
-                        <span className="font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">{formatPKR(p.value)}</span>
+                        <span className="font-extrabold text-slate-700 dark:text-ink-200 min-w-0 flex-1 truncate">{p.name}</span>
+                        <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">{pct.toFixed(0)}%</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums shrink-0">{formatPKR(p.value)}</span>
                       </div>
                     );
                   })}
@@ -818,8 +818,8 @@ export default function RetailDashboardV2() {
             <Rocket className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Quick Actions 🚀</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Sab retail features ek jaga</p>
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Quick Actions 🚀</h3>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Sab retail features ek jaga</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
@@ -865,19 +865,19 @@ export default function RetailDashboardV2() {
           ═══════════════════════════════════════════════════════ */}
       <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
               <Crown className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Top Movers 🏆</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Is mahine ke best sellers</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Top Movers 🏆</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">Is mahine ke best sellers</p>
             </div>
             <Link to="/profit-report" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               Reports <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
             {data?.topProducts?.length ? (
               data.topProducts.slice(0, 8).map((p, idx) => {
                 const rankGrads = [
@@ -891,20 +891,20 @@ export default function RetailDashboardV2() {
                   'from-slate-400 to-slate-600',
                 ];
                 return (
-                  <div key={p.productId} className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                  <div key={p.productId} className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                     <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${rankGrads[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-md`}>
                       {idx < 3 ? <Crown className="h-4 w-4" /> : idx + 1}
                     </div>
-                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                       {p.product?.images?.[0]?.url ? (
                         <img src={p.product.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                       ) : (
-                        <Package className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                        <Package className="h-4 w-4 text-slate-400 dark:text-ink-500" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.product?.name || 'Unknown'}</div>
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{p.product?.name || 'Unknown'}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">
                         {p.quantitySold.toFixed(0)} {p.product?.unit} • {(p as any).orderCount ?? 0} orders
                       </div>
                     </div>
@@ -921,45 +921,45 @@ export default function RetailDashboardV2() {
         </Card>
 
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/40">
               <Hourglass className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Slow Movers 🐢</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">30+ din se koi bikri nahi</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Slow Movers 🐢</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">30+ din se koi bikri nahi</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
             {(slowMovers as any[]).length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <div className="h-14 w-14 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <Star className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Sab kuch chal raha hai! 🎉</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-bold">Koi ruka hua product nahi</p>
+                <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Sab kuch chal raha hai! 🎉</h4>
+                <p className="text-xs text-slate-600 dark:text-ink-400 mt-1 font-bold">Koi ruka hua product nahi</p>
               </div>
             ) : (
               (slowMovers as any[]).slice(0, 8).map((p) => (
                 <Link key={p.id} to={`/retail-products/${p.id}`}
-                  className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                  className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                     {p.images?.[0]?.url ? (
                       <img src={p.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                     ) : (
-                      <Package className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                      <Package className="h-4 w-4 text-slate-400 dark:text-ink-500" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                    <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{p.name}</div>
+                    <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">
                       Stock: {p.stock} {p.unit} • {p.category?.name || 'No category'}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Discount karo</div>
-                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 ml-auto mt-0.5" />
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 dark:text-ink-500 ml-auto mt-0.5" />
                   </div>
                 </Link>
               ))
@@ -973,33 +973,33 @@ export default function RetailDashboardV2() {
           ═══════════════════════════════════════════════════════ */}
       <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40">
               <Receipt className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Recent Sales</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Latest receipts</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Recent Sales</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">Latest receipts</p>
             </div>
             <Link to="/sales" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               All <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[380px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[380px] overflow-y-auto">
             {data?.recentSales?.length ? (
               data.recentSales.slice(0, 8).map((sale) => {
                 const PayIcon = PAYMENT_ICONS[sale.paymentMethod] || CreditCard;
                 const payColor = PAYMENT_COLORS[sale.paymentMethod] || '#64748b';
                 return (
                   <Link key={sale.id} to={`/sales/${sale.id}/receipt`}
-                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                   >
                     <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 text-white shadow-md" style={{ backgroundColor: payColor }}>
                       <PayIcon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white truncate font-mono text-xs">{sale.saleNumber}</div>
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 truncate font-bold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white truncate font-mono text-xs">{sale.saleNumber}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 truncate font-bold">
                         {sale.customer?.name || 'Walk-in'} • {formatDate(sale.soldAt)}
                       </div>
                     </div>
@@ -1021,25 +1021,25 @@ export default function RetailDashboardV2() {
         </Card>
 
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Low Stock</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">{data?.lowStockProducts?.length ?? 0} items need attention</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Low Stock</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">{data?.lowStockProducts?.length ?? 0} items need attention</p>
             </div>
             <Link to="/products?filter=low" className="text-sky-700 dark:text-sky-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               All <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[380px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[380px] overflow-y-auto">
             {data?.lowStockProducts?.length ? (
               data.lowStockProducts.slice(0, 8).map((p) => {
                 const isOut = p.stock === 0;
                 return (
                   <Link key={p.id} to={`/retail-products/${p.id}`}
-                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                   >
                     <div className={[
                       'h-10 w-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 border',
@@ -1052,8 +1052,8 @@ export default function RetailDashboardV2() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{formatPKR(p.price)} / {p.unit}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{p.name}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">{formatPKR(p.price)} / {p.unit}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`text-lg font-extrabold tabular-nums ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
@@ -1071,8 +1071,8 @@ export default function RetailDashboardV2() {
                 <div className="h-14 w-14 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <Package className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">All stock healthy! 🎉</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-bold">Koi product low nahi</p>
+                <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">All stock healthy! 🎉</h4>
+                <p className="text-xs text-slate-600 dark:text-ink-400 mt-1 font-bold">Koi product low nahi</p>
               </div>
             )}
           </div>
@@ -1089,8 +1089,8 @@ export default function RetailDashboardV2() {
 function Card({ children, noPad = false }: any) {
   return (
     <div className={[
-      'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm',
-      'border-2 border-slate-200 dark:border-slate-800',
+      'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm',
+      'border-2 border-slate-200 dark:border-ink-800',
       'shadow-sm dark:shadow-black/20 overflow-hidden',
       noPad ? '' : 'p-4 sm:p-5',
     ].join(' ')}>
@@ -1114,8 +1114,8 @@ function CardHeader({ icon: Icon, title, subtitle, tone, right }: any) {
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-          <p className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
+          <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-ink-white leading-tight">{title}</h3>
+          <p className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">{subtitle}</p>
         </div>
       </div>
       {right}
@@ -1127,7 +1127,7 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
       {items.map((it) => (
-        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
+        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300">
           <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: it.color }} />
           {it.label}
         </div>
@@ -1196,15 +1196,15 @@ function AlertCard({ to, icon: Icon, title, desc, tone }: any) {
   };
   const t = tones[tone] ?? tones.amber;
   return (
-    <Link to={to} className={`rounded-2xl bg-white dark:bg-slate-900/60 border-2 ${t.border} p-3 flex items-center gap-3 hover:shadow-lg hover:-translate-y-0.5 transition-all group`}>
+    <Link to={to} className={`rounded-2xl bg-white dark:bg-ink-900/60 border-2 ${t.border} p-3 flex items-center gap-3 hover:shadow-lg hover:-translate-y-0.5 transition-all group`}>
       <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-lg ${t.iconBg} shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{title}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{title}</div>
         <div className={`text-xs font-bold ${t.text} truncate`}>{desc}</div>
       </div>
-      <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 group-hover:translate-x-1 transition-transform" />
+      <ArrowRight className="h-4 w-4 text-slate-400 dark:text-ink-500 shrink-0 group-hover:translate-x-1 transition-transform" />
     </Link>
   );
 }
@@ -1221,14 +1221,14 @@ function PnLCell({ label, value, sub, tone, icon: Icon, highlight }: any) {
       'rounded-2xl p-3 border-2',
       highlight
         ? 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 border-blue-300 dark:border-blue-500/40'
-        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700',
+        : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700',
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={`h-3 w-3 ${tones[tone]}`} />
-        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400">{label}</div>
       </div>
       <div className={`text-base sm:text-xl font-extrabold tabular-nums leading-tight ${tones[tone]}`}>{value}</div>
-      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -1253,13 +1253,13 @@ function OpsCard({ to, icon: Icon, title, desc, tone, primary }: any) {
       'rounded-2xl border-2 p-3 sm:p-4 group hover:-translate-y-1 transition-all duration-200',
       primary
         ? 'bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 border-sky-300 dark:border-sky-500/40 shadow-lg dark:shadow-sky-500/20'
-        : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-lg dark:hover:shadow-sky-500/20',
+        : 'bg-white dark:bg-ink-900/60 border-slate-200 dark:border-ink-800 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-lg dark:hover:shadow-sky-500/20',
     ].join(' ')}>
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone] ?? tones.sky} text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-200`}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{title}</div>
-      <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
+      <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs sm:text-sm truncate">{title}</div>
+      <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-0.5 truncate">{desc}</div>
     </Link>
   );
 }
@@ -1283,21 +1283,21 @@ function MoneyTile({ icon: Icon, label, value, sub, tone, to, urgent }: any) {
   const t = tones[tone] ?? tones.teal;
   return (
     <Link to={to} className={[
-      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'rounded-2xl bg-white dark:bg-ink-900/60 border-2 p-3 sm:p-4',
       'shadow-sm dark:shadow-black/20 hover:shadow-lg transition-all hover:-translate-y-0.5',
-      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
       t.ring,
     ].join(' ')}>
       <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md mb-2`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
+      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-ink-400 font-extrabold truncate">
         {label}
       </div>
-      <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
+      <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">
         {value}
       </div>
-      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
+      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-1 leading-snug line-clamp-2">
         {sub}
       </div>
     </Link>
@@ -1333,21 +1333,21 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
             <div className="flex items-baseline justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
-                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                <span className="text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">
                   {r.name}
                 </span>
-                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 shrink-0">
                   ×{r.count}
                 </span>
               </div>
-              <div className="text-xs font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
+              <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white tabular-nums shrink-0">
                 {formatPKR(r.amount)}
-                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                   {pctOfTotal.toFixed(0)}%
                 </span>
               </div>
             </div>
-            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${Math.max((r.amount / max) * 100, 2)}%`, backgroundColor: color }}
@@ -1356,8 +1356,8 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
           </div>
         );
       })}
-      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-slate-800 flex items-baseline justify-between">
-        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-ink-800 flex items-baseline justify-between">
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400">
           Kul kharcha
         </span>
         <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">
@@ -1381,19 +1381,19 @@ function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
   };
   const inner = (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'rounded-2xl bg-white dark:bg-ink-900/60 border-2 p-3 sm:p-4',
       'shadow-sm dark:shadow-black/20 hover:shadow-lg dark:hover:shadow-sky-500/10',
       'transition-all hover:-translate-y-0.5 relative',
-      alert ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      alert ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       {alert && value > 0 && (
         <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rose-500 animate-ping" />
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold">{title}</div>
-          <div className="mt-1 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-ink-400 font-extrabold">{title}</div>
+          <div className="mt-1 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone] ?? tones.cyan} text-white flex items-center justify-center shadow-md shrink-0`}>
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1406,7 +1406,7 @@ function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
 
 function EmptyChart({ icon: Icon, message }: any) {
   return (
-    <div className="h-[240px] sm:h-[300px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+    <div className="h-[240px] sm:h-[300px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-ink-500">
       <Icon className="h-10 w-10" />
       <p className="text-sm font-extrabold">{message}</p>
     </div>
@@ -1416,10 +1416,10 @@ function EmptyChart({ icon: Icon, message }: any) {
 function EmptyList({ icon: Icon, message }: any) {
   return (
     <div className="px-6 py-12 text-center">
-      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-        <Icon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mx-auto mb-3">
+        <Icon className="h-6 w-6 text-slate-400 dark:text-ink-500" />
       </div>
-      <p className="font-extrabold text-slate-500 dark:text-slate-400 text-sm">{message}</p>
+      <p className="font-extrabold text-slate-500 dark:text-ink-400 text-sm">{message}</p>
     </div>
   );
 }

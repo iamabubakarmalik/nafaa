@@ -29,14 +29,14 @@ export default function DeveloperPage() {
         <Banner tone="warning" title={secret.title}
           action={<Btn size="sm" onClick={() => setSecret(null)}>Likh liya</Btn>}>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <code className="break-all rounded bg-white px-2 py-1 font-mono text-[0.78125rem] text-slate-900 dark:bg-slate-900 dark:text-white">{secret.value}</code>
+            <code className="break-all rounded bg-white px-2 py-1 font-mono text-[0.78125rem] text-slate-900 dark:bg-ink-900 dark:text-ink-white">{secret.value}</code>
             <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(secret.value)}>Copy</Btn>
           </div>
           <p className="mt-1 text-[0.78125rem]">Ye sirf abhi dikh raha hai — dobara nahi dikhega. Kho jaye to nayi bana lein.</p>
         </Banner>
       )}
 
-      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
         : (
           <>
@@ -54,9 +54,9 @@ export default function DeveloperPage() {
 function QuickStart() {
   return (
     <Card title={<span className="flex items-center gap-2"><Zap className="h-4 w-4 text-amber-500" /> Aasaan tareeqa — Zapier / Make</span>}>
-      <div className="grid gap-4 text-[0.8125rem] text-slate-700 dark:text-slate-200 sm:grid-cols-2">
+      <div className="grid gap-4 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-2">
         <div>
-          <div className="mb-1 font-semibold text-slate-900 dark:text-white">Har nayi sale Google Sheet me</div>
+          <div className="mb-1 font-semibold text-slate-900 dark:text-ink-white">Har nayi sale Google Sheet me</div>
           <ol className="list-decimal space-y-1 pl-5">
             <li>Zapier me Zap banayein → Trigger: <b>Webhooks by Zapier → Catch Hook</b></li>
             <li>Jo URL mile, neeche <b>Webhook jorein</b> me daalein, event <b>sale.created</b></li>
@@ -64,7 +64,7 @@ function QuickStart() {
           </ol>
         </div>
         <div>
-          <div className="mb-1 font-semibold text-slate-900 dark:text-white">Make.com / n8n / apna server</div>
+          <div className="mb-1 font-semibold text-slate-900 dark:text-ink-white">Make.com / n8n / apna server</div>
           <ol className="list-decimal space-y-1 pl-5">
             <li>Make me <b>Webhooks → Custom webhook</b> (n8n: Webhook node)</li>
             <li>URL neeche daalein aur events chunein</li>
@@ -96,10 +96,10 @@ function KeysCard({ data, onSecret }: { data: DeveloperOverview; onSecret: (s: {
       description="Doosra software is key se aap ka data parhta hai. Har software ki alag key — koi ek band karni ho to baqi chalti rahein.">
       <div className="space-y-3">
         {data.keys.length === 0 ? <p className="text-[0.8125rem] text-slate-500">Abhi koi key nahi.</p> : (
-          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-ink-800 dark:border-ink-800">
             {data.keys.map((k) => (
               <li key={k.id} className="flex flex-wrap items-center gap-2 px-3 py-2 text-[0.8125rem]">
-                <span className="font-semibold text-slate-900 dark:text-white">{k.name}</span>
+                <span className="font-semibold text-slate-900 dark:text-ink-white">{k.name}</span>
                 <Badge tone={k.scope === 'write' ? 'warning' : 'neutral'}>{k.scope === 'write' ? 'Parhna + likhna' : 'Sirf parhna'}</Badge>
                 <code className="font-mono text-[0.75rem] text-slate-500">{k.preview}</code>
                 <span className="flex-1" />
@@ -148,7 +148,7 @@ function HooksCard({ data, onSecret }: { data: DeveloperOverview; onSecret: (s: 
       <div className="space-y-3">
         {data.endpoints.map((h) => <HookRow key={h.id} h={h} labels={data.events} onSecret={onSecret} />)}
         {open && (
-          <div className="space-y-3 rounded-xl border border-dashed border-slate-300 p-3 dark:border-slate-700">
+          <div className="space-y-3 rounded-xl border border-dashed border-slate-300 p-3 dark:border-ink-700">
             <Field label="URL" help="https:// wala — Zapier 'Catch Hook', Make 'Custom webhook', ya apna server">
               <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://hooks.zapier.com/hooks/catch/…" className={cn(inputCls, 'font-mono')} />
             </Field>
@@ -176,7 +176,7 @@ function EvChip({ on, onClick, children, title }: { on: boolean; onClick: () => 
   return (
     <button type="button" title={title} onClick={onClick}
       className={cn('rounded-full border px-2.5 py-1 text-[0.75rem] font-medium transition',
-        on ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-slate-700 dark:text-slate-300')}>
+        on ? 'border-emerald-600 bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'border-slate-300 text-slate-600 hover:border-slate-400 dark:border-ink-700 dark:text-ink-300')}>
       {children}
     </button>
   );
@@ -196,14 +196,14 @@ function HookRow({ h, labels, onSecret }: { h: WebhookRow; labels: { type: strin
   const evText = h.events.includes('*') ? 'Sab waqiat' : h.events.map((t) => labels.find((l) => l.type === t)?.label ?? t).join(' · ');
 
   return (
-    <div className="rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+    <div className="rounded-xl border border-slate-200 p-3 dark:border-ink-800">
       <div className="flex flex-wrap items-center gap-2">
-        <code className="min-w-0 flex-1 truncate font-mono text-[0.78125rem] text-slate-900 dark:text-white" title={h.url}>{h.url}</code>
+        <code className="min-w-0 flex-1 truncate font-mono text-[0.78125rem] text-slate-900 dark:text-ink-white" title={h.url}>{h.url}</code>
         {h.source === 'api' && <Badge tone="info">Zapier/Make ne khud jora</Badge>}
         {h.active ? (h.failCount > 0 ? <Badge tone="warning" dot>{h.failCount} fail</Badge> : <Badge tone="success" dot>Chal raha</Badge>) : <Badge tone="neutral">Band</Badge>}
         <Toggle checked={h.active} onChange={(v) => on.mutate(v)} disabled={on.isPending} />
       </div>
-      <div className="mt-1 text-[0.78125rem] text-slate-600 dark:text-slate-300">{h.description ? `${h.description} — ` : ''}{evText}</div>
+      <div className="mt-1 text-[0.78125rem] text-slate-600 dark:text-ink-300">{h.description ? `${h.description} — ` : ''}{evText}</div>
       <div className="mt-1 text-[0.75rem] text-slate-500">
         {h.lastSuccessAt && <>Aakhri kamyabi {whenText(h.lastSuccessAt)} · </>}
         {h.lastFailureAt && <span className="text-rose-600">Aakhri ghalti {whenText(h.lastFailureAt)}: {h.lastError}</span>}
@@ -227,7 +227,7 @@ function LogCard({ data }: { data: DeveloperOverview }) {
     <Card title="Aakhri bheje gaye" description="Pichle 50 — kya gaya, kya pohancha." flush>
       <div className="max-h-80 overflow-y-auto">
         <table className="w-full text-[0.78125rem]">
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
             {data.log.map((l, i) => (
               <tr key={i}>
                 <td className="whitespace-nowrap px-4 py-1.5 text-slate-500">{whenText(l.at)}</td>
@@ -275,12 +275,12 @@ if (expected !== v1 || Date.now() / 1000 - t > 300) return res.status(401).end()
       <div className="space-y-4">
         <div className="overflow-x-auto">
           <table className="w-full text-[0.78125rem]">
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {ENDPOINTS.map(([m, p, d]) => (
                 <tr key={m + p}>
                   <td className="py-1.5 pr-2 font-mono font-semibold text-emerald-700 dark:text-emerald-400">{m}</td>
-                  <td className="whitespace-nowrap py-1.5 pr-3 font-mono text-slate-900 dark:text-white">{p}</td>
-                  <td className="py-1.5 text-slate-600 dark:text-slate-300">{d}</td>
+                  <td className="whitespace-nowrap py-1.5 pr-3 font-mono text-slate-900 dark:text-ink-white">{p}</td>
+                  <td className="py-1.5 text-slate-600 dark:text-ink-300">{d}</td>
                 </tr>
               ))}
             </tbody>
@@ -300,7 +300,7 @@ if (expected !== v1 || Date.now() / 1000 - t > 300) return res.status(401).end()
 function Code({ title, text }: { title: string; text: string }) {
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300">
+      <div className="mb-1 flex items-center justify-between text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300">
         {title} <button type="button" onClick={() => copy(text)} className="inline-flex items-center gap-1 text-emerald-700 hover:underline"><Copy className="h-3 w-3" /> Copy</button>
       </div>
       <pre className="overflow-x-auto rounded-lg bg-slate-950 p-3 font-mono text-[0.75rem] leading-relaxed text-slate-100">{text}</pre>

@@ -343,19 +343,19 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center gap-3">
         <div className="inline-block h-10 w-10 rounded-full border-4 border-orange-200 dark:border-orange-500/30 border-t-orange-600 dark:border-t-orange-400 animate-spin" />
-        <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400">Ticket load ho raha hai...</p>
+        <p className="text-xs font-extrabold text-slate-500 dark:text-ink-400">Ticket load ho raha hai...</p>
       </div>
     );
   }
 
   if (!ticket) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-16 text-center">
+      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-16 text-center">
         <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center mb-3">
           <AlertCircle className="h-8 w-8 text-rose-500" />
         </div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Ticket nahi mila</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Shayad delete ho gaya ho ya link galat hai</p>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Ticket nahi mila</h3>
+        <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">Shayad delete ho gaya ho ya link galat hai</p>
         <Link to="/repair-tickets" className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-orange-600 dark:text-orange-400 hover:underline">
           <ArrowLeft className="h-4 w-4" /> Wapis Repairs
         </Link>
@@ -372,7 +372,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
       <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
         <Link
           to="/repair-tickets"
-          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition"
+          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800 shadow-sm transition"
         >
           <ArrowLeft className="h-4 w-4" /> Wapis Repairs
         </Link>
@@ -380,17 +380,17 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50"
+            className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
             title="Refresh (R)"
           >
-            <RefreshCw className={`h-4 w-4 text-slate-600 dark:text-slate-300 ${isRefetching ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 text-slate-600 dark:text-ink-300 ${isRefetching ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setShowShortcuts(true)}
-            className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+            className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition"
             title="Shortcuts (Shift+?)"
           >
-            <Keyboard className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            <Keyboard className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
           <button
             onClick={() => setShowTeacher(true)}
@@ -400,7 +400,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           </button>
           <button
             onClick={copyShareLink}
-            className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+            className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-ink-700 transition"
           >
             <Share2 className="h-4 w-4" /> Share
           </button>
@@ -418,7 +418,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           </button>
           <button
             onClick={downloadPDF}
-            className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+            className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-ink-700 transition"
           >
             <Download className="h-4 w-4" /> PDF
           </button>
@@ -446,7 +446,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
       )}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 dark:from-slate-950 dark:via-orange-950 dark:to-amber-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 dark:from-ink-950 dark:via-orange-950 dark:to-amber-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-orange-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
 
@@ -516,8 +516,8 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
       {/* ═══ QUICK STATUS ACTIONS ═══ */}
       {allowedTransitions.length > 0 && (
-        <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
-          <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+        <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
+          <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
             <Zap className="h-3.5 w-3.5 text-amber-500" /> Next Status
           </div>
           <div className="flex flex-wrap gap-2">
@@ -584,13 +584,13 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           </div>
 
           {/* Issue & Diagnosis */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
                   <Stethoscope className="h-4.5 w-4.5 h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">Issue & Diagnosis</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Issue & Diagnosis</h3>
               </div>
               <Button
                 onClick={() => setShowDiagnoseModal(true)}
@@ -606,7 +606,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                 <div className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-300 mb-1">
                   Customer Ne Kaha
                 </div>
-                <div className="text-sm font-semibold text-slate-900 dark:text-slate-100 whitespace-pre-line">
+                <div className="text-sm font-semibold text-slate-900 dark:text-ink-100 whitespace-pre-line">
                   {ticket.reportedIssue}
                 </div>
               </div>
@@ -616,11 +616,11 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                   <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 dark:text-indigo-300">
                     Technician Diagnosis
                   </div>
-                  <div className="text-sm text-slate-900 dark:text-white mt-1 whitespace-pre-line font-bold">
+                  <div className="text-sm text-slate-900 dark:text-ink-white mt-1 whitespace-pre-line font-bold">
                     {ticket.diagnosedIssue}
                   </div>
                   {ticket.diagnosisNotes && (
-                    <div className="mt-2 text-xs font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-line">
+                    <div className="mt-2 text-xs font-semibold text-slate-600 dark:text-ink-300 whitespace-pre-line">
                       {ticket.diagnosisNotes}
                     </div>
                   )}
@@ -629,14 +629,14 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                       <div className="text-[0.6875rem] uppercase font-extrabold text-indigo-700 dark:text-indigo-300 flex items-center gap-1">
                         <Sparkles className="h-2.5 w-2.5" /> Recommended
                       </div>
-                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5 whitespace-pre-line">
+                      <div className="text-xs font-semibold text-slate-700 dark:text-ink-300 mt-0.5 whitespace-pre-line">
                         {ticket.recommendedActions}
                       </div>
                     </div>
                   )}
                   {ticket.estimatedCost > 0 && (
                     <div className="mt-2 pt-2 border-t border-indigo-100 dark:border-indigo-500/20 flex justify-between text-xs">
-                      <span className="font-bold text-slate-600 dark:text-slate-400">Estimate diya:</span>
+                      <span className="font-bold text-slate-600 dark:text-ink-400">Estimate diya:</span>
                       <span className="font-extrabold text-indigo-700 dark:text-indigo-300 tabular-nums">
                         {formatPKR(ticket.estimatedCost)}
                       </span>
@@ -644,9 +644,9 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                   )}
                 </div>
               ) : (
-                <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-5 text-center">
-                  <Stethoscope className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
-                  <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-5 text-center">
+                  <Stethoscope className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-1.5" />
+                  <div className="text-xs font-semibold text-slate-500 dark:text-ink-400">
                     Ab tak diagnose nahi hua —{' '}
                     <button className="text-indigo-600 dark:text-indigo-400 font-extrabold hover:underline" onClick={() => setShowDiagnoseModal(true)}>
                       abhi karo
@@ -658,15 +658,15 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           </div>
 
           {/* Parts */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
               <div className="flex items-center gap-2">
                 <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                   <Package className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
                   Parts Used{' '}
-                  <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                  <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">
                     ({ticket.parts?.length || 0})
                   </span>
                 </h3>
@@ -680,9 +680,9 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
             </div>
 
             {(ticket.parts?.length ?? 0) === 0 ? (
-              <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-6 text-center">
-                <Package className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
-                <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+              <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-6 text-center">
+                <Package className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-1.5" />
+                <div className="text-sm font-semibold text-slate-500 dark:text-ink-400">
                   Koi part add nahi hua — labor-only repair hai ya parts baad me add karo
                 </div>
               </div>
@@ -691,18 +691,18 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                 {ticket.parts?.map((part) => (
                   <div
                     key={part.id}
-                    className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 flex items-center justify-between gap-3 hover:shadow-md transition"
+                    className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/50 p-3 flex items-center justify-between gap-3 hover:shadow-md transition"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
                         {part.partName}
                       </div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 flex items-center gap-2 flex-wrap font-semibold">
                         <span className="tabular-nums">
                           {part.quantity} × {formatPKR(part.unitPrice)}
                         </span>
                         {part.source && (
-                          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-[0.625rem] font-extrabold">
+                          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-700 text-[0.625rem] font-extrabold">
                             {part.source}
                           </span>
                         )}
@@ -716,7 +716,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                         </div>
                       )}
                       {part.notes && (
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 italic">
                           {part.notes}
                         </div>
                       )}
@@ -743,12 +743,12 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           </div>
 
           {/* Timeline */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center">
                 <Calendar className="h-5 w-5" />
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Status Timeline</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Status Timeline</h3>
             </div>
             <RepairStatusTimeline logs={ticket.statusLog || []} />
           </div>
@@ -757,7 +757,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
         {/* Sidebar */}
         <aside className="space-y-4">
           {/* Pricing summary */}
-          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-slate-900/80 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-ink-900/80 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                 <DollarSign className="h-5 w-5" />
@@ -767,12 +767,12 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-slate-300">Parts Cost</span>
-                <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(ticket.partsCost)}</span>
+                <span className="font-semibold text-slate-600 dark:text-ink-300">Parts Cost</span>
+                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(ticket.partsCost)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-slate-300">Labor Cost</span>
-                <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(ticket.laborCost)}</span>
+                <span className="font-semibold text-slate-600 dark:text-ink-300">Labor Cost</span>
+                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(ticket.laborCost)}</span>
               </div>
               {ticket.discount > 0 && (
                 <div className="flex justify-between text-amber-700 dark:text-amber-400">
@@ -781,7 +781,7 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
                 </div>
               )}
               <div className="flex justify-between pt-2 border-t-2 border-emerald-200 dark:border-emerald-500/30">
-                <span className="font-extrabold text-slate-900 dark:text-white">Total</span>
+                <span className="font-extrabold text-slate-900 dark:text-ink-white">Total</span>
                 <span className="font-extrabold text-emerald-700 dark:text-emerald-300 text-lg tabular-nums">
                   {formatPKR(ticket.totalCost)}
                 </span>
@@ -813,21 +813,21 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
           {/* Payment history */}
           {(ticket.payments?.length ?? 0) > 0 && (
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-sm mb-2.5 flex items-center gap-2">
+            <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm mb-2.5 flex items-center gap-2">
                 <Banknote className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Payment History
               </h3>
               <div className="space-y-2">
                 {ticket.payments?.map((p) => (
                   <div
                     key={p.id}
-                    className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5 flex justify-between items-center text-xs"
+                    className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5 flex justify-between items-center text-xs"
                   >
                     <div>
                       <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                         {formatPKR(p.amount)}
                       </div>
-                      <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold">
+                      <div className="text-[0.625rem] text-slate-500 dark:text-ink-400 font-bold">
                         {p.paymentMethod} · {formatDate(p.paidAt)}
                         {p.reference && ` · Ref: ${p.reference}`}
                       </div>
@@ -905,8 +905,8 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
           )}
 
           {/* Quick actions — FIXED static tone classes */}
-          <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3.5 print:hidden">
-            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-2 tracking-wider">
+          <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3.5 print:hidden">
+            <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-2 tracking-wider">
               Quick Actions
             </div>
             <div className="grid grid-cols-2 gap-1.5">
@@ -960,12 +960,12 @@ ${ticket.warrantyEnds ? `<div class="card" style="background: #ecfdf5; margin-to
 
 function InfoCard({ title, icon: Icon, children }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
-      <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-100 dark:border-slate-800">
-        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
+      <div className="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-100 dark:border-ink-800">
+        <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center">
           <Icon className="h-4 w-4" />
         </div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{title}</h3>
       </div>
       <div className="space-y-1">{children}</div>
     </div>
@@ -979,9 +979,9 @@ function Row({ label, value, mono, copy, highlight }: any) {
         highlight ? 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30' : ''
       }`}
     >
-      <span className="font-semibold text-slate-500 dark:text-slate-400 shrink-0">{label}</span>
+      <span className="font-semibold text-slate-500 dark:text-ink-400 shrink-0">{label}</span>
       <span className="flex items-center gap-1 min-w-0">
-        <span className={`font-extrabold text-slate-900 dark:text-white truncate ${mono ? 'font-mono' : ''}`}>
+        <span className={`font-extrabold text-slate-900 dark:text-ink-white truncate ${mono ? 'font-mono' : ''}`}>
           {value}
         </span>
         {copy && (
@@ -990,7 +990,7 @@ function Row({ label, value, mono, copy, highlight }: any) {
               navigator.clipboard.writeText(String(value));
               toast.success('Copy ho gaya');
             }}
-            className="h-5 w-5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center flex-shrink-0 transition"
+            className="h-5 w-5 rounded hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center flex-shrink-0 transition"
           >
             <Copy className="h-2.5 w-2.5 text-slate-500" />
           </button>
@@ -1009,13 +1009,13 @@ function Kpi({ label, value, icon: Icon, tone = 'blue' }: any) {
     rose: 'from-rose-500 to-red-600 shadow-rose-500/30',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-3.5 flex items-center gap-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-3.5 flex items-center gap-3">
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
-        <div className="font-extrabold text-slate-900 dark:text-white text-lg truncate tabular-nums">{value}</div>
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">{label}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-lg truncate tabular-nums">{value}</div>
       </div>
     </div>
   );
@@ -1038,7 +1038,7 @@ function QuickBtn({ icon: Icon, label, onClick, tone, hint }: any) {
       <Icon className="h-4 w-4" />
       {label}
       {hint && (
-        <kbd className="absolute top-1 right-1 text-[0.625rem] px-1 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 font-mono font-bold">
+        <kbd className="absolute top-1 right-1 text-[0.625rem] px-1 py-0.5 rounded bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-600 font-mono font-bold">
           {hint}
         </kbd>
       )}
@@ -1053,7 +1053,7 @@ function TeacherModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[88vh] flex flex-col border-2 border-amber-300 dark:border-amber-500/40"
+        className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[88vh] flex flex-col border-2 border-amber-300 dark:border-amber-500/40"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 flex items-center justify-between sticky top-0">
@@ -1065,14 +1065,14 @@ function TeacherModal({ onClose }: { onClose: () => void }) {
               <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">
                 Guide
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Repair Ticket Kaise Chalayein?</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Repair Ticket Kaise Chalayein?</h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition"
+            className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition"
           >
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-3.5 text-sm">
@@ -1104,7 +1104,7 @@ function TeacherModal({ onClose }: { onClose: () => void }) {
             <strong>💡 Pro Tip:</strong> Passcode 🔒 field sensitive hai — sirf technician ke liye. Delivery ke baad clear kar do.
           </div>
         </div>
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-right">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 text-right">
           <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg shadow-amber-500/30">
             <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
           </Button>
@@ -1116,18 +1116,18 @@ function TeacherModal({ onClose }: { onClose: () => void }) {
 
 function Step({ n, title, body, tips }: any) {
   return (
-    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+    <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-3.5">
       <div className="flex items-start gap-3">
         <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-extrabold text-sm flex-shrink-0 shadow-md">
           {n}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white">{title}</div>
-          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{body}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-ink-300 mt-1 leading-relaxed">{body}</div>
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((t: string, i: number) => (
-                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 flex-shrink-0 mt-0.5" /> {t}
                 </li>
               ))}
@@ -1157,28 +1157,28 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700"
+        className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
               <Keyboard className="h-4 w-4" />
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Keyboard Shortcuts</h3>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition"
+            className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition"
           >
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-2">
           {sc.map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700 dark:text-slate-300">{desc}</span>
-              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-xs font-extrabold text-slate-700 dark:text-slate-200">
+              <span className="font-semibold text-slate-700 dark:text-ink-300">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 font-mono text-xs font-extrabold text-slate-700 dark:text-ink-200">
                 {key}
               </kbd>
             </div>

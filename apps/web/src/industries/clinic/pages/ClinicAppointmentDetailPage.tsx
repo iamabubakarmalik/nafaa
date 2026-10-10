@@ -53,7 +53,7 @@ export default function AppointmentDetailPage() {
   });
 
   if (isLoading || !apt) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const statusCfg = STATUS_CONFIG[apt.status];
@@ -109,7 +109,7 @@ export default function AppointmentDetailPage() {
       </section>
 
       {/* Status flow */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h3 className="text-sm font-extrabold">Visit Workflow</h3>
           {nextStatus && !['CANCELLED', 'COMPLETED', 'NO_SHOW'].includes(apt.status) && (
@@ -138,7 +138,7 @@ export default function AppointmentDetailPage() {
                   <div className={
                     'h-9 w-9 rounded-full flex items-center justify-center text-xs font-extrabold transition ' +
                     (isCurrent ? cfg.color + ' text-white ring-4 ring-blue-200 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-neutral-700 text-slate-500')
+                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
                   }>
                     {isActive && !isCurrent ? '✓' : i + 1}
                   </div>
@@ -147,7 +147,7 @@ export default function AppointmentDetailPage() {
                   </span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-8 mx-1 ' + (i < currentIdx ? 'bg-blue-500' : 'bg-slate-200 dark:bg-neutral-700')} />
+                  <div className={'h-0.5 w-8 mx-1 ' + (i < currentIdx ? 'bg-blue-500' : 'bg-slate-200 dark:bg-ink-700')} />
                 )}
               </div>
             );
@@ -156,7 +156,7 @@ export default function AppointmentDetailPage() {
       </section>
 
       {/* Tabs */}
-      <div className="flex gap-1 border-b-2 border-slate-200 dark:border-neutral-800 overflow-x-auto">
+      <div className="flex gap-1 border-b-2 border-slate-200 dark:border-ink-800 overflow-x-auto">
         {[
           { v: 'overview', label: 'Overview', icon: User },
           { v: 'vitals', label: 'Vitals', icon: Activity },
@@ -179,13 +179,13 @@ export default function AppointmentDetailPage() {
           {activeTab === 'overview' && (
             <>
               {/* Patient Info */}
-              <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+              <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
                 <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">
                   <User className="h-4 w-4 text-fuchsia-600" />
                   Patient
                 </h3>
                 <div className="space-y-2 text-sm">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-base">
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-base">
                     {apt.patient?.fullName}
                   </div>
                   <div className="text-[0.6875rem] font-mono font-bold text-blue-600">{apt.patient?.mrn}</div>
@@ -196,8 +196,8 @@ export default function AppointmentDetailPage() {
                     </a>
                   )}
                   <div className="flex flex-wrap gap-1">
-                    {age !== null && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold">{age}y</span>}
-                    {apt.patient?.gender && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold">{apt.patient.gender}</span>}
+                    {age !== null && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-xs font-extrabold">{age}y</span>}
+                    {apt.patient?.gender && <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-xs font-extrabold">{apt.patient.gender}</span>}
                     {apt.patient?.bloodGroup && (
                       <span className="px-2 py-0.5 rounded bg-red-100 text-red-700 text-xs font-extrabold">
                         🩸 {apt.patient.bloodGroup.replace('_POS', '+').replace('_NEG', '−')}
@@ -223,7 +223,7 @@ export default function AppointmentDetailPage() {
               </div>
 
               {/* Doctor Info */}
-              <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+              <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
                 <h3 className="text-sm font-extrabold mb-3">Attending Doctor</h3>
                 <div className="text-base font-extrabold">
                   {apt.doctor?.title} {apt.doctor?.fullName}
@@ -241,7 +241,7 @@ export default function AppointmentDetailPage() {
                 </div>
               )}
               {apt.reasonForVisit && (
-                <div className="rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 p-4">
                   <div className="text-xs font-extrabold text-slate-500 uppercase">Reason for Visit</div>
                   <div className="mt-1 text-sm">{apt.reasonForVisit}</div>
                 </div>
@@ -341,7 +341,7 @@ function VitalsPanel({ appointmentId, initialVitals }: any) {
   });
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
       <h3 className="font-extrabold flex items-center gap-2">
         <Activity className="h-4 w-4 text-red-600" />
         Vital Signs
@@ -360,7 +360,7 @@ function VitalsPanel({ appointmentId, initialVitals }: any) {
         <VitalField label="Weight" value={form.weightKg} onChange={(v: any) => setForm({ ...form, weightKg: v })} unit="kg" color="slate" step="0.1" />
       </div>
 
-      <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes about vitals..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 resize-none" />
+      <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes about vitals..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-red-500 resize-none" />
 
       <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} className="bg-gradient-to-r from-red-600 to-rose-700">
         <Save className="h-4 w-4" />
@@ -420,7 +420,7 @@ function EncounterPanel({ appointmentId, initialEncounter }: any) {
   });
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
       <h3 className="font-extrabold flex items-center gap-2">
         <FileText className="h-4 w-4 text-emerald-600" />
         SOAP Notes
@@ -447,18 +447,18 @@ function EncounterPanel({ appointmentId, initialEncounter }: any) {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <input value={form.provisionalDiagnosis} onChange={(e) => setForm({ ...form, provisionalDiagnosis: e.target.value })} placeholder="Provisional diagnosis" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        <input value={form.finalDiagnosis} onChange={(e) => setForm({ ...form, finalDiagnosis: e.target.value })} placeholder="Final diagnosis" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input value={form.provisionalDiagnosis} onChange={(e) => setForm({ ...form, provisionalDiagnosis: e.target.value })} placeholder="Provisional diagnosis" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input value={form.finalDiagnosis} onChange={(e) => setForm({ ...form, finalDiagnosis: e.target.value })} placeholder="Final diagnosis" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
       </div>
 
-      <input value={form.icd10Codes} onChange={(e) => setForm({ ...form, icd10Codes: e.target.value })} placeholder="ICD-10 codes (e.g. J06.9, I10, comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
+      <input value={form.icd10Codes} onChange={(e) => setForm({ ...form, icd10Codes: e.target.value })} placeholder="ICD-10 codes (e.g. J06.9, I10, comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
 
-      <textarea rows={2} value={form.advice} onChange={(e) => setForm({ ...form, advice: e.target.value })} placeholder="General advice..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-      <textarea rows={2} value={form.dietaryAdvice} onChange={(e) => setForm({ ...form, dietaryAdvice: e.target.value })} placeholder="Dietary advice..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+      <textarea rows={2} value={form.advice} onChange={(e) => setForm({ ...form, advice: e.target.value })} placeholder="General advice..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+      <textarea rows={2} value={form.dietaryAdvice} onChange={(e) => setForm({ ...form, dietaryAdvice: e.target.value })} placeholder="Dietary advice..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <input type="date" value={form.followUpDate} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-        <input value={form.referredTo} onChange={(e) => setForm({ ...form, referredTo: e.target.value })} placeholder="Referred to (specialist)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input type="date" value={form.followUpDate} onChange={(e) => setForm({ ...form, followUpDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input value={form.referredTo} onChange={(e) => setForm({ ...form, referredTo: e.target.value })} placeholder="Referred to (specialist)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
       </div>
 
       <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} className="bg-gradient-to-r from-emerald-600 to-green-700">
@@ -493,7 +493,7 @@ function PrescriptionPanel({ appointmentId, encounter }: any) {
   });
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-extrabold flex items-center gap-2">
           <Pill className="h-4 w-4 text-cyan-600" />
@@ -519,7 +519,7 @@ function PrescriptionPanel({ appointmentId, encounter }: any) {
       ) : (
         <div className="space-y-2">
           {items.map((item, i) => (
-            <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 p-3 space-y-2">
+            <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 p-3 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Drug #{i + 1}</span>
                 <button onClick={() => removeItem(i)} className="h-6 w-6 rounded bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -566,7 +566,7 @@ function PrescriptionPanel({ appointmentId, encounter }: any) {
         </div>
       )}
 
-      <textarea rows={2} value={generalInstructions} onChange={(e) => setGeneralInstructions(e.target.value)} placeholder="General instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+      <textarea rows={2} value={generalInstructions} onChange={(e) => setGeneralInstructions(e.target.value)} placeholder="General instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
 
       <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={items.length === 0 || !encounter?.id} className="bg-gradient-to-r from-cyan-600 to-blue-700">
         <Save className="h-4 w-4" />
@@ -578,7 +578,7 @@ function PrescriptionPanel({ appointmentId, encounter }: any) {
           <h4 className="text-sm font-extrabold mb-2">Existing Prescriptions ({encounter.prescriptions.length})</h4>
           <div className="space-y-2">
             {encounter.prescriptions.map((rx: any) => (
-              <div key={rx.id} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-3">
+              <div key={rx.id} className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono font-extrabold text-xs">{rx.prescriptionNumber}</span>
                   <span className="text-[0.6875rem] font-bold text-slate-500">{format(new Date(rx.issuedAt), 'dd MMM')}</span>
@@ -628,7 +628,7 @@ function LabOrdersPanel({ appointmentId, encounter, patientId, doctorId }: any) 
   const totalCost = tests.reduce((s, t) => s + (Number(t.price) || 0), 0);
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-extrabold flex items-center gap-2">
           <TestTube className="h-4 w-4 text-violet-600" />
@@ -641,8 +641,8 @@ function LabOrdersPanel({ appointmentId, encounter, patientId, doctorId }: any) 
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
-        <input value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="Lab name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-        <select value={urgency} onChange={(e) => setUrgency(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+        <input value={labName} onChange={(e) => setLabName(e.target.value)} placeholder="Lab name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+        <select value={urgency} onChange={(e) => setUrgency(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
           <option value="ROUTINE">Routine</option>
           <option value="URGENT">Urgent</option>
           <option value="STAT">STAT (Immediate)</option>
@@ -682,7 +682,7 @@ function LabOrdersPanel({ appointmentId, encounter, patientId, doctorId }: any) 
         </div>
       )}
 
-      <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+      <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
       <Button onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={tests.length === 0} className="bg-gradient-to-r from-violet-600 to-purple-700">
         <Save className="h-4 w-4" />
@@ -694,7 +694,7 @@ function LabOrdersPanel({ appointmentId, encounter, patientId, doctorId }: any) 
           <h4 className="text-sm font-extrabold mb-2">Existing Lab Orders ({encounter.labOrders.length})</h4>
           <div className="space-y-2">
             {encounter.labOrders.map((lo: any) => (
-              <div key={lo.id} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-3">
+              <div key={lo.id} className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono font-extrabold text-xs">{lo.orderNumber}</span>
                   <span className={
@@ -723,7 +723,7 @@ function PaymentModal({ apptId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">

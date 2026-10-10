@@ -46,10 +46,10 @@ export function ConnectForm({ c, onDone }: { c: CourierAccount; onDone?: () => v
 
   return (
     <div className="space-y-4">
-      <ol className="space-y-1.5 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+      <ol className="space-y-1.5 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-ink-800/40 dark:text-ink-200">
         {(c.connect?.steps ?? []).map((s, i) => (
           <li key={i} className="flex gap-2">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[0.6875rem] font-semibold text-white dark:bg-white dark:text-slate-900">{i + 1}</span>
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-900 text-[0.6875rem] font-semibold text-white dark:bg-ink-white dark:text-ink-900">{i + 1}</span>
             <span>{s}</span>
           </li>
         ))}
@@ -116,7 +116,7 @@ export function CourierSettingsForm({ c }: { c: CourierAccount }) {
   if (!defs.length) return <p className="text-[0.8125rem] text-slate-500">Is courier ki koi setting nahi.</p>;
 
   return (
-    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+    <div className="divide-y divide-slate-100 dark:divide-ink-800">
       {defs.map((d) => (
         <SettingRow key={d.key} title={<>{d.label}{d.required && <span className="text-rose-600"> *</span>}</>} help={d.help}
           control={<SettingControl d={d} value={c.settings?.[d.key]} opts={opts} loading={isLoading} onSave={(v) => save.mutate({ [d.key]: v })} />} />

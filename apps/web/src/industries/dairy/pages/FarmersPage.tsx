@@ -75,12 +75,12 @@ export default function FarmersPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 grid sm:grid-cols-2 gap-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 grid sm:grid-cols-2 gap-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search farmer # / name / phone / CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search farmer # / name / phone / CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
         </div>
-        <input value={village} onChange={(e) => setVillage(e.target.value)} placeholder="Village filter..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
+        <input value={village} onChange={(e) => setVillage(e.target.value)} placeholder="Village filter..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
       </section>
 
       {showForm && (
@@ -101,10 +101,10 @@ export default function FarmersPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : farmers.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <User className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No farmers yet</p>
           <Button className="mt-4 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -136,11 +136,11 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
     amber: 'from-amber-500 to-orange-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
           {sub && <div className="text-xs font-semibold text-slate-600 mt-1">{sub}</div>}
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
@@ -153,7 +153,7 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
 
 function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3 hover:shadow-lg transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3 hover:shadow-lg transition">
       <div className="flex items-start gap-3">
         {farmer.photoUrl ? (
           <img src={farmer.photoUrl} alt={farmer.name} className="h-14 w-14 rounded-2xl object-cover shrink-0 ring-2 ring-emerald-200" />
@@ -163,7 +163,7 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white truncate">{farmer.name}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{farmer.name}</div>
           {farmer.fatherName && <div className="text-xs text-slate-500 font-bold">S/o {farmer.fatherName}</div>}
           <div className="mt-1 text-[0.6875rem] font-mono font-bold text-slate-500">{farmer.farmerNumber}</div>
         </div>
@@ -190,7 +190,7 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
         {farmer.totalCapacityLiters ? <span className="px-2 py-0.5 rounded bg-cyan-100 text-cyan-800">Cap: {farmer.totalCapacityLiters}L</span> : null}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
         <div>
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Rate/Liter</div>
           <div className="text-sm font-extrabold text-emerald-700 tabular-nums">{formatPKR(farmer.ratePerLiter)}</div>
@@ -222,13 +222,13 @@ function FarmerCard({ farmer, onEdit, onPay, onDelete }: any) {
         Total supplied: <span className="text-slate-700">{farmer.totalSupplied.toFixed(0)}L</span> • Paid: <span className="text-emerald-700">{formatPKR(farmer.totalPaid)}</span>
       </div>
 
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         {farmer.currentBalance > 0 && (
           <button onClick={onPay} className="flex-1 h-9 rounded-lg bg-emerald-100 dark:bg-emerald-950/40 hover:bg-emerald-200 text-emerald-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
             <DollarSign className="h-3 w-3" />Pay
           </button>
         )}
-        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
           <Edit3 className="h-3.5 w-3.5" />
         </button>
         <button onClick={onDelete} className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -252,7 +252,7 @@ function PaymentModal({ farmer, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 bg-emerald-50 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold text-slate-900">Pay Farmer</h3>
@@ -268,7 +268,7 @@ function PaymentModal({ farmer, onClose, onDone }: any) {
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-emerald-300 bg-emerald-50 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
-                <button key={f} onClick={() => setAmount(Number((farmer.currentBalance * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold hover:bg-slate-200">
+                <button key={f} onClick={() => setAmount(Number((farmer.currentBalance * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200">
                   {(f * 100).toFixed(0)}%
                 </button>
               ))}
@@ -285,7 +285,7 @@ function PaymentModal({ farmer, onClose, onDone }: any) {
               ))}
             </div>
           </div>
-          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>
@@ -340,8 +340,8 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Farmer' : 'New Farmer'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
@@ -349,17 +349,17 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Farmer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} placeholder="Father's name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Farmer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.fatherName} onChange={(e) => setForm({ ...form, fatherName: e.target.value })} placeholder="Father's name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.village} onChange={(e) => setForm({ ...form, village: e.target.value })} placeholder="Village" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.village} onChange={(e) => setForm({ ...form, village: e.target.value })} placeholder="Village" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
         </div>
-        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Full address" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Full address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
         <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
           <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300">🐄 Cattle Info</div>
@@ -423,9 +423,9 @@ function FarmerForm({ editing, onClose, onSaved }: any) {
           )}
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.ratePerLiter}>
             <Save className="h-4 w-4" />

@@ -293,7 +293,7 @@ export default function GlobalImeiInventoryPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
 
@@ -407,7 +407,7 @@ export default function GlobalImeiInventoryPage() {
 
       {/* ═══ PTA BREAKDOWN — clickable ═══ */}
       {stats && (
-        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-slate-900 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/40 p-4 sm:p-5 print:hidden">
+        <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-ink-900 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/40 p-4 sm:p-5 print:hidden">
           <div className="flex items-center gap-2 mb-3">
             <ShieldCheck className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
             <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">PTA Status (In-Stock IMEIs)</h3>
@@ -424,13 +424,13 @@ export default function GlobalImeiInventoryPage() {
                   onClick={() => setPtaFilter(active ? 'ALL' : status)}
                   className={`rounded-xl border-2 p-3 text-left transition active:scale-[0.98] ${
                     active
-                      ? `${colors.bg} ${colors.border} shadow-md ring-2 ring-offset-1 dark:ring-offset-slate-900 ring-emerald-400`
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50'
+                      ? `${colors.bg} ${colors.border} shadow-md ring-2 ring-offset-1 dark:ring-offset-ink-900 ring-emerald-400`
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <Icon className={`h-4 w-4 ${colors.text}`} />
-                    <span className={`text-2xl font-extrabold tabular-nums ${count > 0 ? colors.text : 'text-slate-300 dark:text-slate-600'}`}>
+                    <span className={`text-2xl font-extrabold tabular-nums ${count > 0 ? colors.text : 'text-slate-300 dark:text-ink-600'}`}>
                       {count}
                     </span>
                   </div>
@@ -456,7 +456,7 @@ export default function GlobalImeiInventoryPage() {
               className={`shrink-0 inline-flex items-center gap-1 px-3 h-10 rounded-xl text-xs font-extrabold transition border-2 ${
                 active
                   ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-300'
+                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-blue-300'
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -469,15 +469,15 @@ export default function GlobalImeiInventoryPage() {
       {/* ═══ SHOP CHIPS — ab har device apni shop se juda hai ═══ */}
       {activeShops.length > 1 && (
         <section className="flex gap-1.5 overflow-x-auto pb-1 print:hidden items-center">
-          <span className="shrink-0 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider inline-flex items-center gap-1 pr-1">
+          <span className="shrink-0 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider inline-flex items-center gap-1 pr-1">
             <Store className="h-3 w-3" /> Shop
           </span>
           <button
             onClick={() => setShopFilter('ALL')}
             className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 ${
               shopFilter === 'ALL'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-sm'
-                : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 border-transparent shadow-sm'
+                : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400 hover:bg-slate-200 dark:hover:bg-ink-700'
             }`}
           >
             Sab shops
@@ -489,7 +489,7 @@ export default function GlobalImeiInventoryPage() {
               className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 inline-flex items-center gap-1 ${
                 shopFilter === sh.id
                   ? 'bg-blue-600 text-white border-transparent shadow-sm'
-                  : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400 hover:bg-slate-200 dark:hover:bg-ink-700'
               }`}
             >
               <Store className="h-3 w-3" /> {sh.name}
@@ -499,7 +499,7 @@ export default function GlobalImeiInventoryPage() {
       )}
 
       {/* ═══ SEARCH + EXPORT ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-3.5 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-3.5 print:hidden">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <ScanLine className="h-4 w-4 text-blue-600 dark:text-blue-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -508,10 +508,10 @@ export default function GlobalImeiInventoryPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Scan ya search IMEI / product / brand / serial... (/ shortcut)"
-              className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-blue-50/30 dark:bg-blue-500/5 pl-9 pr-9 text-sm font-mono text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 transition"
+              className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-blue-50/30 dark:bg-blue-500/5 pl-9 pr-9 text-sm font-mono text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:bg-white dark:focus:bg-ink-800 transition"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition">
                 <X className="h-3.5 w-3.5 text-slate-400" />
               </button>
             )}
@@ -524,12 +524,12 @@ export default function GlobalImeiInventoryPage() {
           {filtered.length > 0 && (
             <button
               onClick={() => exportCSV(filtered)}
-              className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-slate-800 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition"
+              className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition"
             >
               <Download className="h-3.5 w-3.5" /> CSV ({filtered.length})
             </button>
           )}
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} IMEIs
           </div>
         </div>
@@ -537,7 +537,7 @@ export default function GlobalImeiInventoryPage() {
 
       {/* ═══ BULK BAR ═══ */}
       {selected.size > 0 && (
-        <section className="sticky top-2 z-20 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
+        <section className="sticky top-2 z-20 rounded-2xl bg-slate-950 dark:bg-ink-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
           <div className="font-extrabold text-sm px-2"><span className="text-blue-300">{selected.size}</span> selected</div>
           <button
             onClick={() => exportCSV(imeis.filter((i: any) => selected.has(i.id)))}
@@ -563,20 +563,20 @@ export default function GlobalImeiInventoryPage() {
       )}
 
       {/* ═══ IMEI LIST ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
         {isLoading ? (
           <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 sm:p-16 text-center">
             <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-700 mx-auto flex items-center justify-center shadow-lg shadow-blue-500/40">
               <Smartphone className="h-10 w-10 text-white" />
             </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Koi matching IMEI nahi' : 'Abhi koi IMEI nahi'}
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+            <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
               {hasFilters
                 ? 'Filters badal ke dekho ya search clear karo'
                 : 'IMEIs product page se add hoti hain (Product wizard → IMEI Tracking step)'}
@@ -601,17 +601,17 @@ export default function GlobalImeiInventoryPage() {
         ) : (
           <>
             {/* Select all row — screen only */}
-            <div className="px-4 py-2.5 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-center gap-2 print:hidden">
+            <div className="px-4 py-2.5 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40 flex items-center gap-2 print:hidden">
               <input
                 type="checkbox"
                 checked={filtered.length > 0 && filtered.every((i: any) => selected.has(i.id))}
                 onChange={toggleAllVisible}
                 className="h-4 w-4 rounded accent-blue-600"
               />
-              <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400">Sab select karo</span>
+              <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400">Sab select karo</span>
             </div>
 
-            <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
               {filtered.map((imei: any) => {
                 const StatusIcon = STATUS_ICONS[imei.status] ?? Package;
                 return (
@@ -626,7 +626,7 @@ export default function GlobalImeiInventoryPage() {
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">
+                            <span className="font-mono font-extrabold text-slate-900 dark:text-ink-white text-sm">
                               {imei.imei1}
                             </span>
                             <PtaStatusBadge
@@ -638,7 +638,7 @@ export default function GlobalImeiInventoryPage() {
                               imei.status === 'IN_STOCK' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               imei.status === 'SOLD' ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300' :
                               imei.status === 'RETURNED' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
-                              'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                              'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
                             }`}>
                               <StatusIcon className="h-2.5 w-2.5" /> {imei.status}
                             </span>
@@ -651,7 +651,7 @@ export default function GlobalImeiInventoryPage() {
 
                           <Link
                             to={`/mobile-products/${imei.productId}/edit`}
-                            className="font-extrabold text-slate-900 dark:text-white hover:text-blue-700 dark:hover:text-blue-400 inline-flex items-center gap-1 text-sm transition"
+                            className="font-extrabold text-slate-900 dark:text-ink-white hover:text-blue-700 dark:hover:text-blue-400 inline-flex items-center gap-1 text-sm transition"
                           >
                             <Package className="h-3.5 w-3.5" />
                             {imei.product?.name || 'Unknown product'}
@@ -659,19 +659,19 @@ export default function GlobalImeiInventoryPage() {
                               <span className="text-xs text-violet-700 dark:text-violet-400 font-bold"> · {imei.product.brand.name}</span>
                             )}
                             {imei.variant?.name && (
-                              <span className="text-xs text-slate-500 dark:text-slate-400"> — {imei.variant.name}</span>
+                              <span className="text-xs text-slate-500 dark:text-ink-400"> — {imei.variant.name}</span>
                             )}
                           </Link>
 
                           {imei.imei2 && (
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono mt-0.5">IMEI 2: {imei.imei2}</div>
+                            <div className="text-xs text-slate-500 dark:text-ink-400 font-mono mt-0.5">IMEI 2: {imei.imei2}</div>
                           )}
                           {imei.serialNumber && (
-                            <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">Serial: {imei.serialNumber}</div>
+                            <div className="text-xs text-slate-500 dark:text-ink-400 font-mono">Serial: {imei.serialNumber}</div>
                           )}
 
-                          <div className="mt-2 flex items-center gap-3 flex-wrap text-xs text-slate-500 dark:text-slate-400">
-                            <span>Cost: <strong className="text-slate-700 dark:text-slate-200">{formatPKR(imei.costPrice || 0)}</strong></span>
+                          <div className="mt-2 flex items-center gap-3 flex-wrap text-xs text-slate-500 dark:text-ink-400">
+                            <span>Cost: <strong className="text-slate-700 dark:text-ink-200">{formatPKR(imei.costPrice || 0)}</strong></span>
                             {imei.ptaTaxPaid > 0 && (
                               <span className="text-emerald-700 dark:text-emerald-400 font-bold">+ Tax: {formatPKR(imei.ptaTaxPaid)}</span>
                             )}
@@ -691,7 +691,7 @@ export default function GlobalImeiInventoryPage() {
                       <div className="flex items-center gap-2 shrink-0 print:hidden">
                         <Link
                           to={`/imei-inventory/${imei.productId}`}
-                          className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1 transition"
+                          className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-50 dark:hover:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1 transition"
                         >
                           <ExternalLink className="h-3 w-3" /> Product IMEIs
                         </Link>
@@ -747,20 +747,20 @@ function ImeiTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> IMEI Inventory — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye page <strong>saare products ki IMEIs</strong> ek jagah dikhata hai — jis phone ka bhi IMEI ho, yahan mil jayegi.
             Yahan se search, filter, delete sab hota hai.
           </p>
@@ -769,7 +769,7 @@ function ImeiTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               🛡️ PTA Status kya hai?
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <GuideRow emoji="✅" title="Approved" desc="PTA se register — bilkul theek, bik sakta hai" />
               <GuideRow emoji="🔧" title="Patch" desc="Local network patch se chal raha — kabhi issue ho sakta" />
               <GuideRow emoji="⏳" title="Pending" desc="Register ho raha hai — verify jaldi karein" />
@@ -783,7 +783,7 @@ function ImeiTeacher({ onClose }: { onClose: () => void }) {
             saare products ka stock IMEI counts se recalculate kar deta hai.
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⌨️ / dabao</strong> — search box pe jump, ya barcode scan karo</TipRow>
             <TipRow><strong>PTA chip pe click</strong> — us status ke IMEIs filter ho jayenge</TipRow>
             <TipRow><strong>Checkbox se select</strong> — bulk export ya delete</TipRow>
@@ -804,11 +804,11 @@ function ImeiTeacher({ onClose }: { onClose: () => void }) {
 
 function GuideRow({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2.5">
+    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2.5">
       <span className="text-lg shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 dark:text-white text-xs">{title}</div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs">{title}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -840,11 +840,11 @@ function Kpi({ icon: Icon, label, value, tone, isText }: any) {
     amber: 'from-amber-500 to-orange-600 shadow-amber-500/40',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-3 sm:p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-3 sm:p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${isText ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate ${isText ? 'text-lg' : 'text-xl sm:text-2xl'}`}>
             {value}
           </div>
         </div>

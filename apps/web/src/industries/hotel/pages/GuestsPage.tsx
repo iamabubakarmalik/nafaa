@@ -99,10 +99,10 @@ export default function GuestsPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, phone, CNIC/passport..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, phone, CNIC/passport..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
         </div>
         <div className="flex gap-1.5">
           {[
@@ -112,7 +112,7 @@ export default function GuestsPage() {
           ].map((f) => (
             <button key={f.v} onClick={() => setFilter(f.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (filter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (filter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{f.label}</button>
           ))}
         </div>
@@ -136,10 +136,10 @@ export default function GuestsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : guests.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No guests registered</p>
           <Button className="mt-4 bg-gradient-to-r from-teal-600 to-cyan-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -176,11 +176,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     rose: 'from-rose-500 to-red-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -193,9 +193,9 @@ function StatCard({ label, value, icon: Icon, color }: any) {
 function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete }: any) {
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
       (guest.isBlacklisted ? 'border-rose-300 bg-rose-50/50 dark:bg-rose-950/20' :
-       guest.isVIP ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+       guest.isVIP ? 'border-amber-300 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start gap-3">
         {guest.photoUrl ? (
@@ -210,7 +210,7 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-white truncate">{guest.title ? guest.title + ' ' : ''}{guest.fullName}</span>
+            <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{guest.title ? guest.title + ' ' : ''}{guest.fullName}</span>
             {guest.isVIP && (
               <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Star className="h-2 w-2 fill-current" />
@@ -255,7 +255,7 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Stays</div>
           <div className="font-extrabold tabular-nums">{guest.totalStays}</div>
@@ -285,11 +285,11 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
         </div>
       )}
 
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         <button onClick={onView} className="flex-1 h-9 rounded-lg bg-teal-100 dark:bg-teal-950/40 hover:bg-teal-200 text-teal-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
           View
         </button>
-        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
           <Edit3 className="h-3.5 w-3.5" />
         </button>
         {guest.isBlacklisted ? (
@@ -312,7 +312,7 @@ function GuestCard({ guest, onView, onEdit, onBlacklist, onUnblacklist, onDelete
 function GuestDetailModal({ guest, onClose, onEdit }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-3xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="relative bg-gradient-to-br from-slate-950 via-teal-900 to-cyan-800 text-white p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -366,7 +366,7 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
           )}
 
           {/* Contact */}
-          <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-2">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2">
             <div className="text-sm font-extrabold">Contact Information</div>
             <div className="grid sm:grid-cols-2 gap-2 text-sm">
               {guest.phone && <Info label="Phone" value={guest.phone} />}
@@ -406,7 +406,7 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
 
           {/* Address */}
           {(guest.address || guest.city) && (
-            <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-2">
+            <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2">
               <div className="text-sm font-extrabold">Address</div>
               <p className="text-sm">{[guest.address, guest.city, guest.state, guest.country, guest.zipCode].filter(Boolean).join(', ')}</p>
             </div>
@@ -446,7 +446,7 @@ function GuestDetailModal({ guest, onClose, onEdit }: any) {
           )}
 
           {guest.notes && (
-            <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 border-2 border-slate-200 dark:border-neutral-700 p-4">
+            <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 border-2 border-slate-200 dark:border-ink-700 p-4">
               <div className="text-sm font-extrabold mb-2">Internal Notes</div>
               <p className="text-sm italic text-slate-700">{guest.notes}</p>
             </div>
@@ -517,7 +517,7 @@ function GuestForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-teal-300 dark:border-teal-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-teal-300 dark:border-teal-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-teal-50 dark:bg-teal-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Guest' : 'Register New Guest'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -546,12 +546,12 @@ function GuestForm({ editing, onClose, onSaved }: any) {
 
         {/* Personal */}
         <div className="grid sm:grid-cols-4 gap-3">
-          <select value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500">
+          <select value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500">
             {TITLES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="First Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Last Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500">
+          <input value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} placeholder="First Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} placeholder="Last Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500">
             <option value="">-- Gender --</option>
             <option value="Male">♂️ Male</option>
             <option value="Female">♀️ Female</option>
@@ -560,14 +560,14 @@ function GuestForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.altPhone} onChange={(e) => setForm({ ...form, altPhone: e.target.value })} placeholder="Alt Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <select value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500">
+          <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.altPhone} onChange={(e) => setForm({ ...form, altPhone: e.target.value })} placeholder="Alt Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <select value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500">
             {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
-          <input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} placeholder="Language" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })} placeholder="Language" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
         </div>
 
         {/* ID */}
@@ -619,19 +619,19 @@ function GuestForm({ editing, onClose, onSaved }: any) {
         </div>
 
         {/* Address */}
-        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
+        <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
         <div className="grid sm:grid-cols-4 gap-3">
-          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="State" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="Country" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} placeholder="ZIP" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="State" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.country} onChange={(e) => setForm({ ...form, country: e.target.value })} placeholder="Country" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.zipCode} onChange={(e) => setForm({ ...form, zipCode: e.target.value })} placeholder="ZIP" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
         </div>
 
         {/* Company */}
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} placeholder="Company" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} placeholder="Designation" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.gstNumber} onChange={(e) => setForm({ ...form, gstNumber: e.target.value })} placeholder="GST #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })} placeholder="Company" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.designation} onChange={(e) => setForm({ ...form, designation: e.target.value })} placeholder="Designation" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.gstNumber} onChange={(e) => setForm({ ...form, gstNumber: e.target.value })} placeholder="GST #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-teal-500" />
         </div>
 
         {/* VIP */}
@@ -654,11 +654,11 @@ function GuestForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <input value={form.allergies} onChange={(e) => setForm({ ...form, allergies: e.target.value })} placeholder="Allergies (comma separated)" className="h-11 w-full rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <input value={form.dietaryRestrictions} onChange={(e) => setForm({ ...form, dietaryRestrictions: e.target.value })} placeholder="Dietary restrictions (Vegetarian, Halal, Vegan...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-        <textarea rows={2} value={form.specialRequests} onChange={(e) => setForm({ ...form, specialRequests: e.target.value })} placeholder="Special requests / preferences..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
+        <input value={form.dietaryRestrictions} onChange={(e) => setForm({ ...form, dietaryRestrictions: e.target.value })} placeholder="Dietary restrictions (Vegetarian, Halal, Vegan...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+        <textarea rows={2} value={form.specialRequests} onChange={(e) => setForm({ ...form, specialRequests: e.target.value })} placeholder="Special requests / preferences..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-teal-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.firstName || !form.phone}>
             <Save className="h-4 w-4" />

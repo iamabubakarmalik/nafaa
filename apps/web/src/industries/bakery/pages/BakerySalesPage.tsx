@@ -591,7 +591,7 @@ export default function BakerySalesPage() {
             <button key={t.v} onClick={() => setTab(t.v)}
               className={`group relative overflow-hidden rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on ? 'bg-gradient-to-br from-pink-600 to-fuchsia-700 border-transparent text-white shadow-xl shadow-pink-500/30'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-pink-400 hover:shadow-lg'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-pink-400 hover:shadow-lg'
               }`}>
               <div className="relative flex items-center gap-3">
                 <div className={`h-11 w-11 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center shrink-0 ${
@@ -601,7 +601,7 @@ export default function BakerySalesPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
-                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}>{t.n}</span>
+                      <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'}`}>{t.n}</span>
                     )}
                   </div>
                   <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400'}`}>{t.hint}</div>
@@ -613,15 +613,15 @@ export default function BakerySalesPage() {
       </div>
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
         <div className="flex gap-2 flex-wrap items-center">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Bill #, customer, phone, cheez… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-pink-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-pink-500 transition" />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -631,7 +631,7 @@ export default function BakerySalesPage() {
             <button onClick={() => { setShowDate((v) => !v); setShowMore(false); }}
               className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                 dateFilter !== 'today' ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/15 text-pink-700 dark:text-pink-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-pink-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-pink-400'
               }`}>
               <CalendarRange className="h-4 w-4" />
               <span className="max-w-[140px] truncate">{DATE_OPTS.find(([v]) => v === dateFilter)?.[1]}</span>
@@ -640,13 +640,13 @@ export default function BakerySalesPage() {
             {showDate && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowDate(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-2">
+                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-2">
                   <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
                   <div className="grid grid-cols-2 gap-1.5">
                     {DATE_OPTS.map(([v, l]) => (
                       <button key={v} onClick={() => { setDateFilter(v); if (v !== 'custom') setShowDate(false); }}
                         className={`h-10 rounded-xl text-xs font-black transition ${
-                          dateFilter === v ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                          dateFilter === v ? 'bg-pink-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                         }`}>{l}</button>
                     ))}
                   </div>
@@ -656,12 +656,12 @@ export default function BakerySalesPage() {
                         <div key={l}>
                           <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">{l}</label>
                           <input type="date" value={v} onChange={(e) => set(e.target.value)}
-                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-pink-500 [color-scheme:light] dark:[color-scheme:dark]" />
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-pink-500 [color-scheme:light] dark:[color-scheme:dark]" />
                         </div>
                       ))}
                     </div>
                   )}
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">{rangeLabel}</div>
+                  <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">{rangeLabel}</div>
                 </div>
               </>
             )}
@@ -671,7 +671,7 @@ export default function BakerySalesPage() {
             <button onClick={() => { setShowMore((v) => !v); setShowDate(false); }}
               className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                 payFilter !== 'all' || creditOnly ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-amber-400'
               }`}>
               <Filter className="h-4 w-4" /> Chaant
               {(payFilter !== 'all' || creditOnly) && (
@@ -684,15 +684,15 @@ export default function BakerySalesPage() {
             {showMore && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowMore(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3">
+                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3">
                   <div>
                     <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kaise aaya</div>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button onClick={() => setPayFilter('all')}
-                        className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${payFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>Sab</button>
+                        className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${payFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}>Sab</button>
                       {Object.entries(PAY).map(([k, v]) => (
                         <button key={k} onClick={() => setPayFilter(k as PaymentMethod)}
-                          className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${payFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}
+                          className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${payFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}
                           style={payFilter === k ? { background: v.hex } : undefined}>
                           <v.icon className="h-3 w-3" /> {v.label}
                         </button>
@@ -723,9 +723,9 @@ export default function BakerySalesPage() {
           <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-[0.6875rem] font-black">
             <span className="text-slate-400">Chaant:</span>
             <span className="px-2 py-1 rounded-lg bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300">{rangeLabel}</span>
-            {payFilter !== 'all' && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">{PAY[payFilter]?.label}</span>}
+            {payFilter !== 'all' && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">{PAY[payFilter]?.label}</span>}
             {creditOnly && <span className="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">Sirf udhaar</span>}
-            {search && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">"{search}"</span>}
+            {search && <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">"{search}"</span>}
             <span className="text-slate-400">→ {stats.count} bill</span>
           </div>
         )}
@@ -734,7 +734,7 @@ export default function BakerySalesPage() {
       {/* ═══════ ANALYTICS ═══════ */}
       {salesQ.isLoading ? (
         <div className="p-2 space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : tab === 'analytics' ? (
         <div className="space-y-4 print:hidden">
@@ -744,17 +744,17 @@ export default function BakerySalesPage() {
               const top = p.key === topPart.key && p.bikri > 0;
               return (
                 <div key={p.key} className={`rounded-2xl border-2 p-4 ${
-                  top ? 'border-pink-400 bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/10' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
+                  top ? 'border-pink-400 bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/10' : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900'
                 }`}>
                   <div className="flex items-center gap-2">
                     <p.icon className={`h-4 w-4 ${top ? 'text-pink-600' : 'text-slate-400'}`} />
-                    <span className="text-sm font-black text-slate-900 dark:text-white">{p.label}</span>
+                    <span className="text-sm font-black text-slate-900 dark:text-ink-white">{p.label}</span>
                     {top && <span className="ml-auto text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-pink-600 text-white">Rush</span>}
                   </div>
                   <div className="text-[0.6875rem] font-bold text-slate-400">{p.range}</div>
-                  <div className="mt-2 text-lg font-black text-slate-900 dark:text-white tabular-nums">{showValue(formatPKR(p.bikri))}</div>
+                  <div className="mt-2 text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">{showValue(formatPKR(p.bikri))}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500">{p.bill} bill · {p.pct.toFixed(0)}%</div>
-                  <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                     <div className="h-full rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600" style={{ width: `${p.pct}%` }} />
                   </div>
                 </div>
@@ -804,7 +804,7 @@ export default function BakerySalesPage() {
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
-                  <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2">
+                  <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-2">
                     Gulabi column sab se masroof ghanta hai — us se ek do ghante pehle taaza batch nikal lein.
                   </p>
                 </>
@@ -825,7 +825,7 @@ export default function BakerySalesPage() {
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1">
                     Bikri ka <strong className="text-pink-600">{itemsAgg.madePct.toFixed(0)}%</strong> apne tanur ka hai.
                     {itemsAgg.madePct < 40 && ' Bahar ka maal kam munafe wala hota hai — apna maal aage rakhein.'}
                   </p>
@@ -841,16 +841,16 @@ export default function BakerySalesPage() {
                   {itemsAgg.top.map((p, i) => {
                     const pct = itemsAgg.top[0].value > 0 ? (p.value / itemsAgg.top[0].value) * 100 : 0;
                     return (
-                      <div key={p.name} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+                      <div key={p.name} className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
                         <div className="flex items-center gap-2.5 mb-1.5">
                           <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
-                            i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                            i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                           }`}>{i === 0 ? '🏆' : i + 1}</span>
-                          <span className="font-black text-sm text-slate-900 dark:text-white truncate flex-1">{p.made ? '🧁 ' : ''}{p.name}</span>
+                          <span className="font-black text-sm text-slate-900 dark:text-ink-white truncate flex-1">{p.made ? '🧁 ' : ''}{p.name}</span>
                           <span className="text-[0.6875rem] font-bold text-slate-400 shrink-0 tabular-nums">{Number(p.qty.toFixed(1))} bike</span>
-                          <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums shrink-0">{showValue(formatPKR(p.value))}</span>
+                          <span className="text-sm font-black text-slate-900 dark:text-ink-white tabular-nums shrink-0">{showValue(formatPKR(p.value))}</span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                           <div className="h-full rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600" style={{ width: `${Math.min(pct, 100)}%` }} />
                         </div>
                       </div>
@@ -864,16 +864,16 @@ export default function BakerySalesPage() {
               {topCustomers.length === 0 ? <EmptyBox text="Is arse me kisi bill par customer darj nahi" /> : (
                 <div className="space-y-1.5">
                   {topCustomers.map((c, i) => (
-                    <div key={c.name + i} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+                    <div key={c.name + i} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
                       <span className={`h-9 w-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 ${
-                        i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                       }`}>{i === 0 ? '👑' : i + 1}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="font-black text-sm text-slate-900 dark:text-white truncate">{c.name}</div>
+                        <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">{c.name}</div>
                         <div className="text-[0.6875rem] font-bold text-slate-500">{c.orders} bill{c.phone ? ` · ${c.phone}` : ''}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{showValue(formatPKR(c.total))}</div>
+                        <div className="text-sm font-black text-slate-900 dark:text-ink-white tabular-nums">{showValue(formatPKR(c.total))}</div>
                         {c.credit > 0 && <div className="text-[0.6875rem] font-black text-amber-600 tabular-nums">{showValue(formatPKR(c.credit))} udhaar</div>}
                       </div>
                     </div>
@@ -913,8 +913,8 @@ export default function BakerySalesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-1.5 mt-1">
                     {payPie.map((p) => (
-                      <div key={p.name} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 flex items-center justify-between">
-                        <span className="text-[0.6875rem] font-black text-slate-600 dark:text-slate-300">{p.name}</span>
+                      <div key={p.name} className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 flex items-center justify-between">
+                        <span className="text-[0.6875rem] font-black text-slate-600 dark:text-ink-300">{p.name}</span>
                         <span className="text-xs font-black tabular-nums" style={{ color: p.hex }}>{showValue(formatPKR(p.value))}</span>
                       </div>
                     ))}
@@ -926,12 +926,12 @@ export default function BakerySalesPage() {
         </div>
       ) : filtered.length === 0 ? (
         /* ═══════ KHALI ═══════ */
-        <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 sm:p-14 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 sm:p-14 text-center">
           <Receipt className="h-12 w-12 text-slate-400 mx-auto" />
-          <p className="mt-4 font-black text-slate-800 dark:text-slate-100 text-lg sm:text-xl">
+          <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg sm:text-xl">
             {hasFilters && (search || payFilter !== 'all' || creditOnly) ? 'Koi bill nahi mila' : `${rangeLabel} me koi bikri nahi`}
           </p>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold mt-1.5">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5">
             {search ? `"${search}" se kuch nahi mila` : 'Counter par pehli bikri karein'}
           </p>
           <div className="mt-4 flex gap-2 justify-center flex-wrap">
@@ -943,8 +943,8 @@ export default function BakerySalesPage() {
         </div>
       ) : (
         /* ═══════ LIST ═══════ */
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
-          <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:shadow-none">
+          <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
             {filtered.slice(0, visible).map((s) => {
               const pay = PAY[s.paymentMethod] ?? PAY.CASH;
               const voided = s.status === 'VOIDED';
@@ -967,7 +967,7 @@ export default function BakerySalesPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono font-black text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
+                          <span className="font-mono font-black text-sm text-slate-900 dark:text-ink-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
                           <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${pay.chip}`}>{pay.label}</span>
                           {voided && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-600 text-white">Void</span>}
                           {isOrderSale(s) && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-fuchsia-600 text-white">🎂 Order</span>}
@@ -979,7 +979,7 @@ export default function BakerySalesPage() {
                             </span>
                           )}
                         </div>
-                        <div className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2 flex-wrap">
+                        <div className="mt-1 text-xs font-bold text-slate-600 dark:text-ink-300 flex items-center gap-2 flex-wrap">
                           <User className="h-3 w-3 shrink-0" />
                           <span className="truncate max-w-[160px]">{s.customer?.name ?? 'Walk-in'}</span>
                           {s.customer?.phone && <><span className="text-slate-300">•</span><span className="text-slate-500">{s.customer.phone}</span></>}
@@ -987,9 +987,9 @@ export default function BakerySalesPage() {
                           <Package className="h-3 w-3 shrink-0" />
                           <span>{(s.items ?? []).length} cheezein · {Number(qty.toFixed(2))} qty</span>
                         </div>
-                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
+                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 inline-flex items-center gap-1.5 flex-wrap">
                           <Clock className="h-2.5 w-2.5" />
-                          <span className="text-slate-700 dark:text-slate-200">{fmtTime(s.soldAt)}</span>
+                          <span className="text-slate-700 dark:text-ink-200">{fmtTime(s.soldAt)}</span>
                           <span className="text-slate-300">•</span>
                           <span>{fmtDT(s.soldAt)}</span>
                           <span className="text-slate-300">•</span>
@@ -998,12 +998,12 @@ export default function BakerySalesPage() {
                         <div className="mt-2 flex flex-wrap gap-1">
                           {(s.items ?? []).slice(0, 4).map((it: any, n: number) => (
                             <span key={it.id ?? n}
-                              className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate">
+                              className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 max-w-[180px] truncate">
                               {madeIds.has(itemPid(it)) ? '🧁 ' : ''}{it.product?.name} × {Number(Number(it.quantity).toFixed(2))}
                             </span>
                           ))}
                           {(s.items?.length ?? 0) > 4 && (
-                            <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">+{s.items.length - 4} aur</span>
+                            <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-500">+{s.items.length - 4} aur</span>
                           )}
                         </div>
                       </div>
@@ -1029,7 +1029,7 @@ export default function BakerySalesPage() {
                       <Eye className="h-3.5 w-3.5" /> Bill dekhein
                     </Link>
                     <Link to={receiptLink(s.id, true)} title="Seedha print"
-                      className="relative z-10 h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-pink-100 dark:hover:bg-pink-500/20 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
+                      className="relative z-10 h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-pink-100 dark:hover:bg-pink-500/20 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
                       <Printer className="h-3.5 w-3.5" /> Print
                     </Link>
                     {wa && (
@@ -1062,7 +1062,7 @@ export default function BakerySalesPage() {
           </div>
           {visible < filtered.length && (
             <button onClick={() => setVisible((v) => v + 50)}
-              className="w-full py-4 text-xs font-black text-pink-700 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-500/10 border-t-2 border-slate-100 dark:border-slate-800 inline-flex items-center justify-center gap-1 transition print:hidden">
+              className="w-full py-4 text-xs font-black text-pink-700 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-500/10 border-t-2 border-slate-100 dark:border-ink-800 inline-flex items-center justify-center gap-1 transition print:hidden">
               Aur {Math.min(50, filtered.length - visible)} dikhayein <ArrowRight className="h-3 w-3" />
               <span className="text-slate-400 ml-1">({visible}/{filtered.length})</span>
             </button>
@@ -1129,13 +1129,13 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
   }, [anchorRef]);
   if (!pos) return null;
 
-  const seg = (on: boolean) => `h-9 rounded-lg text-[0.6875rem] font-black transition ${on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`;
+  const seg = (on: boolean) => `h-9 rounded-lg text-[0.6875rem] font-black transition ${on ? 'bg-pink-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'}`;
 
   return createPortal(
     <>
       <div className="fixed inset-0 z-[70] print:hidden" onClick={onClose} />
       <div style={{ top: pos.top, right: pos.right }}
-        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white print:hidden">
+        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-ink-white print:hidden">
         <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
         <div>
           <div className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1">Kaghaz</div>
@@ -1170,12 +1170,12 @@ function VoidModal({ sale, pending, onClose, onConfirm }: any) {
   const quick = ['Ghalti se bana', 'Demo bill', 'Customer ne liya hi nahi', 'Double bill ban gaya'];
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="h-12 w-12 rounded-2xl bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center mx-auto">
           <Trash2 className="h-6 w-6 text-rose-600" />
         </div>
-        <h3 className="mt-3 text-center font-black text-slate-900 dark:text-white text-lg">Bill void karein?</h3>
-        <p className="mt-1 text-center text-sm font-bold text-slate-500 dark:text-slate-400">
+        <h3 className="mt-3 text-center font-black text-slate-900 dark:text-ink-white text-lg">Bill void karein?</h3>
+        <p className="mt-1 text-center text-sm font-bold text-slate-500 dark:text-ink-400">
           <strong>{sale.saleNumber}</strong> — {formatPKR(sale.total)} · {fmtDT(sale.soldAt)}
         </p>
         <div className="mt-3 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex gap-2">
@@ -1189,13 +1189,13 @@ function VoidModal({ sale, pending, onClose, onConfirm }: any) {
         <div className="mt-3 flex flex-wrap gap-1.5">
           {quick.map((r) => (
             <button key={r} onClick={() => setReason(r)}
-              className={`h-8 px-2.5 rounded-lg text-[0.6875rem] font-black transition ${reason === r ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}`}>{r}</button>
+              className={`h-8 px-2.5 rounded-lg text-[0.6875rem] font-black transition ${reason === r ? 'bg-rose-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'}`}>{r}</button>
           ))}
         </div>
         <input value={reason} onChange={(e) => setReason(e.target.value)} autoFocus
           onKeyDown={(e) => { if (e.key === 'Enter' && reason.trim() && !pending) onConfirm(reason.trim()); }}
           placeholder="Wajah likhein…"
-          className="mt-2 h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-rose-500" />
+          className="mt-2 h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-rose-500" />
         <div className="mt-4 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Rehne dein</Button>
           <Button className="flex-[2] bg-rose-600 hover:bg-rose-700" disabled={!reason.trim() || pending}
@@ -1223,13 +1223,13 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight }
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active ? 'border-amber-500 ring-2 ring-amber-200 dark:ring-amber-500/20 bg-amber-50 dark:bg-amber-500/10'
           : highlight ? 'bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-500/10 dark:to-fuchsia-500/10 border-pink-300 dark:border-pink-500/40'
-          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
+          : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800',
       ].join(' ')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1241,14 +1241,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight }
 
 function Panel({ icon: Icon, title, hint, children }: { icon: any; title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
       <div className="flex items-center gap-3 mb-4">
         <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white flex items-center justify-center shadow-lg shrink-0">
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+          <h3 className="font-black text-slate-900 dark:text-ink-white text-base leading-tight">{title}</h3>
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{hint}</p>}
         </div>
       </div>
       {children}
@@ -1263,11 +1263,11 @@ function EmptyBox({ text }: { text?: string }) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-pink-200 dark:border-pink-500/30 bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-pink-900 dark:text-pink-200 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Bikri ka safha</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
@@ -1292,13 +1292,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Order "De diya" hote hi us ka asli bill banta hai aur isi list me aata hai (🎂 Order ka nishan) — stock bhi
             ghatta hai aur baqi paisa khate me jata hai.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">B</kbd> bill scan</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">B</kbd> bill scan</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1315,8 +1315,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-pink-600 dark:text-pink-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

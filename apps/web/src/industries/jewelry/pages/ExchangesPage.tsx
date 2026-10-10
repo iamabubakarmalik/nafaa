@@ -77,20 +77,20 @@ export default function ExchangesPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search exchange #, customer, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search exchange #, customer, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setTypeFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (typeFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (typeFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {EXCHANGE_TYPES.map((t) => (
             <button key={t.value} onClick={() => setTypeFilter(t.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (typeFilter === t.value ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (typeFilter === t.value ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.emoji} {t.label}</button>
           ))}
         </div>
@@ -104,9 +104,9 @@ export default function ExchangesPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : exchanges.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Repeat className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No exchanges yet</p>
         </div>
@@ -115,7 +115,7 @@ export default function ExchangesPage() {
           {exchanges.map((ex) => {
             const type = EXCHANGE_TYPES.find((t) => t.value === ex.exchangeType);
             return (
-              <div key={ex.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+              <div key={ex.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow shrink-0 text-2xl">
@@ -125,7 +125,7 @@ export default function ExchangesPage() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-extrabold">{ex.exchangeNumber}</span>
                         <span className="px-2 py-0.5 rounded-full bg-violet-500 text-white text-[0.625rem] font-extrabold uppercase">{type?.label}</span>
-                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{ex.metalType}</span>
+                        <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{ex.metalType}</span>
                       </div>
                       <div className="mt-1 text-sm font-bold text-slate-900">{ex.customerName}</div>
                       <div className="text-xs text-slate-600 font-bold inline-flex items-center gap-1"><Phone className="h-3 w-3" />{ex.customerPhone}</div>
@@ -139,7 +139,7 @@ export default function ExchangesPage() {
                   </div>
                 </div>
                 <div className="grid grid-cols-4 gap-2 text-xs">
-                  <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+                  <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
                     <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Gross</div>
                     <div className="font-extrabold tabular-nums">{ex.grossWeight}g</div>
                   </div>
@@ -180,11 +180,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     cyan: 'from-cyan-500 to-blue-600', emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow'}>
           <Icon className="h-5 w-5" />
@@ -225,7 +225,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">🔄 New Exchange Entry</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
@@ -237,7 +237,7 @@ function ExchangeForm({ onClose, onSaved }: any) {
             {EXCHANGE_TYPES.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, exchangeType: t.value })} className={
                 'p-3 rounded-xl border-2 text-center transition ' +
-                (form.exchangeType === t.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
+                (form.exchangeType === t.value ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
               }>
                 <div className="text-2xl mb-1">{t.emoji}</div>
                 <div className="text-[0.6875rem] font-extrabold">{t.label}</div>
@@ -247,18 +247,18 @@ function ExchangeForm({ onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
         </div>
 
-        <textarea rows={2} value={form.itemDescription} onChange={(e) => setForm({ ...form, itemDescription: e.target.value })} placeholder="Item description (e.g. Gold chain 22K, broken bracelet)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <textarea rows={2} value={form.itemDescription} onChange={(e) => setForm({ ...form, itemDescription: e.target.value })} placeholder="Item description (e.g. Gold chain 22K, broken bracelet)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="GOLD">🥇 Gold</option><option value="SILVER">🥈 Silver</option><option value="PLATINUM">💠 Platinum</option>
           </select>
-          <select value={form.claimedPurity} onChange={(e) => setForm({ ...form, claimedPurity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.claimedPurity} onChange={(e) => setForm({ ...form, claimedPurity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             {['KARAT_24', 'KARAT_22', 'KARAT_21', 'KARAT_18', 'KARAT_14', 'SILVER_999', 'SILVER_925'].map((p) => <option key={p} value={p}>Claimed: {p.replace('KARAT_', '').replace('SILVER_', 'S')}K</option>)}
           </select>
         </div>
@@ -282,11 +282,11 @@ function ExchangeForm({ onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Gross Weight (g) *</label>
-            <input type="number" step="0.01" value={form.grossWeight} onChange={(e) => setForm({ ...form, grossWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" step="0.01" value={form.grossWeight} onChange={(e) => setForm({ ...form, grossWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Stone Weight (g)</label>
-            <input type="number" step="0.01" value={form.stoneWeight} onChange={(e) => setForm({ ...form, stoneWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" step="0.01" value={form.stoneWeight} onChange={(e) => setForm({ ...form, stoneWeight: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Rate/gram *</label>
@@ -296,8 +296,8 @@ function ExchangeForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-3 gap-3">
           <input type="number" value={form.deductions} onChange={(e) => setForm({ ...form, deductions: e.target.value })} placeholder="Deductions (Rs)" className="h-11 rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500" />
-          <input type="number" value={form.meltingCharges} onChange={(e) => setForm({ ...form, meltingCharges: e.target.value })} placeholder="Melting charges" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
-          <input type="number" value={form.testingCharges} onChange={(e) => setForm({ ...form, testingCharges: e.target.value })} placeholder="Testing charges" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+          <input type="number" value={form.meltingCharges} onChange={(e) => setForm({ ...form, meltingCharges: e.target.value })} placeholder="Melting charges" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+          <input type="number" value={form.testingCharges} onChange={(e) => setForm({ ...form, testingCharges: e.target.value })} placeholder="Testing charges" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
         </div>
 
         <div>
@@ -318,9 +318,9 @@ function ExchangeForm({ onClose, onSaved }: any) {
           }} />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName || !form.customerPhone || !form.grossWeight || !form.ratePerGram}>
             <Save className="h-4 w-4" />

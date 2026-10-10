@@ -47,7 +47,7 @@ export function DeliverRepairModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-transparent dark:border-slate-800"
+        className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-transparent dark:border-ink-800"
       >
         {/* Header */}
         <div className="relative overflow-hidden px-5 py-4 bg-gradient-to-br from-orange-600 via-amber-600 to-orange-700 text-white shrink-0">
@@ -75,18 +75,18 @@ export function DeliverRepairModal({
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Device + customer */}
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5 space-y-1.5">
-            <div className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-3.5 space-y-1.5">
+            <div className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-ink-white">
               <Smartphone className="h-4 w-4 text-orange-600 dark:text-orange-400 shrink-0" />
               {ticket.deviceBrand} {ticket.deviceModel}
             </div>
-            <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+            <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-ink-300">
               <User className="h-3.5 w-3.5 shrink-0" />
               {ticket.customerName}
               {ticket.customerPhone && <span className="text-slate-400">· {ticket.customerPhone}</span>}
             </div>
             {ticket.imei1 && (
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-500 dark:text-ink-400">
                 <Hash className="h-3.5 w-3.5 shrink-0" />
                 {ticket.imei1}
               </div>
@@ -96,15 +96,15 @@ export function DeliverRepairModal({
           {/* Money */}
           <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3.5 space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="font-bold text-slate-600 dark:text-slate-300">Kul bill</span>
-              <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(ticket.totalCost)}</span>
+              <span className="font-bold text-slate-600 dark:text-ink-300">Kul bill</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(ticket.totalCost)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="font-bold text-slate-600 dark:text-slate-300">Pehle mila</span>
+              <span className="font-bold text-slate-600 dark:text-ink-300">Pehle mila</span>
               <span className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(ticket.paidAmount)}</span>
             </div>
             <div className="flex justify-between pt-2 border-t-2 border-emerald-200 dark:border-emerald-500/30">
-              <span className="font-extrabold text-slate-900 dark:text-white">Baqi</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">Baqi</span>
               <span className={`text-lg font-extrabold tabular-nums ${balance > 0 ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                 {formatPKR(balance)}
               </span>
@@ -115,7 +115,7 @@ export function DeliverRepairModal({
             <>
               <div>
                 <div className="flex items-baseline justify-between mb-1.5">
-                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">
                     Abhi kitna liya
                   </label>
                   <button
@@ -131,10 +131,10 @@ export function DeliverRepairModal({
                   inputMode="decimal"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className={`h-14 w-full rounded-2xl border-2 bg-white dark:bg-slate-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none transition ${
+                  className={`h-14 w-full rounded-2xl border-2 bg-white dark:bg-ink-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none transition ${
                     tooMuch
                       ? 'border-rose-400 focus:border-rose-500'
-                      : 'border-slate-200 dark:border-slate-700 focus:border-orange-500'
+                      : 'border-slate-200 dark:border-ink-700 focus:border-orange-500'
                   }`}
                 />
                 {tooMuch && (
@@ -152,7 +152,7 @@ export function DeliverRepairModal({
               </div>
 
               <div>
-                <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+                <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 mb-1.5">
                   Tarika
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -163,7 +163,7 @@ export function DeliverRepairModal({
                       className={`h-12 rounded-2xl border-2 text-xs font-extrabold transition active:scale-95 ${
                         method === m.value
                           ? 'bg-gradient-to-br from-orange-600 to-amber-700 text-white border-transparent shadow-lg shadow-orange-500/30'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-orange-300 dark:hover:border-orange-500/40'
+                          : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-orange-300 dark:hover:border-orange-500/40'
                       }`}
                     >
                       <span className="mr-1">{m.emoji}</span>{m.label}
@@ -185,7 +185,7 @@ export function DeliverRepairModal({
           </div>
         </div>
 
-        <div className="p-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 shrink-0">
+        <div className="p-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60 shrink-0">
           <Button
             size="lg"
             fullWidth

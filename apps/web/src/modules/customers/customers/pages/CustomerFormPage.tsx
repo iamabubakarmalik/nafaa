@@ -390,7 +390,7 @@ export default function CustomerFormPage() {
       <div className="flex items-center justify-between gap-2">
         <button
           onClick={goBack}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-extrabold transition"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-blue-600 dark:hover:text-blue-400 font-extrabold transition"
         >
           <ArrowLeft className="h-4 w-4" /> Wapas
         </button>
@@ -410,7 +410,7 @@ export default function CustomerFormPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-cyan-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
 
@@ -509,8 +509,8 @@ export default function CustomerFormPage() {
         {/* ─── SIDEBAR ─── */}
         <div className="space-y-4 lg:sticky lg:top-4">
           {/* Photo */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm dark:shadow-black/20">
-            <h3 className="font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-sm">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm dark:shadow-black/20">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2 text-sm">
               <User className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Photo
             </h3>
             <AvatarUpload
@@ -521,14 +521,14 @@ export default function CustomerFormPage() {
               size="xl"
               fallbackText={form.name || 'C'}
             />
-            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-3 text-center">
+            <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-3 text-center">
               Optional — POS pe pehchan asaan hoti hai
             </p>
           </div>
 
           {/* Flags */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm dark:shadow-black/20 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm dark:shadow-black/20 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-sm">
               <Crown className="h-4 w-4 text-amber-500" /> Flags
             </h3>
             <FlagToggle
@@ -551,8 +551,8 @@ export default function CustomerFormPage() {
 
           {/* 📊 Live stats (edit mode) */}
           {isEdit && customer && (
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 shadow-sm dark:shadow-black/20">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm mb-3">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm dark:shadow-black/20">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-sm mb-3">
                 <ShoppingBag className="h-4 w-4 text-blue-600 dark:text-blue-400" /> Is Ka Hisaab
               </h3>
               <div className="grid grid-cols-2 gap-2">
@@ -562,13 +562,13 @@ export default function CustomerFormPage() {
                 <MiniStat label="Points" value={Number(customer.loyaltyPoints ?? 0).toLocaleString()} tone="amber" />
               </div>
               {customer.stats?.averageSale > 0 && (
-                <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 text-center">
+                <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 text-center">
                   Har bar ausatan {formatPKR(customer.stats.averageSale)} ka saudaa
                 </p>
               )}
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Link to={`/customers/${id}`}
-                  className="h-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+                  className="h-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-extrabold inline-flex items-center justify-center gap-1.5 transition">
                   <Eye className="h-3.5 w-3.5" /> Poori Detail
                 </Link>
                 <Link to="/khata"
@@ -580,7 +580,7 @@ export default function CustomerFormPage() {
           )}
 
           {/* Live summary */}
-          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 dark:from-slate-800/60 dark:to-slate-900/80 border-2 border-slate-700 dark:border-slate-700 p-5 shadow-lg text-white">
+          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 dark:from-ink-800/60 dark:to-ink-900/80 border-2 border-slate-700 dark:border-ink-700 p-5 shadow-lg text-white">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-sm flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-amber-300" /> Profile Summary
@@ -721,7 +721,7 @@ export default function CustomerFormPage() {
                       ? 'bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300'
                       : birthdayInfo.isThisMonth
                         ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                        : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                   }`}>
                     <Cake className="h-3 w-3" />
                     {birthdayInfo.isToday
@@ -744,7 +744,7 @@ export default function CustomerFormPage() {
                     className={`h-11 px-5 rounded-xl border-2 text-sm font-extrabold transition ${
                       form.gender === g
                         ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500/50'
+                        : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-blue-300 dark:hover:border-blue-500/50'
                     }`}
                   >
                     {g === 'MALE' ? '👨 Male' : g === 'FEMALE' ? '👩 Female' : '🧑 Other'}
@@ -761,7 +761,7 @@ export default function CustomerFormPage() {
                   Naam se lagta hai {genderGuess === 'FEMALE' ? '👩 Female' : '👨 Male'} — set karein?
                 </button>
               ) : (
-                <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+                <div className="mt-1.5 text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
                   💡 WhatsApp reminders me "bhai / baji" sahi lagane ke liye
                 </div>
               )}
@@ -834,7 +834,7 @@ export default function CustomerFormPage() {
                       className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                         active
                           ? 'bg-emerald-600 border-emerald-600 text-white shadow'
-                          : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                          : 'bg-slate-100 dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                       }`}
                     >
                       {v === 0 ? '♾️ Unlimited' : formatPKR(v)}
@@ -874,7 +874,7 @@ export default function CustomerFormPage() {
                       className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold transition ${
                         used
                           ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-300 dark:border-emerald-500/40'
-                          : 'bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500/50'
+                          : 'bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-blue-400 dark:hover:border-blue-500/50'
                       }`}
                     >
                       {used ? '✓ ' : '+ '}{chip}
@@ -888,14 +888,14 @@ export default function CustomerFormPage() {
       </div>
 
       {/* ═══ STICKY ACTION BAR — mobile aur desktop dono pe ═══ */}
-      <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t-2 border-slate-200 dark:border-slate-800 p-3">
+      <div className="fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-ink-900/95 backdrop-blur-md border-t-2 border-slate-200 dark:border-ink-800 p-3">
         <div className="mx-auto max-w-6xl flex items-center gap-2">
           <button onClick={goBack}
-            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-700 transition shrink-0">
+            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-ink-700 transition shrink-0">
             <X className="h-4 w-4" /> <span className="hidden sm:inline">Cancel</span>
           </button>
 
-          <div className="hidden md:block flex-1 text-xs font-bold text-slate-500 dark:text-slate-400 truncate px-2">
+          <div className="hidden md:block flex-1 text-xs font-bold text-slate-500 dark:text-ink-400 truncate px-2">
             {errorCount > 0 && touched
               ? <span className="text-rose-600 dark:text-rose-400">{errorCount} field theek karni hai</span>
               : dirty
@@ -935,14 +935,14 @@ function DeleteConfirmModal({ name, balance, loading, onClose, onConfirm }: any)
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden"
+        className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 text-center">
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 text-white mx-auto flex items-center justify-center shadow-lg shadow-rose-500/40">
             <Trash2 className="h-7 w-7" />
           </div>
-          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             "{name}" delete karein?
           </h3>
           {hasBalance && (
@@ -951,7 +951,7 @@ function DeleteConfirmModal({ name, balance, loading, onClose, onConfirm }: any)
               {formatPKR(balance)} udhaar baqi hai — pehle wusooli karo!
             </div>
           )}
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+          <p className="mt-2 text-xs text-slate-500 dark:text-ink-400 font-semibold">
             Ye action undo nahi ho sakta. Sales history mehfooz rahegi — sirf customer record hatega.
           </p>
           <div className="mt-4 flex gap-2">
@@ -977,24 +977,24 @@ function CustomerFormTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: ()
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> {isEdit ? 'Customer Edit Kaise Karein?' : 'Naya Customer Kaise Banayein?'}
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Sirf <strong>naam zaroori</strong> hai — baqi sab optional. Lekin jitna zyada bharo ge, utna zyada faida:
           </p>
 
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>📱 Phone sab se important</strong> — WhatsApp reminders isi se jate hain. Number khud format ho jata hai, <strong>+92 / 92 apne aap 0</strong> ban jata hai. Agar number pehle se kisi ka hai to <strong>foran warning</strong> milegi</TipRow>
             <TipRow><strong>👥 Naam bhi check hota hai</strong> — same naam ka gahak pehle se ho to upar bata diya jata hai, taake do bar entry na ho</TipRow>
             <TipRow><strong>🎂 Birthday likho</strong> — age khud niklegi aur list page pe birthday strip me customer dikhega (1-click wish!)</TipRow>
@@ -1005,7 +1005,7 @@ function CustomerFormTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: ()
             <TipRow><strong>👑 VIP flag</strong> — premium customers ko amber card + crown milta hai</TipRow>
           </div>
 
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Tez Kaam</div>
             <TipRow><strong>💾 "Save + Naya"</strong> — purani copy/register se data daal rahe ho? Save hote hi form khali ho jata hai aur cursor naam pe aa jata hai. City/Area wahi rehte hain</TipRow>
             <TipRow><strong>🛡️ Bina save kiye</strong> page chhodne ki koshish karo to warning milti hai — mehnat zaya nahi hoti</TipRow>
@@ -1035,11 +1035,11 @@ function CustomerFormTeacher({ isEdit, onClose }: { isEdit: boolean; onClose: ()
    ═════════════════════════════════════════════════════════════ */
 function Section({ icon, title, badge, children }: any) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm dark:shadow-black/20 space-y-4">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 sm:p-6 shadow-sm dark:shadow-black/20 space-y-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm">{icon} {title}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-sm">{icon} {title}</h3>
         {badge && (
-          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[0.6875rem] font-extrabold uppercase tracking-wider">
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400 text-[0.6875rem] font-extrabold uppercase tracking-wider">
             {badge}
           </span>
         )}
@@ -1052,10 +1052,10 @@ function Section({ icon, title, badge, children }: any) {
 function Field({ label, required, hint, error, children }: any) {
   return (
     <div>
-      <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+      <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
         {label}
         {required && <span className="text-rose-500 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 dark:text-slate-500 normal-case font-bold ml-1">({hint})</span>}
+        {hint && <span className="text-slate-400 dark:text-ink-500 normal-case font-bold ml-1">({hint})</span>}
       </label>
       {children}
       {error && (
@@ -1075,17 +1075,17 @@ function FlagToggle({ checked, onChange, icon, title, sub, activeCls }: any) {
       className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition text-left ${
         checked
           ? `bg-gradient-to-br ${activeCls}`
-          : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+          : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 hover:border-slate-300 dark:hover:border-ink-600'
       }`}
     >
       <div className="flex items-center gap-2.5">
         {icon}
         <div>
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</div>
-          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{sub}</div>
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{sub}</div>
         </div>
       </div>
-      <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${checked ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+      <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${checked ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-ink-600'}`}>
         <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
       </div>
     </button>
@@ -1098,7 +1098,7 @@ function MiniStat({ label, value, tone }: { label: string; value: string; tone: 
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400',
     blue: 'bg-blue-50 dark:bg-blue-500/10 border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-400',
     amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-400',
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300',
   };
   return (
     <div className={`rounded-xl border px-2.5 py-2 ${tones[tone]}`}>
@@ -1126,12 +1126,12 @@ function SummaryRow({ ok, label, optional }: any) {
 function inputCls(extra = '', error = false) {
   return [
     'w-full rounded-xl border-2 px-3',
-    'bg-white dark:bg-slate-800',
-    'text-slate-900 dark:text-white',
-    'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+    'bg-white dark:bg-ink-800',
+    'text-slate-900 dark:text-ink-white',
+    'placeholder:text-slate-400 dark:placeholder:text-ink-500',
     error
       ? 'border-rose-400 dark:border-rose-500/60 focus:border-rose-500 focus:ring-rose-200 dark:focus:ring-rose-500/30'
-      : 'border-slate-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-200 dark:focus:ring-blue-500/30',
+      : 'border-slate-200 dark:border-ink-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-200 dark:focus:ring-blue-500/30',
     'focus:outline-none focus:ring-2 transition',
     extra,
   ].join(' ');

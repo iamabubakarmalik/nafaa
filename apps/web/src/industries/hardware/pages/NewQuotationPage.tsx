@@ -163,7 +163,7 @@ export default function NewQuotationPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Customer & Project */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <h3 className="font-extrabold flex items-center gap-2"><User className="h-4 w-4 text-violet-600" />Customer & Project</h3>
 
             {form.customerId ? (
@@ -196,18 +196,18 @@ export default function NewQuotationPage() {
                   </div>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
                 </div>
-                <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                <textarea rows={2} value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })} placeholder="Billing address" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+                <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                <textarea rows={2} value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })} placeholder="Billing address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
               </>
             )}
 
             {projects.length > 0 && (
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Link to Project</label>
-                <select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+                <select value={form.projectId} onChange={(e) => setForm({ ...form, projectId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
                   <option value="">-- No project --</option>
                   {projects.map((p) => <option key={p.id} value={p.id}>{p.projectNumber} • {p.name}</option>)}
                 </select>
@@ -216,12 +216,12 @@ export default function NewQuotationPage() {
 
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Validity (days)</label>
-              <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
+              <input type="number" value={form.validityDays} onChange={(e) => setForm({ ...form, validityDays: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500" />
             </div>
           </section>
 
           {/* Items */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold flex items-center gap-2"><Package className="h-4 w-4 text-violet-600" />Items ({items.length})</h3>
               <Button size="sm" onClick={addItem} className="bg-gradient-to-r from-violet-600 to-purple-700">
@@ -231,7 +231,7 @@ export default function NewQuotationPage() {
 
             <div className="space-y-3">
               {items.map((item, i) => (
-                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
+                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 dark:bg-ink-800/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Item #{i + 1}</span>
                     <div className="flex gap-1">
@@ -247,20 +247,20 @@ export default function NewQuotationPage() {
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-2">
-                    <input value={item.itemName} onChange={(e) => updateItem(i, { itemName: e.target.value })} placeholder="Item name *" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
-                    <input value={item.brand} onChange={(e) => updateItem(i, { brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                    <input value={item.itemName} onChange={(e) => updateItem(i, { itemName: e.target.value })} placeholder="Item name *" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                    <input value={item.brand} onChange={(e) => updateItem(i, { brand: e.target.value })} placeholder="Brand" className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
                   </div>
 
-                  <input value={item.specifications} onChange={(e) => updateItem(i, { specifications: e.target.value })} placeholder="Specifications (grade, size, model...)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
+                  <input value={item.specifications} onChange={(e) => updateItem(i, { specifications: e.target.value })} placeholder="Specifications (grade, size, model...)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500" />
 
                   <div className="grid grid-cols-4 gap-2">
                     <div>
                       <label className="text-[0.625rem] uppercase font-extrabold text-slate-500">Qty</label>
-                      <input type="number" step="0.01" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-violet-500" />
+                      <input type="number" step="0.01" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-violet-500" />
                     </div>
                     <div>
                       <label className="text-[0.625rem] uppercase font-extrabold text-slate-500">Unit</label>
-                      <select value={item.unit} onChange={(e) => updateItem(i, { unit: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-1 text-xs font-bold focus:outline-none focus:border-violet-500">
+                      <select value={item.unit} onChange={(e) => updateItem(i, { unit: e.target.value })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-1 text-xs font-bold focus:outline-none focus:border-violet-500">
                         {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
                       </select>
                     </div>
@@ -283,13 +283,13 @@ export default function NewQuotationPage() {
           </section>
 
           {/* Terms */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <h3 className="font-extrabold">📋 Terms & Conditions</h3>
-            <textarea rows={2} value={form.paymentTerms} onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })} placeholder="Payment terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.deliveryTerms} onChange={(e) => setForm({ ...form, deliveryTerms: e.target.value })} placeholder="Delivery terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.warrantyTerms} onChange={(e) => setForm({ ...form, warrantyTerms: e.target.value })} placeholder="Warranty terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.specialTerms} onChange={(e) => setForm({ ...form, specialTerms: e.target.value })} placeholder="Special terms" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
-            <textarea rows={2} value={form.customerNotes} onChange={(e) => setForm({ ...form, customerNotes: e.target.value })} placeholder="Notes visible to customer" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+            <textarea rows={2} value={form.paymentTerms} onChange={(e) => setForm({ ...form, paymentTerms: e.target.value })} placeholder="Payment terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+            <textarea rows={2} value={form.deliveryTerms} onChange={(e) => setForm({ ...form, deliveryTerms: e.target.value })} placeholder="Delivery terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+            <textarea rows={2} value={form.warrantyTerms} onChange={(e) => setForm({ ...form, warrantyTerms: e.target.value })} placeholder="Warranty terms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+            <textarea rows={2} value={form.specialTerms} onChange={(e) => setForm({ ...form, specialTerms: e.target.value })} placeholder="Special terms" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+            <textarea rows={2} value={form.customerNotes} onChange={(e) => setForm({ ...form, customerNotes: e.target.value })} placeholder="Notes visible to customer" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
           </section>
         </div>
 
@@ -330,15 +330,15 @@ export default function NewQuotationPage() {
       {/* Product picker */}
       {showProductPicker !== null && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+          <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
               <h3 className="font-extrabold">Pick Product for Item #{showProductPicker + 1}</h3>
               <button onClick={() => setShowProductPicker(null)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
                 <X className="h-4 w-4" />
               </button>
             </div>
             <div className="p-3">
-              <input autoFocus value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+              <input autoFocus value={productSearch} onChange={(e) => setProductSearch(e.target.value)} placeholder="Search products..." className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-1">
               {(productsData?.items ?? []).map((p: any) => (

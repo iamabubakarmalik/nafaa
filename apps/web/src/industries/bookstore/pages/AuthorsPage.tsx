@@ -61,16 +61,16 @@ export default function AuthorsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search authors, pen names..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search authors, pen names..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
         </div>
         <div className="flex gap-1.5">
           {[{ v: 'all', label: 'All' }, { v: 'featured', label: '⭐ Featured' }].map((f) => (
             <button key={f.v} onClick={() => setTagFilter(f.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{f.label}</button>
           ))}
         </div>
@@ -82,10 +82,10 @@ export default function AuthorsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : authors.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No authors yet</p>
         </div>
@@ -93,8 +93,8 @@ export default function AuthorsPage() {
         <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {authors.map((a) => (
             <div key={a.id} className={
-              'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl transition p-4 space-y-3 ' +
-              (a.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+              'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition p-4 space-y-3 ' +
+              (a.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
             }>
               <div className="flex items-start justify-between">
                 {a.photoUrl ? (
@@ -115,7 +115,7 @@ export default function AuthorsPage() {
               </div>
 
               <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">{a.name}</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{a.name}</h3>
                 {a.penName && <div className="text-xs italic text-slate-500 font-bold">"{a.penName}"</div>}
                 {a.nationality && (
                   <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 font-bold">
@@ -138,7 +138,7 @@ export default function AuthorsPage() {
                 </div>
               )}
 
-              <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between text-xs">
+              <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between text-xs">
                 <span className="inline-flex items-center gap-1 text-slate-600 font-bold">
                   <BookOpen className="h-3 w-3" />
                   {a._count?.bookAuthors || 0} books
@@ -190,24 +190,24 @@ function AuthorForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-teal-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-teal-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-teal-50 dark:bg-teal-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Author' : 'New Author'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
       </div>
       <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Author name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input value={form.penName} onChange={(e) => setForm({ ...form, penName: e.target.value })} placeholder="Pen name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Author name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input value={form.penName} onChange={(e) => setForm({ ...form, penName: e.target.value })} placeholder="Pen name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} placeholder="Nationality" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-          <input type="number" value={form.bornYear} onChange={(e) => setForm({ ...form, bornYear: e.target.value })} placeholder="Born year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-teal-500" />
-          <input type="number" value={form.diedYear} onChange={(e) => setForm({ ...form, diedYear: e.target.value })} placeholder="Died year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-teal-500" />
+          <input value={form.nationality} onChange={(e) => setForm({ ...form, nationality: e.target.value })} placeholder="Nationality" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+          <input type="number" value={form.bornYear} onChange={(e) => setForm({ ...form, bornYear: e.target.value })} placeholder="Born year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-teal-500" />
+          <input type="number" value={form.diedYear} onChange={(e) => setForm({ ...form, diedYear: e.target.value })} placeholder="Died year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-teal-500" />
         </div>
-        <input value={form.genres} onChange={(e) => setForm({ ...form, genres: e.target.value })} placeholder="Genres (comma separated) e.g. Fiction, Poetry, History" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-        <input value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} placeholder="Languages (comma separated) e.g. English, Urdu, Arabic" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
-        <textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
+        <input value={form.genres} onChange={(e) => setForm({ ...form, genres: e.target.value })} placeholder="Genres (comma separated) e.g. Fiction, Poetry, History" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+        <input value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} placeholder="Languages (comma separated) e.g. English, Urdu, Arabic" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-teal-500" />
+        <textarea rows={3} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-teal-500 resize-none" />
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Photo</label>

@@ -127,12 +127,12 @@ export default function MenuItemsPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500"
               placeholder="Search menu items..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -160,7 +160,7 @@ export default function MenuItemsPage() {
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
                 (filter === opt.v
                   ? 'bg-violet-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200')
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200')
               }
             >
               {opt.label}
@@ -184,14 +184,14 @@ export default function MenuItemsPage() {
       {/* MENU ITEMS GRID */}
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-violet-100 dark:bg-violet-950/40 mx-auto flex items-center justify-center">
             <ChefHat className="h-10 w-10 text-violet-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No menu items</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No menu items</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Pehla menu item add karo</p>
           <Button
             className="mt-4 bg-gradient-to-r from-violet-600 to-fuchsia-700"
@@ -228,11 +228,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     rose: 'from-rose-500 to-red-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -252,8 +252,8 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (!item.isAvailable ? 'opacity-60 border-slate-200 dark:border-neutral-800' : item.chefSpecial ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+      (!item.isAvailable ? 'opacity-60 border-slate-200 dark:border-ink-800' : item.chefSpecial ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
     }>
       {/* Image */}
       <div className="relative aspect-video bg-gradient-to-br from-violet-500 via-fuchsia-600 to-pink-600 overflow-hidden">
@@ -316,7 +316,7 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
       {/* Body */}
       <div className="p-4 space-y-2.5">
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight">{product?.name || 'Unknown'}</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base leading-tight">{product?.name || 'Unknown'}</h3>
           {product?.category && (
             <span className="inline-block mt-0.5 text-[0.6875rem] font-extrabold uppercase" style={{ color: product.category.color }}>
               {product.category.name}
@@ -367,7 +367,7 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
         </div>
 
         {/* Price */}
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
               {formatPKR(product?.price ?? 0)}
@@ -376,7 +376,7 @@ function MenuItemCard({ item, onToggle, onEdit, onDelete }: {
           </div>
           <div className="text-right">
             <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Ordered</div>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{item.totalOrdered}</div>
+            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{item.totalOrdered}</div>
           </div>
         </div>
       </div>
@@ -471,10 +471,10 @@ function MenuItemForm({ editing, onClose, onSaved }: {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Menu Item' : 'New Menu Item'}</h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Menu Item' : 'New Menu Item'}</h3>
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -491,19 +491,19 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 placeholder="Search products..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500"
               />
             </div>
-            <div className="mt-2 max-h-56 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-neutral-700">
+            <div className="mt-2 max-h-56 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-ink-700">
               {products.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => { setProductId(p.id); setShowProductPicker(false); }}
-                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800 transition text-left"
+                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800 transition text-left"
                 >
                   <Package className="h-4 w-4 text-slate-400" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{p.name}</div>
+                    <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">{p.name}</div>
                     <div className="text-xs text-slate-500 font-semibold">{formatPKR(p.price)}</div>
                   </div>
                 </button>
@@ -514,7 +514,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
           <div className="rounded-xl bg-violet-50 dark:bg-violet-950/30 border-2 border-violet-200 dark:border-violet-800 p-3 flex items-center gap-3">
             <Package className="h-5 w-5 text-violet-600" />
             <div className="flex-1">
-              <div className="font-extrabold text-slate-900 dark:text-white">{selectedProduct?.name || 'Selected product'}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedProduct?.name || 'Selected product'}</div>
               <div className="text-xs text-slate-500 font-semibold">Product ID: {productId.slice(0, 8)}...</div>
             </div>
             {!editing && (
@@ -535,7 +535,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                   type="number"
                   value={form.prepTimeMinutes}
                   onChange={(e) => setForm({ ...form, prepTimeMinutes: Number(e.target.value) })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
                 />
               </div>
               <div>
@@ -544,7 +544,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                   type="number"
                   value={form.servesPeople}
                   onChange={(e) => setForm({ ...form, servesPeople: Number(e.target.value) })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
                 />
               </div>
             </div>
@@ -557,7 +557,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                   value={form.calories}
                   onChange={(e) => setForm({ ...form, calories: e.target.value as any })}
                   placeholder="Optional"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
                 />
               </div>
               <div>
@@ -566,7 +566,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                   value={form.servingSize}
                   onChange={(e) => setForm({ ...form, servingSize: e.target.value })}
                   placeholder="1 plate / 500ml"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
                 />
               </div>
               <div>
@@ -575,7 +575,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                   value={form.tagLine}
                   onChange={(e) => setForm({ ...form, tagLine: e.target.value })}
                   placeholder="New! / Popular"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
                 />
               </div>
             </div>
@@ -584,7 +584,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
             <div className="grid grid-cols-3 gap-2">
               <label className={
                 'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                (form.chefSpecial ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700 hover:border-amber-300')
+                (form.chefSpecial ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700 hover:border-amber-300')
               }>
                 <input type="checkbox" checked={form.chefSpecial} onChange={(e) => setForm({ ...form, chefSpecial: e.target.checked })} className="h-4 w-4 rounded" />
                 <Star className={'h-4 w-4 ' + (form.chefSpecial ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
@@ -592,7 +592,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
               </label>
               <label className={
                 'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                (form.bestSeller ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-neutral-700 hover:border-emerald-300')
+                (form.bestSeller ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-ink-700 hover:border-emerald-300')
               }>
                 <input type="checkbox" checked={form.bestSeller} onChange={(e) => setForm({ ...form, bestSeller: e.target.checked })} className="h-4 w-4 rounded" />
                 <TrendingUp className={'h-4 w-4 ' + (form.bestSeller ? 'text-emerald-600' : 'text-slate-400')} />
@@ -600,7 +600,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
               </label>
               <label className={
                 'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                (form.isAvailable ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-neutral-700')
+                (form.isAvailable ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700')
               }>
                 <input type="checkbox" checked={form.isAvailable} onChange={(e) => setForm({ ...form, isAvailable: e.target.checked })} className="h-4 w-4 rounded" />
                 {form.isAvailable ? <Eye className="h-4 w-4 text-blue-600" /> : <EyeOff className="h-4 w-4 text-slate-400" />}
@@ -625,7 +625,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                         'p-2 rounded-lg text-xs font-extrabold transition ' +
                         (form.spiceLevel === level
                           ? 'bg-red-600 text-white shadow'
-                          : 'bg-white dark:bg-neutral-800 border border-slate-200 text-slate-700 hover:border-red-300')
+                          : 'bg-white dark:bg-ink-800 border border-slate-200 text-slate-700 hover:border-red-300')
                       }
                     >
                       <div>{SPICE_CONFIG[level].emoji}</div>
@@ -649,7 +649,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                       onClick={() => toggleDietaryTag(tag as DietaryTag)}
                       className={
                         'px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 border-2 transition ' +
-                        (active ? cfg.color + ' shadow' : 'bg-white dark:bg-neutral-800 border-slate-200 dark:border-neutral-700 text-slate-600 hover:border-slate-300')
+                        (active ? cfg.color + ' shadow' : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 hover:border-slate-300')
                       }
                     >
                       <Icon className="h-3 w-3" />
@@ -668,7 +668,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 value={form.allergenInfo}
                 onChange={(e) => setForm({ ...form, allergenInfo: e.target.value })}
                 placeholder="Contains peanuts, may contain traces of dairy..."
-                className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
+                className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
               />
             </div>
 
@@ -680,13 +680,13 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                 value={form.cookingInstructions}
                 onChange={(e) => setForm({ ...form, cookingInstructions: e.target.value })}
                 placeholder="Grill on medium heat for 8 minutes each side..."
-                className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
+                className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
               />
             </div>
 
             {/* AVAILABILITY TIME */}
-            <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white">Time-based Availability (Optional)</div>
+            <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Time-based Availability (Optional)</div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Available From</label>
@@ -694,7 +694,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                     type="time"
                     value={form.availableFrom}
                     onChange={(e) => setForm({ ...form, availableFrom: e.target.value })}
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
                   />
                 </div>
                 <div>
@@ -703,7 +703,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                     type="time"
                     value={form.availableTo}
                     onChange={(e) => setForm({ ...form, availableTo: e.target.value })}
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
                   />
                 </div>
               </div>
@@ -720,7 +720,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
                           'py-2 rounded-lg text-xs font-extrabold transition ' +
                           (active
                             ? 'bg-violet-600 text-white shadow'
-                            : 'bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 text-slate-600 hover:border-violet-300')
+                            : 'bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 hover:border-violet-300')
                         }
                       >
                         {day}
@@ -736,7 +736,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
             <div>
               <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Custom Menu Image</label>
               {form.imageUrl ? (
-                <div className="relative w-40 h-40 rounded-xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700">
+                <div className="relative w-40 h-40 rounded-xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
                   <img src={form.imageUrl} alt="" className="w-full h-full object-cover" />
                   <button
                     onClick={() => setForm({ ...form, imageUrl: '' })}
@@ -757,7 +757,7 @@ function MenuItemForm({ editing, onClose, onSaved }: {
             </div>
 
             {/* ACTIONS */}
-            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
               <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
               <Button
                 className="flex-1 bg-gradient-to-r from-violet-600 to-fuchsia-700"

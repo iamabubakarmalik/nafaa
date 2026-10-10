@@ -56,7 +56,7 @@ export default function PrescriptionDetailPage() {
   });
 
   if (isLoading || !rx) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   return (
@@ -141,15 +141,15 @@ export default function PrescriptionDetailPage() {
         <section className="space-y-6">
           {/* Patient & Doctor */}
           <div className="grid md:grid-cols-2 gap-4">
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
                 <User className="h-4 w-4 text-violet-600" />
                 Patient
               </h3>
               <div className="space-y-1 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-500 font-semibold">Name:</span>
-                  <span className="font-extrabold text-slate-900 dark:text-white">{rx.patientName || '—'}</span>
+                  <span className="font-extrabold text-slate-900 dark:text-ink-white">{rx.patientName || '—'}</span>
                 </div>
                 {rx.patientPhone && (
                   <div className="flex items-center gap-2">
@@ -168,13 +168,13 @@ export default function PrescriptionDetailPage() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
                 <Stethoscope className="h-4 w-4 text-emerald-600" />
                 Doctor
               </h3>
               <div className="space-y-1 text-sm">
-                <div className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                <div className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-1.5">
                   {rx.doctor?.name || rx.doctorName || '—'}
                   {rx.doctor?.isVerified && <Award className="h-3.5 w-3.5 text-emerald-500" />}
                 </div>
@@ -197,34 +197,34 @@ export default function PrescriptionDetailPage() {
               {rx.chiefComplaint && (
                 <div className="mb-2">
                   <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Chief Complaint</div>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white">{rx.chiefComplaint}</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-ink-white">{rx.chiefComplaint}</div>
                 </div>
               )}
               {rx.diagnosis && (
                 <div>
                   <div className="text-[0.6875rem] uppercase font-extrabold text-amber-700">Diagnosis</div>
-                  <div className="text-sm font-semibold text-slate-900 dark:text-white">{rx.diagnosis}</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-ink-white">{rx.diagnosis}</div>
                 </div>
               )}
             </div>
           )}
 
           {/* Items */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Pill className="h-5 w-5 text-violet-600" />
                 Prescribed Medicines
               </h3>
               <span className="text-xs font-extrabold text-slate-500">{rx.items.length} items</span>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {rx.items.map((it: any) => (
                 <div key={it.id} className="p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white text-base">{it.medicineName}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white text-base">{it.medicineName}</span>
                         {it.strength && <span className="px-2 py-0.5 rounded bg-violet-100 dark:bg-violet-950/40 text-violet-700 text-[0.6875rem] font-extrabold">{it.strength}</span>}
                         {it.isDispensed && (
                           <span className="px-2 py-0.5 rounded bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
@@ -258,7 +258,7 @@ export default function PrescriptionDetailPage() {
                       )}
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">
+                      <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                         {it.dispensedQty}/{it.prescribedQty}
                       </div>
                       <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">{it.unit}</div>
@@ -274,8 +274,8 @@ export default function PrescriptionDetailPage() {
 
           {/* Rx Images */}
           {rx.imageUrls?.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-2">Prescription Images</h3>
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-2">Prescription Images</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {rx.imageUrls.map((url: string, i: number) => (
                   <a key={i} href={url} target="_blank" rel="noreferrer" className="aspect-square rounded-xl overflow-hidden border border-slate-200 hover:border-violet-500 transition">
@@ -392,10 +392,10 @@ function DispenseModal({ rx, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+      <div className="w-full max-w-3xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Dispense Medicines</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Dispense Medicines</h3>
             <p className="text-xs text-slate-500 font-semibold">{rx.prescriptionNumber} • {rx.patientName || 'Patient'}</p>
           </div>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -418,10 +418,10 @@ function DispenseModal({ rx, onClose, onDone }: any) {
 
             const remaining = it.prescribedQty - it.dispensedQty;
             return (
-              <div key={it.id} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-3 space-y-2">
+              <div key={it.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="font-extrabold text-slate-900 dark:text-white">{it.medicineName} {it.strength}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white">{it.medicineName} {it.strength}</div>
                     <div className="text-xs text-slate-500 font-semibold">
                       Prescribed: {it.prescribedQty} {it.unit} • Already: {it.dispensedQty} • Remaining: {remaining}
                     </div>
@@ -450,7 +450,7 @@ function DispenseModal({ rx, onClose, onDone }: any) {
                         ...dispenseItems,
                         [it.id]: { ...state, unitPrice: Number(e.target.value) },
                       })}
-                      className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
+                      className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-violet-500"
                     />
                   </div>
                 </div>
@@ -463,7 +463,7 @@ function DispenseModal({ rx, onClose, onDone }: any) {
           })}
         </div>
 
-        <div className="border-t-2 border-slate-200 dark:border-neutral-800 p-4">
+        <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-extrabold text-slate-600">Total</span>
             <span className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(total)}</span>

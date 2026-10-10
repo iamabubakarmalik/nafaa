@@ -37,11 +37,11 @@ export default function TaxHubPage() {
   return (
     <Page title="Tax" subtitle="Sales tax ek jagah — har bill authority ko, bill par fiscal number, aur mahine ki report."
       tabs={
-        <div className="flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
+        <div className="flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-ink-800">
           {TABS.map((t) => (
             <NavLink key={t.to} to={t.to} end={t.end}
               className={({ isActive }) => cn('inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[0.84375rem] font-medium transition',
-                isActive ? 'border-emerald-600 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200')}>
+                isActive ? 'border-emerald-600 text-slate-900 dark:text-ink-white' : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-ink-200')}>
               <t.icon className="h-4 w-4" /> {t.label}
             </NavLink>
           ))}
@@ -59,7 +59,7 @@ export default function TaxHubPage() {
 
 function Overview() {
   const { data, isLoading, error } = useQuery({ queryKey: ['tax-analytics'], queryFn: taxAuthorityApi.analytics, refetchInterval: 60_000 });
-  if (isLoading) return <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />)}</div>;
+  if (isLoading) return <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-24 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />)}</div>;
   if (error || !data) return <Card><EmptyState title="Tax ka haal nahi khula">{apiErrorMessage(error)}</EmptyState></Card>;
 
   if (!data.enabled) {
@@ -80,7 +80,7 @@ function Overview() {
       {data.migrationPending && (
         <Banner tone="warning" title="Database update baqi hai">Server par tax ki migration abhi nahi chali — chalte hi bill authority ko jane lagenge.</Banner>
       )}
-      <div className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">
+      <div className="flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-ink-300">
         <Badge tone="success" dot>{AUTH_NAME[data.authority ?? ''] ?? data.authority}</Badge>
         <Badge tone={data.env === 'live' ? 'info' : 'warning'}>{data.env === 'live' ? 'Live' : 'Sandbox (test)'}</Badge>
         {data.startAt && <span>{whenText(data.startAt)} se chalu</span>}
@@ -126,7 +126,7 @@ function Overview() {
           <Link to={`/tax/reports?month=${l.month}`} className="mt-3 inline-block text-[0.8125rem] font-semibold text-emerald-700 hover:underline">Poori report →</Link>
         </Card>
         <Card title="Kya karna hai">
-          <ul className="space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
+          <ul className="space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-ink-200">
             <li>• Har mahine <b>Reports</b> se Excel nikal kar accountant ko dein (return filing)</li>
             <li>• <b>Invoices</b> me koi bill fail ho to wajah dekhein — aksar POS ID / token / PCT code</li>
             <li>• {data.env === 'live' ? 'Live chal raha hai ✓' : <>Abhi <b>Sandbox</b> hai — test ho jaye to Settings me <b>Live</b> karein</>}</li>
@@ -161,10 +161,10 @@ function Invoices() {
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
+        <div className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-ink-800">
           {STATUS_TABS.map((s) => (
             <button key={s.v} type="button" onClick={() => { setStatus(s.v); setPage(1); }}
-              className={cn('rounded-md px-3 py-1 text-[0.8125rem] font-medium', status === s.v ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300')}>{s.label}</button>
+              className={cn('rounded-md px-3 py-1 text-[0.8125rem] font-medium', status === s.v ? 'bg-white text-slate-900 shadow-sm dark:bg-ink-900 dark:text-ink-white' : 'text-slate-600 dark:text-ink-300')}>{s.label}</button>
           ))}
         </div>
         <div className="relative">
@@ -174,7 +174,7 @@ function Invoices() {
         {isFetching && <span className="text-[0.75rem] text-slate-400">Taaza ho raha…</span>}
       </div>
 
-      {isLoading ? <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+      {isLoading ? <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="List nahi khuli">{apiErrorMessage(error)}</EmptyState></Card>
         : data.migrationPending ? <Banner tone="warning" title="Database update baqi hai">Tax ki migration chalne ke baad yahan bill nazar aayenge.</Banner>
         : !data.rows.length ? <Card><EmptyState title="Koi bill nahi">Tax chalu hone ke baad ke bill yahan aate hain.</EmptyState></Card>
@@ -182,12 +182,12 @@ function Invoices() {
           <Card flush>
             <div className="overflow-x-auto">
               <table className="w-full text-[0.8125rem]">
-                <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+                <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
                   <tr><th className="px-4 py-2">Waqt</th><th className="px-2 py-2">Bill</th><th className="px-2 py-2 text-right">Kul</th><th className="px-2 py-2 text-right">Tax</th><th className="px-4 py-2">Authority number</th><th /></tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                   {data.rows.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                    <tr key={r.id} className="hover:bg-slate-50/60 dark:hover:bg-ink-800/30">
                       <td className="whitespace-nowrap px-4 py-2 text-slate-500">{whenText(r.createdAt)}</td>
                       <td className="px-2 py-2 font-mono">{r.kind === 'RETURN' && <Badge tone="warning">Return</Badge>} {r.usin}</td>
                       <td className="px-2 py-2 text-right tabular-nums">{formatPKR(r.kind === 'RETURN' ? -r.totalAmount : r.totalAmount)}</td>
@@ -206,7 +206,7 @@ function Invoices() {
               </table>
             </div>
             {data.pages > 1 && (
-              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2 text-[0.8125rem] dark:border-slate-800">
+              <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2 text-[0.8125rem] dark:border-ink-800">
                 <span className="text-slate-500">{data.total} bill · safha {data.page}/{data.pages}</span>
                 <div className="flex gap-1">
                   <Btn size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Pichla</Btn>
@@ -219,11 +219,11 @@ function Invoices() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setOpen(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 text-center shadow-2xl dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-5 text-center shadow-2xl dark:bg-ink-900" onClick={(e) => e.stopPropagation()}>
             <div className="text-[0.75rem] font-semibold uppercase tracking-wide text-slate-500">{AUTH_NAME[open.authority]} · {open.usin}</div>
-            <div className="mt-1 break-all font-mono text-lg font-bold text-slate-900 dark:text-white">{open.fiscalNumber}</div>
+            <div className="mt-1 break-all font-mono text-lg font-bold text-slate-900 dark:text-ink-white">{open.fiscalNumber}</div>
             {open.qrText && <div className="mx-auto mt-3 inline-block rounded-lg bg-white p-2" dangerouslySetInnerHTML={{ __html: qrSvg(open.qrText, 180) }} />}
-            <div className="mt-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">Kul {formatPKR(open.totalAmount)} · Tax {formatPKR(open.taxAmount)} ({open.taxRate}%)</div>
+            <div className="mt-2 text-[0.8125rem] text-slate-600 dark:text-ink-300">Kul {formatPKR(open.totalAmount)} · Tax {formatPKR(open.taxAmount)} ({open.taxRate}%)</div>
             {/^https?:\/\//.test(open.qrText ?? '') && <a href={open.qrText!} target="_blank" rel="noreferrer" className="mt-2 inline-block text-[0.8125rem] font-semibold text-emerald-700 hover:underline">Authority ki site par check karein</a>}
             <div className="mt-4"><Btn onClick={() => setOpen(null)}>Band karein</Btn></div>
           </div>
@@ -248,7 +248,7 @@ function Reports() {
         <Btn loading={dl.isPending} icon={<Download className="h-4 w-4" />} onClick={() => dl.mutate()}>Excel (CSV)</Btn>
         <Btn variant="plain" onClick={() => window.print()}>Print</Btn>
       </div>
-      {isLoading ? <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+      {isLoading ? <div className="h-64 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Report nahi bani">{apiErrorMessage(error)}</EmptyState></Card>
         : (
           <>
@@ -285,11 +285,11 @@ function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[0.8125rem]">
-        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
           <tr>{head.map((h, i) => <th key={h} className={cn('px-4 py-2', i > 0 && 'text-right')}>{h}</th>)}</tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-          {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-4 py-1.5', j > 0 ? 'text-right tabular-nums' : 'font-medium text-slate-900 dark:text-white')}>{c}</td>)}</tr>)}
+        <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
+          {rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-4 py-1.5', j > 0 ? 'text-right tabular-nums' : 'font-medium text-slate-900 dark:text-ink-white')}>{c}</td>)}</tr>)}
         </tbody>
       </table>
     </div>

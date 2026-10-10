@@ -327,20 +327,20 @@ export default function RetailProductsPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 sm:space-y-5 pb-24 animate-pulse">
-        <div className="rounded-2xl sm:rounded-3xl bg-slate-200 dark:bg-slate-800 h-36 sm:h-44" />
+        <div className="rounded-2xl sm:rounded-3xl bg-slate-200 dark:bg-ink-800 h-36 sm:h-44" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-24" />
+            <div key={i} className="rounded-2xl bg-slate-200 dark:bg-ink-800 h-24" />
           ))}
         </div>
-        <div className="rounded-2xl bg-slate-200 dark:bg-slate-800 h-14" />
+        <div className="rounded-2xl bg-slate-200 dark:bg-ink-800 h-14" />
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 overflow-hidden">
-              <div className="aspect-square bg-slate-200 dark:bg-slate-800" />
+            <div key={i} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-100 dark:border-ink-800 overflow-hidden">
+              <div className="aspect-square bg-slate-200 dark:bg-ink-800" />
               <div className="p-2.5 space-y-2">
-                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-4/5" />
-                <div className="h-3 rounded bg-slate-200 dark:bg-slate-800 w-2/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-ink-800 w-4/5" />
+                <div className="h-3 rounded bg-slate-200 dark:bg-ink-800 w-2/5" />
               </div>
             </div>
           ))}
@@ -361,7 +361,7 @@ export default function RetailProductsPage() {
       {bulkDeleteOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
              onClick={() => setBulkDeleteOpen(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
+          <div className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200"
                onClick={(e) => e.stopPropagation()}>
             <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
               <div className="flex items-center gap-3">
@@ -393,13 +393,13 @@ export default function RetailProductsPage() {
                       <li>• Empty ho jane wali sale receipts</li>
                     </ul>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold text-center">
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold text-center">
                     Sirf demo/test data cleanup ke liye. Ye action <strong>undo nahi</strong> ho sakta.
                   </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setBulkDeleteOpen(false)}
-                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-[0.98]"
+                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition active:scale-[0.98]"
                     >
                       Cancel — Rehne Do
                     </button>
@@ -413,7 +413,7 @@ export default function RetailProductsPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 text-center leading-relaxed">
+                  <p className="text-sm font-bold text-slate-700 dark:text-ink-200 text-center leading-relaxed">
                     Final confirmation:<br />
                     <span className="text-rose-600 dark:text-rose-400 font-extrabold">{selected.size} products</span> aur
                     unki saari history delete kar dein?
@@ -421,7 +421,7 @@ export default function RetailProductsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setBulkDeleteStep(1)}
-                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-[0.98]"
+                      className="flex-1 h-12 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition active:scale-[0.98]"
                     >
                       ← Wapas
                     </button>
@@ -458,7 +458,7 @@ export default function RetailProductsPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
         {/* subtle dot texture */}
@@ -616,7 +616,7 @@ export default function RetailProductsPage() {
               className={`group relative overflow-hidden rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on
                   ? 'bg-gradient-to-br from-sky-600 to-blue-700 border-transparent text-white shadow-xl shadow-sky-500/30'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-sky-400 hover:shadow-lg'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-sky-400 hover:shadow-lg'
               }`}>
               {on && <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-white/15 blur-2xl" />}
               <div className="relative flex items-center gap-3">
@@ -630,11 +630,11 @@ export default function RetailProductsPage() {
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
                       <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums shrink-0 ${
-                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400'
                       }`}>{t.n.toLocaleString()}</span>
                     )}
                   </div>
-                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-slate-500'}`}>
+                  <div className={`text-[0.6875rem] font-bold truncate ${on ? 'text-white/80' : 'text-slate-400 dark:text-ink-500'}`}>
                     {t.hint}
                   </div>
                 </div>
@@ -664,7 +664,7 @@ export default function RetailProductsPage() {
                   <button
                     key={p.id}
                     onClick={() => setStockModalProduct(p)}
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition active:scale-[0.97]"
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition active:scale-[0.97]"
                   >
                     {p.name} <span className="text-rose-700 dark:text-rose-400">({p.stock} {p.unit})</span>
                   </button>
@@ -683,7 +683,7 @@ export default function RetailProductsPage() {
 
       {/* ═══ TOOLBAR — sticky, hamesha haath me ═══ */}
       <section className="sticky top-0 z-30 -mx-1 px-1 py-1 print:hidden">
-        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-slate-800 shadow-lg shadow-slate-900/5 dark:shadow-black/30 p-3 sm:p-4 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white/95 dark:bg-ink-900/95 backdrop-blur-xl border-2 border-slate-200 dark:border-ink-800 shadow-lg shadow-slate-900/5 dark:shadow-black/30 p-3 sm:p-4 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px] sm:min-w-[240px]">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -692,10 +692,10 @@ export default function RetailProductsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Naam, SKU ya barcode se dhundo... (/ shortcut)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -717,25 +717,25 @@ export default function RetailProductsPage() {
               className={`lg:hidden h-12 px-4 rounded-2xl border-2 text-sm font-extrabold inline-flex items-center gap-1.5 transition active:scale-[0.97] ${
                 showMobileFilters
                   ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/10 text-sky-700 dark:text-sky-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200'
               }`}
             >
               <SlidersHorizontal className="h-4 w-4" /> Filters
               {hasFilters && <span className="h-2 w-2 rounded-full bg-amber-500" />}
             </button>
 
-            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
               <button
                 onClick={() => setView('grid')}
                 title="Card view"
-                className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
               >
                 <Grid3x3 className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setView('table')}
                 title="List view"
-                className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-slate-700 transition ${view === 'table' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-ink-700 transition ${view === 'table' ? 'bg-sky-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
               >
                 <List className="h-4 w-4" />
               </button>
@@ -743,7 +743,7 @@ export default function RetailProductsPage() {
 
             <button
               onClick={() => exportCSV(filtered)}
-              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition active:scale-[0.97]"
+              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-sky-300 dark:hover:border-sky-500/50 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition active:scale-[0.97]"
             >
               <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
             </button>
@@ -754,7 +754,7 @@ export default function RetailProductsPage() {
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
             >
               <option value="all">Sab Categories ({categories.length})</option>
               <option value="none">Bina category</option>
@@ -764,7 +764,7 @@ export default function RetailProductsPage() {
             <select
               value={brandId}
               onChange={(e) => setBrandId(e.target.value)}
-              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
             >
               <option value="all">Sab Brands ({brands.length})</option>
               <option value="none">Bina brand</option>
@@ -775,14 +775,14 @@ export default function RetailProductsPage() {
               value={tagId}
               onChange={(e) => setTagId(e.target.value)}
               title="Tag se chaanein"
-              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
             >
               <option value="all">Sab Tags ({(tags as any[]).length})</option>
               <option value="none">Bina tag</option>
               {(tags as any[]).map((t) => (<option key={t.id} value={t.id}>{t.name}</option>))}
             </select>
 
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
               {([
                 { v: 'all' as StockFilter, l: 'Sab', c: null },
                 { v: 'in' as StockFilter, l: 'Stock me', c: null },
@@ -793,18 +793,18 @@ export default function RetailProductsPage() {
                   key={o.v}
                   onClick={() => setStockFilter(o.v)}
                   className={`px-3 py-2 rounded-lg text-xs font-extrabold transition active:scale-[0.97] ${
-                    stockFilter === o.v ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    stockFilter === o.v ? 'bg-sky-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                   }`}
                 >
                   {o.l}
                   {o.c != null && (
-                    <span className={`ml-1 tabular-nums ${stockFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                    <span className={`ml-1 tabular-nums ${stockFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>
                   )}
                 </button>
               ))}
             </div>
 
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
               {([
                 { v: 'active' as StatusFilter, l: 'Active' },
                 { v: 'inactive' as StatusFilter, l: 'Band' },
@@ -814,7 +814,7 @@ export default function RetailProductsPage() {
                   key={o.v}
                   onClick={() => setStatusFilter(o.v)}
                   className={`px-3 py-2 rounded-lg text-xs font-extrabold transition active:scale-[0.97] ${
-                    statusFilter === o.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    statusFilter === o.v ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                   }`}
                 >
                   {o.l}
@@ -825,7 +825,7 @@ export default function RetailProductsPage() {
             <select
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
             >
               <option value="name">A → Z</option>
               <option value="newest">Naye pehle</option>
@@ -841,7 +841,7 @@ export default function RetailProductsPage() {
               </button>
             )}
 
-            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+            <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
               {filtered.length} products
             </div>
           </div>
@@ -850,7 +850,7 @@ export default function RetailProductsPage() {
 
       {/* ═══ BULK BAR ═══ */}
       {selected.size > 0 && (
-        <section className="sticky top-[76px] z-20 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden animate-in slide-in-from-top-2 duration-200">
+        <section className="sticky top-[76px] z-20 rounded-2xl bg-slate-950 dark:bg-ink-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden animate-in slide-in-from-top-2 duration-200">
           <div className="font-extrabold text-sm px-2"><span className="text-sky-300">{selected.size}</span> selected</div>
           <button onClick={() => bulkStatus.mutate(true)} className="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold inline-flex items-center gap-1 transition active:scale-[0.97]">
             <CheckCircle2 className="h-3.5 w-3.5" /> Active karo
@@ -878,14 +878,14 @@ export default function RetailProductsPage() {
 
       {/* ═══ EMPTY ═══ */}
       {filtered.length === 0 ? (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
           <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-700 flex items-center justify-center shadow-lg shadow-sky-500/40 rotate-3 hover:rotate-0 transition-transform">
             <ShoppingBag className="h-10 w-10 text-white" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             {hasFilters ? 'Kuch nahi mila' : 'Abhi koi product nahi'}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+          <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
             {hasFilters ? 'Filter change kar ke dekho' : 'Sab se fast tareeqa: Quick Setup ⚡ — 2000+ ready-made Pakistani products (Lays, Coca-Cola, Surf...) sirf select karo, sab ban jayega!'}
           </p>
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
@@ -930,10 +930,10 @@ export default function RetailProductsPage() {
         </section>
       ) : (
         /* ═══ TABLE ═══ */
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
           <div className="overflow-x-auto">
             <table className="w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <th className="px-3 py-3 w-10 print:hidden">
                     <input
@@ -953,7 +953,7 @@ export default function RetailProductsPage() {
                   <Th className="text-right print:hidden">Actions</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {visible.map((p) => {
                   const stock = Number(p.stock || 0);
                   const alert = Number(p.lowStockAlert ?? 5);
@@ -968,11 +968,11 @@ export default function RetailProductsPage() {
                         <Link to={`/retail-products/${p.id}`} className="flex items-center gap-2.5 group">
                           <Thumb p={p} size="h-10 w-10" />
                           <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-sky-700 dark:group-hover:text-sky-400 flex items-center gap-1">
+                            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-sky-700 dark:group-hover:text-sky-400 flex items-center gap-1">
                               {p.name}
                               {p.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500 shrink-0" />}
                             </div>
-                            <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 truncate">
+                            <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-ink-400 truncate">
                               {p.sku || p.barcode || '—'}
                             </div>
                             <ProductTags tags={p.tags} max={2} />
@@ -984,23 +984,23 @@ export default function RetailProductsPage() {
                           <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
                             {p.category.name}
                           </span>
-                        ) : <span className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">—</span>}
+                        ) : <span className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">—</span>}
                       </td>
-                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums">{formatPKR(p.costPrice || 0)}</td>}
+                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums">{formatPKR(p.costPrice || 0)}</td>}
                       <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p.price || 0)}</td>
                       <td className="px-3 py-2.5 text-right">
                         <button onClick={() => setStockModalProduct(p)} className="inline-flex flex-col items-end group">
                           <span className={[
                             'font-extrabold tabular-nums text-sm',
-                            isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-white',
+                            isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-ink-white',
                           ].join(' ')}>
-                            {stock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{p.unit}</span>
+                            {stock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{p.unit}</span>
                           </span>
                           <span className="text-[0.625rem] font-extrabold text-sky-600 dark:text-sky-400 opacity-0 group-hover:opacity-100 transition print:hidden">+ Stock</span>
                         </button>
                       </td>
                       {!hideCost && (
-                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-slate-300 tabular-nums">
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-ink-300 tabular-nums">
                           {formatPKR(stock * Number(p.price || 0))}
                         </td>
                       )}
@@ -1043,10 +1043,10 @@ export default function RetailProductsPage() {
         <div className="flex justify-center print:hidden">
           <button
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-400 dark:hover:border-sky-500/50 text-sm font-extrabold text-slate-700 dark:text-slate-200 shadow-sm transition active:scale-[0.98]"
+            className="px-6 py-3.5 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-400 dark:hover:border-sky-500/50 text-sm font-extrabold text-slate-700 dark:text-ink-200 shadow-sm transition active:scale-[0.98]"
           >
             Aur {Math.min(PAGE_SIZE, filtered.length - visibleCount)} dikhao
-            <span className="text-slate-400 dark:text-slate-500 font-bold ml-1">({visibleCount}/{filtered.length})</span>
+            <span className="text-slate-400 dark:text-ink-500 font-bold ml-1">({visibleCount}/{filtered.length})</span>
           </button>
         </div>
       )}
@@ -1107,20 +1107,20 @@ function ProductsTeacher({ onClose, onQuickSetup }: { onClose: () => void; onQui
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl animate-in"
+        className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl animate-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Products Page — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye aapki <strong>poori dukkaan ka inventory</strong> hai. Yahan se products add, edit, delete,
             stock update — sab kuch hota hai.
           </p>
@@ -1130,7 +1130,7 @@ function ProductsTeacher({ onClose, onQuickSetup }: { onClose: () => void; onQui
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-sky-700 dark:text-sky-300">
               ➕ Product add karne ke 4 tareeqay
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <GuideRow emoji="⚡" title="Quick Setup" desc="2000+ ready Pakistani products — select karo, done!" badge="Sab se fast" />
               <GuideRow emoji="➕" title="Naya Product" desc="1-1 product wizard se (naam + rate likho, bas)" />
               <GuideRow emoji="📊" title="Bulk Import" desc="Excel/CSV se ek saath saikron" />
@@ -1139,7 +1139,7 @@ function ProductsTeacher({ onClose, onQuickSetup }: { onClose: () => void; onQui
           </div>
 
           {/* Tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⌨️ / dabao</strong> — search box pe jump</TipRow>
             <TipRow><strong>Stock number pe click</strong> — foran stock add karo</TipRow>
             <TipRow><strong>Card pe hover</strong> — checkbox se select → bulk actions (active/band/delete/labels)</TipRow>
@@ -1161,14 +1161,14 @@ function ProductsTeacher({ onClose, onQuickSetup }: { onClose: () => void; onQui
 
 function GuideRow({ emoji, title, desc, badge }: { emoji: string; title: string; desc: string; badge?: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-slate-800 border border-sky-200 dark:border-sky-500/30 p-2.5">
+    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-ink-800 border border-sky-200 dark:border-sky-500/30 p-2.5">
       <span className="text-lg shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs flex items-center gap-1.5">
           {title}
           {badge && <span className="px-1.5 py-0.5 rounded bg-amber-400 text-slate-900 text-[0.625rem] font-black uppercase">{badge}</span>}
         </div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -1201,22 +1201,22 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
 
   return (
     <div className={[
-      'group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/10 dark:hover:shadow-sky-500/10 hover:-translate-y-1 animate-in',
-      selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30' : isOut ? 'border-rose-200 dark:border-rose-500/40' : isLow ? 'border-amber-200 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-sky-300 dark:hover:border-sky-500/40',
+      'group relative rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 overflow-hidden transition-all duration-200 hover:shadow-xl hover:shadow-sky-500/10 dark:hover:shadow-sky-500/10 hover:-translate-y-1 animate-in',
+      selected ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-500/30' : isOut ? 'border-rose-200 dark:border-rose-500/40' : isLow ? 'border-amber-200 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800 hover:border-sky-300 dark:hover:border-sky-500/40',
       !p.isActive ? 'opacity-60' : '',
     ].join(' ')}>
       <button
         onClick={onToggle}
         className={[
           'absolute top-2 left-2 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition shadow-sm',
-          selected ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white/90 dark:bg-slate-900/90 border-slate-300 dark:border-slate-600 sm:opacity-0 sm:group-hover:opacity-100',
+          selected ? 'bg-sky-600 border-sky-600 text-white' : 'bg-white/90 dark:bg-ink-900/90 border-slate-300 dark:border-ink-600 sm:opacity-0 sm:group-hover:opacity-100',
         ].join(' ')}
       >
         {selected && <CheckCircle2 className="h-3.5 w-3.5" />}
       </button>
 
       <Link to={`/retail-products/${p.id}`} className="block">
-        <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+        <div className="aspect-square bg-slate-100 dark:bg-ink-800 overflow-hidden relative">
           {p.images?.[0]?.url ? (
             <img src={p.images[0].url} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
@@ -1243,7 +1243,7 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
         </div>
 
         <div className="p-2.5">
-          <div className="font-extrabold text-slate-900 dark:text-white text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
           {p.category && (
             <div className="mt-1 inline-flex items-center gap-1 text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
               <Tag className="h-2 w-2" /> {p.category.name}
@@ -1254,14 +1254,14 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
           <div className="mt-1.5 flex items-end justify-between gap-1">
             <div>
               <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(p.price || 0)}</div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">per {p.unit}</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">per {p.unit}</div>
             </div>
             <div className="text-right">
               <div className={[
                 'text-sm font-extrabold tabular-nums leading-none',
-                isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300',
+                isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-ink-300',
               ].join(' ')}>{stock}</div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">stock</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">stock</div>
             </div>
           </div>
         </div>
@@ -1330,8 +1330,8 @@ function Thumb({ p, size = 'h-10 w-10' }: any) {
   const url = p.images?.[0]?.url;
   return (
     <div className={[
-      size, 'rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700',
-      url ? 'bg-slate-100 dark:bg-slate-800' : `bg-gradient-to-br ${productTint(p.name)}`,
+      size, 'rounded-xl overflow-hidden shrink-0 border border-slate-200 dark:border-ink-700',
+      url ? 'bg-slate-100 dark:bg-ink-800' : `bg-gradient-to-br ${productTint(p.name)}`,
     ].join(' ')}>
       {url ? (
         <img src={url} alt="" loading="lazy" className="w-full h-full object-cover" />
@@ -1346,7 +1346,7 @@ function Thumb({ p, size = 'h-10 w-10' }: any) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
+    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>
       {children}
     </th>
   );
@@ -1357,7 +1357,7 @@ function Pill({ tone, children }: any) {
     emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
-    slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
   };
   return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
@@ -1386,18 +1386,18 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
         active
           ? 'border-sky-500 dark:border-sky-500/60 ring-2 ring-sky-200 dark:ring-sky-500/20'
-          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+          : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

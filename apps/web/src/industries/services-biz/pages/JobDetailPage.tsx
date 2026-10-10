@@ -70,7 +70,7 @@ export default function JobDetailPage() {
   });
 
   if (isLoading || !job) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const statusCfg = STATUS_CONFIG[job.status];
@@ -135,7 +135,7 @@ export default function JobDetailPage() {
       </section>
 
       {/* Status Flow */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
           <h3 className="text-sm font-extrabold">Job Workflow</h3>
           {nextStatus && !['CANCELLED', 'COMPLETED'].includes(job.status) && (
@@ -175,14 +175,14 @@ export default function JobDetailPage() {
                   <div className={
                     'h-9 w-9 rounded-full flex items-center justify-center ' +
                     (isCurrent ? cfg.color + ' text-white ring-4 ring-blue-200 dark:ring-blue-900 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-neutral-700 text-slate-500')
+                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
                   }>
                     {isActive && !isCurrent ? <CheckCircle2 className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
                   </div>
                   <span className="text-[0.625rem] font-extrabold uppercase text-slate-600">{cfg.label}</span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-blue-500' : 'bg-slate-200 dark:bg-neutral-700')} />
+                  <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-blue-500' : 'bg-slate-200 dark:bg-ink-700')} />
                 )}
               </div>
             );
@@ -193,7 +193,7 @@ export default function JobDetailPage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <section className="space-y-4">
           {/* Customer */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-blue-600" />
               Customer
@@ -222,10 +222,10 @@ export default function JobDetailPage() {
           </div>
 
           {/* Problem + Location */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div>
               <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 mb-1">Problem Description</div>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{job.problemDescription}</p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-ink-white">{job.problemDescription}</p>
             </div>
             {job.customerReportedIssue && (
               <div>
@@ -269,7 +269,7 @@ export default function JobDetailPage() {
 
           {/* Technician */}
           {job.technician && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
               <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">
                 <User className="h-4 w-4 text-violet-600" />
                 Assigned Technician
@@ -296,7 +296,7 @@ export default function JobDetailPage() {
           )}
 
           {/* Parts */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
             <div className="px-5 py-3 border-b flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Package className="h-5 w-5 text-orange-600" />
@@ -312,7 +312,7 @@ export default function JobDetailPage() {
             {job.parts.length === 0 ? (
               <div className="p-8 text-center text-sm text-slate-500 font-semibold">No parts used</div>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {job.parts.map((p: any) => (
                   <div key={p.id} className="p-4">
                     <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -346,7 +346,7 @@ export default function JobDetailPage() {
             {(['before', 'during', 'after'] as const).map((stage) => {
               const urls = stage === 'before' ? job.beforePhotoUrls : stage === 'during' ? job.duringPhotoUrls : job.afterPhotoUrls;
               return (
-                <div key={stage} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-3">
+                <div key={stage} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-extrabold uppercase text-slate-700">📸 {stage}</span>
                     <button onClick={() => setShowPhotos(stage)} className="h-6 w-6 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
@@ -400,7 +400,7 @@ export default function JobDetailPage() {
                 </div>
               )}
               {job.internalNotes && (
-                <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800 border-2 border-slate-200 p-4">
+                <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 p-4">
                   <div className="text-xs font-extrabold text-slate-800 mb-1">Internal Notes</div>
                   <p className="text-sm text-slate-700">{job.internalNotes}</p>
                 </div>
@@ -471,7 +471,7 @@ export default function JobDetailPage() {
 
             {/* Time log */}
             {job.timeLog && job.timeLog.length > 0 && (
-              <div className="rounded-3xl bg-white dark:bg-neutral-900 border shadow-sm overflow-hidden">
+              <div className="rounded-3xl bg-white dark:bg-ink-900 border shadow-sm overflow-hidden">
                 <div className="px-4 py-3 border-b">
                   <h3 className="text-sm font-bold">Activity Log</h3>
                 </div>
@@ -525,7 +525,7 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -538,7 +538,7 @@ function PaymentModal({ jobId, remaining, onClose, onDone }: any) {
             <input type="number" step="0.01" autoFocus value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-4 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             <div className="mt-1 flex gap-1">
               {[0.25, 0.5, 0.75, 1].map((f) => (
-                <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold hover:bg-slate-200">
+                <button key={f} onClick={() => setAmount(Number((remaining * f).toFixed(2)))} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200">
                   {(f * 100).toFixed(0)}%
                 </button>
               ))}
@@ -574,7 +574,7 @@ function RatingModal({ jobId, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Rate Service</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -610,7 +610,7 @@ function RatingModal({ jobId, onClose, onDone }: any) {
             <span className="text-sm font-extrabold text-emerald-900">✅ Would recommend to others</span>
           </label>
 
-          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback (optional)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+          <textarea rows={3} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Feedback (optional)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
@@ -640,7 +640,7 @@ function AssignModal({ jobId, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold">🎯 Smart Dispatch</h3>
@@ -662,7 +662,7 @@ function AssignModal({ jobId, onClose, onDone }: any) {
                   onClick={() => setSelectedId(t.staffId)}
                   className={
                     'w-full p-3 rounded-xl border-2 text-left transition ' +
-                    (selectedId === t.staffId ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
+                    (selectedId === t.staffId ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
                   }
                 >
                   <div className="flex items-center gap-3">
@@ -731,7 +731,7 @@ function AddPartModal({ jobId, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-orange-50 flex items-center justify-between">
           <h3 className="font-extrabold">Add Part</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -739,24 +739,24 @@ function AddPartModal({ jobId, onClose, onDone }: any) {
           </button>
         </div>
         <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
-          <input autoFocus value={form.partName} onChange={(e) => setForm({ ...form, partName: e.target.value })} placeholder="Part name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+          <input autoFocus value={form.partName} onChange={(e) => setForm({ ...form, partName: e.target.value })} placeholder="Part name *" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           <div className="grid grid-cols-2 gap-2">
-            <input value={form.partNumber} onChange={(e) => setForm({ ...form, partNumber: e.target.value })} placeholder="Part #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
-            <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
+            <input value={form.partNumber} onChange={(e) => setForm({ ...form, partNumber: e.target.value })} placeholder="Part #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
+            <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Brand" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500" />
           </div>
           <div className="grid grid-cols-3 gap-2">
             <input type="number" min="0.1" step="0.1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} placeholder="Qty" className="h-11 rounded-xl border-2 border-blue-300 bg-blue-50 dark:bg-blue-950/30 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
             <input type="number" step="0.01" value={form.unitPrice} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} placeholder="Unit Price" className="h-11 rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-            <input type="number" value={form.warrantyDays} onChange={(e) => setForm({ ...form, warrantyDays: e.target.value })} placeholder="Warranty days" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-orange-500" />
+            <input type="number" value={form.warrantyDays} onChange={(e) => setForm({ ...form, warrantyDays: e.target.value })} placeholder="Warranty days" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-orange-500" />
           </div>
-          <input value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} placeholder="Serial #" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
+          <input value={form.serialNumber} onChange={(e) => setForm({ ...form, serialNumber: e.target.value })} placeholder="Serial #" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-orange-500" />
 
           <div className="grid grid-cols-2 gap-2">
-            <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isCustomerSupplied ? 'border-blue-500 bg-blue-50' : 'border-slate-200 dark:border-neutral-700')}>
+            <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isCustomerSupplied ? 'border-blue-500 bg-blue-50' : 'border-slate-200 dark:border-ink-700')}>
               <input type="checkbox" checked={form.isCustomerSupplied} onChange={(e) => setForm({ ...form, isCustomerSupplied: e.target.checked })} className="h-4 w-4 rounded" />
               <span className="text-xs font-extrabold">Customer supplied</span>
             </label>
-            <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isUnderWarranty ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 dark:border-neutral-700')}>
+            <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isUnderWarranty ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 dark:border-ink-700')}>
               <input type="checkbox" checked={form.isUnderWarranty} onChange={(e) => setForm({ ...form, isUnderWarranty: e.target.checked })} className="h-4 w-4 rounded" />
               <span className="text-xs font-extrabold">Under warranty (free)</span>
             </label>
@@ -785,7 +785,7 @@ function PhotosModal({ jobId, stage, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-fuchsia-50 flex items-center justify-between">
           <h3 className="font-extrabold">📸 Upload {stage} photos</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">

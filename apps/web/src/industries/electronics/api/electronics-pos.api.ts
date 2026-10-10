@@ -164,5 +164,5 @@ export const CONDITION_COLORS: Record<ElectronicsConditionType, string> = {
   REFURBISHED: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   USED: 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300',
   DAMAGED: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
-  FOR_PARTS: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  FOR_PARTS: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300',
 };

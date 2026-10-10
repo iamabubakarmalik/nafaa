@@ -120,7 +120,7 @@ export function CustomerSearchInline({
     <div className="space-y-3" ref={containerRef}>
       {/* Search existing */}
       <div className="relative">
-        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 items-center justify-between">
+        <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1 items-center justify-between">
           <span>Existing Customer</span>
           <span className="text-[0.625rem] text-slate-500 font-normal">
             ↑↓ navigate · Enter select
@@ -137,7 +137,7 @@ export function CustomerSearchInline({
             onKeyDown={handleKey}
             onFocus={() => setShowResults(true)}
             placeholder="Naam, phone, ya CNIC se search..."
-            className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white pl-9 pr-9 text-sm focus:outline-none focus:border-violet-500"
+            className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white pl-9 pr-9 text-sm focus:outline-none focus:border-violet-500"
           />
           {search && (
             <button
@@ -146,7 +146,7 @@ export function CustomerSearchInline({
                 setSearch('');
                 setShowResults(false);
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center"
             >
               <X className="h-3.5 w-3.5 text-slate-500" />
             </button>
@@ -154,7 +154,7 @@ export function CustomerSearchInline({
         </div>
 
         {showResults && search && filtered.length === 0 && (
-          <div className="absolute z-20 mt-1 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg p-4 text-center">
+          <div className="absolute z-20 mt-1 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-lg p-4 text-center">
             <UserPlus className="h-6 w-6 text-slate-300 mx-auto mb-1" />
             <div className="text-xs text-slate-500">
               Koi match nahi — neechay manual fields fill karo, new customer save ho jayega.
@@ -163,7 +163,7 @@ export function CustomerSearchInline({
         )}
 
         {showResults && filtered.length > 0 && (
-          <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg divide-y divide-slate-100 dark:divide-slate-700">
+          <div className="absolute z-20 mt-1 w-full max-h-72 overflow-y-auto rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 shadow-lg divide-y divide-slate-100 dark:divide-ink-700">
             {filtered.map((c, i) => (
               <button
                 key={c.id}
@@ -173,15 +173,15 @@ export function CustomerSearchInline({
                 className={`w-full px-3 py-2 text-left transition ${
                   i === highlightIdx
                     ? 'bg-violet-50 dark:bg-violet-950/40'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                    : 'hover:bg-slate-50 dark:hover:bg-ink-700/50'
                 }`}
               >
-                <div className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                <div className="font-bold text-sm text-slate-900 dark:text-ink-white flex items-center gap-2">
                   <User className="h-3.5 w-3.5 text-violet-600" />
                   {c.name}
                   {c.isVip && <Star className="h-3 w-3 text-amber-500 fill-current" />}
                 </div>
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 flex items-center gap-2 flex-wrap">
                   {c.phone && (
                     <span className="inline-flex items-center gap-1">
                       <Phone className="h-2.5 w-2.5" />
@@ -236,50 +236,50 @@ export function CustomerSearchInline({
       {/* Manual fields */}
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1">
             Customer Name *
           </label>
           <input
             value={customerName}
             onChange={(e) => onChangeName(e.target.value)}
             placeholder="Poora naam"
-            className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm focus:outline-none focus:border-violet-500"
+            className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm focus:outline-none focus:border-violet-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1">
             Phone *
           </label>
           <input
             value={customerPhone}
             onChange={(e) => onChangePhone(formatPhone(e.target.value))}
             placeholder="0300-1234567"
-            className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm font-mono focus:outline-none focus:border-violet-500"
+            className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm font-mono focus:outline-none focus:border-violet-500"
           />
         </div>
       </div>
 
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 items-center gap-1">
+          <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1 items-center gap-1">
             <CreditCard className="h-3 w-3" /> CNIC
           </label>
           <input
             value={formatCnic(customerCnic)}
             onChange={(e) => onChangeCnic(e.target.value.replace(/\D/g, '').slice(0, 13))}
             placeholder="XXXXX-XXXXXXX-X"
-            className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm font-mono focus:outline-none focus:border-violet-500"
+            className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm font-mono focus:outline-none focus:border-violet-500"
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 items-center gap-1">
+          <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1 items-center gap-1">
             <MapPin className="h-3 w-3" /> Address
           </label>
           <input
             value={customerAddress}
             onChange={(e) => onChangeAddress(e.target.value)}
             placeholder="Optional"
-            className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm focus:outline-none focus:border-violet-500"
+            className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm focus:outline-none focus:border-violet-500"
           />
         </div>
       </div>

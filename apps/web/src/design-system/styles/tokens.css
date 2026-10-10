@@ -30,6 +30,17 @@
   --font-urdu: 'Noto Naskh Arabic', 'Segoe UI', Tahoma, serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consolas, ui-monospace, monospace;
 
+  --ring-color: 16 185 129;
+
+  /* Base surfaces and text (RGB channels), used by base.css. */
+  --surface: 255 255 255;
+  --surface-muted: 241 245 249;
+  --fg: 15 23 42;
+  --fg-subtle: 148 163 184;
+  --line: 226 232 240;
+  --scrollbar-thumb: 148 163 184;
+  --scrollbar-thumb-hover: 100 116 139;
+
   /* App shell surfaces (RGB channels). */
   --shell-canvas: 246 247 249;
   --shell-sidebar: 238 240 243;
@@ -43,9 +54,17 @@
 }
 
 html.dark {
+  --surface: 17 25 43;
+  --surface-muted: 27 37 56;
+  --fg: 241 245 249;
+  --fg-subtle: 100 116 139;
+  --line: 38 50 70;
+  --scrollbar-thumb: 71 85 105;
+  --scrollbar-thumb-hover: 100 116 139;
+
   --shell-canvas: 9 13 24;
   --shell-sidebar: 6 10 20;
-  --shell-bar: 15 23 42;
+  --shell-bar: 17 25 43;
   --shell-line: 30 41 59;
 }
 

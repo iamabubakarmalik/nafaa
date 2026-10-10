@@ -50,7 +50,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[96vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[96vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 relative px-5 py-4 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white overflow-hidden">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex items-start justify-between">
@@ -68,15 +68,15 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
         </div>
 
         <div className="shrink-0 px-5 pt-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-ink-800 rounded-2xl">
             <button onClick={() => setMode('pct')}
               className={['h-12 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition',
-                mode === 'pct' ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-md' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+                mode === 'pct' ? 'bg-white dark:bg-ink-900 text-amber-700 dark:text-amber-300 shadow-md' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
               <Percent className="h-4 w-4" /> Percent (%)
             </button>
             <button onClick={() => setMode('rs')}
               className={['h-12 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition',
-                mode === 'rs' ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-md' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+                mode === 'rs' ? 'bg-white dark:bg-ink-900 text-emerald-700 dark:text-emerald-300 shadow-md' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
               <Banknote className="h-4 w-4" /> Rupees (Rs)
             </button>
           </div>
@@ -86,7 +86,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
           <div className={['rounded-2xl border-2 p-4 text-center',
             mode === 'pct' ? 'border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10'
             : 'border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10'].join(' ')}>
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-1">
               {mode === 'pct' ? 'Kitne % Discount' : 'Kitne Rs Discount'}
             </div>
             <div className="flex items-baseline justify-center gap-1">
@@ -105,7 +105,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
                   <button key={v} onClick={() => setPct(String(v))}
                     className={['h-11 rounded-xl text-sm font-extrabold tabular-nums transition active:scale-95 border-2',
                       Number(pct) === v ? 'bg-amber-600 text-white border-amber-600 shadow-md'
-                      : 'bg-white dark:bg-slate-800 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 hover:border-amber-400'].join(' ')}>
+                      : 'bg-white dark:bg-ink-800 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 hover:border-amber-400'].join(' ')}>
                     {v}%
                   </button>
                 ))
@@ -113,7 +113,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
                   <button key={v} onClick={() => setRs(String(v))}
                     className={['h-11 rounded-xl text-xs font-extrabold tabular-nums transition active:scale-95 border-2',
                       Number(rs) === v ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                      : 'bg-white dark:bg-slate-800 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:border-emerald-400'].join(' ')}>
+                      : 'bg-white dark:bg-ink-800 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:border-emerald-400'].join(' ')}>
                     {v}
                   </button>
                 ))}
@@ -124,7 +124,7 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
               <button key={k} onClick={() => numpadPress(k)}
                 className={['h-12 rounded-xl text-lg font-extrabold transition active:scale-95 border-2 tabular-nums',
                   k === '⌫' ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-slate-400'].join(' ')}>
+                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white hover:border-slate-400'].join(' ')}>
                 {k}
               </button>
             ))}
@@ -152,13 +152,13 @@ export function PosDiscountModal({ subtotal, mode: initMode, pct: initPct, rs: i
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-3 grid grid-cols-3 gap-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-3 grid grid-cols-3 gap-2">
           <button onClick={() => onApply(mode, 0, 0)}
-            className="h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center justify-center gap-1">
+            className="h-14 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center justify-center gap-1">
             <RotateCcw className="h-4 w-4" /> Clear
           </button>
           <button onClick={onClose}
-            className="h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition">
+            className="h-14 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition">
             Cancel
           </button>
           <button onClick={apply}

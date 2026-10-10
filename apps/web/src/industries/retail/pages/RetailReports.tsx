@@ -307,9 +307,9 @@ export default function RetailReportsV2() {
       {/* ═══════════════════════════════════════════════════════
           ACTION BAR — CSV, Print, Custom Date Range
           ═══════════════════════════════════════════════════════ */}
-      <section className="print:hidden rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 space-y-3">
+      <section className="print:hidden rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-bold flex items-center gap-2 flex-wrap">
+          <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-300 font-bold flex items-center gap-2 flex-wrap">
             <CalendarRange className="h-4 w-4 text-sky-600 dark:text-sky-400" />
             <span>{customRange ? '🎯 Custom:' : '📅 Last'}</span>
             <strong className="text-sky-700 dark:text-sky-400">
@@ -340,11 +340,11 @@ export default function RetailReportsV2() {
                 <span className="text-[0.6875rem] opacity-80">▼</span>
               </button>
               {csvMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-60 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl z-20 overflow-hidden">
+                <div className="absolute right-0 top-full mt-1 w-60 rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl z-20 overflow-hidden">
                   <CsvMenuItem icon={BarChart3} label="Overview / Daily Trend" onClick={exportOverviewCSV} />
                   <CsvMenuItem icon={Package} label="Top Products" onClick={exportProductsCSV} />
                   <CsvMenuItem icon={Users} label="Top Customers" onClick={exportCustomersCSV} />
-                  <div className="border-t border-slate-200 dark:border-slate-700" />
+                  <div className="border-t border-slate-200 dark:border-ink-700" />
                   <CsvMenuItem icon={Sparkles} label="Full Report (all data)" onClick={exportFullCSV} highlight />
                 </div>
               )}
@@ -352,7 +352,7 @@ export default function RetailReportsV2() {
 
             <button
               onClick={exportPDF}
-              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 dark:from-white dark:to-slate-100 text-white dark:text-slate-900 hover:from-slate-900 hover:to-slate-950 dark:hover:from-slate-100 dark:hover:to-slate-200 text-xs font-extrabold transition active:scale-95 shadow-md"
+              className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-gradient-to-r from-slate-800 to-slate-900 dark:from-ink-white dark:to-ink-100 text-white dark:text-ink-900 hover:from-slate-900 hover:to-slate-950 dark:hover:from-ink-100 dark:hover:to-ink-200 text-xs font-extrabold transition active:scale-95 shadow-md"
             >
               <Printer className="h-3.5 w-3.5" /> Print / PDF
             </button>
@@ -360,8 +360,8 @@ export default function RetailReportsV2() {
         </div>
 
         {/* Custom date range picker */}
-        <div className="border-t-2 border-slate-100 dark:border-slate-800 pt-3 flex items-center gap-2 flex-wrap">
-          <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 inline-flex items-center gap-1.5">
+        <div className="border-t-2 border-slate-100 dark:border-ink-800 pt-3 flex items-center gap-2 flex-wrap">
+          <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 inline-flex items-center gap-1.5">
             <CalendarDays className="h-3.5 w-3.5" /> Custom Range:
           </div>
           <input
@@ -369,20 +369,20 @@ export default function RetailReportsV2() {
             value={customStart}
             onChange={(e) => setCustomStart(e.target.value)}
             max={new Date().toISOString().slice(0, 10)}
-            className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
           />
-          <span className="text-slate-400 dark:text-slate-500 font-bold text-xs">→</span>
+          <span className="text-slate-400 dark:text-ink-500 font-bold text-xs">→</span>
           <input
             type="date"
             value={customEnd}
             onChange={(e) => setCustomEnd(e.target.value)}
             max={new Date().toISOString().slice(0, 10)}
-            className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+            className="h-9 px-2.5 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
           />
           <button
             onClick={applyCustomRange}
             disabled={!customStart || !customEnd}
-            className="h-9 px-4 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white text-xs font-extrabold transition inline-flex items-center gap-1.5 shadow-sm"
+            className="h-9 px-4 rounded-lg bg-sky-600 hover:bg-sky-700 disabled:bg-slate-300 dark:disabled:bg-ink-700 disabled:cursor-not-allowed text-white text-xs font-extrabold transition inline-flex items-center gap-1.5 shadow-sm"
           >
             <Filter className="h-3.5 w-3.5" /> Apply
           </button>
@@ -421,15 +421,15 @@ export default function RetailReportsV2() {
           </section>
 
           {reports.profitLoss && (
-            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2.5">
                   <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
                     <Trophy className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Profit & Loss Statement</h3>
-                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold">{effectiveDays} din ka detailed breakdown</p>
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white">Profit & Loss Statement</h3>
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold">{effectiveDays} din ka detailed breakdown</p>
                   </div>
                 </div>
                 <div className={[
@@ -473,10 +473,10 @@ export default function RetailReportsV2() {
                     <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis yAxisId="left" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
-                <YAxis yAxisId="right" orientation="right" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis yAxisId="left" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                <YAxis yAxisId="right" orientation="right" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip
                   formatter={(value: any, name: any) => name === 'Orders' ? value : formatPKR(Number(value))}
                   contentStyle={TOOLTIP_STYLE}
@@ -530,9 +530,9 @@ export default function RetailReportsV2() {
                     <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                 <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Area type="monotone" dataKey="sales" name="Sales" fill="url(#sveSales)" stroke="#0ea5e9" strokeWidth={2.5} />
@@ -555,9 +555,9 @@ export default function RetailReportsV2() {
                     <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.1} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                 <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Area type="monotone" dataKey="paid" name="Cash Paid" stackId="1" stroke="#10b981" fill="url(#paidGradRt)" strokeWidth={2} />
@@ -569,9 +569,9 @@ export default function RetailReportsV2() {
           <ChartCard title="Orders Trend" subtitle="Number of sales per day (best day highlighted)" icon={ShoppingCart} color="sky">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} />
                 <Bar dataKey="orders" name="Orders" radius={[6, 6, 0, 0]}>
                   {trendData.map((entry: any, idx: number) => {
@@ -604,9 +604,9 @@ export default function RetailReportsV2() {
                     }))}
                     layout="vertical"
                   >
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                    <XAxis type="number" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
-                    <YAxis type="category" dataKey="name" className="fill-slate-500 dark:fill-slate-400" fontSize={10} width={100} tickLine={false} axisLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                    <XAxis type="number" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                    <YAxis type="category" dataKey="name" className="fill-slate-500 dark:fill-ink-400" fontSize={10} width={100} tickLine={false} axisLine={false} />
                     <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} />
                     <Legend wrapperStyle={{ fontSize: 11 }} />
                     <Bar dataKey="revenue" name="Revenue" fill="#0ea5e9" radius={[0, 6, 6, 0]} />
@@ -645,25 +645,25 @@ export default function RetailReportsV2() {
             </ChartCard>
           </section>
 
-          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/10 dark:to-cyan-500/10 flex items-center gap-3">
+          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/10 dark:to-cyan-500/10 flex items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-600 text-white flex items-center justify-center shadow-lg shadow-sky-500/40">
                 <Award className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Top Products — Detailed</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Complete performance breakdown</p>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Top Products — Detailed</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Complete performance breakdown</p>
               </div>
             </div>
             {reports.topProducts.length === 0 ? (
               <div className="p-12 text-center">
-                <Package className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="font-extrabold text-slate-700 dark:text-slate-300">No product sales yet</p>
+                <Package className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                <p className="font-extrabold text-slate-700 dark:text-ink-300">No product sales yet</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm print:text-[0.6875rem]">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border-b-2 border-slate-200 dark:border-slate-700">
+                  <thead className="bg-slate-50 dark:bg-ink-800/60 text-slate-700 dark:text-ink-300 border-b-2 border-slate-200 dark:border-ink-700">
                     <tr>
                       <th className="text-center px-3 py-3 font-extrabold text-[0.6875rem] uppercase w-12">#</th>
                       <th className="text-left px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Product</th>
@@ -674,16 +674,16 @@ export default function RetailReportsV2() {
                       {!hideCost && <th className="text-center px-3 py-3 font-extrabold text-[0.6875rem] uppercase">Margin</th>}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                     {reports.topProducts.map((p: any, idx: number) => (
                       <tr key={p.productId} className="hover:bg-sky-50/40 dark:hover:bg-sky-500/5 transition">
                         <td className="px-3 py-2.5 text-center">
                           <span className={[
                             'inline-flex h-7 w-7 rounded-lg items-center justify-center font-extrabold text-xs',
                             idx === 0 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
-                            idx === 1 ? 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200' :
+                            idx === 1 ? 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-200' :
                             idx === 2 ? 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300' :
-                            'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+                            'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400',
                           ].join(' ')}>
                             {idx < 3 ? <Crown className="h-3.5 w-3.5" /> : idx + 1}
                           </span>
@@ -697,13 +697,13 @@ export default function RetailReportsV2() {
                                 <Package className="h-4 w-4 text-sky-400" />
                               )}
                             </div>
-                            <div className="font-extrabold text-slate-900 dark:text-white truncate max-w-[220px]">{p.product?.name}</div>
+                            <div className="font-extrabold text-slate-900 dark:text-ink-white truncate max-w-[220px]">{p.product?.name}</div>
                           </div>
                         </td>
-                        <td className="px-3 py-2.5 text-right font-extrabold tabular-nums text-slate-700 dark:text-slate-200">
+                        <td className="px-3 py-2.5 text-right font-extrabold tabular-nums text-slate-700 dark:text-ink-200">
                           {p.quantitySold} {p.product?.unit}
                         </td>
-                        <td className="px-3 py-2.5 text-right font-bold tabular-nums text-slate-600 dark:text-slate-400">{p.orderCount}</td>
+                        <td className="px-3 py-2.5 text-right font-bold tabular-nums text-slate-600 dark:text-ink-400">{p.orderCount}</td>
                         <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p.revenue)}</td>
                         {!hideCost && <td className="px-3 py-2.5 text-right font-extrabold text-violet-700 dark:text-violet-400 tabular-nums">{formatPKR(p.profit)}</td>}
                         {!hideCost && (
@@ -732,24 +732,24 @@ export default function RetailReportsV2() {
           CUSTOMERS
           ═══════════════════════════════════════════════════════ */}
       {tab === 'customers' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 flex items-center gap-3">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/40">
               <Trophy className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Top Customers 🏆</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Most valuable buyers</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Top Customers 🏆</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Most valuable buyers</p>
             </div>
           </div>
           {reports.topCustomers.length === 0 ? (
             <div className="p-12 text-center">
-              <Users className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-              <p className="font-extrabold text-slate-700 dark:text-slate-300">No customer data</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Sales karo, customers automatically dikhein ge</p>
+              <Users className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+              <p className="font-extrabold text-slate-700 dark:text-ink-300">No customer data</p>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">Sales karo, customers automatically dikhein ge</p>
             </div>
           ) : (
-            <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
               {reports.topCustomers.map((tc: any, idx: number) => {
                 const rankGrads = [
                   'from-amber-400 via-yellow-500 to-amber-600',
@@ -762,19 +762,19 @@ export default function RetailReportsV2() {
                       <div className={`h-11 w-11 rounded-2xl ${idx < 3 ? `bg-gradient-to-br ${rankGrads[idx]}` : 'bg-violet-500'} text-white font-extrabold flex items-center justify-center shadow-md shrink-0 text-sm`}>
                         {idx < 3 ? <Crown className="h-5 w-5" /> : `#${idx + 1}`}
                       </div>
-                      <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-300 shrink-0">
+                      <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center font-extrabold text-slate-600 dark:text-ink-300 shrink-0">
                         {tc.customer?.name?.charAt(0) || '?'}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 dark:text-white truncate">{tc.customer?.name || 'Unknown'}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{tc.customer?.name || 'Unknown'}</div>
+                        <div className="text-xs text-slate-500 dark:text-ink-400 font-bold truncate">
                           {tc.customer?.phone || 'No phone'} • {tc.orderCount} orders
                         </div>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className="font-extrabold text-violet-700 dark:text-violet-400 text-lg tabular-nums">{formatPKR(tc.totalSpent)}</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">AOV {formatPKR(tc.avgOrderValue)}</div>
                     </div>
                   </div>
                 );
@@ -799,9 +799,9 @@ export default function RetailReportsV2() {
           <ChartCard title="Inventory Value by Category" subtitle="Cost vs Sell value" icon={BarChart3} color="sky">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={reports.inventoryValue.byCategory}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                <XAxis dataKey="name" className="fill-slate-500 dark:fill-slate-400" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                <XAxis dataKey="name" className="fill-slate-500 dark:fill-ink-400" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                 <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 {!hideCost && <Bar dataKey="costValue" name="Cost Value" fill="#0ea5e9" radius={[6, 6, 0, 0]} />}
@@ -825,8 +825,8 @@ export default function RetailReportsV2() {
                   <CalendarDays className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Weekday Performance 📅</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Kis din kitni sale hoti hai</p>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Weekday Performance 📅</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Kis din kitni sale hoti hai</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3">
@@ -842,7 +842,7 @@ export default function RetailReportsV2() {
                         'relative rounded-2xl border-2 p-3 sm:p-4 transition-all hover:-translate-y-1 hover:shadow-lg',
                         isBest
                           ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/10 border-emerald-400 dark:border-emerald-500/50 shadow-lg shadow-emerald-500/20'
-                          : 'bg-white dark:bg-slate-900/70 border-slate-200 dark:border-slate-800',
+                          : 'bg-white dark:bg-ink-900/70 border-slate-200 dark:border-ink-800',
                       ].join(' ')}
                     >
                       {isBest && (
@@ -852,16 +852,16 @@ export default function RetailReportsV2() {
                       )}
                       <div className="flex items-center justify-between mb-2">
                         <div className="text-2xl">{meta.emoji}</div>
-                        <div className="text-[0.6875rem] uppercase font-extrabold tracking-widest text-slate-500 dark:text-slate-400">{w.day}</div>
+                        <div className="text-[0.6875rem] uppercase font-extrabold tracking-widest text-slate-500 dark:text-ink-400">{w.day}</div>
                       </div>
-                      <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white tabular-nums leading-tight truncate">
+                      <div className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums leading-tight truncate">
                         {formatPKR(w.sales)}
                       </div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5">
                         Avg {formatPKR(w.avg)}
                       </div>
                       {/* progress bar */}
-                      <div className="mt-2 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div className="mt-2 h-1.5 bg-slate-100 dark:bg-ink-800 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
@@ -883,9 +883,9 @@ export default function RetailReportsV2() {
               <ChartCard title="Weekday Radar" subtitle="Sales distribution shape" icon={Activity} color="sky">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={reports.weekdayPattern}>
-                    <PolarGrid className="stroke-slate-200 dark:stroke-slate-700" />
-                    <PolarAngleAxis dataKey="day" className="fill-slate-600 dark:fill-slate-300" fontSize={12} />
-                    <PolarRadiusAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                    <PolarGrid className="stroke-slate-200 dark:stroke-ink-700" />
+                    <PolarAngleAxis dataKey="day" className="fill-slate-600 dark:fill-ink-300" fontSize={12} />
+                    <PolarRadiusAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                     <Radar name="Sales" dataKey="sales" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.35} strokeWidth={2.5} />
                     <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} />
                   </RadarChart>
@@ -895,9 +895,9 @@ export default function RetailReportsV2() {
               <ChartCard title="Average per Weekday" subtitle="Best day highlighted in green" icon={BarChart3} color="sky">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={reports.weekdayPattern}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.5} />
-                    <XAxis dataKey="day" className="fill-slate-500 dark:fill-slate-400" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.5} />
+                    <XAxis dataKey="day" className="fill-slate-500 dark:fill-ink-400" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={11} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                     <Tooltip formatter={(v: any) => formatPKR(Number(v))} contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL} cursor={{ fill: 'rgba(14,165,233,0.1)' }} />
                     <Bar dataKey="avg" name="Avg Sales" radius={[6, 6, 0, 0]}>
                       {reports.weekdayPattern.map((entry: any, idx: number) => {
@@ -947,7 +947,7 @@ export default function RetailReportsV2() {
           ═══════════════════════════════════════════════════════ */}
       {tab === 'insights' && (
         <>
-          <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-indigo-950 dark:to-cyan-900 text-white p-5 sm:p-6 shadow-2xl">
+          <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-indigo-950 dark:to-cyan-900 text-white p-5 sm:p-6 shadow-2xl">
             <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl pointer-events-none animate-pulse" />
             <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
 
@@ -1010,14 +1010,14 @@ export default function RetailReportsV2() {
           </section>
 
           {/* Recommendations */}
-          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
             <div className="flex items-center gap-2.5 mb-4">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
                 <Zap className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Recommendations 💡</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Actionable tips</p>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Recommendations 💡</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Actionable tips</p>
               </div>
             </div>
             <div className="space-y-2">
@@ -1162,7 +1162,7 @@ function CsvMenuItem({ icon: Icon, label, onClick, highlight }: any) {
         'w-full px-3 py-2.5 flex items-center gap-2.5 text-left transition',
         highlight
           ? 'bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-          : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200',
+          : 'hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-700 dark:text-ink-200',
       ].join(' ')}
     >
       <Icon className="h-4 w-4 shrink-0" />
@@ -1175,7 +1175,7 @@ function QuickPreset({ label, onClick }: { label: string; onClick: () => void })
   return (
     <button
       onClick={onClick}
-      className="h-7 px-2.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 text-slate-700 dark:text-slate-300 hover:text-sky-700 dark:hover:text-sky-300 text-[0.6875rem] font-extrabold transition"
+      className="h-7 px-2.5 rounded-md bg-slate-100 dark:bg-ink-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 text-slate-700 dark:text-ink-300 hover:text-sky-700 dark:hover:text-sky-300 text-[0.6875rem] font-extrabold transition"
     >
       {label}
     </button>

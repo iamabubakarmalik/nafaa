@@ -477,7 +477,7 @@ export default function AdvisoryPage() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.dueList.map((r: any) => (
                 <span key={r.id}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200">
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200">
                   🌾 {r.cropName}
                   {r.toFollow !== null && <span className="opacity-70"> · {dayPhrase(r.toFollow)}</span>}
                 </span>
@@ -486,7 +486,7 @@ export default function AdvisoryPage() {
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={copyFollow}
-              className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black inline-flex items-center gap-1.5 transition">
               {copied ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? 'Copy hui' : 'List'}
             </button>
@@ -543,12 +543,12 @@ export default function AdvisoryPage() {
             className={`h-14 rounded-2xl border-2 font-black text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
               <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
-                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
               }`}>{count}</span>
             )}
           </button>
@@ -562,7 +562,7 @@ export default function AdvisoryPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : tab === 'analytics' ? (
         <Analytics stats={stats} cropChart={cropChart} stageChart={stageChart}
@@ -570,15 +570,15 @@ export default function AdvisoryPage() {
       ) : (
         <>
           {/* ═══ TOOLBAR ═══ */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
             <div className="relative">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Fasal, masla, variety, raay dene wala… (/ dabao)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
               {search && (
                 <button onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -593,7 +593,7 @@ export default function AdvisoryPage() {
                 <button key={v} onClick={() => setFilter(v as Filter)}
                   className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     filter === v ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>{label}</button>
               ))}
               {hasFilters && (
@@ -602,7 +602,7 @@ export default function AdvisoryPage() {
                   <X className="h-3 w-3" /> Chaant hatao
                 </button>
               )}
-              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
                 {shown.length} mashware
               </div>
             </div>
@@ -652,10 +652,10 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
   const toHarvest = daysTo(a.expectedHarvest);
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 shadow-sm p-4 space-y-3 avoid-break transition hover:shadow-lg ${
-      a.completed ? 'border-slate-200 dark:border-slate-800 opacity-75'
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 avoid-break transition hover:shadow-lg ${
+      a.completed ? 'border-slate-200 dark:border-ink-800 opacity-75'
         : a.followDue ? 'border-amber-300 dark:border-amber-500/50'
-        : 'border-slate-200 dark:border-slate-800 hover:border-emerald-300'
+        : 'border-slate-200 dark:border-ink-800 hover:border-emerald-300'
     }`}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -669,7 +669,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-mono font-extrabold text-slate-900 dark:text-white">{a.advisoryNumber}</span>
+              <span className="font-mono font-extrabold text-slate-900 dark:text-ink-white">{a.advisoryNumber}</span>
               {a.completed ? (
                 <span className="px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
                   <CheckCircle2 className="h-2.5 w-2.5" /> Poora
@@ -690,14 +690,14 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
               )}
             </div>
 
-            <div className="mt-1 text-lg font-black text-slate-900 dark:text-white">
+            <div className="mt-1 text-lg font-black text-slate-900 dark:text-ink-white">
               🌾 {a.cropName}
               {a.cropVariety && (
-                <span className="text-sm font-bold text-slate-500 dark:text-slate-400"> · {a.cropVariety}</span>
+                <span className="text-sm font-bold text-slate-500 dark:text-ink-400"> · {a.cropVariety}</span>
               )}
             </div>
 
-            <div className="mt-1 flex items-center gap-3 text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold flex-wrap">
+            <div className="mt-1 flex items-center gap-3 text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold flex-wrap">
               {a.landAreaAcres ? (
                 <span className="inline-flex items-center gap-1"><Layers className="h-3 w-3" />{a.landAreaAcres} acre</span>
               ) : null}
@@ -724,7 +724,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
           <div className="text-right shrink-0">
             <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 tracking-wider">Follow-up</div>
             <div className={`text-sm font-black tabular-nums ${
-              a.followDue ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'
+              a.followDue ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-ink-300'
             }`}>
               {a.toFollow !== null ? dayPhrase(a.toFollow) : '—'}
             </div>
@@ -747,11 +747,11 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
       )}
 
       {a.notes && (
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-2.5">
+        <div className="rounded-xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-2.5">
           <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-0.5 inline-flex items-center gap-1">
             <FlaskConical className="h-3 w-3" /> Jo raay di
           </div>
-          <p className="text-[0.75rem] font-semibold text-slate-700 dark:text-slate-200 leading-snug whitespace-pre-wrap">
+          <p className="text-[0.75rem] font-semibold text-slate-700 dark:text-ink-200 leading-snug whitespace-pre-wrap">
             {a.notes}
           </p>
         </div>
@@ -777,7 +777,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
               <Link key={i.productId} to={`/agri-products/${i.productId}`}
                 className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold transition hover:underline ${
                   i.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                    : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200'
+                    : 'bg-white dark:bg-ink-900 text-slate-700 dark:text-ink-200'
                 }`}>
                 {AGRI_KIND_EMOJI[i.kind as AgriKind]} {String(i.productName).slice(0, 18)}
                 {i.isOut && ' · khatam'}
@@ -791,7 +791,7 @@ function AdvisoryCard({ a, onComplete, busy }: { a: any; onComplete: () => void;
       </div>
 
       {!a.completed && (
-        <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 print:hidden">
+        <div className="flex gap-1.5 pt-2 border-t border-slate-100 dark:border-ink-800 print:hidden">
           <button onClick={onComplete} disabled={busy}
             className="h-9 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             <CheckCircle2 className="h-3.5 w-3.5" /> Poora ho gaya
@@ -905,23 +905,23 @@ function Analytics({ stats, cropChart, stageChart, issueChart, monthChart, rows 
         </ChartCard>
       </div>
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Phone className="h-4 w-4 text-amber-600" />
-          <h3 className="font-black text-slate-900 dark:text-white">Agla follow-up — tarteeb se</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Agla follow-up — tarteeb se</h3>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {[...rows]
             .filter((r: any) => !r.completed && r.toFollow !== null)
             .sort((a: any, b: any) => (a.toFollow ?? 0) - (b.toFollow ?? 0))
             .slice(0, 8)
             .map((r: any) => (
               <div key={r.id} className="p-3 flex items-center gap-3">
-                <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">
+                <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-lg shrink-0">
                   🌾
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">
                     {r.cropName}{r.cropVariety ? ` · ${r.cropVariety}` : ''}
                   </div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -930,7 +930,7 @@ function Analytics({ stats, cropChart, stageChart, issueChart, monthChart, rows 
                 </div>
                 <span className={`text-[0.6875rem] font-black tabular-nums shrink-0 px-2 py-1 rounded-lg ${
                   (r.toFollow ?? 0) <= 0 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                 }`}>
                   {dayPhrase(r.toFollow)}
                 </span>
@@ -996,13 +996,13 @@ function AdvisoryForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
       <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
         <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
           <Leaf className="h-5 w-5" /> Nayi raay
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-          <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+          <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
         </button>
       </div>
 
@@ -1014,8 +1014,8 @@ function AdvisoryForm({ onClose, onSaved }: any) {
               <User className="h-5 w-5" />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="font-extrabold text-slate-900 dark:text-white truncate">{farmer.fullName}</div>
-              <div className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+              <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{farmer.fullName}</div>
+              <div className="text-xs text-slate-600 dark:text-ink-400 font-bold">
                 {farmer.phone || 'Phone nahi'}
               </div>
             </div>
@@ -1025,24 +1025,24 @@ function AdvisoryForm({ onClose, onSaved }: any) {
         ) : (
           <>
             <button onClick={() => setShowPicker(!showPicker)}
-              className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm font-extrabold text-slate-600 dark:text-slate-300 hover:border-emerald-400 inline-flex items-center justify-center gap-2 transition">
+              className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 dark:text-ink-300 hover:border-emerald-400 inline-flex items-center justify-center gap-2 transition">
               <Search className="h-4 w-4" /> Farmer chunein <span className="text-slate-400 font-bold">— marzi</span>
             </button>
             {showPicker && (
               <div className="rounded-xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-500/5 p-3 space-y-2">
                 <input autoFocus value={farmerSearch} onChange={(e) => setFarmerSearch(e.target.value)}
                   placeholder="Naam ya phone se dhoondein…"
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
                 <div className="max-h-52 overflow-y-auto space-y-1">
                   {farmers.length === 0 ? (
                     <p className="text-xs font-bold text-slate-400 text-center py-3">Koi farmer nahi mila</p>
                   ) : farmers.map((f: any) => (
                     <button key={f.id}
                       onClick={() => { setFarmer(f); setForm({ ...form, farmerId: f.id }); setShowPicker(false); }}
-                      className="w-full px-3 py-2 flex items-center gap-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 text-left transition">
+                      className="w-full px-3 py-2 flex items-center gap-2 rounded-lg hover:bg-white dark:hover:bg-ink-800 text-left transition">
                       <User className="h-3.5 w-3.5 text-slate-400 shrink-0" />
                       <span className="flex-1 min-w-0">
-                        <span className="block text-sm font-extrabold text-slate-900 dark:text-white truncate">{f.fullName}</span>
+                        <span className="block text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">{f.fullName}</span>
                         <span className="block text-[0.6875rem] font-bold text-slate-500">{f.phone || 'Phone nahi'}</span>
                       </span>
                     </button>
@@ -1094,7 +1094,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
           <textarea rows={3} value={form.currentIssues}
             onChange={(e) => setForm({ ...form, currentIssues: e.target.value })}
             placeholder="Patte peele ho rahe hain, sundi lag gayi hai, paani ki kami…"
-            className="w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 resize-none transition" />
+            className="w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 resize-none transition" />
           <div className="mt-2 flex flex-wrap gap-1.5">
             {COMMON_ISSUES.map((iss) => (
               <button key={iss} type="button"
@@ -1102,7 +1102,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
                   ...form,
                   currentIssues: form.currentIssues ? `${form.currentIssues}, ${iss}` : iss,
                 })}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-amber-50 dark:hover:bg-amber-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 transition">
                 + {iss}
               </button>
             ))}
@@ -1132,7 +1132,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
           <Field label="Follow-up kab">
             <input type="date" value={form.followUpDate}
               onChange={(e) => setForm({ ...form, followUpDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+              className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
           </Field>
         </div>
 
@@ -1163,7 +1163,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
           </div>
         )}
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Rehne do</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-lime-700"
             onClick={() => save.mutate()} loading={save.isPending} disabled={!valid}>
@@ -1178,7 +1178,7 @@ function AdvisoryForm({ onClose, onSaved }: any) {
 /* ═════════════════════════════════════════════════════════════
    CHHOTE HISSE
    ═════════════════════════════════════════════════════════════ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
 
 function Field({ label, req, opt, children }: any) {
   return (
@@ -1204,15 +1204,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
-        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1228,12 +1228,12 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     amber: 'text-amber-600 dark:text-amber-400', rose: 'text-rose-600 dark:text-rose-400',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
         <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
-      <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-white break-words">{value}</div>
+      <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-ink-white break-words">{value}</div>
       {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
@@ -1241,8 +1241,8 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1256,14 +1256,14 @@ function EmptyBox({ text }: { text: string }) {
 
 function Empty({ hasFilters, onClear, onNew, onGuide }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Leaf className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
         {hasFilters ? 'Is chaant par kuch nahi mila' : 'Abhi koi mashwara nahi'}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
         {hasFilters
           ? 'Chaant badal kar dekhein'
           : 'Jab koi farmer patta le kar aaye ya khet ka masla poochhe, wo yahan likh dein. Phir follow-up bhi yaad rahega aur us fasal ka maal bhi saamne rahega.'}
@@ -1291,14 +1291,14 @@ function Empty({ hasFilters, onClear, onNew, onGuide }: any) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Raay se bikri kaise banti hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
@@ -1330,13 +1330,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Katai kab hogi, ye likh lein. Usi ke baad farmer ke paas paisa aata hai — udhaar
             maangne ka sab se sahi waqt.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> nayi raay</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> nayi raay</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1353,8 +1353,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

@@ -92,21 +92,21 @@ export default function TechniciansPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search technicians..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search technicians..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-violet-500" />
         </div>
 
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setStatusFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === 'all' ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {Object.entries(STATUS_CONFIG).map(([k, v]) => (
             <button key={k} onClick={() => setStatusFilter(k)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === k ? v.color + ' text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === k ? v.color + ' text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               <span className={'inline-block h-2 w-2 rounded-full mr-1 ' + v.dot} />
               {v.label}
@@ -117,12 +117,12 @@ export default function TechniciansPage() {
         <div className="flex gap-1.5 overflow-x-auto">
           <button onClick={() => setLevelFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (levelFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (levelFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Levels</button>
           {LEVELS.map((l) => (
             <button key={l.value} onClick={() => setLevelFilter(l.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (levelFilter === l.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (levelFilter === l.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{l.emoji} {l.label}</button>
           ))}
         </div>
@@ -146,10 +146,10 @@ export default function TechniciansPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : technicians.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <UserCheck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No technicians yet</p>
         </div>
@@ -177,7 +177,7 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
   const staffName = technician.staff ? ((technician.staff.firstName || '') + ' ' + (technician.staff.lastName || '')).trim() || 'Technician' : 'Technician';
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
           {technician.photoUrl ? (
@@ -190,7 +190,7 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
           <div className={'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white ' + statusCfg.dot} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white truncate">{staffName}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{staffName}</div>
           <div className="flex items-center gap-1 text-xs font-extrabold text-violet-600">
             <span>{level?.emoji}</span>
             <span>{level?.label}</span>
@@ -228,7 +228,7 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
             </span>
           )}
           {technician.secondarySkills?.slice(0, 2).map((s: string, i: number) => (
-            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
+            <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
               {s.replace('_', ' ')}
             </span>
           ))}
@@ -248,7 +248,7 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
         )}
       </div>
 
-      <div className="grid grid-cols-4 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+      <div className="grid grid-cols-4 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Jobs</div>
           <div className="text-sm font-extrabold">{technician.completedJobs}</div>
@@ -285,12 +285,12 @@ function TechnicianCard({ technician, onEdit, onSkills, onStatusChange, onDelete
         </div>
       )}
 
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         <button onClick={onSkills} className="flex-1 h-9 rounded-lg bg-violet-100 dark:bg-violet-950/40 hover:bg-violet-200 text-violet-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
           <Award className="h-3 w-3" />
           Skills
         </button>
-        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+        <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
           <Edit3 className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -366,7 +366,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Technician' : 'New Technician'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -406,16 +406,16 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.employeeCode} onChange={(e) => setForm({ ...form, employeeCode: e.target.value })} placeholder="Employee code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <input value={form.employeeCode} onChange={(e) => setForm({ ...form, employeeCode: e.target.value })} placeholder="Employee code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             {LEVELS.map((l) => <option key={l.value} value={l.value}>{l.emoji} {l.label}</option>)}
           </select>
-          <input type="number" value={form.experienceYears} onChange={(e) => setForm({ ...form, experienceYears: e.target.value })} placeholder="Experience (years)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+          <input type="number" value={form.experienceYears} onChange={(e) => setForm({ ...form, experienceYears: e.target.value })} placeholder="Experience (years)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
         </div>
 
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Primary Skill</label>
-          <select value={form.primarySkill} onChange={(e) => setForm({ ...form, primarySkill: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
+          <select value={form.primarySkill} onChange={(e) => setForm({ ...form, primarySkill: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500">
             <option value="">-- Select --</option>
             <option value="ELECTRICIAN">⚡ Electrician</option>
             <option value="PLUMBER">🔧 Plumber</option>
@@ -433,21 +433,21 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
           </select>
         </div>
 
-        <input value={form.secondarySkills} onChange={(e) => setForm({ ...form, secondarySkills: e.target.value })} placeholder="Secondary skills (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Short bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
+        <input value={form.secondarySkills} onChange={(e) => setForm({ ...form, secondarySkills: e.target.value })} placeholder="Secondary skills (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Short bio..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none" />
 
         {/* Docs */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.cnicNumber} onChange={(e) => setForm({ ...form, cnicNumber: e.target.value })} placeholder="CNIC #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.licenseNumber} onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })} placeholder="License #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
-          <input type="date" value={form.licenseExpiryDate} onChange={(e) => setForm({ ...form, licenseExpiryDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input value={form.vehicleNumber} onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })} placeholder="Vehicle #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.cnicNumber} onChange={(e) => setForm({ ...form, cnicNumber: e.target.value })} placeholder="CNIC #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.licenseNumber} onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })} placeholder="License #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
+          <input type="date" value={form.licenseExpiryDate} onChange={(e) => setForm({ ...form, licenseExpiryDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input value={form.vehicleNumber} onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })} placeholder="Vehicle #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500" />
         </div>
 
         {/* Service Areas */}
         <div className="grid sm:grid-cols-3 gap-3">
-          <input value={form.serviceAreas} onChange={(e) => setForm({ ...form, serviceAreas: e.target.value })} placeholder="Service areas (comma separated)" className="h-11 sm:col-span-2 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
-          <input type="number" value={form.maxTravelKm} onChange={(e) => setForm({ ...form, maxTravelKm: e.target.value })} placeholder="Max travel (km)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+          <input value={form.serviceAreas} onChange={(e) => setForm({ ...form, serviceAreas: e.target.value })} placeholder="Service areas (comma separated)" className="h-11 sm:col-span-2 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500" />
+          <input type="number" value={form.maxTravelKm} onChange={(e) => setForm({ ...form, maxTravelKm: e.target.value })} placeholder="Max travel (km)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
         </div>
 
         {/* Working Schedule */}
@@ -462,7 +462,7 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
               {DAYS.map((d, i) => (
                 <button key={d} onClick={() => toggleDay(i)} className={
                   'py-2 rounded-lg text-xs font-extrabold ' +
-                  (form.workingDays.includes(i) ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-neutral-800 border border-slate-200 text-slate-600 hover:border-blue-300')
+                  (form.workingDays.includes(i) ? 'bg-blue-600 text-white shadow' : 'bg-white dark:bg-ink-800 border border-slate-200 text-slate-600 hover:border-blue-300')
                 }>{d}</button>
               ))}
             </div>
@@ -478,23 +478,23 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break Start</label>
-              <input type="time" value={form.breakStartTime} onChange={(e) => setForm({ ...form, breakStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input type="time" value={form.breakStartTime} onChange={(e) => setForm({ ...form, breakStartTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Break End</label>
-              <input type="time" value={form.breakEndTime} onChange={(e) => setForm({ ...form, breakEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input type="time" value={form.breakEndTime} onChange={(e) => setForm({ ...form, breakEndTime: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
           </div>
           <div className="grid sm:grid-cols-3 gap-2">
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableForEmergency ? 'border-red-500 bg-red-50' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')}>
+            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableForEmergency ? 'border-red-500 bg-red-50' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')}>
               <input type="checkbox" checked={form.isAvailableForEmergency} onChange={(e) => setForm({ ...form, isAvailableForEmergency: e.target.checked })} className="h-4 w-4 rounded" />
               <span className="text-xs font-extrabold">🚨 Emergency</span>
             </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableWeekends ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')}>
+            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableWeekends ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')}>
               <input type="checkbox" checked={form.isAvailableWeekends} onChange={(e) => setForm({ ...form, isAvailableWeekends: e.target.checked })} className="h-4 w-4 rounded" />
               <span className="text-xs font-extrabold">📅 Weekends</span>
             </label>
-            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableNights ? 'border-violet-500 bg-violet-50' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')}>
+            <label className={'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer ' + (form.isAvailableNights ? 'border-violet-500 bg-violet-50' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')}>
               <input type="checkbox" checked={form.isAvailableNights} onChange={(e) => setForm({ ...form, isAvailableNights: e.target.checked })} className="h-4 w-4 rounded" />
               <span className="text-xs font-extrabold">🌙 Nights</span>
             </label>
@@ -534,15 +534,15 @@ function TechnicianForm({ editing, onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Daily Jobs</label>
-            <input type="number" value={form.maxDailyJobs} onChange={(e) => setForm({ ...form, maxDailyJobs: e.target.value })} placeholder="Unlimited" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.maxDailyJobs} onChange={(e) => setForm({ ...form, maxDailyJobs: e.target.value })} placeholder="Unlimited" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max Ongoing</label>
-            <input type="number" value={form.maxOngoingJobs} onChange={(e) => setForm({ ...form, maxOngoingJobs: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.maxOngoingJobs} onChange={(e) => setForm({ ...form, maxOngoingJobs: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer (min)</label>
-            <input type="number" value={form.bookingBufferMin} onChange={(e) => setForm({ ...form, bookingBufferMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
+            <input type="number" value={form.bookingBufferMin} onChange={(e) => setForm({ ...form, bookingBufferMin: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500" />
           </div>
         </div>
 
@@ -586,7 +586,7 @@ function SkillsModal({ technician, onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Assign Services / Skills</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -601,7 +601,7 @@ function SkillsModal({ technician, onClose, onSaved }: any) {
               return (
                 <button key={svc.id} onClick={() => toggle(svc.id)} className={
                   'p-3 rounded-xl border-2 text-left transition ' +
-                  (isSelected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
+                  (isSelected ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
                 }>
                   <div className="font-extrabold text-sm truncate">{svc.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{svc.businessType?.replace('_', ' ')}</div>

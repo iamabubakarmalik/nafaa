@@ -63,27 +63,27 @@ export default function PartsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, part #, OEM #, brand..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, part #, OEM #, brand..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setCategoryFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (categoryFilter === 'all' ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Categories</button>
           {CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (categoryFilter === c.value ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {c.emoji} {c.label}
             </button>
           ))}
         </div>
         <div className="flex gap-1.5 flex-wrap">
-          <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold focus:outline-none focus:border-amber-500">
+          <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value)} className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-amber-500">
             <option value="all">All Conditions</option>
             {CONDITIONS.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -94,7 +94,7 @@ export default function PartsPage() {
           ].map((t) => (
             <button key={t.v} onClick={() => setTagFilter(t.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === t.v ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === t.v ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.label}</button>
           ))}
         </div>
@@ -102,10 +102,10 @@ export default function PartsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : parts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Package className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No parts found</p>
           <p className="text-xs text-slate-500 mt-1">Go to Products page to add auto part profiles</p>
@@ -115,7 +115,7 @@ export default function PartsPage() {
           {parts.map((part) => {
             const cat = CATEGORIES.find((c) => c.value === part.category);
             return (
-              <Link key={part.id} to={'/products/' + part.productId + '/edit'} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-xl transition overflow-hidden">
+              <Link key={part.id} to={'/products/' + part.productId + '/edit'} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl transition overflow-hidden">
                 <div className="relative aspect-video bg-gradient-to-br from-amber-500 to-orange-600 overflow-hidden">
                   {part.product?.images?.[0]?.url ? (
                     <img src={part.product.images[0].url} alt="" className="w-full h-full object-cover" />
@@ -142,7 +142,7 @@ export default function PartsPage() {
                 </div>
                 <div className="p-4 space-y-2">
                   <div>
-                    <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{part.product?.name}</h3>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{part.product?.name}</h3>
                     <div className="text-[0.6875rem] font-extrabold uppercase text-amber-600">{cat?.label}</div>
                   </div>
                   {(part.partNumber || part.oemNumber) && (
@@ -152,7 +152,7 @@ export default function PartsPage() {
                     </div>
                   )}
                   <div className="flex flex-wrap gap-1">
-                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{part.condition}</span>
+                    <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{part.condition}</span>
                     {part.brand && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">{part.brand}</span>}
                     {part.warrantyMonths > 0 && (
                       <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
@@ -161,7 +161,7 @@ export default function PartsPage() {
                       </span>
                     )}
                   </div>
-                  <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+                  <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
                     <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(part.product?.price ?? 0)}</div>
                     <div className="text-right">
                       <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {part.product?.stock ?? 0}</div>

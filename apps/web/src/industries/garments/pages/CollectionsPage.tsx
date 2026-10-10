@@ -95,14 +95,14 @@ export default function CollectionsPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search collections..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-fuchsia-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-fuchsia-500"
           />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -116,7 +116,7 @@ export default function CollectionsPage() {
             onClick={() => setSeasonFilter('all')}
             className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (seasonFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (seasonFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }
           >
             All Seasons
@@ -127,7 +127,7 @@ export default function CollectionsPage() {
               onClick={() => setSeasonFilter(s.value)}
               className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (seasonFilter === s.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (seasonFilter === s.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }
             >
               {s.emoji} {s.label}
@@ -150,14 +150,14 @@ export default function CollectionsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : collections.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-fuchsia-100 dark:bg-fuchsia-950/40 mx-auto flex items-center justify-center">
             <Palette className="h-10 w-10 text-fuchsia-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No collections yet</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No collections yet</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Pehla seasonal collection banao</p>
           <Button
             className="mt-4 bg-gradient-to-r from-fuchsia-600 to-pink-700"
@@ -196,8 +196,8 @@ function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
 
   return (
     <div className={
-      'group rounded-3xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (collection.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-3xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+      (collection.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
     }>
       {/* Cover */}
       <div className={'relative aspect-[16/9] overflow-hidden bg-gradient-to-br ' + (season?.gradient ?? 'from-fuchsia-500 to-pink-600')}>
@@ -253,7 +253,7 @@ function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
       {/* Body */}
       <div className="p-4 space-y-2">
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{collection.name}</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{collection.name}</h3>
           {collection.code && (
             <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{collection.code}</div>
           )}
@@ -263,7 +263,7 @@ function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
         </div>
 
         {collection.description && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold line-clamp-2">{collection.description}</p>
+          <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold line-clamp-2">{collection.description}</p>
         )}
 
         {(collection.launchDate || collection.endDate) && (
@@ -275,7 +275,7 @@ function CollectionCard({ collection, onEdit, onToggleFeatured, onDelete }: {
           </div>
         )}
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-xs text-slate-600 font-bold">
             <Package className="h-3 w-3" />
             {collection.totalProducts || 0} products
@@ -330,12 +330,12 @@ function CollectionForm({ editing, onClose, onSaved }: {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Collection' : 'New Collection'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -349,7 +349,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="e.g. Eid Luxury 2026, Summer Lawn 2026"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
             />
           </div>
 
@@ -359,7 +359,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               value={form.code}
               onChange={(e) => setForm({ ...form, code: e.target.value })}
               placeholder="EID26"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500"
             />
           </div>
 
@@ -369,7 +369,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               type="number"
               value={form.year}
               onChange={(e) => setForm({ ...form, year: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500"
             />
           </div>
         </div>
@@ -388,11 +388,11 @@ function CollectionForm({ editing, onClose, onSaved }: {
                     'p-3 rounded-xl border-2 text-center transition ' +
                     (active
                       ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
                   }
                 >
                   <div className="text-2xl mb-1">{s.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{s.label}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{s.label}</div>
                 </button>
               );
             })}
@@ -406,7 +406,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="Collection ka theme aur inspiration..."
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none"
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none"
           />
         </div>
 
@@ -417,7 +417,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               type="date"
               value={form.launchDate}
               onChange={(e) => setForm({ ...form, launchDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
             />
           </div>
           <div>
@@ -426,7 +426,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               type="date"
               value={form.endDate}
               onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
             />
           </div>
         </div>
@@ -434,7 +434,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
         <div>
           <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Cover Image</label>
           {form.coverImageUrl ? (
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700">
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
               <img src={form.coverImageUrl} alt="" className="w-full h-full object-cover" />
               <button
                 onClick={() => setForm({ ...form, coverImageUrl: '' })}
@@ -461,7 +461,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               value={form.colorTheme}
               onChange={(e) => setForm({ ...form, colorTheme: e.target.value })}
               placeholder="Pink, gold, ivory..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500"
             />
           </div>
           <div>
@@ -470,7 +470,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
               type="number"
               value={form.displayOrder}
               onChange={(e) => setForm({ ...form, displayOrder: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500"
             />
           </div>
         </div>
@@ -489,7 +489,7 @@ function CollectionForm({ editing, onClose, onSaved }: {
           </div>
         </label>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700"

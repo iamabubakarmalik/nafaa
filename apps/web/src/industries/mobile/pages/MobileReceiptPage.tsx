@@ -308,7 +308,7 @@ export default function MobileReceiptPage() {
   /* ── States ── */
   if (isLoading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-neutral-950">
+      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-ink-950">
         <div className="flex flex-col items-center gap-3 text-neutral-500">
           <Loader2 className="h-8 w-8 animate-spin" />
           <p className="text-sm font-medium">Receipt load ho rahi hai…</p>
@@ -319,19 +319,19 @@ export default function MobileReceiptPage() {
 
   if (isError || !sale) {
     return (
-      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-neutral-950 p-6">
-        <div className="max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-lg">
+      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-ink-950 p-6">
+        <div className="max-w-sm w-full rounded-2xl bg-white dark:bg-ink-900 p-8 text-center shadow-lg">
           <AlertTriangle className="h-10 w-10 mx-auto text-amber-500" />
           <h2 className="mt-4 text-lg font-extrabold">Receipt nahi mili</h2>
           <p className="mt-1 text-sm text-neutral-500">Sale ID ghalat hai ya record delete ho chuka hai.</p>
           <div className="mt-6 flex gap-2 justify-center">
             <button
               onClick={() => refetch()}
-              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-white dark:text-neutral-900 text-white px-4 py-2 text-sm font-extrabold"
+              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-ink-white dark:text-ink-900 text-white px-4 py-2 text-sm font-extrabold"
             >
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Retry
             </button>
-            <button onClick={() => navigate(-1)} className="rounded-xl border px-4 py-2 text-sm font-extrabold dark:text-neutral-200">Wapas</button>
+            <button onClick={() => navigate(-1)} className="rounded-xl border px-4 py-2 text-sm font-extrabold dark:text-ink-200">Wapas</button>
           </div>
         </div>
       </div>
@@ -342,7 +342,7 @@ export default function MobileReceiptPage() {
 
   /* ── UI ── */
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 pb-28 print:bg-white">
+    <div className="min-h-screen bg-neutral-100 dark:bg-ink-950 pb-28 print:bg-white">
       <PrintStyles />
 
       {/* ══ Auto-opened success banner ══ */}
@@ -361,37 +361,37 @@ export default function MobileReceiptPage() {
       )}
 
       {/* ══ Toolbar ══ */}
-      <div className="print:hidden sticky top-0 z-20 bg-white/90 dark:bg-neutral-900/90 backdrop-blur border-b dark:border-neutral-800">
+      <div className="print:hidden sticky top-0 z-20 bg-white/90 dark:bg-ink-900/90 backdrop-blur border-b dark:border-ink-800">
         <div className="max-w-2xl mx-auto flex items-center gap-2 px-3 py-2.5">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Back">
-            <ArrowLeft className="h-5 w-5 dark:text-neutral-200" />
+          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Back">
+            <ArrowLeft className="h-5 w-5 dark:text-ink-200" />
           </button>
-          <h1 className="font-extrabold text-sm flex items-center gap-2 dark:text-neutral-100">
+          <h1 className="font-extrabold text-sm flex items-center gap-2 dark:text-ink-100">
             <ReceiptText className="h-4 w-4" /> Receipt
           </h1>
 
           <div className="ml-auto flex items-center gap-1.5">
-            <div className="flex rounded-xl border dark:border-neutral-700 overflow-hidden">
+            <div className="flex rounded-xl border dark:border-ink-700 overflow-hidden">
               <button
                 onClick={() => setMode('short')}
-                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${!full ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'dark:text-neutral-300'}`}
+                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${!full ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : 'dark:text-ink-300'}`}
               >
                 <Minimize2 className="h-3.5 w-3.5" /> Short
               </button>
               <button
                 onClick={() => setMode('full')}
-                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${full ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'dark:text-neutral-300'}`}
+                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${full ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : 'dark:text-ink-300'}`}
               >
                 <Maximize2 className="h-3.5 w-3.5" /> Full
               </button>
             </div>
 
-            <div className="hidden sm:flex rounded-xl border dark:border-neutral-700 overflow-hidden">
+            <div className="hidden sm:flex rounded-xl border dark:border-ink-700 overflow-hidden">
               {(['a4', '80', '58'] as Format[]).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFormat(f)}
-                  className={`px-2.5 py-1.5 text-xs font-extrabold tabular-nums ${format === f ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'dark:text-neutral-300'}`}
+                  className={`px-2.5 py-1.5 text-xs font-extrabold tabular-nums ${format === f ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : 'dark:text-ink-300'}`}
                 >
                   {f === 'a4' ? 'A4' : `${f}mm`}
                 </button>
@@ -402,11 +402,11 @@ export default function MobileReceiptPage() {
               className="p-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40" aria-label="WhatsApp">
               <MessageCircle className="h-4 w-4" />
             </button>
-            <button onClick={shareNative} className="p-2 rounded-xl border dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Share">
-              <Share2 className="h-4 w-4 dark:text-neutral-300" />
+            <button onClick={shareNative} className="p-2 rounded-xl border dark:border-ink-700 hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Share">
+              <Share2 className="h-4 w-4 dark:text-ink-300" />
             </button>
-            <button onClick={copyLink} className="p-2 rounded-xl border dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Copy link">
-              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 dark:text-neutral-300" />}
+            <button onClick={copyLink} className="p-2 rounded-xl border dark:border-ink-700 hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Copy link">
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4 dark:text-ink-300" />}
             </button>
             {!sale.isVoided && (
               <button
@@ -664,7 +664,7 @@ export default function MobileReceiptPage() {
       </div>
 
       {/* ══ Mobile bottom bar ══ */}
-      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur border-t dark:border-neutral-800 p-3 sm:hidden">
+      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-ink-900/95 backdrop-blur border-t dark:border-ink-800 p-3 sm:hidden">
         <div className="flex gap-2 max-w-2xl mx-auto">
           <button
             onClick={doPrint}

@@ -56,20 +56,20 @@ export default function DairyProductsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setTypeFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (typeFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (typeFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {PRODUCT_TYPES.map((t) => (
             <button key={t.value} onClick={() => setTypeFilter(t.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (typeFilter === t.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (typeFilter === t.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.emoji} {t.label}</button>
           ))}
         </div>
@@ -77,10 +77,10 @@ export default function DairyProductsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : products.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Milk className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No dairy products yet</p>
           <p className="text-xs text-slate-500 mt-1">Add products from Products module, then set dairy profile</p>
@@ -92,8 +92,8 @@ export default function DairyProductsPage() {
             const prod = p.product;
             return (
               <Link key={p.id} to={'/products/' + p.productId + '/edit'} className={
-                'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-                (p.isFeatured ? 'border-amber-400' : 'border-slate-200 dark:border-neutral-800')
+                'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+                (p.isFeatured ? 'border-amber-400' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="relative aspect-video bg-gradient-to-br from-fuchsia-500 to-pink-600 overflow-hidden">
                   {prod?.images?.[0]?.url ? (
@@ -125,7 +125,7 @@ export default function DairyProductsPage() {
                 </div>
 
                 <div className="p-3 space-y-1">
-                  <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{prod?.name}</h3>
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{prod?.name}</h3>
                   <div className="flex items-center gap-1 text-xs text-slate-500 font-bold">
                     {type && <span>{type.label}</span>}
                     <span>• {p.unit}</span>
@@ -146,7 +146,7 @@ export default function DairyProductsPage() {
                     )}
                   </div>
 
-                  <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+                  <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
                     <div>
                       <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(prod?.price ?? 0)}</div>
                     </div>

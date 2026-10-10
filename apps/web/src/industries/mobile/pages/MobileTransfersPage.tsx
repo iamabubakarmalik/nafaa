@@ -54,7 +54,7 @@ type DraftItem = {
 const STATUS_META: Record<string, { label: string; tone: string; icon: any }> = {
   IN_TRANSIT: { label: 'Raste Mein', tone: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300', icon: Truck },
   RECEIVED: { label: 'Mil Gaya', tone: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300', icon: CheckCircle2 },
-  CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300', icon: Ban },
+  CANCELLED: { label: 'Cancel', tone: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300', icon: Ban },
   PENDING: { label: 'Pending', tone: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300', icon: Clock },
 };
 
@@ -345,7 +345,7 @@ export default function MobileTransfersPage() {
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 dark:from-slate-950 dark:via-cyan-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 dark:from-ink-950 dark:via-cyan-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-cyan-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-teal-400/20 blur-3xl pointer-events-none" />
 
@@ -408,22 +408,22 @@ export default function MobileTransfersPage() {
       </section>
 
       {/* ═══ NEW TRANSFER ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-4 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 space-y-4 print:hidden">
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-cyan-600 to-teal-700 text-white flex items-center justify-center shadow-lg">
             <Plus className="h-5 w-5" />
           </div>
-          <h2 className="font-extrabold text-slate-900 dark:text-white text-lg">Naya Transfer</h2>
+          <h2 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Naya Transfer</h2>
         </div>
 
         {/* Shops */}
         <div className="grid sm:grid-cols-[1fr_auto_1fr] gap-3 items-end">
           <div>
-            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 mb-1.5">
               🏪 Kahan se
             </label>
             <select value={fromShopId} onChange={(e) => { setFromShopId(e.target.value); setDraft([]); }}
-              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition">
+              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition">
               <option value="">Shop chuno...</option>
               {activeShops.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -432,12 +432,12 @@ export default function MobileTransfersPage() {
             <ArrowRight className="h-5 w-5 text-cyan-500" />
           </div>
           <div>
-            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 mb-1.5">
+            <label className="block text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 mb-1.5">
               🏬 Kahan bhejna hai
             </label>
             <select value={toShopId} onChange={(e) => setToShopId(e.target.value)}
-              className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none transition ${
-                sameShop ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700 focus:border-cyan-500'
+              className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none transition ${
+                sameShop ? 'border-rose-400' : 'border-slate-200 dark:border-ink-700 focus:border-cyan-500'
               }`}>
               <option value="">Shop chuno...</option>
               {activeShops.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -456,7 +456,7 @@ export default function MobileTransfersPage() {
         {fromShopId && !sameShop && (
           <div>
             {/* Tabs */}
-            <div className="flex gap-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 mb-2.5">
+            <div className="flex gap-1.5 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 mb-2.5">
               {([
                 { v: 'phones', label: 'Naye Phone', icon: Smartphone, n: pickCount.phones },
                 { v: 'used', label: 'Used', icon: RotateCcw, n: pickCount.used },
@@ -465,12 +465,12 @@ export default function MobileTransfersPage() {
                 <button key={t.v} onClick={() => setPickTab(t.v)}
                   className={`flex-1 h-10 rounded-lg text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition ${
                     pickTab === t.v
-                      ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      ? 'bg-white dark:bg-ink-900 text-slate-900 dark:text-ink-white shadow'
+                      : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                   }`}>
                   <t.icon className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{t.label}</span>
-                  {t.n > 0 && <span className="px-1.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[0.6875rem] tabular-nums">{t.n}</span>}
+                  {t.n > 0 && <span className="px-1.5 rounded-full bg-slate-200 dark:bg-ink-700 text-[0.6875rem] tabular-nums">{t.n}</span>}
                 </button>
               ))}
             </div>
@@ -481,11 +481,11 @@ export default function MobileTransfersPage() {
                 <Search className="h-5 w-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input ref={pickRef} value={pickSearch} onChange={(e) => setPickSearch(e.target.value)}
                   placeholder={pickTab === 'accessories' ? 'Charger, cover, part...' : 'IMEI, code ya model... (/)'}
-                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition" />
               </div>
               {pickTab !== 'accessories' && (
                 <button onClick={() => setScannerOpen(true)}
-                  className="h-12 w-14 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
+                  className="h-12 w-14 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-ink-700 dark:to-ink-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                   <Camera className="h-4 w-4" />
                   <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
                 </button>
@@ -493,10 +493,10 @@ export default function MobileTransfersPage() {
             </div>
 
             {/* Results */}
-            <div className="mt-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="mt-2 rounded-xl border-2 border-slate-200 dark:border-ink-700 max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
               {loadingPick && !catalog ? (
                 <div className="p-4 space-y-2">
-                  {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-11 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+                  {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-11 rounded-lg bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
                 </div>
               ) : pickTab === 'phones' ? (
                 pickPhones.length === 0 ? <PickEmpty q={debounced} what="naya phone" /> : pickPhones.map((p: any) => (
@@ -529,7 +529,7 @@ export default function MobileTransfersPage() {
         {draft.length > 0 && (
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">
+              <span className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">
                 Bhejne wala maal ({draft.length})
               </span>
               <button onClick={resetDraft} className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 hover:underline">
@@ -547,24 +547,24 @@ export default function MobileTransfersPage() {
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-xs truncate">{d.name}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs truncate">{d.name}</div>
                       <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
                         <span className={`px-1 py-0.5 rounded text-[0.625rem] font-extrabold ${meta.chip}`}>{meta.label}</span>
-                        {d.ref && <span className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-slate-400">{d.ref}</span>}
-                        {d.detail && <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{d.detail}</span>}
+                        {d.ref && <span className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-ink-400">{d.ref}</span>}
+                        {d.detail && <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{d.detail}</span>}
                       </div>
                     </div>
 
                     {d.kind === 'ACCESSORY' ? (
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => changeQty(d.key, -1)}
-                          className="h-7 w-7 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-                          <Minus className="h-3 w-3 text-slate-600 dark:text-slate-300" />
+                          className="h-7 w-7 rounded-lg bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition">
+                          <Minus className="h-3 w-3 text-slate-600 dark:text-ink-300" />
                         </button>
-                        <span className="w-8 text-center font-extrabold text-sm text-slate-900 dark:text-white tabular-nums">{d.quantity}</span>
+                        <span className="w-8 text-center font-extrabold text-sm text-slate-900 dark:text-ink-white tabular-nums">{d.quantity}</span>
                         <button onClick={() => changeQty(d.key, 1)}
-                          className="h-7 w-7 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-                          <Plus className="h-3 w-3 text-slate-600 dark:text-slate-300" />
+                          className="h-7 w-7 rounded-lg bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition">
+                          <Plus className="h-3 w-3 text-slate-600 dark:text-ink-300" />
                         </button>
                       </div>
                     ) : (
@@ -572,7 +572,7 @@ export default function MobileTransfersPage() {
                     )}
 
                     <button onClick={() => removeItem(d.key)}
-                      className="h-8 w-8 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 dark:hover:bg-rose-500/10 transition shrink-0">
+                      className="h-8 w-8 rounded-lg bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-rose-50 hover:border-rose-300 dark:hover:bg-rose-500/10 transition shrink-0">
                       <Trash2 className="h-3.5 w-3.5 text-rose-500" />
                     </button>
                   </div>
@@ -582,7 +582,7 @@ export default function MobileTransfersPage() {
 
             <input value={notes} onChange={(e) => setNotes(e.target.value)}
               placeholder="Note — kis ke haath bheja, kab pahunchega... (optional)"
-              className="mt-2 h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
+              className="mt-2 h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition" />
 
             <div className="mt-3 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3 flex items-start gap-2">
               <Truck className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
@@ -603,14 +603,14 @@ export default function MobileTransfersPage() {
       </section>
 
       {/* ═══ FILTER BAR ═══ */}
-      <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+      <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Transfer #, shop, IMEI ya item dhoondo..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition" />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
@@ -625,8 +625,8 @@ export default function MobileTransfersPage() {
             <button key={f.v} onClick={() => setStatusFilter(f.v)}
               className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 ${
                 statusFilter === f.v
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-sm'
-                  : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 border-transparent shadow-sm'
+                  : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400 hover:bg-slate-200 dark:hover:bg-ink-700'
               }`}>
               {f.label}
             </button>
@@ -635,32 +635,32 @@ export default function MobileTransfersPage() {
       </div>
 
       {/* ═══ HISTORY ═══ */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
+          <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center">
             <Store className="h-5 w-5" />
           </div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white">
-            Transfers <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({visibleTransfers.length})</span>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
+            Transfers <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({visibleTransfers.length})</span>
           </h3>
         </div>
 
         {isLoading ? (
           <div className="p-4 space-y-2">
-            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : visibleTransfers.length === 0 ? (
           <div className="p-12 text-center">
-            <ArrowLeftRight className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+            <ArrowLeftRight className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-700 dark:text-ink-300">
               {search || statusFilter !== 'all' ? 'In filters se kuch nahi mila' : 'Ab tak koi transfer nahi'}
             </p>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs font-semibold text-slate-500 dark:text-ink-400 mt-0.5">
               Upar se maal chun kar dusri shop bhejo
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {visibleTransfers.map((t: StockTransfer) => {
               const meta = STATUS_META[t.status] ?? STATUS_META.PENDING;
               const Icon = meta.icon;
@@ -673,18 +673,18 @@ export default function MobileTransfersPage() {
                     <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
                       t.status === 'IN_TRANSIT' ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30'
                       : t.status === 'RECEIVED' ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
-                      : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                      : 'bg-slate-200 dark:bg-ink-800 text-slate-500'
                     }`}>
                       <Icon className="h-5 w-5" />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{t.transferNumber}</span>
+                        <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-ink-white">{t.transferNumber}</span>
                         <span className={`px-1.5 py-0.5 rounded text-[0.6875rem] font-extrabold uppercase ${meta.tone}`}>{meta.label}</span>
                       </div>
 
-                      <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 flex-wrap">
+                      <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-ink-300 flex-wrap">
                         <span>🏪 {t.fromShop.name}</span>
                         <ArrowRight className="h-3 w-3 text-cyan-500" />
                         <span>🏬 {t.toShop.name}</span>
@@ -698,28 +698,28 @@ export default function MobileTransfersPage() {
                         )}
                       </div>
 
-                      <div className="mt-1 text-[0.6875rem] font-semibold text-slate-400 dark:text-slate-500">
+                      <div className="mt-1 text-[0.6875rem] font-semibold text-slate-400 dark:text-ink-500">
                         {formatDate(t.createdAt)}
                         {t.createdBy && ` · ${t.createdBy.fullName}`}
                         {t.receivedAt && ` · wasool ${formatDate(t.receivedAt)}`}
                       </div>
 
                       {t.notes && (
-                        <div className="mt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 italic">{t.notes}</div>
+                        <div className="mt-1 text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 italic">{t.notes}</div>
                       )}
 
                       {(phones.length > 0 || used.length > 0) && (
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {[...phones, ...used].slice(0, 8).map((i) => (
                             <span key={i.id}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-slate-300"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-ink-300"
                               title={i.product?.name ?? `${i.usedPhone?.brand} ${i.usedPhone?.model}`}>
                               <Hash className="h-2.5 w-2.5" />
                               {i.imei?.imei1 ?? i.usedPhone?.usedPhoneCode}
                             </span>
                           ))}
                           {phones.length + used.length > 8 && (
-                            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-extrabold text-slate-500">
+                            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-500">
                               +{phones.length + used.length - 8} aur
                             </span>
                           )}
@@ -765,12 +765,12 @@ function PickRow({ onClick, kind, title, subtitle, badge, badgeCfg, extra }: any
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-xs truncate">{title}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs truncate">{title}</div>
         <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-          <span className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-slate-400">{subtitle}</span>
+          <span className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-ink-400">{subtitle}</span>
           {badge && (
             <span className={`px-1 py-0.5 rounded text-[0.625rem] font-extrabold uppercase ${
-              badgeCfg ? `border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}` : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+              badgeCfg ? `border ${badgeCfg.bg} ${badgeCfg.text} ${badgeCfg.border}` : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
             }`}>{badge}</span>
           )}
           {extra && <span className="text-[0.6875rem] font-bold text-slate-400">{extra}</span>}
@@ -784,8 +784,8 @@ function PickRow({ onClick, kind, title, subtitle, badge, badgeCfg, extra }: any
 function PickEmpty({ q, what }: { q: string; what: string }) {
   return (
     <div className="p-6 text-center">
-      <PackageSearch className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
-      <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+      <PackageSearch className="h-7 w-7 text-slate-300 dark:text-ink-600 mx-auto mb-1.5" />
+      <p className="text-xs font-bold text-slate-500 dark:text-ink-400">
         {q ? `"${q}" se koi ${what} nahi mila` : `Is shop me koi ${what} stock me nahi`}
       </p>
     </div>
@@ -811,14 +811,14 @@ const KPI_TONES: Record<string, string> = {
 
 function Kpi({ icon: Icon, tone, label, value, sub }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 flex items-center gap-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 flex items-center gap-3">
       <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${KPI_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">{label}</div>
-        <div className="font-extrabold text-slate-900 dark:text-white text-xl tabular-nums">{value}</div>
-        {sub && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{sub}</div>}
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider truncate">{label}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xl tabular-nums">{value}</div>
+        {sub && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">{sub}</div>}
       </div>
     </div>
   );
@@ -828,7 +828,7 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-slate-800">
+        className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-ink-800">
         <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 border-b-2 border-amber-200 dark:border-amber-500/30 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
@@ -836,17 +836,17 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Shop Transfer Kaise Karein?</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Shop Transfer Kaise Karein?</h3>
             </div>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-2 border-slate-200 dark:border-slate-700 p-4">
-            <div className="text-xs uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider mb-2.5">Poora Safar</div>
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 border-2 border-slate-200 dark:border-ink-700 p-4">
+            <div className="text-xs uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider mb-2.5">Poora Safar</div>
             <div className="flex items-center gap-2 flex-wrap">
               <FlowStep emoji="📦" label="Maal chuno" />
               <ArrowRight className="h-3.5 w-3.5 text-slate-400" />
@@ -882,7 +882,7 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
           </div>
         </div>
 
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-right shrink-0">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 text-right shrink-0">
           <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg shadow-amber-500/30">
             <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
           </Button>
@@ -894,7 +894,7 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
 
 function FlowStep({ emoji, label }: { emoji: string; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200">
       <span>{emoji}</span> {label}
     </span>
   );
@@ -902,18 +902,18 @@ function FlowStep({ emoji, label }: { emoji: string; label: string }) {
 
 function Step({ n, title, body, tips }: any) {
   return (
-    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+    <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-3.5">
       <div className="flex items-start gap-3">
         <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0 shadow-md">
           {n}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white">{title}</div>
-          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{body}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-ink-300 mt-1 leading-relaxed">{body}</div>
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((t: string, i: number) => (
-                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
                 </li>
               ))}
@@ -936,23 +936,23 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 flex items-center justify-center">
               <Keyboard className="h-4 w-4" />
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Keyboard Shortcuts</h3>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-2">
           {sc.map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700 dark:text-slate-300">{desc}</span>
-              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-xs font-extrabold text-slate-700 dark:text-slate-200">
+              <span className="font-semibold text-slate-700 dark:text-ink-300">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 font-mono text-xs font-extrabold text-slate-700 dark:text-ink-200">
                 {key}
               </kbd>
             </div>

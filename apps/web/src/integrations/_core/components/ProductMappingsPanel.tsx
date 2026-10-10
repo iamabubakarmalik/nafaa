@@ -70,7 +70,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="text-xs font-black text-slate-600 dark:text-slate-400">
+        <div className="text-xs font-black text-slate-600 dark:text-ink-400">
           {mappings?.length ?? 0} MAPPINGS
         </div>
         <Button
@@ -107,7 +107,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
                     'w-full p-2 rounded-lg text-left text-xs transition',
                     selectedProduct?.id === p.id
                       ? 'bg-emerald-500 text-white'
-                      : 'bg-white dark:bg-neutral-800 hover:bg-slate-100',
+                      : 'bg-white dark:bg-ink-800 hover:bg-slate-100',
                   )}
                 >
                   <div className="font-bold">{p.name}</div>
@@ -143,7 +143,7 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
           {mappings!.map((m: any) => (
             <div
               key={m.id}
-              className="p-3 rounded-xl bg-slate-50 dark:bg-neutral-800 flex items-center gap-3"
+              className="p-3 rounded-xl bg-slate-50 dark:bg-ink-800 flex items-center gap-3"
             >
               <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
                 <Link2 className="h-4 w-4 text-emerald-600" />
@@ -151,13 +151,13 @@ export function ProductMappingsPanel({ integrationId }: { integrationId: string 
               <div className="flex-1 min-w-0 grid grid-cols-2 gap-2 items-center">
                 <div>
                   <div className="text-[0.625rem] font-black uppercase text-slate-500">External SKU</div>
-                  <div className="text-xs font-black text-slate-900 dark:text-white truncate font-mono">
+                  <div className="text-xs font-black text-slate-900 dark:text-ink-white truncate font-mono">
                     {m.externalSku ?? m.externalProductId ?? '—'}
                   </div>
                 </div>
                 <div>
                   <div className="text-[0.625rem] font-black uppercase text-slate-500">Nafaa Product</div>
-                  <div className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  <div className="text-xs font-black text-slate-900 dark:text-ink-white truncate">
                     {m.product?.name ?? m.productId}
                   </div>
                 </div>

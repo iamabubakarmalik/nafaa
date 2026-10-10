@@ -311,7 +311,7 @@ export default function MobileProductsPage() {
       {bulkDeleteOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
              onClick={() => setBulkDeleteOpen(false)}>
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+          <div className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
                onClick={(e) => e.stopPropagation()}>
             <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
               <div className="flex items-center gap-3">
@@ -343,13 +343,13 @@ export default function MobileProductsPage() {
                       <li>• Empty ho jane wali sale receipts</li>
                     </ul>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold text-center">
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold text-center">
                     Sirf demo/test data cleanup ke liye. Ye action <strong>undo nahi</strong> ho sakta.
                   </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setBulkDeleteOpen(false)}
-                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition"
+                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition"
                     >
                       Cancel — Rehne Do
                     </button>
@@ -363,7 +363,7 @@ export default function MobileProductsPage() {
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 text-center leading-relaxed">
+                  <p className="text-sm font-bold text-slate-700 dark:text-ink-200 text-center leading-relaxed">
                     Final confirmation:<br />
                     <span className="text-rose-600 dark:text-rose-400 font-extrabold">{selected.size} products</span> aur
                     unki saari history delete kar dein?
@@ -371,7 +371,7 @@ export default function MobileProductsPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => setBulkDeleteStep(1)}
-                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition"
+                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition"
                     >
                       ← Wapas
                     </button>
@@ -408,7 +408,7 @@ export default function MobileProductsPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
 
@@ -545,7 +545,7 @@ export default function MobileProductsPage() {
                   <button
                     key={p.id}
                     onClick={() => setStockModalProduct(p)}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-ink-800 border-2 border-amber-200 dark:border-amber-500/40 hover:border-amber-400 dark:hover:border-amber-500/60 text-[0.6875rem] font-extrabold text-amber-900 dark:text-amber-200 transition"
                   >
                     {p.name} <span className="text-rose-700 dark:text-rose-400">({p.stock} {p.unit})</span>
                   </button>
@@ -563,7 +563,7 @@ export default function MobileProductsPage() {
       )}
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -572,27 +572,27 @@ export default function MobileProductsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Naam, SKU ya barcode se dhundo... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
           </div>
 
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
             <button
               onClick={() => setView('grid')}
               title="Card view"
-              className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              className={`px-4 h-12 text-xs font-extrabold transition ${view === 'grid' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
             >
               <Grid3x3 className="h-4 w-4" />
             </button>
             <button
               onClick={() => setView('table')}
               title="List view"
-              className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-slate-700 transition ${view === 'table' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              className={`px-4 h-12 text-xs font-extrabold border-l-2 border-slate-200 dark:border-ink-700 transition ${view === 'table' ? 'bg-blue-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
             >
               <List className="h-4 w-4" />
             </button>
@@ -600,7 +600,7 @@ export default function MobileProductsPage() {
 
           <button
             onClick={() => exportCSV(filtered)}
-            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition"
+            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition"
           >
             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
           </button>
@@ -609,7 +609,7 @@ export default function MobileProductsPage() {
         {/* Filter chips */}
         <div className="flex gap-2 flex-wrap items-center">
           {/* Type filter — Phone vs Accessory */}
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
             {([
               { v: 'all' as TypeFilter, l: 'Sab', icon: null },
               { v: 'PHONE' as TypeFilter, l: 'Phones', icon: Smartphone },
@@ -619,7 +619,7 @@ export default function MobileProductsPage() {
                 key={o.v}
                 onClick={() => setTypeFilter(o.v)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 transition ${
-                  typeFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  typeFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
                 {o.icon && <o.icon className="h-3 w-3" />}
@@ -631,7 +631,7 @@ export default function MobileProductsPage() {
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+            className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
           >
             <option value="all">Sab Categories ({categories.length})</option>
             <option value="none">Bina category</option>
@@ -641,14 +641,14 @@ export default function MobileProductsPage() {
           <select
             value={brandId}
             onChange={(e) => setBrandId(e.target.value)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+            className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
           >
             <option value="all">Sab Brands ({brands.length})</option>
             <option value="none">Bina brand</option>
             {(brands as any[]).map((b) => (<option key={b.id} value={b.id}>{b.name}</option>))}
           </select>
 
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
             {([
               { v: 'all' as StockFilter, l: 'Sab', c: null },
               { v: 'in' as StockFilter, l: 'Stock me', c: null },
@@ -659,18 +659,18 @@ export default function MobileProductsPage() {
                 key={o.v}
                 onClick={() => setStockFilter(o.v)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  stockFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  stockFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
                 {o.l}
                 {o.c != null && (
-                  <span className={`ml-1 tabular-nums ${stockFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                  <span className={`ml-1 tabular-nums ${stockFilter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>
                 )}
               </button>
             ))}
           </div>
 
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
             {([
               { v: 'active' as StatusFilter, l: 'Active' },
               { v: 'inactive' as StatusFilter, l: 'Band' },
@@ -680,7 +680,7 @@ export default function MobileProductsPage() {
                 key={o.v}
                 onClick={() => setStatusFilter(o.v)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  statusFilter === o.v ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  statusFilter === o.v ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
                 {o.l}
@@ -691,7 +691,7 @@ export default function MobileProductsPage() {
           <select
             value={sortKey}
             onChange={(e) => setSortKey(e.target.value as SortKey)}
-            className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+            className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
           >
             <option value="name">A → Z</option>
             <option value="newest">Naye pehle</option>
@@ -707,7 +707,7 @@ export default function MobileProductsPage() {
             </button>
           )}
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} products
           </div>
         </div>
@@ -715,7 +715,7 @@ export default function MobileProductsPage() {
 
       {/* ═══ BULK BAR ═══ */}
       {selected.size > 0 && (
-        <section className="sticky top-2 z-20 rounded-2xl bg-slate-950 dark:bg-slate-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
+        <section className="sticky top-2 z-20 rounded-2xl bg-slate-950 dark:bg-ink-900 text-white shadow-2xl border border-white/20 p-3 flex items-center gap-2 flex-wrap print:hidden">
           <div className="font-extrabold text-sm px-2"><span className="text-blue-300">{selected.size}</span> selected</div>
           <button onClick={() => bulkStatus.mutate(true)} className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-extrabold inline-flex items-center gap-1 transition">
             <CheckCircle2 className="h-3.5 w-3.5" /> Active karo
@@ -740,14 +740,14 @@ export default function MobileProductsPage() {
 
       {/* ═══ EMPTY ═══ */}
       {filtered.length === 0 ? (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
           <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/40">
             <Smartphone className="h-10 w-10 text-white" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             {hasFilters ? 'Kuch nahi mila' : 'Abhi koi product nahi'}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+          <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
             {hasFilters ? 'Filter change kar ke dekho' : 'Wizard se poora product ek page mein banao — phone ho ya accessory, IMEI ya stock qty sab ek saath.'}
           </p>
           <div className="mt-5 flex gap-2 justify-center flex-wrap">
@@ -783,10 +783,10 @@ export default function MobileProductsPage() {
         </section>
       ) : (
         /* ═══ TABLE ═══ */
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
           <div className="overflow-x-auto">
             <table className="w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <th className="px-3 py-3 w-10 print:hidden">
                     <input
@@ -807,7 +807,7 @@ export default function MobileProductsPage() {
                   <Th className="text-right print:hidden">Actions</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {visible.map((p) => {
                   const stock = Number(p.stock || 0);
                   const alert = Number(p.lowStockAlert ?? 5);
@@ -823,11 +823,11 @@ export default function MobileProductsPage() {
                         <Link to={`/mobile-products/${p.id}`} className="flex items-center gap-2.5 group">
                           <Thumb p={p} size="h-10 w-10" />
                           <div className="min-w-0">
-                            <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-blue-700 dark:group-hover:text-blue-400 flex items-center gap-1">
+                            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-blue-700 dark:group-hover:text-blue-400 flex items-center gap-1">
                               {p.name}
                               {p.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500 shrink-0" />}
                             </div>
-                            <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 truncate">
+                            <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-ink-400 truncate">
                               {p.sku || p.barcode || '—'}
                             </div>
                           </div>
@@ -841,23 +841,23 @@ export default function MobileProductsPage() {
                           <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
                             {p.category.name}
                           </span>
-                        ) : <span className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">—</span>}
+                        ) : <span className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">—</span>}
                       </td>
-                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums">{formatPKR(p.costPrice || 0)}</td>}
+                      {!hideCost && <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums">{formatPKR(p.costPrice || 0)}</td>}
                       <td className="px-3 py-2.5 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p.price || 0)}</td>
                       <td className="px-3 py-2.5 text-right">
                         <button onClick={() => setStockModalProduct(p)} className="inline-flex flex-col items-end group">
                           <span className={[
                             'font-extrabold tabular-nums text-sm',
-                            isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-white',
+                            isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-ink-white',
                           ].join(' ')}>
-                            {stock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{isPhone ? 'IMEI' : p.unit}</span>
+                            {stock} <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{isPhone ? 'IMEI' : p.unit}</span>
                           </span>
                           <span className="text-[0.625rem] font-extrabold text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition print:hidden">+ Stock</span>
                         </button>
                       </td>
                       {!hideCost && (
-                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-slate-300 tabular-nums">
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-700 dark:text-ink-300 tabular-nums">
                           {formatPKR(stock * Number(p.price || 0))}
                         </td>
                       )}
@@ -903,10 +903,10 @@ export default function MobileProductsPage() {
         <div className="flex justify-center print:hidden">
           <button
             onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="px-6 py-3 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500/50 text-sm font-extrabold text-slate-700 dark:text-slate-200 shadow-sm transition"
+            className="px-6 py-3 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-400 dark:hover:border-blue-500/50 text-sm font-extrabold text-slate-700 dark:text-ink-200 shadow-sm transition"
           >
             Aur {Math.min(PAGE_SIZE, filtered.length - visibleCount)} dikhao
-            <span className="text-slate-400 dark:text-slate-500 font-bold ml-1">({visibleCount}/{filtered.length})</span>
+            <span className="text-slate-400 dark:text-ink-500 font-bold ml-1">({visibleCount}/{filtered.length})</span>
           </button>
         </div>
       )}
@@ -953,20 +953,20 @@ function MobileProductsTeacher({ onClose, onAddPhone }: { onClose: () => void; o
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Mobile Products — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye page aapka <strong>poora catalog</strong> hai — phones (IMEI-tracked) aur accessories
             (simple stock) dono ek jagah. Har card pe type badge dikhta hai: 📱 Phone ya 🎧 Accessory.
           </p>
@@ -975,7 +975,7 @@ function MobileProductsTeacher({ onClose, onAddPhone }: { onClose: () => void; o
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300">
               ➕ Product kaise add karein
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <GuideRow emoji="🧙" title="Naya Product Wizard" desc="3 step — basic info, colors/storage, IMEIs ya stock" />
               <GuideRow emoji="📷" title="Camera scan" desc="Wizard ke andar box ka IMEI barcode scan karo" />
               <GuideRow emoji="📋" title="Bulk paste" desc="Ek saath 10+ IMEIs paste karo — auto duplicate-check" />
@@ -987,7 +987,7 @@ function MobileProductsTeacher({ onClose, onAddPhone }: { onClose: () => void; o
             Upar wali red strip pe click kar ke seedha IMEI inventory kholo aur fix karo.
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⌨️ / dabao</strong> — search box pe jump</TipRow>
             <TipRow><strong>Stock number pe click</strong> — foran stock add karo</TipRow>
             <TipRow><strong>Type filter</strong> — Phones / Accessories alag dekho</TipRow>
@@ -1009,11 +1009,11 @@ function MobileProductsTeacher({ onClose, onAddPhone }: { onClose: () => void; o
 
 function GuideRow({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2.5">
+    <div className="flex items-start gap-2.5 rounded-xl bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2.5">
       <span className="text-lg shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 dark:text-white text-xs">{title}</div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs">{title}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -1047,15 +1047,15 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
 
   return (
     <div className={[
-      'group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 overflow-hidden transition-all hover:shadow-lg dark:hover:shadow-blue-500/10 hover:-translate-y-0.5',
-      selected ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-500/30' : isOut ? 'border-rose-200 dark:border-rose-500/40' : isLow ? 'border-amber-200 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      'group relative rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 overflow-hidden transition-all hover:shadow-lg dark:hover:shadow-blue-500/10 hover:-translate-y-0.5',
+      selected ? 'border-blue-500 ring-2 ring-blue-200 dark:ring-blue-500/30' : isOut ? 'border-rose-200 dark:border-rose-500/40' : isLow ? 'border-amber-200 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
       !p.isActive ? 'opacity-60' : '',
     ].join(' ')}>
       <button
         onClick={onToggle}
         className={[
           'absolute top-2 left-2 z-10 h-6 w-6 rounded-lg border-2 flex items-center justify-center transition',
-          selected ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white/90 dark:bg-slate-900/90 border-slate-300 dark:border-slate-600 opacity-0 group-hover:opacity-100',
+          selected ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white/90 dark:bg-ink-900/90 border-slate-300 dark:border-ink-600 opacity-0 group-hover:opacity-100',
         ].join(' ')}
       >
         {selected && <CheckCircle2 className="h-3.5 w-3.5" />}
@@ -1066,12 +1066,12 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
       </div>
 
       <Link to={`/mobile-products/${p.id}`} className="block">
-        <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+        <div className="aspect-square bg-slate-100 dark:bg-ink-800 overflow-hidden relative">
           {p.images?.[0]?.url ? (
             <img src={p.images[0].url} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              {isPhone ? <Smartphone className="h-10 w-10 text-slate-300 dark:text-slate-600" /> : <Cable className="h-10 w-10 text-slate-300 dark:text-slate-600" />}
+              {isPhone ? <Smartphone className="h-10 w-10 text-slate-300 dark:text-ink-600" /> : <Cable className="h-10 w-10 text-slate-300 dark:text-ink-600" />}
             </div>
           )}
           {p.isFeatured && (
@@ -1090,7 +1090,7 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
         </div>
 
         <div className="p-2.5">
-          <div className="font-extrabold text-slate-900 dark:text-white text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs leading-tight line-clamp-2 min-h-[2rem]">{p.name}</div>
           {p.category && (
             <div className="mt-1 inline-flex items-center gap-1 text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-md text-white" style={{ backgroundColor: p.category.color || '#64748b' }}>
               {p.category.name}
@@ -1099,14 +1099,14 @@ function ProductCard({ p, selected, onToggle, onStock }: any) {
           <div className="mt-1.5 flex items-end justify-between gap-1">
             <div>
               <div className="text-base font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">{formatPKR(p.price || 0)}</div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">per {isPhone ? 'unit' : p.unit}</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">per {isPhone ? 'unit' : p.unit}</div>
             </div>
             <div className="text-right">
               <div className={[
                 'text-sm font-extrabold tabular-nums leading-none',
-                isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300',
+                isOut ? 'text-rose-700 dark:text-rose-400' : isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-700 dark:text-ink-300',
               ].join(' ')}>{stock}</div>
-              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{isPhone ? 'IMEIs' : 'stock'}</div>
+              <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">{isPhone ? 'IMEIs' : 'stock'}</div>
             </div>
           </div>
         </div>
@@ -1146,8 +1146,8 @@ function TypePill({ isPhone, compact }: { isPhone: boolean; compact?: boolean })
       'inline-flex items-center gap-1 rounded-full font-extrabold',
       compact ? 'px-1.5 py-0.5 text-[0.625rem] shadow-sm backdrop-blur' : 'px-2 py-0.5 text-[0.6875rem]',
       isPhone
-        ? 'bg-blue-100 dark:bg-blue-500/80 text-blue-700 dark:text-white'
-        : 'bg-emerald-100 dark:bg-emerald-500/80 text-emerald-700 dark:text-white',
+        ? 'bg-blue-100 dark:bg-blue-500/80 text-blue-700 dark:text-ink-white'
+        : 'bg-emerald-100 dark:bg-emerald-500/80 text-emerald-700 dark:text-ink-white',
     ].join(' ')}>
       {isPhone ? <Smartphone className="h-2.5 w-2.5" /> : <Cable className="h-2.5 w-2.5" />}
       {isPhone ? 'Phone' : 'Accessory'}
@@ -1158,12 +1158,12 @@ function TypePill({ isPhone, compact }: { isPhone: boolean; compact?: boolean })
 function Thumb({ p, size = 'h-10 w-10' }: any) {
   const isPhone = (p.productType ?? 'PHONE') === 'PHONE';
   return (
-    <div className={`${size} rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700`}>
+    <div className={`${size} rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden shrink-0 border border-slate-200 dark:border-ink-700`}>
       {p.images?.[0]?.url ? (
         <img src={p.images[0].url} alt="" loading="lazy" className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          {isPhone ? <Smartphone className="h-4 w-4 text-slate-400 dark:text-slate-500" /> : <Cable className="h-4 w-4 text-slate-400 dark:text-slate-500" />}
+          {isPhone ? <Smartphone className="h-4 w-4 text-slate-400 dark:text-ink-500" /> : <Cable className="h-4 w-4 text-slate-400 dark:text-ink-500" />}
         </div>
       )}
     </div>
@@ -1172,7 +1172,7 @@ function Thumb({ p, size = 'h-10 w-10' }: any) {
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 ${className}`}>
+    <th className={`px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 ${className}`}>
       {children}
     </th>
   );
@@ -1183,7 +1183,7 @@ function Pill({ tone, children }: any) {
     emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     rose: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
-    slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
   };
   return <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
@@ -1213,18 +1213,18 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-blue-500 dark:border-blue-500/60 ring-2 ring-blue-200 dark:ring-blue-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

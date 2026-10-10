@@ -98,20 +98,20 @@ export default function SlaughterLogPage() {
       )}
 
       {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search log #, tag, slaughterer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search log #, tag, slaughterer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-emerald-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setAnimalFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (animalFilter === 'all' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (animalFilter === 'all' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {ANIMAL_TYPES.map((a) => (
             <button key={a.value} onClick={() => setAnimalFilter(a.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (animalFilter === a.value ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (animalFilter === a.value ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{a.emoji} {a.label}</button>
           ))}
         </div>
@@ -131,10 +131,10 @@ export default function SlaughterLogPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : logs.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <ShieldCheck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No slaughter logs yet</p>
         </div>
@@ -155,12 +155,12 @@ function ComplianceCard({ label, value, sub, icon: Icon, color }: any) {
     violet: 'from-violet-500 to-purple-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -177,8 +177,8 @@ function LogCard({ log }: { log: SlaughterLog }) {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
-      (log.isHalal ? 'border-emerald-200 dark:border-emerald-800' : 'border-slate-200 dark:border-neutral-800')
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
+      (log.isHalal ? 'border-emerald-200 dark:border-emerald-800' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -190,7 +190,7 @@ function LogCard({ log }: { log: SlaughterLog }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{log.slaughterNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{log.slaughterNumber}</span>
               {log.isHalal && (
                 <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <ShieldCheck className="h-2.5 w-2.5" />
@@ -198,7 +198,7 @@ function LogCard({ log }: { log: SlaughterLog }) {
                 </span>
               )}
               {method && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                   {method.emoji} {method.label}
                 </span>
               )}
@@ -252,7 +252,7 @@ function LogCard({ log }: { log: SlaughterLog }) {
         <div className="text-right shrink-0 space-y-1">
           <div>
             <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">Live Wt</div>
-            <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{log.liveWeightKg}kg</div>
+            <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{log.liveWeightKg}kg</div>
           </div>
           {log.dressedWeightKg && (
             <div>
@@ -267,7 +267,7 @@ function LogCard({ log }: { log: SlaughterLog }) {
       </div>
 
       {log.photoUrls?.length > 0 && (
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
           {log.photoUrls.slice(0, 5).map((url: string, i: number) => (
             <a key={i} href={url} target="_blank" rel="noreferrer" className="h-12 w-12 rounded-lg overflow-hidden border border-slate-200">
               <img src={url} alt="" className="w-full h-full object-cover" />
@@ -277,7 +277,7 @@ function LogCard({ log }: { log: SlaughterLog }) {
       )}
 
       {log.notes && (
-        <div className="text-xs italic text-slate-500 border-t border-slate-100 dark:border-neutral-800 pt-2">
+        <div className="text-xs italic text-slate-500 border-t border-slate-100 dark:border-ink-800 pt-2">
           📝 {log.notes}
         </div>
       )}
@@ -336,9 +336,9 @@ function SlaughterForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">🕌 New Slaughter Log</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">🕌 New Slaughter Log</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -391,11 +391,11 @@ function SlaughterForm({ onClose, onSaved }: any) {
         )}
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.animalType} onChange={(e) => setForm({ ...form, animalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
+          <select value={form.animalType} onChange={(e) => setForm({ ...form, animalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
             {ANIMAL_TYPES.map((a) => <option key={a.value} value={a.value}>{a.emoji} {a.label}</option>)}
           </select>
-          <input value={form.animalTag} onChange={(e) => setForm({ ...form, animalTag: e.target.value })} placeholder="Animal Tag" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-          <input type="datetime-local" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.animalTag} onChange={(e) => setForm({ ...form, animalTag: e.target.value })} placeholder="Animal Tag" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
+          <input type="datetime-local" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
         </div>
 
         <div>
@@ -404,7 +404,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
             {METHODS.map((m) => (
               <button key={m.value} onClick={() => setForm({ ...form, slaughterMethod: m.value, isHalal: m.value.startsWith('HALAL') })} className={
                 'p-3 rounded-xl border-2 text-center transition ' +
-                (form.slaughterMethod === m.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
+                (form.slaughterMethod === m.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
               }>
                 <div className="text-2xl mb-1">{m.emoji}</div>
                 <div className="text-[0.6875rem] font-extrabold">{m.label}</div>
@@ -425,10 +425,10 @@ function SlaughterForm({ onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.slaughteredBy} onChange={(e) => setForm({ ...form, slaughteredBy: e.target.value })} placeholder="Slaughtered by (name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.slaughtererCertNumber} onChange={(e) => setForm({ ...form, slaughtererCertNumber: e.target.value })} placeholder="Slaughterer Cert #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.witnessedBy} onChange={(e) => setForm({ ...form, witnessedBy: e.target.value })} placeholder="Witnessed by" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <select value={form.qualityGrade} onChange={(e) => setForm({ ...form, qualityGrade: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
+          <input value={form.slaughteredBy} onChange={(e) => setForm({ ...form, slaughteredBy: e.target.value })} placeholder="Slaughtered by (name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.slaughtererCertNumber} onChange={(e) => setForm({ ...form, slaughtererCertNumber: e.target.value })} placeholder="Slaughterer Cert #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.witnessedBy} onChange={(e) => setForm({ ...form, witnessedBy: e.target.value })} placeholder="Witnessed by" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <select value={form.qualityGrade} onChange={(e) => setForm({ ...form, qualityGrade: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
             {GRADES.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
           </select>
         </div>
@@ -449,8 +449,8 @@ function SlaughterForm({ onClose, onSaved }: any) {
 
         {/* Facility */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.facilityName} onChange={(e) => setForm({ ...form, facilityName: e.target.value })} placeholder="Facility name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.facilityLicense} onChange={(e) => setForm({ ...form, facilityLicense: e.target.value })} placeholder="Facility License #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.facilityName} onChange={(e) => setForm({ ...form, facilityName: e.target.value })} placeholder="Facility name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.facilityLicense} onChange={(e) => setForm({ ...form, facilityLicense: e.target.value })} placeholder="Facility License #" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
         </div>
 
         {/* Vet */}
@@ -466,7 +466,7 @@ function SlaughterForm({ onClose, onSaved }: any) {
               <input value={form.vetCertNumber} onChange={(e) => setForm({ ...form, vetCertNumber: e.target.value })} placeholder="Vet Cert #" className="h-10 rounded-lg border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
             </div>
           )}
-          <textarea rows={2} value={form.postMortemNotes} onChange={(e) => setForm({ ...form, postMortemNotes: e.target.value })} placeholder="Post-mortem notes..." className="w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+          <textarea rows={2} value={form.postMortemNotes} onChange={(e) => setForm({ ...form, postMortemNotes: e.target.value })} placeholder="Post-mortem notes..." className="w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
         </div>
 
         {/* Photos */}
@@ -493,9 +493,9 @@ function SlaughterForm({ onClose, onSaved }: any) {
           }} />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.liveWeightKg}>
             <Save className="h-4 w-4" />

@@ -66,21 +66,21 @@ export default function CalendarViewPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex flex-wrap items-center gap-3">
-        <button onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))} className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 flex items-center justify-center">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex flex-wrap items-center gap-3">
+        <button onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))} className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 flex items-center justify-center">
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <div className="text-lg font-extrabold text-slate-900 dark:text-white">
+        <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white">
           {format(weekStart, 'dd MMM')} – {format(weekEnd, 'dd MMM yyyy')}
         </div>
-        <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 flex items-center justify-center">
+        <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 flex items-center justify-center">
           <ChevronRight className="h-4 w-4" />
         </button>
         <button onClick={() => setCurrentWeek(startOfWeek(new Date(), { weekStartsOn: 1 }))} className="px-3 py-2 rounded-lg bg-pink-100 text-pink-700 text-xs font-extrabold hover:bg-pink-200">
           Today
         </button>
 
-        <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="ml-auto h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold focus:outline-none focus:border-pink-500">
+        <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="ml-auto h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-pink-500">
           <option value="">All Staff</option>
           {allStaff.map((s) => {
             const nm = s.staff ? ((s.staff.firstName || '') + ' ' + (s.staff.lastName || '')).trim() : '';
@@ -89,19 +89,19 @@ export default function CalendarViewPage() {
         </select>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-x-auto">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-x-auto">
         <div className="min-w-[900px]">
-          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b-2 border-slate-200 dark:border-neutral-800">
+          <div className="grid grid-cols-[80px_repeat(7,1fr)] border-b-2 border-slate-200 dark:border-ink-800">
             <div className="p-3"></div>
             {days.map((day) => (
               <div key={day.toISOString()} className={
-                'p-3 text-center border-l border-slate-100 dark:border-neutral-800 ' +
+                'p-3 text-center border-l border-slate-100 dark:border-ink-800 ' +
                 (isSameDay(day, new Date()) ? 'bg-pink-50 dark:bg-pink-950/30' : '')
               }>
                 <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">{format(day, 'EEE')}</div>
                 <div className={
                   'text-lg font-extrabold ' +
-                  (isSameDay(day, new Date()) ? 'text-pink-700' : 'text-slate-900 dark:text-white')
+                  (isSameDay(day, new Date()) ? 'text-pink-700' : 'text-slate-900 dark:text-ink-white')
                 }>
                   {format(day, 'dd')}
                 </div>
@@ -110,8 +110,8 @@ export default function CalendarViewPage() {
           </div>
 
           {HOURS.map((hour) => (
-            <div key={hour} className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-slate-100 dark:border-neutral-800 min-h-[80px]">
-              <div className="p-2 border-r border-slate-100 dark:border-neutral-800 text-right">
+            <div key={hour} className="grid grid-cols-[80px_repeat(7,1fr)] border-b border-slate-100 dark:border-ink-800 min-h-[80px]">
+              <div className="p-2 border-r border-slate-100 dark:border-ink-800 text-right">
                 <span className="text-xs font-extrabold text-slate-500">
                   {hour === 12 ? '12 PM' : hour > 12 ? (hour - 12) + ' PM' : hour + ' AM'}
                 </span>
@@ -119,7 +119,7 @@ export default function CalendarViewPage() {
               {days.map((day) => {
                 const apts = getAppointmentsForSlot(day, hour);
                 return (
-                  <div key={day.toISOString()} className="p-1 border-l border-slate-100 dark:border-neutral-800 space-y-1">
+                  <div key={day.toISOString()} className="p-1 border-l border-slate-100 dark:border-ink-800 space-y-1">
                     {apts.map((apt) => (
                       <Link
                         key={apt.id}
@@ -130,7 +130,7 @@ export default function CalendarViewPage() {
                            apt.status === 'ARRIVED' ? 'bg-cyan-100 dark:bg-cyan-950/40 text-cyan-800 hover:bg-cyan-200' :
                            apt.status === 'IN_PROGRESS' ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 hover:bg-amber-200' :
                            apt.status === 'COMPLETED' ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 hover:bg-emerald-200' :
-                           'bg-slate-100 dark:bg-neutral-800 text-slate-700 hover:bg-slate-200')
+                           'bg-slate-100 dark:bg-ink-800 text-slate-700 hover:bg-slate-200')
                         }
                       >
                         <div className="font-extrabold">{format(new Date(apt.scheduledStart), 'HH:mm')}</div>

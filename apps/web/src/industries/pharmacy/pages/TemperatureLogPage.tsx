@@ -46,16 +46,16 @@ export default function TemperatureLogPage() {
 
       {summary && (
         <section className="grid grid-cols-3 gap-4">
-          <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5">
+          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5">
             <div className="text-xs uppercase font-extrabold text-slate-500">Compliance</div>
             <div className="text-3xl font-extrabold text-emerald-700 tabular-nums mt-1">{summary.compliancePct?.toFixed(1)}%</div>
             <div className="text-xs font-semibold text-slate-500 mt-1">Last 7 days</div>
           </div>
-          <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5">
+          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5">
             <div className="text-xs uppercase font-extrabold text-slate-500">Total Readings</div>
-            <div className="text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums mt-1">{summary.total}</div>
+            <div className="text-3xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums mt-1">{summary.total}</div>
           </div>
-          <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-rose-200 dark:border-rose-800 p-5">
+          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-800 p-5">
             <div className="text-xs uppercase font-extrabold text-rose-700">Breaches</div>
             <div className="text-3xl font-extrabold text-rose-700 tabular-nums mt-1">{summary.breaches}</div>
             <div className="text-xs font-semibold text-slate-500 mt-1">Out-of-range readings</div>
@@ -72,11 +72,11 @@ export default function TemperatureLogPage() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {logs.map((log) => (
               <div key={log.id} className="px-5 py-3 flex items-center gap-3">
                 <div className={
@@ -87,7 +87,7 @@ export default function TemperatureLogPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{log.temperature}°</span>
+                    <span className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{log.temperature}°</span>
                     {log.humidity !== undefined && log.humidity !== null && (
                       <span className="inline-flex items-center gap-1 text-sm font-bold text-blue-700">
                         <Droplets className="h-3.5 w-3.5" />
@@ -141,9 +141,9 @@ function TempLogForm({ onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Log Temperature Reading</h3>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Log Temperature Reading</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -155,23 +155,23 @@ function TempLogForm({ onClose, onSaved }: any) {
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Humidity (%)</label>
-            <input type="number" step="0.1" value={form.humidity} onChange={(e) => setForm({ ...form, humidity: e.target.value })} placeholder="Optional" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+            <input type="number" step="0.1" value={form.humidity} onChange={(e) => setForm({ ...form, humidity: e.target.value })} placeholder="Optional" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Location</label>
-            <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Fridge 1 / Freezer / Storage Room" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+            <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Fridge 1 / Freezer / Storage Room" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Min °C</label>
-              <input type="number" step="0.1" value={form.minLimit} onChange={(e) => setForm({ ...form, minLimit: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums" />
+              <input type="number" step="0.1" value={form.minLimit} onChange={(e) => setForm({ ...form, minLimit: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums" />
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Max °C</label>
-              <input type="number" step="0.1" value={form.maxLimit} onChange={(e) => setForm({ ...form, maxLimit: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums" />
+              <input type="number" step="0.1" value={form.maxLimit} onChange={(e) => setForm({ ...form, maxLimit: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums" />
             </div>
           </div>
-          <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes (if breach — action taken)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+          <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes (if breach — action taken)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.temperature}>

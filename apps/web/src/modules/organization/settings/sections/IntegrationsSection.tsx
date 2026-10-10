@@ -89,12 +89,12 @@ export function IntegrationsSection() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search integrations (FBR, Daraz, WhatsApp...)"
-          className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition"
+          className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center"
           >
             <X className="h-4 w-4 text-slate-500" />
           </button>
@@ -116,15 +116,15 @@ export function IntegrationsSection() {
               className={[
                 'shrink-0 px-3 h-10 rounded-xl border-2 text-xs font-extrabold transition active:scale-95 inline-flex items-center gap-1.5',
                 active
-                  ? 'bg-slate-900 dark:bg-white border-slate-900 dark:border-white text-white dark:text-slate-900 shadow-md'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600',
+                  ? 'bg-slate-900 dark:bg-ink-white border-slate-900 dark:border-ink-white text-white dark:text-ink-900 shadow-md'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-700 dark:text-ink-200 hover:border-slate-300 dark:hover:border-ink-600',
               ].join(' ')}
             >
               {meta ? <span>{meta.icon}</span> : null}
               <span>{meta?.label || 'All'}</span>
               <span className={[
                 'px-1.5 rounded-md text-[0.6875rem] tabular-nums',
-                active ? 'bg-white/20 dark:bg-slate-900/20' : 'bg-slate-100 dark:bg-slate-800',
+                active ? 'bg-white/20 dark:bg-ink-900/20' : 'bg-slate-100 dark:bg-ink-800',
               ].join(' ')}>
                 {count}
               </span>
@@ -137,14 +137,14 @@ export function IntegrationsSection() {
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
-          <Plug className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-          <div className="font-extrabold text-slate-900 dark:text-white">Kuch nahi mila</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Different keyword ya category try karo</div>
+        <div className="rounded-2xl border-2 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
+          <Plug className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+          <div className="font-extrabold text-slate-900 dark:text-ink-white">Kuch nahi mila</div>
+          <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">Different keyword ya category try karo</div>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -160,10 +160,10 @@ export function IntegrationsSection() {
                 className={[
                   'text-left rounded-2xl border-2 p-4 transition-all group relative overflow-hidden',
                   isActive
-                    ? 'border-emerald-400 dark:border-emerald-500/60 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 shadow-md hover:-translate-y-0.5'
+                    ? 'border-emerald-400 dark:border-emerald-500/60 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900 shadow-md hover:-translate-y-0.5'
                     : intg.status === 'COMING_SOON'
-                      ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 opacity-60 cursor-not-allowed'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-violet-300 dark:hover:border-violet-500/60 hover:shadow-md hover:-translate-y-0.5',
+                      ? 'border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60 opacity-60 cursor-not-allowed'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-violet-300 dark:hover:border-violet-500/60 hover:shadow-md hover:-translate-y-0.5',
                 ].join(' ')}
                 style={{ borderColor: isActive ? undefined : (isConfigured ? intg.color + '40' : undefined) }}
               >
@@ -182,7 +182,7 @@ export function IntegrationsSection() {
                         </span>
                       )}
                       {isConfigured && !isActive && (
-                        <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                        <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-ink-400 bg-slate-100 dark:bg-ink-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
                           Off
                         </span>
                       )}
@@ -192,18 +192,18 @@ export function IntegrationsSection() {
                         </span>
                       )}
                       {intg.status === 'COMING_SOON' && (
-                        <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
+                        <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-ink-400 bg-slate-100 dark:bg-ink-800 px-1.5 py-0.5 rounded uppercase tracking-widest">
                           Soon
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white">{intg.name}</div>
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold line-clamp-2 leading-snug">
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{intg.name}</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-semibold line-clamp-2 leading-snug">
                     {intg.description}
                   </div>
                   <div className="mt-3 flex items-center justify-between">
-                    <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                    <span className="text-[0.625rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest">
                       {CATEGORY_META[intg.category]?.label || intg.category}
                     </span>
                     <ChevronRight className="h-3.5 w-3.5 text-slate-400 group-hover:translate-x-0.5 group-hover:text-violet-500 transition" />
@@ -275,7 +275,7 @@ function IntegrationModal({ definition, installed, onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden max-h-[94vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200">
+      <div className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden max-h-[94vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200">
         {/* Head */}
         <div
           className="relative p-5 text-white overflow-hidden shrink-0"
@@ -306,22 +306,22 @@ function IntegrationModal({ definition, installed, onClose, onSaved }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Enabled toggle */}
           {installed && (
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center gap-3">
+            <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setIsEnabled(!isEnabled)}
                 className={[
                   'h-7 w-12 rounded-full p-0.5 transition shrink-0',
-                  isEnabled ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-slate-300 dark:bg-slate-600',
+                  isEnabled ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-slate-300 dark:bg-ink-600',
                 ].join(' ')}
               >
                 <div className="h-6 w-6 bg-white rounded-full shadow transition" style={{ transform: `translateX(${isEnabled ? 20 : 0}px)` }} />
               </button>
               <div className="flex-1">
-                <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
                   {isEnabled ? 'Integration Enabled' : 'Integration Disabled'}
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                   {isEnabled ? 'Active hai — events send/receive ho rahe hain' : 'Off hai — enable karke start karo'}
                 </div>
               </div>
@@ -377,7 +377,7 @@ function IntegrationModal({ definition, installed, onClose, onSaved }: any) {
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 px-4 py-3 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex gap-2 flex-wrap">
+        <div className="shrink-0 px-4 py-3 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 flex gap-2 flex-wrap">
           <Button variant="secondary" onClick={onClose} className="font-extrabold">
             Cancel
           </Button>

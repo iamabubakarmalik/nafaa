@@ -149,7 +149,7 @@ export function ProductThumb({
 
   if (url) {
     return (
-      <div className={`${box} ${className} overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0`}>
+      <div className={`${box} ${className} overflow-hidden bg-slate-100 dark:bg-ink-800 shrink-0`}>
         <img src={url} alt={name ?? ''} loading="lazy" className="w-full h-full object-cover" />
       </div>
     );

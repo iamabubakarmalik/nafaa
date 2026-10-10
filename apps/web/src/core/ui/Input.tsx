@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div>
         {label && (
-          <label htmlFor={inputId} className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 block">
+          <label htmlFor={inputId} className="text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5 block">
             {label} {required && <span className="text-rose-500">*</span>}
           </label>
         )}
@@ -38,11 +38,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full rounded-xl border bg-white dark:bg-neutral-900 text-slate-900 dark:text-white transition',
+              'w-full rounded-xl border bg-white dark:bg-ink-900 text-slate-900 dark:text-ink-white transition',
               'focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20',
-              'disabled:bg-slate-50 dark:disabled:bg-neutral-800/50 disabled:text-slate-500 disabled:cursor-not-allowed',
-              'placeholder:text-slate-400 dark:placeholder:text-slate-500',
-              error ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 dark:border-neutral-700',
+              'disabled:bg-slate-50 dark:disabled:bg-ink-800/50 disabled:text-slate-500 disabled:cursor-not-allowed',
+              'placeholder:text-slate-400 dark:placeholder:text-ink-500',
+              error ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 dark:border-ink-700',
               s.h, s.text,
               leftIcon ? s.plIcon : s.pl,
               rightIcon ? s.prIcon : 'pr-3',
@@ -55,7 +55,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 font-semibold">{error}</p>}
-        {hint && !error && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{hint}</p>}
+        {hint && !error && <p className="text-xs text-slate-500 dark:text-ink-400 mt-1">{hint}</p>}
       </div>
     );
   },

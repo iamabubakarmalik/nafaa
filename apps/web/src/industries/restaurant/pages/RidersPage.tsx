@@ -122,7 +122,7 @@ export default function RidersPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -130,7 +130,7 @@ export default function RidersPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, phone, vehicle..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-blue-500"
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -149,7 +149,7 @@ export default function RidersPage() {
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
                 (statusFilter === s
                   ? 'bg-blue-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200')
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200')
               }
             >
               {s === 'all' ? 'All' : STATUS_CONFIG[s as RiderStatus]?.label || s}
@@ -173,14 +173,14 @@ export default function RidersPage() {
       {/* RIDERS GRID */}
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-blue-100 dark:bg-blue-950/40 mx-auto flex items-center justify-center">
             <Bike className="h-10 w-10 text-blue-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No riders</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No riders</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">
             {search || statusFilter !== 'all' ? 'No riders match' : 'Add your first rider'}
           </p>
@@ -212,11 +212,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     slate: 'from-slate-500 to-slate-700',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -236,23 +236,23 @@ function RiderCard({ rider, onEdit, onDelete, onStatusChange }: {
   const StatusIcon = cfg.icon;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-xl transition p-4 space-y-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl transition p-4 space-y-3">
       {/* Header */}
       <div className="flex items-start gap-3">
         <div className="relative shrink-0">
           {rider.avatarUrl ? (
-            <img src={rider.avatarUrl} alt={rider.name} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-neutral-700" />
+            <img src={rider.avatarUrl} alt={rider.name} className="h-14 w-14 rounded-2xl object-cover ring-2 ring-slate-200 dark:ring-ink-700" />
           ) : (
             <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center text-lg font-extrabold shadow-lg ring-2 ring-white">
               {rider.name.charAt(0).toUpperCase()}
             </div>
           )}
-          <div className={'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white dark:ring-neutral-900 ' + cfg.bg} />
+          <div className={'absolute -bottom-1 -right-1 h-5 w-5 rounded-full ring-2 ring-white dark:ring-ink-900 ' + cfg.bg} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white truncate">{rider.name}</div>
-          <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-slate-400 font-semibold">
+          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{rider.name}</div>
+          <div className="flex items-center gap-1 text-xs text-slate-600 dark:text-ink-400 font-semibold">
             <Phone className="h-3 w-3" />
             {rider.phone}
           </div>
@@ -281,10 +281,10 @@ function RiderCard({ rider, onEdit, onDelete, onStatusChange }: {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Deliveries</div>
-          <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{rider.totalDeliveries}</div>
+          <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{rider.totalDeliveries}</div>
         </div>
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Tips</div>
@@ -301,10 +301,10 @@ function RiderCard({ rider, onEdit, onDelete, onStatusChange }: {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
         <button
           onClick={onEdit}
-          className="flex-1 h-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-extrabold inline-flex items-center justify-center gap-1"
+          className="flex-1 h-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1"
         >
           <Edit3 className="h-3.5 w-3.5" />
           Edit
@@ -354,12 +354,12 @@ function RiderForm({ editing, onClose, onSaved }: {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Rider' : 'New Rider'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -369,7 +369,7 @@ function RiderForm({ editing, onClose, onSaved }: {
         <div>
           <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-1 block">Photo</label>
           {form.avatarUrl ? (
-            <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-neutral-700">
+            <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
               <img src={form.avatarUrl} alt="" className="w-full h-full object-cover" />
               <button
                 onClick={() => setForm({ ...form, avatarUrl: '' })}
@@ -398,7 +398,7 @@ function RiderForm({ editing, onClose, onSaved }: {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Ahmed Khan"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
             />
           </div>
           <div>
@@ -407,7 +407,7 @@ function RiderForm({ editing, onClose, onSaved }: {
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder="03XXXXXXXXX"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
             />
           </div>
           <div>
@@ -416,7 +416,7 @@ function RiderForm({ editing, onClose, onSaved }: {
               value={form.cnic}
               onChange={(e) => setForm({ ...form, cnic: e.target.value })}
               placeholder="42101-XXXXXXX-X"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
             />
           </div>
           <div>
@@ -425,14 +425,14 @@ function RiderForm({ editing, onClose, onSaved }: {
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               placeholder="Optional"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>
 
         {/* Vehicle */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">Vehicle Info</div>
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Vehicle Info</div>
           <div>
             <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Vehicle Type</label>
             <div className="grid grid-cols-5 gap-2">
@@ -444,11 +444,11 @@ function RiderForm({ editing, onClose, onSaved }: {
                     'p-3 rounded-xl border-2 text-center transition ' +
                     (form.vehicleType === v.value
                       ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-blue-300')
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300')
                   }
                 >
                   <div className="text-2xl mb-1">{v.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">{v.value}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">{v.value}</div>
                 </button>
               ))}
             </div>
@@ -461,7 +461,7 @@ function RiderForm({ editing, onClose, onSaved }: {
                 value={form.vehicleNumber}
                 onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })}
                 placeholder="LEA-1234"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -470,15 +470,15 @@ function RiderForm({ editing, onClose, onSaved }: {
                 value={form.licenseNumber}
                 onChange={(e) => setForm({ ...form, licenseNumber: e.target.value })}
                 placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
         </div>
 
         {/* Compensation */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">Compensation</div>
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Compensation</div>
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.isEmployee} onChange={(e) => setForm({ ...form, isEmployee: e.target.checked })} className="h-4 w-4 rounded" />
@@ -491,7 +491,7 @@ function RiderForm({ editing, onClose, onSaved }: {
               <select
                 value={form.commissionType}
                 onChange={(e) => setForm({ ...form, commissionType: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
               >
                 <option value="PER_DELIVERY">Per Delivery (fixed Rs)</option>
                 <option value="PERCENTAGE">Percentage of order</option>
@@ -507,7 +507,7 @@ function RiderForm({ editing, onClose, onSaved }: {
                 step="0.01"
                 value={form.commissionValue}
                 onChange={(e) => setForm({ ...form, commissionValue: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -520,7 +520,7 @@ function RiderForm({ editing, onClose, onSaved }: {
                 step="0.01"
                 value={form.baseSalary}
                 onChange={(e) => setForm({ ...form, baseSalary: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500"
               />
             </div>
           )}
@@ -534,11 +534,11 @@ function RiderForm({ editing, onClose, onSaved }: {
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
             placeholder="Any additional info"
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none"
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none"
           />
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700"

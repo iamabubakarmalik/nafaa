@@ -69,16 +69,16 @@ export default function MetalStockPage() {
       </section>
 
       {/* Current Balances */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
             <Package className="h-5 w-5 text-cyan-600" />
             Current Balances
           </h3>
         </div>
         <div className="p-4">
           {balLoading ? (
-            <div className="grid sm:grid-cols-3 gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+            <div className="grid sm:grid-cols-3 gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
           ) : balances.length === 0 ? (
             <p className="text-sm text-slate-500 font-semibold text-center py-8">No stock entries yet</p>
           ) : (
@@ -98,16 +98,16 @@ export default function MetalStockPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setEntryTypeFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (entryTypeFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (entryTypeFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {ENTRY_TYPES.map((t) => (
             <button key={t.value} onClick={() => setEntryTypeFilter(t.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (entryTypeFilter === t.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (entryTypeFilter === t.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.emoji} {t.label}</button>
           ))}
         </div>
@@ -121,15 +121,15 @@ export default function MetalStockPage() {
       )}
 
       {entriesLoading ? (
-        <div className="grid gap-2">{[1, 2, 3, 4].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-2">{[1, 2, 3, 4].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : entries.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Scale className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No entries yet</p>
         </div>
       ) : (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/50 grid grid-cols-6 gap-2 text-[0.6875rem] uppercase font-extrabold text-slate-500">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 grid grid-cols-6 gap-2 text-[0.6875rem] uppercase font-extrabold text-slate-500">
             <div>Entry #</div>
             <div>Type</div>
             <div>Metal / Purity</div>
@@ -137,12 +137,12 @@ export default function MetalStockPage() {
             <div className="text-right">Balance</div>
             <div className="text-right">Date</div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-[600px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[600px] overflow-y-auto">
             {entries.map((e) => {
               const type = ENTRY_TYPES.find((t) => t.value === e.entryType);
               const isIn = type?.direction === 'in';
               return (
-                <div key={e.id} className="px-6 py-3 grid grid-cols-6 gap-2 items-center text-sm hover:bg-slate-50 dark:hover:bg-neutral-800/30">
+                <div key={e.id} className="px-6 py-3 grid grid-cols-6 gap-2 items-center text-sm hover:bg-slate-50 dark:hover:bg-ink-800/30">
                   <div className="font-mono font-bold text-xs">{e.entryNumber}</div>
                   <div className="font-bold text-xs inline-flex items-center gap-1">
                     <span className="text-lg">{type?.emoji}</span>
@@ -152,7 +152,7 @@ export default function MetalStockPage() {
                   <div className={'text-right font-extrabold tabular-nums ' + (isIn ? 'text-emerald-700' : 'text-rose-700')}>
                     {isIn ? '+' : '-'}{e.grams.toFixed(2)}g
                   </div>
-                  <div className="text-right font-extrabold text-slate-900 dark:text-white tabular-nums">{e.balanceGrams.toFixed(2)}g</div>
+                  <div className="text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{e.balanceGrams.toFixed(2)}g</div>
                   <div className="text-right text-[0.6875rem] font-bold text-slate-500">{format(new Date(e.entryDate), 'dd MMM, HH:mm')}</div>
                 </div>
               );
@@ -187,7 +187,7 @@ function StockEntryForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">⚖️ New Stock Entry</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
@@ -199,7 +199,7 @@ function StockEntryForm({ onClose, onSaved }: any) {
             {ENTRY_TYPES.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, entryType: t.value })} className={
                 'p-3 rounded-xl border-2 text-center transition ' +
-                (form.entryType === t.value ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-cyan-300')
+                (form.entryType === t.value ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-cyan-300')
               }>
                 <div className="text-2xl mb-1">{t.emoji}</div>
                 <div className="text-[0.625rem] font-extrabold">{t.label}</div>
@@ -210,10 +210,10 @@ function StockEntryForm({ onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+          <select value={form.metalType} onChange={(e) => setForm({ ...form, metalType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
             <option value="GOLD">🥇 Gold</option><option value="SILVER">🥈 Silver</option><option value="PLATINUM">💠 Platinum</option><option value="ROSE_GOLD">🌹 Rose Gold</option><option value="WHITE_GOLD">⚪ White Gold</option>
           </select>
-          <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+          <select value={form.purity} onChange={(e) => setForm({ ...form, purity: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
             {['KARAT_24', 'KARAT_22', 'KARAT_21', 'KARAT_18', 'KARAT_14', 'SILVER_999', 'SILVER_925', 'PLATINUM_950'].map((p) => <option key={p} value={p}>{p.replace('KARAT_', '').replace('SILVER_', 'S')}K</option>)}
           </select>
           <div>
@@ -223,13 +223,13 @@ function StockEntryForm({ onClose, onSaved }: any) {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <input type="number" value={form.ratePerGram} onChange={(e) => setForm({ ...form, ratePerGram: e.target.value })} placeholder="Rate per gram (optional)" className="h-11 rounded-xl border-2 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
-          <input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Source (bank, vendor name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} placeholder="Source (bank, vendor name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
         </div>
 
-        <input value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} placeholder="Reference # (invoice, receipt)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+        <input value={form.reference} onChange={(e) => setForm({ ...form, reference: e.target.value })} placeholder="Reference # (invoice, receipt)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-cyan-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.grams}>
             <Save className="h-4 w-4" />

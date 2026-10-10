@@ -105,13 +105,13 @@ export function DangerZoneSection() {
               variant="secondary"
               onClick={cancelDeletion}
               loading={cancelBusy}
-              className="border-2 border-slate-200 dark:border-slate-700 font-extrabold"
+              className="border-2 border-slate-200 dark:border-ink-700 font-extrabold"
             >
               <X className="h-4 w-4" /> Cancel Pending Deletion
             </Button>
           </div>
         ) : (
-          <div className="mt-4 rounded-2xl border-2 border-rose-300 dark:border-rose-500/40 bg-white dark:bg-slate-900 p-4 space-y-3 animate-in slide-in-from-top duration-200">
+          <div className="mt-4 rounded-2xl border-2 border-rose-300 dark:border-rose-500/40 bg-white dark:bg-ink-900 p-4 space-y-3 animate-in slide-in-from-top duration-200">
             <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 text-sm font-extrabold">
               <Lock className="h-4 w-4" /> Aakhri confirmation
             </div>

@@ -74,7 +74,7 @@ const ACTIONS: {
 
 const STATUS_TONE: Record<string, string> = {
   IN_STOCK: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
-  SOLD: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+  SOLD: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300',
   DAMAGED: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300',
   LOST: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
   RETURNED: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
@@ -178,7 +178,7 @@ export default function MobileStockAdjustmentsPage() {
       {scannerOpen && <BarcodeScanner onDetected={handleBarcode} onClose={() => setScannerOpen(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-slate-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-violet-400/25 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl pointer-events-none" />
 
@@ -214,12 +214,12 @@ export default function MobileStockAdjustmentsPage() {
       </section>
 
       {/* ═══ ADJUST FORM ═══ */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 space-y-4">
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 space-y-4">
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center">
             <Wrench className="h-5 w-5" />
           </div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Naya Adjustment</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Naya Adjustment</h3>
         </div>
 
         {/* STEP 1 — IMEI */}
@@ -232,13 +232,13 @@ export default function MobileStockAdjustmentsPage() {
                 <Smartphone className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
                   {picked.product?.name ?? 'Mobile'}
                   {picked.variant?.name && (
                     <span className="ml-1.5 text-violet-700 dark:text-violet-300">{picked.variant.name}</span>
                   )}
                 </div>
-                <div className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400 mt-0.5">
+                <div className="text-xs font-mono font-bold text-slate-600 dark:text-ink-400 mt-0.5">
                   {picked.imei1}
                 </div>
                 <div className="mt-1 flex items-center gap-1.5 flex-wrap">
@@ -251,7 +251,7 @@ export default function MobileStockAdjustmentsPage() {
                     </span>
                   )}
                   {!hideCost && (
-                    <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                    <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                       Lagat {formatPKR(picked.costPrice ?? 0)}
                     </span>
                   )}
@@ -259,7 +259,7 @@ export default function MobileStockAdjustmentsPage() {
               </div>
               <button
                 onClick={() => { setPicked(null); setAction(null); }}
-                className="h-9 w-9 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition shrink-0"
+                className="h-9 w-9 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition shrink-0"
               >
                 <X className="h-4 w-4 text-slate-500" />
               </button>
@@ -274,12 +274,12 @@ export default function MobileStockAdjustmentsPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="IMEI ya model likho (kam se kam 2 harf)..."
-                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                   />
                 </div>
                 <button
                   onClick={() => setScannerOpen(true)}
-                  className="h-12 w-14 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0"
+                  className="h-12 w-14 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-ink-700 dark:to-ink-800 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0"
                 >
                   <Camera className="h-4 w-4" />
                   <span className="text-[0.625rem] font-extrabold uppercase">Scan</span>
@@ -287,17 +287,17 @@ export default function MobileStockAdjustmentsPage() {
               </div>
 
               {debounced.length >= 2 && (
-                <div className="mt-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                <div className="mt-2 rounded-xl border-2 border-slate-200 dark:border-ink-700 max-h-64 overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
                   {searching ? (
                     <div className="p-4 space-y-2">
                       {Array.from({ length: 3 }).map((_, i) => (
-                        <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                        <div key={i} className="h-12 rounded-lg bg-slate-100 dark:bg-ink-800 animate-pulse" />
                       ))}
                     </div>
                   ) : (results?.items ?? []).length === 0 ? (
                     <div className="p-6 text-center">
-                      <PackageSearch className="h-7 w-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
-                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                      <PackageSearch className="h-7 w-7 text-slate-300 dark:text-ink-600 mx-auto mb-1.5" />
+                      <p className="text-xs font-bold text-slate-500 dark:text-ink-400">
                         "{debounced}" se koi device nahi mila
                       </p>
                     </div>
@@ -313,17 +313,17 @@ export default function MobileStockAdjustmentsPage() {
                             : 'hover:bg-violet-50 dark:hover:bg-violet-500/10'
                         }`}
                       >
-                        <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                        <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0">
                           <Smartphone className="h-4 w-4 text-slate-500" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-extrabold text-slate-900 dark:text-white text-xs truncate">
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs truncate">
                             {im.product?.name ?? 'Mobile'}
                             {im.variant?.name && (
                               <span className="ml-1 text-violet-700 dark:text-violet-400">{im.variant.name}</span>
                             )}
                           </div>
-                          <div className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-slate-400">
+                          <div className="text-[0.6875rem] font-mono font-bold text-slate-500 dark:text-ink-400">
                             {im.imei1}
                           </div>
                         </div>
@@ -359,17 +359,17 @@ export default function MobileStockAdjustmentsPage() {
                       : undefined}
                     className={`rounded-2xl border-2 p-3 text-left transition active:scale-[0.98] ${
                       disabled
-                        ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-700'
+                        ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-ink-700'
                         : selected
-                          ? `${a.ring} bg-slate-50 dark:bg-slate-800/60 shadow-md`
-                          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                          ? `${a.ring} bg-slate-50 dark:bg-ink-800/60 shadow-md`
+                          : 'border-slate-200 dark:border-ink-700 hover:border-slate-300 dark:hover:border-ink-600'
                     }`}
                   >
                     <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${a.grad} text-white flex items-center justify-center shadow mb-2`}>
                       <a.icon className="h-4 w-4" />
                     </div>
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm">{a.label}</div>
-                    <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{a.label}</div>
+                    <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">
                       {a.desc}
                     </div>
                   </button>
@@ -392,7 +392,7 @@ export default function MobileStockAdjustmentsPage() {
                   className={`px-2.5 h-8 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                     reason === r
                       ? 'bg-violet-600 text-white border-transparent shadow'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-300'
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-violet-300'
                   }`}
                 >
                   {r}
@@ -404,14 +404,14 @@ export default function MobileStockAdjustmentsPage() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Ya apni wajah likho..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
             />
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
               placeholder="Tafseel (optional)..."
-              className="mt-2 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition resize-none"
+              className="mt-2 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition resize-none"
             />
 
             <div className="mt-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2">
@@ -444,53 +444,53 @@ export default function MobileStockAdjustmentsPage() {
       </div>
 
       {/* ═══ HISTORY ═══ */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
-          <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
+          <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center">
             <History className="h-5 w-5" />
           </div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
             Device History{' '}
-            <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({imeiHistory.length})</span>
+            <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({imeiHistory.length})</span>
           </h3>
         </div>
 
         {isLoading ? (
           <div className="p-4 space-y-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : imeiHistory.length === 0 ? (
           <div className="p-10 text-center">
             <ShieldCheck className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Ab tak koi adjustment nahi</p>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-sm font-bold text-slate-700 dark:text-ink-300">Ab tak koi adjustment nahi</p>
+            <p className="text-xs font-semibold text-slate-500 dark:text-ink-400 mt-0.5">
               Achhi baat hai — koi device toota ya gum nahi hua
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {imeiHistory.map((h) => {
               const meta = ACTIONS.find((a) => a.type === h.type);
               const Icon = meta?.icon ?? Trash2;
               return (
-                <div key={h.id} className="p-3 sm:p-4 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                <div key={h.id} className="p-3 sm:p-4 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                   <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${meta?.grad ?? 'from-slate-500 to-slate-600'} text-white flex items-center justify-center shadow shrink-0`}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
                       {h.product.name}
                       {h.variant?.name && (
                         <span className="ml-1.5 text-violet-700 dark:text-violet-400">{h.variant.name}</span>
                       )}
                     </div>
-                    <div className="text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-slate-400 mt-0.5">
+                    <div className="text-[0.6875rem] font-mono font-bold text-slate-600 dark:text-ink-400 mt-0.5">
                       {h.imei?.imei1}
                     </div>
-                    <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-slate-300">{h.reason}</div>
-                    <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+                    <div className="mt-1 text-xs font-semibold text-slate-600 dark:text-ink-300">{h.reason}</div>
+                    <div className="mt-1 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
                       <span>{formatDate(h.createdAt)}</span>
                       {h.createdBy && <span>· {h.createdBy.fullName}</span>}
                     </div>
@@ -518,11 +518,11 @@ function StepLabel({ n, text, done }: { n: number; text: string; done?: boolean 
       <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-[0.6875rem] font-extrabold transition ${
         done
           ? 'bg-emerald-600 text-white'
-          : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+          : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
       }`}>
         {n}
       </span>
-      <span className="text-xs uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider">
+      <span className="text-xs uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider">
         {text}
       </span>
     </div>

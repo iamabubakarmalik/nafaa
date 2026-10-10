@@ -41,10 +41,10 @@ export default function MedicinesPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search medicines..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search medicines..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-teal-500" />
         </div>
         <div className="flex gap-1.5">
           {[
@@ -54,7 +54,7 @@ export default function MedicinesPage() {
           ].map((f) => (
             <button key={f.v} onClick={() => setFilter(f.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (filter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (filter === f.v ? 'bg-teal-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {f.l}
             </button>
@@ -64,18 +64,18 @@ export default function MedicinesPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : (
         <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {medicines.map((m) => (
-            <Link key={m.id} to={'/products/' + m.productId + '/edit'} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+            <Link key={m.id} to={'/products/' + m.productId + '/edit'} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
               <div className="flex items-start gap-3">
-                <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
                   {m.product?.images?.[0]?.url ? <img src={m.product.images[0].url} alt="" className="w-full h-full object-cover" /> : <Pill className="h-7 w-7 text-slate-400" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{m.product?.name}</h3>
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">{m.product?.name}</h3>
                   {m.product?.productSalts?.[0] && (
                     <div className="text-[0.6875rem] font-bold text-cyan-600">{m.product.productSalts[0].salt?.name} {m.product.productSalts[0].strength}</div>
                   )}
@@ -99,7 +99,7 @@ export default function MedicinesPage() {
                 <div className="text-[0.6875rem] font-mono text-slate-500">DRAP: {m.registrationNumber}</div>
               )}
 
-              <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+              <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
                 <div>
                   <div className="text-lg font-extrabold text-emerald-700 tabular-nums">{formatPKR(m.product?.price ?? 0)}</div>
                   <div className="text-[0.6875rem] font-extrabold text-slate-500">Stock: {m.product?.stock ?? 0}</div>

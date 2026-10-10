@@ -64,16 +64,16 @@ export default function SaltsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search salt name, generic name..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search salt name, generic name..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-cyan-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {['all', ...Object.keys(SCHEDULE_CONFIG)].map((s) => (
             <button key={s} onClick={() => setScheduleFilter(s)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (scheduleFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300')
+              (scheduleFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
             }>
               {s === 'all' ? 'All' : SCHEDULE_CONFIG[s as DrugScheduleClass]?.label || s}
             </button>
@@ -91,10 +91,10 @@ export default function SaltsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : salts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Beaker className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No salts</p>
         </div>
@@ -103,10 +103,10 @@ export default function SaltsPage() {
           {salts.map((salt) => {
             const sCfg = SCHEDULE_CONFIG[salt.scheduleClass];
             return (
-              <div key={salt.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2">
+              <div key={salt.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-slate-900 dark:text-white truncate">{salt.name}</h3>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">{salt.name}</h3>
                     {salt.genericName && <div className="text-xs text-slate-500 font-bold truncate">{salt.genericName}</div>}
                     {salt.category && <div className="text-[0.6875rem] uppercase font-extrabold text-cyan-600 mt-0.5">{salt.category}</div>}
                   </div>
@@ -127,13 +127,13 @@ export default function SaltsPage() {
                   <div className="text-xs text-slate-600 font-semibold">Dose: <span className="font-extrabold text-slate-900">{salt.standardDose}</span></div>
                 )}
 
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
                   <span className="inline-flex items-center gap-1 text-slate-500 font-bold">
                     <Package className="h-3 w-3" />
                     {salt._count?.productSalts || 0} products
                   </span>
                   <div className="flex gap-1">
-                    <button onClick={() => { setEditing(salt); setShowForm(true); }} className="h-7 w-7 rounded bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+                    <button onClick={() => { setEditing(salt); setShowForm(true); }} className="h-7 w-7 rounded bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
                       <Edit3 className="h-3 w-3" />
                     </button>
                     <button onClick={() => { if (confirm('Deactivate ' + salt.name + '?')) removeMutation.mutate(salt.id); }} className="h-7 w-7 rounded bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -183,26 +183,26 @@ function SaltForm({ editing, onClose, onSaved }: { editing: Salt | null; onClose
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-cyan-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Salt' : 'New Salt'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Salt' : 'New Salt'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5 space-y-3 max-h-[70vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Salt Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.genericName} onChange={(e) => setForm({ ...form, genericName: e.target.value })} placeholder="Generic Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="ATC Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Category (Analgesic, Antibiotic)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.standardDose} onChange={(e) => setForm({ ...form, standardDose: e.target.value })} placeholder="Standard Dose" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.maxDailyDose} onChange={(e) => setForm({ ...form, maxDailyDose: e.target.value })} placeholder="Max Daily Dose" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.routeOfAdmin} onChange={(e) => setForm({ ...form, routeOfAdmin: e.target.value })} placeholder="Route (Oral, IV)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input type="number" value={form.minAgeYears} onChange={(e) => setForm({ ...form, minAgeYears: e.target.value })} placeholder="Min Age (years)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Salt Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.genericName} onChange={(e) => setForm({ ...form, genericName: e.target.value })} placeholder="Generic Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="ATC Code" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Category (Analgesic, Antibiotic)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.standardDose} onChange={(e) => setForm({ ...form, standardDose: e.target.value })} placeholder="Standard Dose" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.maxDailyDose} onChange={(e) => setForm({ ...form, maxDailyDose: e.target.value })} placeholder="Max Daily Dose" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.routeOfAdmin} onChange={(e) => setForm({ ...form, routeOfAdmin: e.target.value })} placeholder="Route (Oral, IV)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input type="number" value={form.minAgeYears} onChange={(e) => setForm({ ...form, minAgeYears: e.target.value })} placeholder="Min Age (years)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
         </div>
 
-        <select value={form.scheduleClass} onChange={(e) => setForm({ ...form, scheduleClass: e.target.value as any })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+        <select value={form.scheduleClass} onChange={(e) => setForm({ ...form, scheduleClass: e.target.value as any })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
           {Object.entries(SCHEDULE_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
 
@@ -217,7 +217,7 @@ function SaltForm({ editing, onClose, onSaved }: { editing: Salt | null; onClose
           ].map((opt) => (
             <label key={opt.key} className={
               'flex items-center gap-2 p-2 rounded-xl border-2 cursor-pointer text-xs font-extrabold transition ' +
-              ((form as any)[opt.key] ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-cyan-300')
+              ((form as any)[opt.key] ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-cyan-300')
             }>
               <input type="checkbox" checked={(form as any)[opt.key]} onChange={(e) => setForm({ ...form, [opt.key]: e.target.checked })} className="h-4 w-4 rounded" />
               <span>{opt.label}</span>
@@ -225,9 +225,9 @@ function SaltForm({ editing, onClose, onSaved }: { editing: Salt | null; onClose
           ))}
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-        <textarea rows={2} value={form.contraindications} onChange={(e) => setForm({ ...form, contraindications: e.target.value })} placeholder="Contraindications" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
-        <textarea rows={2} value={form.sideEffects} onChange={(e) => setForm({ ...form, sideEffects: e.target.value })} placeholder="Side Effects" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+        <textarea rows={2} value={form.contraindications} onChange={(e) => setForm({ ...form, contraindications: e.target.value })} placeholder="Contraindications" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+        <textarea rows={2} value={form.sideEffects} onChange={(e) => setForm({ ...form, sideEffects: e.target.value })} placeholder="Side Effects" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
         <textarea rows={2} value={form.warnings} onChange={(e) => setForm({ ...form, warnings: e.target.value })} placeholder="Warnings" className="w-full rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
         <div className="flex gap-2 pt-2">

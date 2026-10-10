@@ -229,8 +229,8 @@ export default function NewSalePage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <div className="space-y-6">
           {/* Customer */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-amber-600" />
               Customer
             </h3>
@@ -264,18 +264,18 @@ export default function NewSalePage() {
                   </div>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+                  <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+                  <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
                 </div>
               </>
             )}
-            <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC (for high-value sales)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
+            <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC (for high-value sales)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
           </section>
 
           {/* Items */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Gem className="h-4 w-4 text-amber-600" />
                 Items ({items.length})
               </h3>
@@ -309,16 +309,16 @@ export default function NewSalePage() {
                         </button>
                       </div>
 
-                      <input value={item.productName} onChange={(e) => updateItem(i, { productName: e.target.value })} placeholder="Item name (e.g. Gold Ring)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+                      <input value={item.productName} onChange={(e) => updateItem(i, { productName: e.target.value })} placeholder="Item name (e.g. Gold Ring)" className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
 
                       <div className="grid sm:grid-cols-3 gap-2">
-                        <select value={item.category} onChange={(e) => updateItem(i, { category: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-amber-500">
+                        <select value={item.category} onChange={(e) => updateItem(i, { category: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-amber-500">
                           {CATEGORIES.map((c) => <option key={c} value={c}>{c.replace('_', ' ')}</option>)}
                         </select>
-                        <select value={item.metalType} onChange={(e) => updateItem(i, { metalType: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-amber-500">
+                        <select value={item.metalType} onChange={(e) => updateItem(i, { metalType: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-amber-500">
                           {METALS.map((m) => <option key={m.value} value={m.value}>{m.emoji} {m.label}</option>)}
                         </select>
-                        <select value={item.purity} onChange={(e) => updateItem(i, { purity: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-amber-500">
+                        <select value={item.purity} onChange={(e) => updateItem(i, { purity: e.target.value })} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-amber-500">
                           {PURITIES.map((p) => <option key={p} value={p}>{p.replace('KARAT_', '').replace('SILVER_', 'S')}K</option>)}
                         </select>
                       </div>
@@ -330,7 +330,7 @@ export default function NewSalePage() {
                         </div>
                         <div>
                           <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Gross (g)</label>
-                          <input type="number" step="0.01" value={item.grossWeight} onChange={(e) => updateItem(i, { grossWeight: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
+                          <input type="number" step="0.01" value={item.grossWeight} onChange={(e) => updateItem(i, { grossWeight: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
                         </div>
                         <div>
                           <label className="text-[0.625rem] uppercase font-extrabold text-emerald-700 mb-0.5 block">Net (g)</label>
@@ -338,7 +338,7 @@ export default function NewSalePage() {
                         </div>
                         <div>
                           <label className="text-[0.625rem] uppercase font-extrabold text-slate-600 mb-0.5 block">Qty</label>
-                          <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
+                          <input type="number" min="1" value={item.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-amber-500" />
                         </div>
                       </div>
 
@@ -380,8 +380,8 @@ export default function NewSalePage() {
           </section>
 
           {/* Exchange */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Repeat className="h-4 w-4 text-violet-600" />
               Old Gold Exchange (optional)
             </h3>
@@ -405,20 +405,20 @@ export default function NewSalePage() {
           </section>
 
           {/* Verification */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="grid sm:grid-cols-2 gap-3">
-              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.hallmarkVerified ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.hallmarkVerified ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' : 'border-slate-200 dark:border-ink-700')}>
                 <input type="checkbox" checked={form.hallmarkVerified} onChange={(e) => setForm({ ...form, hallmarkVerified: e.target.checked })} className="h-4 w-4 rounded" />
                 <ShieldCheck className={'h-4 w-4 ' + (form.hallmarkVerified ? 'text-emerald-600' : 'text-slate-400')} />
                 <span className="text-sm font-extrabold">Hallmark Verified</span>
               </label>
-              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.hasCertificate ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.hasCertificate ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700')}>
                 <input type="checkbox" checked={form.hasCertificate} onChange={(e) => setForm({ ...form, hasCertificate: e.target.checked })} className="h-4 w-4 rounded" />
                 <ShieldCheck className={'h-4 w-4 ' + (form.hasCertificate ? 'text-blue-600' : 'text-slate-400')} />
                 <span className="text-sm font-extrabold">Has Certificate</span>
               </label>
             </div>
-            <textarea rows={2} value={form.customerNotes} onChange={(e) => setForm({ ...form, customerNotes: e.target.value })} placeholder="Customer notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+            <textarea rows={2} value={form.customerNotes} onChange={(e) => setForm({ ...form, customerNotes: e.target.value })} placeholder="Customer notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
           </section>
         </div>
 
@@ -484,7 +484,7 @@ export default function NewSalePage() {
 
       {showProductPicker && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
               <h3 className="font-extrabold">Select Jewelry Product</h3>
               <button onClick={() => setShowProductPicker(false)} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -493,7 +493,7 @@ export default function NewSalePage() {
             </div>
             <div className="flex-1 overflow-y-auto p-4 grid sm:grid-cols-2 gap-2">
               {jewelryProducts.map((p) => (
-                <button key={p.id} onClick={() => addProduct(p)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 hover:border-amber-500 hover:shadow-lg text-left">
+                <button key={p.id} onClick={() => addProduct(p)} className="p-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-amber-500 hover:shadow-lg text-left">
                   <div className="font-extrabold text-sm truncate">{p.product?.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{p.metalType} • {p.purity.replace('KARAT_', '').replace('SILVER_', 'S')}K</div>
                   <div className="mt-1 text-xs font-extrabold text-slate-700">Net: {p.netWeight.toFixed(2)}g</div>

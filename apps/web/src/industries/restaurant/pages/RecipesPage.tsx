@@ -57,18 +57,18 @@ export default function RecipesPage() {
 
       <div className="grid lg:grid-cols-[380px_1fr] gap-6">
         {/* LEFT — Menu picker */}
-        <aside className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-10rem)]">
-          <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/30">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Menu Items</h3>
+        <aside className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-10rem)]">
+          <div className="px-4 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Menu Items</h3>
           </div>
-          <div className="p-3 border-b border-slate-100 dark:border-neutral-800">
+          <div className="p-3 border-b border-slate-100 dark:border-ink-800">
             <div className="relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 value={menuSearch}
                 onChange={(e) => setMenuSearch(e.target.value)}
                 placeholder="Search menu..."
-                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-lime-500"
+                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-lime-500"
               />
             </div>
           </div>
@@ -78,11 +78,11 @@ export default function RecipesPage() {
                 key={mi.id}
                 onClick={() => setSelectedMenuItemId(mi.id)}
                 className={
-                  'w-full px-3 py-2 flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-neutral-800 transition text-left border-l-4 ' +
+                  'w-full px-3 py-2 flex items-center gap-2 hover:bg-slate-50 dark:hover:bg-ink-800 transition text-left border-l-4 ' +
                   (selectedMenuItemId === mi.id ? 'bg-lime-50 dark:bg-lime-950/30 border-lime-500' : 'border-transparent')
                 }
               >
-                <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
                   {mi.imageUrl || mi.product?.images?.[0]?.url ? (
                     <img src={mi.imageUrl || mi.product?.images?.[0]?.url} alt="" className="h-full w-full object-cover" />
                   ) : (
@@ -90,7 +90,7 @@ export default function RecipesPage() {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-xs truncate text-slate-900 dark:text-white">{mi.product?.name}</div>
+                  <div className="font-extrabold text-xs truncate text-slate-900 dark:text-ink-white">{mi.product?.name}</div>
                   <div className="text-[0.6875rem] text-slate-500 font-semibold">{formatPKR(mi.product?.price ?? 0)}</div>
                 </div>
                 {mi.recipe && <span className="px-1.5 py-0.5 rounded bg-lime-100 dark:bg-lime-950/40 text-lime-700 text-[0.625rem] font-extrabold uppercase">Has Recipe</span>}
@@ -102,13 +102,13 @@ export default function RecipesPage() {
         {/* RIGHT — Recipe editor */}
         <section>
           {!selectedMenuItem ? (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
               <ChefHat className="h-16 w-16 text-slate-400 mx-auto mb-3" />
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Select a menu item</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Select a menu item</h3>
               <p className="text-sm text-slate-500 font-semibold mt-1">Left se select karo recipe banane ke liye</p>
             </div>
           ) : loadingRecipe ? (
-            <div className="h-96 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+            <div className="h-96 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ) : (
             <RecipeEditor
               menuItem={selectedMenuItem}
@@ -204,14 +204,14 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
 
       {/* Cost analysis */}
       <div className="grid sm:grid-cols-3 gap-3">
-        <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4">
+        <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
           <div className="text-xs uppercase font-extrabold text-slate-500">Recipe Cost</div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(totalCost)}</div>
+          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(totalCost)}</div>
           <div className="text-[0.6875rem] text-slate-500 font-bold">per {yieldQuantity} {yieldUnit}</div>
         </div>
-        <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4">
+        <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
           <div className="text-xs uppercase font-extrabold text-slate-500">Cost per Portion</div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
             {formatPKR(yieldQuantity > 0 ? totalCost / yieldQuantity : 0)}
           </div>
           <div className="text-[0.6875rem] text-slate-500 font-bold">1 {yieldUnit}</div>
@@ -242,8 +242,8 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
       </div>
 
       {/* Yield + Time */}
-      <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recipe Yield</h3>
+      <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white">Recipe Yield</h3>
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Yield Quantity</label>
@@ -251,7 +251,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
               type="number" step="0.01" min="0.01"
               value={yieldQuantity}
               onChange={(e) => setYieldQuantity(Number(e.target.value))}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
             />
           </div>
           <div>
@@ -259,7 +259,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
             <select
               value={yieldUnit}
               onChange={(e) => setYieldUnit(e.target.value)}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-lime-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-lime-500"
             >
               <option value="portion">Portion</option>
               <option value="plate">Plate</option>
@@ -277,7 +277,7 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
               type="number" min="1"
               value={cookingTime}
               onChange={(e) => setCookingTime(Number(e.target.value))}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
             />
           </div>
         </div>
@@ -287,14 +287,14 @@ function RecipeEditor({ menuItem, existingRecipe, onSaved }: {
       <IngredientsSection ingredients={ingredients} onChange={setIngredients} />
 
       {/* Preparation Steps */}
-      <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-        <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">Preparation Steps</h3>
+      <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+        <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white mb-2">Preparation Steps</h3>
         <textarea
           rows={6}
           value={preparationSteps}
           onChange={(e) => setPreparationSteps(e.target.value)}
           placeholder="1. Marinate chicken with spices for 30 minutes..."
-          className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-lime-500 resize-none"
+          className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-lime-500 resize-none"
         />
       </div>
 
@@ -376,12 +376,12 @@ function IngredientsSection({ ingredients, onChange }: {
   const remove = (idx: number) => onChange(ingredients.filter((_, i) => i !== idx));
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/30 flex items-center justify-between">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Package className="h-4 w-4 text-lime-600" />
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white">Ingredients</h3>
-          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-neutral-700 text-[0.6875rem] font-extrabold">{ingredients.length}</span>
+          <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white">Ingredients</h3>
+          <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-ink-700 text-[0.6875rem] font-extrabold">{ingredients.length}</span>
         </div>
         <Button size="sm" onClick={() => setShowPicker(true)} className="bg-gradient-to-r from-lime-600 to-emerald-700">
           <Plus className="h-3.5 w-3.5" />
@@ -390,7 +390,7 @@ function IngredientsSection({ ingredients, onChange }: {
       </div>
 
       {showPicker && (
-        <div className="p-3 border-b border-slate-100 dark:border-neutral-800 bg-lime-50/50 dark:bg-lime-950/20">
+        <div className="p-3 border-b border-slate-100 dark:border-ink-800 bg-lime-50/50 dark:bg-lime-950/20">
           <div className="flex gap-2 mb-2">
             <div className="relative flex-1">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -399,10 +399,10 @@ function IngredientsSection({ ingredients, onChange }: {
                 value={productSearch}
                 onChange={(e) => setProductSearch(e.target.value)}
                 placeholder="Search raw materials/ingredients..."
-                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-lime-500"
+                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-lime-500"
               />
             </div>
-            <button onClick={() => setShowPicker(false)} className="h-10 w-10 rounded-xl bg-white dark:bg-neutral-800 hover:bg-slate-100 flex items-center justify-center">
+            <button onClick={() => setShowPicker(false)} className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 flex items-center justify-center">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -411,11 +411,11 @@ function IngredientsSection({ ingredients, onChange }: {
               <button
                 key={p.id}
                 onClick={() => addIngredient(p)}
-                className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-neutral-800 transition text-left"
+                className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-ink-800 transition text-left"
               >
                 <Package className="h-4 w-4 text-slate-400" />
                 <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{p.name}</div>
+                  <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">{p.name}</div>
                   <div className="text-xs text-slate-500 font-semibold">
                     Cost: {formatPKR(p.costPrice)} / {p.unit} • Stock: {p.stock}
                   </div>
@@ -430,17 +430,17 @@ function IngredientsSection({ ingredients, onChange }: {
       {ingredients.length === 0 ? (
         <div className="p-8 text-center">
           <Package className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-          <p className="font-extrabold text-slate-700 dark:text-slate-300">No ingredients yet</p>
+          <p className="font-extrabold text-slate-700 dark:text-ink-300">No ingredients yet</p>
           <p className="text-xs text-slate-500 font-semibold mt-1">Add products/raw materials used in this dish</p>
         </div>
       ) : (
-        <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {ingredients.map((ing, i) => (
             <div key={i} className="p-3 grid grid-cols-12 gap-2 items-center">
               <div className="col-span-4 flex items-center gap-2 min-w-0">
                 <Package className="h-4 w-4 text-slate-400 shrink-0" />
                 <div className="min-w-0">
-                  <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                  <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">
                     {ing.ingredient?.name || 'Ingredient'}
                   </div>
                   <div className="text-[0.6875rem] text-slate-500 font-semibold">Stock: {ing.ingredient?.stock ?? '—'}</div>
@@ -452,7 +452,7 @@ function IngredientsSection({ ingredients, onChange }: {
                   type="number" step="0.001" min="0.001"
                   value={ing.quantity}
                   onChange={(e) => update(i, { quantity: Number(e.target.value) })}
-                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-extrabold tabular-nums text-right focus:outline-none focus:border-lime-500"
+                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-right focus:outline-none focus:border-lime-500"
                 />
               </div>
 
@@ -460,7 +460,7 @@ function IngredientsSection({ ingredients, onChange }: {
                 <select
                   value={ing.unit}
                   onChange={(e) => update(i, { unit: e.target.value })}
-                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-lime-500"
+                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-lime-500"
                 >
                   {UNIT_OPTIONS.map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
@@ -473,7 +473,7 @@ function IngredientsSection({ ingredients, onChange }: {
                   value={ing.costPerUnit ?? 0}
                   onChange={(e) => update(i, { costPerUnit: Number(e.target.value) })}
                   placeholder="Cost/unit"
-                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-7 pr-2 text-xs font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
+                  className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-7 pr-2 text-xs font-extrabold tabular-nums focus:outline-none focus:border-lime-500"
                 />
               </div>
 

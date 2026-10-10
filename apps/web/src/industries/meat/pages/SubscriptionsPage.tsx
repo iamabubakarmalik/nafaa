@@ -72,15 +72,15 @@ export default function SubscriptionsPage() {
         {['ACTIVE', 'all', 'PAUSED', 'CANCELLED', 'EXPIRED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{s === 'all' ? 'All' : s}</button>
         ))}
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : subs.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Truck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No subscriptions yet</p>
         </div>
@@ -91,8 +91,8 @@ export default function SubscriptionsPage() {
             const daysToNext = sub.nextDeliveryDate ? differenceInDays(new Date(sub.nextDeliveryDate), new Date()) : null;
             return (
               <div key={sub.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
-                (daysToNext === 0 && sub.status === 'ACTIVE' ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
+                (daysToNext === 0 && sub.status === 'ACTIVE' ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -140,14 +140,14 @@ export default function SubscriptionsPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
                   <div><span className="text-slate-500 font-semibold">Deliveries:</span> <span className="font-extrabold">{sub.totalDeliveries}</span></div>
                   <div><span className="text-slate-500 font-semibold">Revenue:</span> <span className="font-extrabold text-emerald-700">{formatPKR(sub.totalRevenue)}</span></div>
                   <div><span className="text-slate-500 font-semibold">Auto-renew:</span> <span className="font-extrabold">{sub.autoRenew ? '✅' : '❌'}</span></div>
                 </div>
 
                 {sub.status === 'ACTIVE' && (
-                  <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+                  <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
                     <button onClick={() => {
                       const reason = prompt('Pause reason?');
                       if (reason !== null) pauseMutation.mutate({ id: sub.id, reason });
@@ -165,7 +165,7 @@ export default function SubscriptionsPage() {
                   </div>
                 )}
                 {sub.status === 'PAUSED' && (
-                  <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+                  <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
                     <button onClick={() => resumeMutation.mutate(sub.id)} className="flex-1 h-9 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
                       <Play className="h-3 w-3" />
                       Resume

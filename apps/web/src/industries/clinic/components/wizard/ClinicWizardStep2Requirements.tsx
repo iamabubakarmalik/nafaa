@@ -34,13 +34,13 @@ export function ClinicWizardStep2Requirements({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-blue-950/30 dark:via-neutral-900 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-blue-950/30 dark:via-ink-900 dark:to-cyan-950/30 border-2 border-blue-200 dark:border-blue-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-blue-200/60">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
             <Stethoscope className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Service Requirements</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Service Requirements</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Kya kya chahiye is service ke liye</p>
           </div>
         </div>
@@ -53,13 +53,13 @@ export function ClinicWizardStep2Requirements({
       </section>
 
       {/* ─── PREP INSTRUCTIONS ─── */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Instructions</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Instructions</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Patient ko batayen kya karna hai</p>
           </div>
         </div>
@@ -104,19 +104,19 @@ export function ClinicWizardStep2Requirements({
             value={requirements.sideEffects}
             onChange={(e) => onChange({ sideEffects: e.target.value })}
             placeholder="Common side effects patients may experience..."
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-slate-500 resize-none"
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-slate-500 resize-none"
           />
         </div>
       </section>
 
       {/* ─── PACKAGE INCLUDES ─── */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md">
             <Package className="h-5 w-5" />
           </div>
           <div className="flex-1">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Package Includes</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Package Includes</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Kya kya milta hai patient ko is package mein</p>
           </div>
           {requirements.packageIncludes.length > 0 && (
@@ -160,7 +160,7 @@ export function ClinicWizardStep2Requirements({
               onChange={(e) => setCustomItem(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom(); } }}
               placeholder="e.g. Free follow-up in 7 days, Home sample collection..."
-              className="flex-1 h-10 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-semibold focus:outline-none focus:border-violet-500"
+              className="flex-1 h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-semibold focus:outline-none focus:border-violet-500"
             />
             <button
               onClick={addCustom}
@@ -196,7 +196,7 @@ export function ClinicWizardStep2Requirements({
         )}
       </section>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 shadow-sm p-4 flex items-center justify-between flex-wrap gap-3">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 shadow-sm p-4 flex items-center justify-between flex-wrap gap-3">
         <Button variant="secondary" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
@@ -221,7 +221,7 @@ function ReqToggle({ active, onToggle, icon: Icon, label, desc, tone }: any) {
       className={[
         'p-3 rounded-xl border-2 text-left transition-all',
         active ? 'bg-gradient-to-br ' + tones[tone] + ' text-white shadow-md'
-          : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-slate-300',
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300',
       ].join(' ')}
     >
       <div className="flex items-center gap-2">

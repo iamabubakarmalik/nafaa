@@ -58,13 +58,13 @@ function WayCard({ active, onClick, icon, title, desc, badge }: { active: boolea
   return (
     <button onClick={onClick}
       className={cn('rounded-xl border p-4 text-left transition',
-        active ? 'border-emerald-600 bg-emerald-50/60 ring-1 ring-emerald-600 dark:bg-emerald-500/10' : 'border-slate-200 hover:border-slate-400 dark:border-slate-700')}>
+        active ? 'border-emerald-600 bg-emerald-50/60 ring-1 ring-emerald-600 dark:bg-emerald-500/10' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
       <div className="flex items-center gap-2">
-        <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300')}>{icon}</span>
-        <span className="text-[0.875rem] font-semibold text-slate-900 dark:text-white">{title}</span>
+        <span className={cn('flex h-9 w-9 items-center justify-center rounded-lg', active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300')}>{icon}</span>
+        <span className="text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">{title}</span>
       </div>
       {badge && <Badge tone="success" className="mt-2">{badge}</Badge>}
-      <p className="mt-2 text-[0.78125rem] text-slate-600 dark:text-slate-300">{desc}</p>
+      <p className="mt-2 text-[0.78125rem] text-slate-600 dark:text-ink-300">{desc}</p>
     </button>
   );
 }
@@ -91,7 +91,7 @@ function FormWay({ channelId }: { channelId: string }) {
   if (error) {
     return (
       <Card title="Order form abhi nahi khula">
-        <p className="text-[0.8125rem] text-slate-600 dark:text-slate-300">
+        <p className="text-[0.8125rem] text-slate-600 dark:text-ink-300">
           {(error as any)?.response?.status === 404
             ? 'Server par naya update abhi pahuncha nahi (deploy chal raha hai). Thori der baad dobara try karein.'
             : apiErrorMessage(error)}
@@ -100,12 +100,12 @@ function FormWay({ channelId }: { channelId: string }) {
       </Card>
     );
   }
-  if (isLoading || !f) return <Card><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></Card>;
+  if (isLoading || !f) return <Card><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></Card>;
 
   if (!f.enabled) {
     return (
       <Card title="Order form — code ke bina">
-        <ul className="space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-slate-200">
+        <ul className="space-y-1.5 text-[0.8125rem] text-slate-700 dark:text-ink-200">
           <li>✓ Nafaa aap ke products ka ek saaf order form banata hai (qeemat aur stock Nafaa se)</li>
           <li>✓ Link Instagram bio, WhatsApp, Facebook ya website par lagayein</li>
           <li>✓ Website par sirf ek line paste karein — har product par "Order karein" button</li>
@@ -134,9 +134,9 @@ function FormWay({ channelId }: { channelId: string }) {
 
       <Card title="2 · Website par button (ek line)" description="Website ke HTML me (</body> se pehle) ye ek line paste karein. WordPress, Wix, Blogger, apni website — sab par chalta hai.">
         <CopyField label="Ye line paste karein" value={f.embedCode ?? ''} />
-        <p className="mt-3 text-[0.78125rem] text-slate-600 dark:text-slate-300">Phir kisi bhi button par <code className="rounded bg-slate-100 px-1 dark:bg-slate-800">data-nafaa-buy="SKU"</code> likh dein — click par wahi product seedha checkout me:</p>
+        <p className="mt-3 text-[0.78125rem] text-slate-600 dark:text-ink-300">Phir kisi bhi button par <code className="rounded bg-slate-100 px-1 dark:bg-ink-800">data-nafaa-buy="SKU"</code> likh dein — click par wahi product seedha checkout me:</p>
         <div className="mt-2"><CopyField label="Button (SKU apna daalein)" value={f.buttonCode} /></div>
-        <details className="mt-3 text-[0.78125rem] text-slate-600 dark:text-slate-300">
+        <details className="mt-3 text-[0.78125rem] text-slate-600 dark:text-ink-300">
           <summary className="cursor-pointer font-semibold">Button banana nahi aata? Kone me khud "Order karein" button</summary>
           <div className="mt-2"><CopyField label="Ye line paste karein (floating button)" value={floating} /></div>
         </details>
@@ -146,7 +146,7 @@ function FormWay({ channelId }: { channelId: string }) {
       <FormCoupons coupons={f.coupons} onSave={(coupons) => save.mutate({ coupons })} saving={save.isPending} />
 
       <Card title="Form ki settings">
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           <SettingRow title="Delivery charges (Rs)" help="Har order par — 0 = free delivery"
             control={<input type="number" min={0} value={fee ?? String(f.deliveryFee)} onChange={(e) => setFee(e.target.value)}
               onBlur={() => fee !== null && Number(fee) !== f.deliveryFee && save.mutate({ deliveryFee: Number(fee) })} className={cn(inputCls, 'w-28')} />} />
@@ -186,11 +186,11 @@ function FormCoupons({ coupons, onSave, saving }: { coupons: FormCoupon[]; onSav
   return (
     <Card title="Discount codes" description="Customer checkout par code likhe to discount — hisaab Nafaa server par (koi chalaki nahi).">
       {coupons.length > 0 && (
-        <ul className="mb-3 divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+        <ul className="mb-3 divide-y divide-slate-100 rounded-lg border border-slate-200 dark:divide-ink-800 dark:border-ink-800">
           {coupons.map((c) => (
             <li key={c.code} className="flex flex-wrap items-center gap-3 px-3 py-2 text-[0.8125rem]">
-              <span className="font-mono font-bold text-slate-900 dark:text-white">{c.code}</span>
-              <span className="text-slate-600 dark:text-slate-300">{c.type === 'PERCENT' ? `${c.value}%` : `Rs ${c.value}`}{c.minOrder ? ` · Rs ${c.minOrder}+ par` : ''}</span>
+              <span className="font-mono font-bold text-slate-900 dark:text-ink-white">{c.code}</span>
+              <span className="text-slate-600 dark:text-ink-300">{c.type === 'PERCENT' ? `${c.value}%` : `Rs ${c.value}`}{c.minOrder ? ` · Rs ${c.minOrder}+ par` : ''}</span>
               <span className="text-slate-400">{c.uses}{c.maxUses ? ` / ${c.maxUses}` : ''} dafa chala</span>
               <span className="flex-1" />
               <Toggle checked={c.active} disabled={saving} onChange={(v) => onSave(coupons.map((x) => (x.code === c.code ? { ...x, active: v } : x)))} />
@@ -244,13 +244,13 @@ function FormProducts({ selected, onSave, saving }: { channelId: string; selecte
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Product dhoondein…" className={cn(inputCls, 'pl-8')} />
           </div>
-          <div className="mt-2 max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200 dark:divide-slate-800 dark:border-slate-800">
+          <div className="mt-2 max-h-80 divide-y divide-slate-100 overflow-y-auto rounded-lg border border-slate-200 dark:divide-ink-800 dark:border-ink-800">
             {isFetching && !items.length ? <div className="p-4 text-[0.8125rem] text-slate-500">Aa rahe hain…</div>
               : !items.length ? <EmptyState icon={<Package className="h-5 w-5" />} title="Koi product nahi mila" />
               : items.map((p: any) => (
-                <label key={p.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                <label key={p.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-ink-800/40">
                   <input type="checkbox" className="h-4 w-4 rounded border-slate-300" checked={picked.has(p.id)} disabled={saving} onChange={() => toggle(p.id)} />
-                  <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-800 dark:text-slate-100">{p.name}</span>
+                  <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-slate-800 dark:text-ink-100">{p.name}</span>
                   <span className="text-[0.75rem] tabular-nums text-slate-500">Rs {Math.round(Number(p.price) || 0).toLocaleString('en-PK')}</span>
                 </label>
               ))}
@@ -294,7 +294,7 @@ function DeveloperWay({ channelId, data }: { channelId: string; data: WebsiteOve
         </div>
       )}
       <div className={cn('mt-4 flex items-center gap-2 rounded-lg px-3 py-2 text-[0.8125rem] font-semibold',
-        connected ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-slate-50 text-slate-600 dark:bg-slate-800/50 dark:text-slate-300')}>
+        connected ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300' : 'bg-slate-50 text-slate-600 dark:bg-ink-800/50 dark:text-ink-300')}>
         {connected ? <><CheckCircle2 className="h-4 w-4" /> Jur gaya — website se orders aa rahe hain</> : 'Abhi website se koi order nahi aaya'}
       </div>
     </Card>

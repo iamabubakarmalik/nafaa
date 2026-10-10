@@ -104,7 +104,7 @@ export function QuickEmiFromSaleModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-indigo-200 dark:border-indigo-500/40"
+        className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-indigo-200 dark:border-indigo-500/40"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -117,14 +117,14 @@ export function QuickEmiFromSaleModal({
               <div className="text-[0.6875rem] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-extrabold">
                 Sale → EMI Convert
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white truncate">Sale: {saleNumber}</h3>
-              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate">Sale: {saleNumber}</h3>
+              <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">
                 {customerName}{customerPhone && ` • ${customerPhone}`}
               </div>
             </div>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition shrink-0">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition shrink-0">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -133,8 +133,8 @@ export function QuickEmiFromSaleModal({
           <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-emerald-500/10 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3.5">
             <div className="grid grid-cols-3 gap-2 text-center">
               <div>
-                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Sale Total</div>
-                <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">{formatPKR(saleTotal)}</div>
+                <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Sale Total</div>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm tabular-nums">{formatPKR(saleTotal)}</div>
               </div>
               <div>
                 <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Already Paid</div>
@@ -149,8 +149,8 @@ export function QuickEmiFromSaleModal({
 
           {/* Down payment */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-              Down Payment (PKR) * <span className="normal-case font-bold text-slate-400 dark:text-slate-500">— default = jo POS pe liya</span>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
+              Down Payment (PKR) * <span className="normal-case font-bold text-slate-400 dark:text-ink-500">— default = jo POS pe liya</span>
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">Rs</span>
@@ -158,7 +158,7 @@ export function QuickEmiFromSaleModal({
                 type="number"
                 value={downPayment}
                 onChange={(e) => setDownPayment(e.target.value)}
-                className="h-12 w-full rounded-xl border-2 border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 pl-9 pr-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                className="h-12 w-full rounded-xl border-2 border-emerald-300 dark:border-emerald-500/50 bg-emerald-50 dark:bg-emerald-500/10 pl-9 pr-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
               />
             </div>
             {down >= saleTotal && (
@@ -175,7 +175,7 @@ export function QuickEmiFromSaleModal({
 
           {/* Installments */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-2">
               Kitne Months?
             </label>
             <div className="grid grid-cols-6 gap-1.5">
@@ -187,7 +187,7 @@ export function QuickEmiFromSaleModal({
                   className={`py-2.5 rounded-xl border-2 text-sm font-extrabold transition ${
                     installmentCount === opt
                       ? 'bg-indigo-600 border-indigo-700 text-white shadow-lg scale-105'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-indigo-300 dark:hover:border-indigo-500/50'
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-indigo-300 dark:hover:border-indigo-500/50'
                   }`}
                 >
                   {opt}
@@ -200,21 +200,21 @@ export function QuickEmiFromSaleModal({
               max="60"
               value={installmentCount}
               onChange={(e) => setInstallmentCount(Math.max(1, Math.min(60, Number(e.target.value) || 1)))}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white mt-2 focus:outline-none focus:border-indigo-500 transition"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white mt-2 focus:outline-none focus:border-indigo-500 transition"
               placeholder="Ya custom count (1-60)..."
             />
           </div>
 
           {/* Per-installment */}
           {financed > 0 && installmentCount > 0 && (
-            <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-indigo-300 dark:border-indigo-500/40 p-3.5 text-center">
+            <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-indigo-300 dark:border-indigo-500/40 p-3.5 text-center">
               <div className="flex items-center justify-center gap-1.5 text-xs font-extrabold text-indigo-900 dark:text-indigo-200 mb-1">
                 <Calculator className="h-4 w-4" /> Per Month
               </div>
               <div className="text-3xl font-extrabold text-indigo-700 dark:text-indigo-300 tabular-nums">
                 {formatPKR(perInstallment)}
               </div>
-              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1 tabular-nums">
+              <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-1 tabular-nums">
                 × {installmentCount} months = {formatPKR(financed)}
               </div>
             </div>
@@ -222,14 +222,14 @@ export function QuickEmiFromSaleModal({
 
           {/* Start date */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
               Pehli Installment Kab? *
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition"
+              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-indigo-500 transition"
             />
             <div className="flex gap-1 mt-1.5">
               {[
@@ -245,7 +245,7 @@ export function QuickEmiFromSaleModal({
                     d.setDate(d.getDate() + q.days);
                     setStartDate(d.toISOString().slice(0, 10));
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 border border-slate-200 dark:border-ink-700 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700 transition"
                 >
                   {q.label}
                 </button>
@@ -255,17 +255,17 @@ export function QuickEmiFromSaleModal({
 
           {/* Schedule preview */}
           {preview.length > 0 && (
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3.5">
-              <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-1.5">
+            <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3.5">
+              <div className="text-xs font-extrabold text-slate-700 dark:text-ink-200 mb-2 flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5" /> Schedule Preview
               </div>
               <div className="max-h-32 overflow-y-auto space-y-1">
                 {preview.slice(0, 6).map((inst) => (
                   <div
                     key={inst.num}
-                    className="flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs"
+                    className="flex items-center justify-between bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 rounded-lg px-3 py-1.5 text-xs"
                   >
-                    <span className="font-bold text-slate-700 dark:text-slate-200">
+                    <span className="font-bold text-slate-700 dark:text-ink-200">
                       #{inst.num} — {inst.due.toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </span>
                     <span className="font-extrabold text-indigo-700 dark:text-indigo-300 tabular-nums">
@@ -274,7 +274,7 @@ export function QuickEmiFromSaleModal({
                   </div>
                 ))}
                 {preview.length > 6 && (
-                  <div className="text-center text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold py-1">
+                  <div className="text-center text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold py-1">
                     +{preview.length - 6} aur installments
                   </div>
                 )}
@@ -284,12 +284,12 @@ export function QuickEmiFromSaleModal({
 
           {/* Notes */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Notes</label>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">Notes</label>
             <textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 transition"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white focus:outline-none focus:border-indigo-500 transition"
             />
           </div>
 
@@ -303,7 +303,7 @@ export function QuickEmiFromSaleModal({
           </div>
         </div>
 
-        <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-2 shrink-0">
+        <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2 shrink-0">
           <Button variant="secondary" onClick={onClose}>Skip</Button>
           <Button
             onClick={() => {

@@ -92,7 +92,7 @@ export default function HousekeepingPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {[
             { v: 'active', label: '🔥 Active' },
@@ -101,7 +101,7 @@ export default function HousekeepingPage() {
           ].map((s) => (
             <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s.v ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s.label}</button>
           ))}
         </div>
@@ -123,9 +123,9 @@ export default function HousekeepingPage() {
       )}
 
       {isLoading ? (
-        <div className="grid sm:grid-cols-2 gap-3">{[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid sm:grid-cols-2 gap-3">{[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Sparkle className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No tasks</p>
         </div>
@@ -152,11 +152,11 @@ function SummaryCard({ label, value, icon: Icon, color }: any) {
     emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -173,10 +173,10 @@ function TaskCard({ task, onStart, onComplete }: any) {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
       (task.status === 'IN_PROGRESS' ? 'border-amber-300 ring-2 ring-amber-100 animate-pulse-slow' :
        task.status === 'COMPLETED' ? 'border-emerald-200' :
-       task.priority === 'URGENT' ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-200 dark:border-neutral-800')
+       task.priority === 'URGENT' ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -224,7 +224,7 @@ function TaskCard({ task, onStart, onComplete }: any) {
       </div>
 
       {task.notes && (
-        <div className="text-xs italic text-slate-500 border-t border-slate-100 dark:border-neutral-800 pt-2">
+        <div className="text-xs italic text-slate-500 border-t border-slate-100 dark:border-ink-800 pt-2">
           📝 {task.notes}
         </div>
       )}
@@ -236,7 +236,7 @@ function TaskCard({ task, onStart, onComplete }: any) {
       )}
 
       {task.status !== 'COMPLETED' && (
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
           {task.status === 'PENDING' || task.status === 'ASSIGNED' ? (
             <button onClick={onStart} className="flex-1 h-9 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
               <Play className="h-3 w-3" />
@@ -283,7 +283,7 @@ function TaskForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">🧹 New Housekeeping Task</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -296,14 +296,14 @@ function TaskForm({ onClose, onSaved }: any) {
           <select value={form.roomId} onChange={(e) => {
             const r = rooms.find((x) => x.id === e.target.value);
             setForm({ ...form, roomId: e.target.value, roomNumber: r?.roomNumber || '' });
-          }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
+          }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
             <option value="">-- Select Room --</option>
             {rooms.map((r) => <option key={r.id} value={r.id}>Room {r.roomNumber} • {r.status}</option>)}
           </select>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.taskType} onChange={(e) => setForm({ ...form, taskType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
+          <select value={form.taskType} onChange={(e) => setForm({ ...form, taskType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500">
             {TASK_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
           <div>
@@ -320,13 +320,13 @@ function TaskForm({ onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input type="datetime-local" value={form.scheduledFor} onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.assignedName} onChange={(e) => setForm({ ...form, assignedName: e.target.value, assignedTo: e.target.value })} placeholder="Assign to (staff name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input type="datetime-local" value={form.scheduledFor} onChange={(e) => setForm({ ...form, scheduledFor: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.assignedName} onChange={(e) => setForm({ ...form, assignedName: e.target.value, assignedTo: e.target.value })} placeholder="Assign to (staff name)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes / special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes / special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.roomNumber}>
             <Save className="h-4 w-4" />
@@ -354,7 +354,7 @@ function CompleteModal({ task, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold">Complete Task</h3>
@@ -365,7 +365,7 @@ function CompleteModal({ task, onClose, onDone }: any) {
           </button>
         </div>
         <div className="p-5 space-y-3">
-          <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Completion notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+          <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Completion notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
           <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-rose-200 bg-rose-50 dark:bg-rose-950/30 cursor-pointer">
             <input type="checkbox" checked={hasIssue} onChange={(e) => setHasIssue(e.target.checked)} className="h-5 w-5 rounded" />

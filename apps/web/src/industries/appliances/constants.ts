@@ -202,7 +202,7 @@ export interface StatusMeta {
 }
 
 export const SERVICE_STATUS_META: Record<ApplianceServiceStatus, StatusMeta> = {
-  REQUESTED:           { label: 'Nayi request',      emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/40' },
+  REQUESTED:           { label: 'Nayi request',      emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   SCHEDULED:           { label: 'Tareekh lag gayi',  emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
   TECHNICIAN_ASSIGNED: { label: 'Banda lag gaya',    emoji: '👷', isOpen: true,  hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   EN_ROUTE:            { label: 'Raaste me',         emoji: '🛵', isOpen: true,  hex: '#06b6d4', cls: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/40' },
@@ -211,7 +211,7 @@ export const SERVICE_STATUS_META: Record<ApplianceServiceStatus, StatusMeta> = {
   PENDING_PARTS:       { label: 'Parts ka intezar',  emoji: '⏳', isOpen: true,  hex: '#f97316', cls: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/40' },
   COMPLETED:           { label: 'Mukammal',          emoji: '✅', isOpen: false, hex: '#10b981', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/40' },
   UNRESOLVED:          { label: 'Hal nahi hua',      emoji: '⚠️', isOpen: false, hex: '#ef4444', cls: 'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/40' },
-  CANCELLED:           { label: 'Cancel',            emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700/40 dark:text-slate-400 dark:border-slate-600' },
+  CANCELLED:           { label: 'Cancel',            emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-ink-700/40 dark:text-ink-400 dark:border-ink-600' },
 };
 export const svcStatusMeta = (s?: string | null): StatusMeta =>
   SERVICE_STATUS_META[(s ?? 'REQUESTED') as ApplianceServiceStatus] ?? SERVICE_STATUS_META.REQUESTED;
@@ -237,14 +237,14 @@ export type ApplianceInstallationStatus =
   | 'COMPLETED' | 'RESCHEDULED' | 'CANCELLED' | 'FAILED';
 
 export const INSTALL_STATUS_META: Record<ApplianceInstallationStatus, StatusMeta> = {
-  PENDING:     { label: 'Tareekh baqi',     emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/40' },
+  PENDING:     { label: 'Tareekh baqi',     emoji: '📥', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   SCHEDULED:   { label: 'Tareekh lag gayi', emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
   ASSIGNED:    { label: 'Banda lag gaya',   emoji: '👷', isOpen: true,  hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   IN_PROGRESS: { label: 'Kaam chal raha',   emoji: '🛠️', isOpen: true,  hex: '#f59e0b', cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
   RESCHEDULED: { label: 'Aage barh gayi',   emoji: '🔄', isOpen: true,  hex: '#a855f7', cls: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/40' },
   COMPLETED:   { label: 'Lag gaya',         emoji: '✅', isOpen: false, hex: '#10b981', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/40' },
   FAILED:      { label: 'Nahi lag saka',    emoji: '❌', isOpen: false, hex: '#ef4444', cls: 'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/40' },
-  CANCELLED:   { label: 'Cancel',           emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700/40 dark:text-slate-400 dark:border-slate-600' },
+  CANCELLED:   { label: 'Cancel',           emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-ink-700/40 dark:text-ink-400 dark:border-ink-600' },
 };
 export const instStatusMeta = (s?: string | null): StatusMeta =>
   INSTALL_STATUS_META[(s ?? 'PENDING') as ApplianceInstallationStatus] ?? INSTALL_STATUS_META.PENDING;
@@ -263,12 +263,12 @@ export const INSTALL_NEXT: Partial<Record<ApplianceInstallationStatus, Appliance
    DELIVERY STATUS (String column hai, enum nahi)
    ═══════════════════════════════════════════════════════════ */
 export const DELIVERY_STATUS_META: Record<string, StatusMeta> = {
-  PENDING:    { label: 'Tareekh baqi',   emoji: '📦', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/40' },
+  PENDING:    { label: 'Tareekh baqi',   emoji: '📦', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   SCHEDULED:  { label: 'Gaari lag gayi', emoji: '📅', isOpen: true,  hex: '#6366f1', cls: 'bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/40' },
   DISPATCHED: { label: 'Nikal gaya',     emoji: '🚚', isOpen: true,  hex: '#06b6d4', cls: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/40' },
   ARRIVED:    { label: 'Pohanch gaya',   emoji: '📍', isOpen: true,  hex: '#14b8a6', cls: 'bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/40' },
   DELIVERED:  { label: 'De diya',        emoji: '✅', isOpen: false, hex: '#10b981', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/40' },
-  CANCELLED:  { label: 'Cancel',         emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700/40 dark:text-slate-400 dark:border-slate-600' },
+  CANCELLED:  { label: 'Cancel',         emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-ink-700/40 dark:text-ink-400 dark:border-ink-600' },
 };
 export const delStatusMeta = (s?: string | null): StatusMeta =>
   DELIVERY_STATUS_META[s ?? 'PENDING'] ?? DELIVERY_STATUS_META.PENDING;
@@ -293,7 +293,7 @@ export const SERIAL_STATUS_META: Record<string, StatusMeta> = {
   IN_REPAIR: { label: 'Repair me',    emoji: '🛠️', isOpen: true,  hex: '#f59e0b', cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
   RETURNED:  { label: 'Wapas aaya',   emoji: '↩️', isOpen: true,  hex: '#f97316', cls: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/40' },
   DEFECTIVE: { label: 'Kharab',       emoji: '⚠️', isOpen: false, hex: '#ef4444', cls: 'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/40' },
-  LOST:      { label: 'Gum ho gaya',  emoji: '❓', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700/40 dark:text-slate-400 dark:border-slate-600' },
+  LOST:      { label: 'Gum ho gaya',  emoji: '❓', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-ink-700/40 dark:text-ink-400 dark:border-ink-600' },
 };
 export const serialStatusMeta = (s?: string | null): StatusMeta =>
   SERIAL_STATUS_META[s ?? 'IN_STOCK'] ?? SERIAL_STATUS_META.IN_STOCK;
@@ -306,7 +306,7 @@ export const SERIAL_STATUS_ORDER = Object.keys(SERIAL_STATUS_META);
 export type ApplianceAmcType = 'BASIC' | 'STANDARD' | 'PREMIUM' | 'COMPREHENSIVE';
 
 export const AMC_TYPE_META: Record<ApplianceAmcType, { label: string; emoji: string; cls: string; hex: string; hint: string }> = {
-  BASIC:         { label: 'Basic',         emoji: '🥉', hex: '#94a3b8', hint: 'Sirf checking visits',            cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/40' },
+  BASIC:         { label: 'Basic',         emoji: '🥉', hex: '#94a3b8', hint: 'Sirf checking visits',            cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   STANDARD:      { label: 'Standard',      emoji: '🥈', hex: '#3b82f6', hint: 'Visits + labor free',             cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   PREMIUM:       { label: 'Premium',       emoji: '🥇', hex: '#f59e0b', hint: 'Labor + gas refill free',          cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
   COMPREHENSIVE: { label: 'Comprehensive', emoji: '💎', hex: '#a855f7', hint: 'Parts bhi free — sab kuch cover',  cls: 'bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/40' },
@@ -321,7 +321,7 @@ export const AMC_STATUS_META: Record<ApplianceAmcStatus, StatusMeta> = {
   RENEWED:   { label: 'Renew ho gaya',emoji: '🔄', isOpen: false, hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   SUSPENDED: { label: 'Rok diya',     emoji: '⏸️', isOpen: false, hex: '#f59e0b', cls: 'bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/40' },
   EXPIRED:   { label: 'Khatam',       emoji: '⌛', isOpen: false, hex: '#ef4444', cls: 'bg-rose-100 text-rose-700 border-rose-300 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/40' },
-  CANCELLED: { label: 'Cancel',       emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-slate-700/40 dark:text-slate-400 dark:border-slate-600' },
+  CANCELLED: { label: 'Cancel',       emoji: '🚫', isOpen: false, hex: '#94a3b8', cls: 'bg-slate-100 text-slate-500 border-slate-300 dark:bg-ink-700/40 dark:text-ink-400 dark:border-ink-600' },
 };
 export const amcStatusMeta = (s?: string | null): StatusMeta =>
   AMC_STATUS_META[(s ?? 'ACTIVE') as ApplianceAmcStatus] ?? AMC_STATUS_META.ACTIVE;
@@ -333,7 +333,7 @@ export const PRIORITY_META: Record<string, { label: string; emoji: string; cls: 
   URGENT: { label: 'Foran',   emoji: '🚨', rank: 0, cls: 'bg-rose-600 text-white border-rose-600' },
   HIGH:   { label: 'Zaroori', emoji: '🔴', rank: 1, cls: 'bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/40' },
   NORMAL: { label: 'Aam',     emoji: '🔵', rank: 2, cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
-  LOW:    { label: 'Baad me', emoji: '⚪', rank: 3, cls: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-500/15 dark:text-slate-400 dark:border-slate-500/40' },
+  LOW:    { label: 'Baad me', emoji: '⚪', rank: 3, cls: 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-ink-500/15 dark:text-ink-400 dark:border-ink-500/40' },
 };
 export const prioMeta = (p?: string | null) => PRIORITY_META[p ?? 'NORMAL'] ?? PRIORITY_META.NORMAL;
 export const PRIORITY_ORDER = ['URGENT', 'HIGH', 'NORMAL', 'LOW'];
@@ -398,7 +398,7 @@ export type ApplianceClaimStatus =
   | 'APPROVED' | 'PARTIALLY_APPROVED' | 'REJECTED' | 'SETTLED';
 
 export const CLAIM_STATUS_META: Record<ApplianceClaimStatus, StatusMeta> = {
-  DRAFT:              { label: 'Bheja nahi',      emoji: '📝', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/40' },
+  DRAFT:              { label: 'Bheja nahi',      emoji: '📝', isOpen: true,  hex: '#64748b', cls: 'bg-slate-100 text-slate-700 border-slate-300 dark:bg-ink-500/15 dark:text-ink-300 dark:border-ink-500/40' },
   SUBMITTED:          { label: 'Brand ko bheja',  emoji: '📤', isOpen: true,  hex: '#3b82f6', cls: 'bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/40' },
   BRAND_REVIEWING:    { label: 'Brand dekh raha', emoji: '🔍', isOpen: true,  hex: '#06b6d4', cls: 'bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/40' },
   APPROVED:           { label: 'Manzoor',         emoji: '✅', isOpen: true,  hex: '#10b981', cls: 'bg-emerald-100 text-emerald-700 border-emerald-300 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/40' },

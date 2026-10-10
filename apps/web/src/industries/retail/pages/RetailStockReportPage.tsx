@@ -284,7 +284,7 @@ export default function RetailStockReportPage() {
       {/* ═══════════════════════════════════════════════════════
           HERO (screen only)
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-indigo-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-indigo-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-400/30 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
 
@@ -382,13 +382,13 @@ export default function RetailStockReportPage() {
           <div className="flex-1 relative min-w-[260px]">
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-500 dark:focus:border-sky-500 transition"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-sky-500 dark:focus:border-sky-500 transition"
               placeholder="Search: name, SKU, barcode, category, brand..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
                 <X className="h-3.5 w-3.5 text-slate-400" />
               </button>
             )}
@@ -399,7 +399,7 @@ export default function RetailStockReportPage() {
               'h-11 px-4 rounded-xl border-2 font-extrabold text-sm inline-flex items-center gap-2 transition',
               showFilters || hasActiveFilters
                 ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-sky-300',
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-700 dark:text-ink-300 hover:border-sky-300',
             ].join(' ')}
           >
             <Filter className="h-4 w-4" /> Filters
@@ -407,10 +407,10 @@ export default function RetailStockReportPage() {
               <span className="h-5 w-5 rounded-full bg-sky-600 text-white text-[0.6875rem] font-extrabold flex items-center justify-center">!</span>
             )}
           </button>
-          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1 text-[0.6875rem] font-extrabold">
             <button
               onClick={() => expandedRows.size > 0 ? collapseAll() : expandAll()}
-              className="px-3 h-9 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900 transition inline-flex items-center gap-1.5"
+              className="px-3 h-9 rounded-lg text-slate-700 dark:text-ink-300 hover:bg-white dark:hover:bg-ink-900 transition inline-flex items-center gap-1.5"
               title={expandedRows.size > 0 ? 'Collapse all' : 'Expand all'}
             >
               {expandedRows.size > 0 ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -420,7 +420,7 @@ export default function RetailStockReportPage() {
         </div>
 
         {showFilters && (
-          <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-sm">
+          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 space-y-3 shadow-sm">
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <FilterField label="Category">
                 <select
@@ -484,7 +484,7 @@ export default function RetailStockReportPage() {
             <CardHeader icon={Award} title="🏆 Top Profit Contributors" subtitle="Sab se zyada profit" tone="amber" />
             <div className="space-y-2">
               {analytics.topProfit.map((r, idx) => (
-                <div key={r.productId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                <div key={r.productId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                   <div className={[
                     'h-8 w-8 rounded-lg text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-md',
                     idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600' :
@@ -495,8 +495,8 @@ export default function RetailStockReportPage() {
                     {idx + 1}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{r.productName}</div>
-                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{r.productName}</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                       Stock: {r.stock.toFixed(0)} {r.unit} • {r.category || 'No cat'}
                     </div>
                   </div>
@@ -518,16 +518,16 @@ export default function RetailStockReportPage() {
                 return (
                   <div key={c.name}>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <div className="flex items-center gap-1.5 min-w-0 font-extrabold text-slate-700 dark:text-slate-200">
+                      <div className="flex items-center gap-1.5 min-w-0 font-extrabold text-slate-700 dark:text-ink-200">
                         {c.color && <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: c.color }} />}
                         <span className="truncate">{c.name}</span>
-                        <span className="text-slate-500 dark:text-slate-400 font-bold">({c.count})</span>
+                        <span className="text-slate-500 dark:text-ink-400 font-bold">({c.count})</span>
                       </div>
-                      <div className="font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums shrink-0">
                         {hideCost ? '••••' : formatPKR(c.value)}
                       </div>
                     </div>
-                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-2 bg-slate-100 dark:bg-ink-800 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 transition-all"
                         style={{ width: `${Math.max(pct, 2)}%` }}
@@ -545,16 +545,16 @@ export default function RetailStockReportPage() {
           MAIN TABLE
           ═══════════════════════════════════════════════════════ */}
       <Card noPad className="print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
+        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-md">
               <BarChart3 className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base">
                 Detailed Stock ({filteredRows.length})
               </h3>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                 Generated: {data?.generatedAt ? new Date(data.generatedAt).toLocaleString('en-PK') : '—'}
               </p>
             </div>
@@ -564,38 +564,38 @@ export default function RetailStockReportPage() {
         {isLoading ? (
           <div className="p-6 space-y-2">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : filteredRows.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
-              <Package className="h-8 w-8 text-slate-400 dark:text-slate-600" />
+            <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mx-auto">
+              <Package className="h-8 w-8 text-slate-400 dark:text-ink-600" />
             </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No products found</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-bold">
+            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No products found</h3>
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1 font-bold">
               {hasActiveFilters ? 'Filter change karo' : 'Products add karo'}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <th className="px-2 py-3 text-center w-10 print:hidden"></th>
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 w-10">#</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 w-10">#</th>
                   <SortHeader label="Product" active={sortKey === 'name'} dir={sortDir} onClick={() => toggleSort('name')} align="left" />
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Category / Brand</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Category / Brand</th>
                   <SortHeader label="Stock" active={sortKey === 'stock'} dir={sortDir} onClick={() => toggleSort('stock')} align="right" />
-                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cost</th>}
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sale</th>
+                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Cost</th>}
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Sale</th>
                   <SortHeader label="Stock Value" active={sortKey === 'stockValue'} dir={sortDir} onClick={() => toggleSort('stockValue')} align="right" />
                   {!hideCost && <SortHeader label="Profit" active={sortKey === 'profit'} dir={sortDir} onClick={() => toggleSort('profit')} align="right" />}
                   {!hideCost && <SortHeader label="Margin" active={sortKey === 'margin'} dir={sortDir} onClick={() => toggleSort('margin')} align="right" />}
-                  <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Status</th>
+                  <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {filteredRows.map((row, idx) => {
                   const st = statusConfig[row.stockStatus];
                   const StatusIcon = st.icon;
@@ -605,7 +605,7 @@ export default function RetailStockReportPage() {
                   return (
                     <Fragment key={row.productId}>
                       <tr className={[
-                        'hover:bg-slate-50 dark:hover:bg-slate-800/40 transition',
+                        'hover:bg-slate-50 dark:hover:bg-ink-800/40 transition',
                         row.stockStatus === 'OUT_OF_STOCK' ? 'bg-rose-50/40 dark:bg-rose-500/5' : '',
                         row.stockStatus === 'LOW_STOCK' ? 'bg-amber-50/40 dark:bg-amber-500/5' : '',
                         !row.isActive ? 'opacity-60' : '',
@@ -618,18 +618,18 @@ export default function RetailStockReportPage() {
                               'h-7 w-7 rounded-lg inline-flex items-center justify-center transition',
                               expanded
                                 ? 'bg-sky-600 text-white shadow-md'
-                                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300',
+                                : 'bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300',
                             ].join(' ')}
                           >
                             {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                           </button>
                         </td>
-                        <td className="px-3 py-3 text-xs text-slate-500 dark:text-slate-400 font-mono">{idx + 1}</td>
+                        <td className="px-3 py-3 text-xs text-slate-500 dark:text-ink-400 font-mono">{idx + 1}</td>
 
                         {/* Product */}
                         <td className="px-3 py-3">
                           <div className="flex items-start gap-2.5">
-                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 print:hidden border border-slate-200 dark:border-slate-700">
+                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 print:hidden border border-slate-200 dark:border-ink-700">
                               {row.primaryImage ? (
                                 <img src={row.primaryImage} alt="" className="h-full w-full object-cover" />
                               ) : (
@@ -637,12 +637,12 @@ export default function RetailStockReportPage() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1 flex items-center gap-1.5">
+                              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm line-clamp-1 flex items-center gap-1.5">
                                 {row.productName}
                                 {row.isFeatured && <Star className="h-3 w-3 text-amber-500 fill-amber-500" />}
                               </div>
                               <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
-                                {row.sku && <span className="font-mono text-slate-500 dark:text-slate-400">{row.sku}</span>}
+                                {row.sku && <span className="font-mono text-slate-500 dark:text-ink-400">{row.sku}</span>}
                                 {row.variantCount && row.variantCount > 0 ? (
                                   <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
                                     {row.variantCount}v
@@ -656,7 +656,7 @@ export default function RetailStockReportPage() {
                         {/* Category / Brand */}
                         <td className="px-3 py-3 text-xs">
                           {row.category && (
-                            <div className="font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <div className="font-extrabold text-slate-700 dark:text-ink-200 flex items-center gap-1.5">
                               {row.categoryColor && (
                                 <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: row.categoryColor }} />
                               )}
@@ -672,15 +672,15 @@ export default function RetailStockReportPage() {
 
                         {/* Stock */}
                         <td className="px-3 py-3 text-right">
-                          <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                             {row.stock.toFixed(row.stock % 1 === 0 ? 0 : 2)}
                           </div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase">{row.unit}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold uppercase">{row.unit}</div>
                         </td>
 
                         {/* Cost */}
                         {!hideCost && (
-                          <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 dark:text-slate-200 tabular-nums">
+                          <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 dark:text-ink-200 tabular-nums">
                             {formatPKR(row.costPrice)}
                           </td>
                         )}
@@ -691,7 +691,7 @@ export default function RetailStockReportPage() {
                         </td>
 
                         {/* Stock Value */}
-                        <td className="px-3 py-3 text-right text-xs font-extrabold text-slate-900 dark:text-white tabular-nums">
+                        <td className="px-3 py-3 text-right text-xs font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                           {hideCost ? '••••' : formatPKR(row.stockValue)}
                         </td>
 
@@ -743,13 +743,13 @@ export default function RetailStockReportPage() {
 
               {/* Footer totals */}
               {analytics && (
-                <tfoot className="bg-slate-100 dark:bg-slate-800 border-t-2 border-slate-300 dark:border-slate-700 font-extrabold">
+                <tfoot className="bg-slate-100 dark:bg-ink-800 border-t-2 border-slate-300 dark:border-ink-700 font-extrabold">
                   <tr>
                     <td className="print:hidden"></td>
-                    <td colSpan={hideCost ? 3 : 3} className="px-3 py-3 text-right text-xs uppercase text-slate-700 dark:text-slate-300">
+                    <td colSpan={hideCost ? 3 : 3} className="px-3 py-3 text-right text-xs uppercase text-slate-700 dark:text-ink-300">
                       Total ({filteredRows.length}):
                     </td>
-                    <td className="px-3 py-3 text-right text-xs tabular-nums text-slate-900 dark:text-white">
+                    <td className="px-3 py-3 text-right text-xs tabular-nums text-slate-900 dark:text-ink-white">
                       {analytics.totalStock.toFixed(0)}
                     </td>
                     {!hideCost && <td></td>}
@@ -957,8 +957,8 @@ export default function RetailStockReportPage() {
 function Card({ children, noPad = false, className = '' }: any) {
   return (
     <div className={[
-      'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm',
-      'border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden',
+      'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm',
+      'border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden',
       noPad ? '' : 'p-4 sm:p-5',
       className,
     ].join(' ')}>
@@ -980,8 +980,8 @@ function CardHeader({ icon: Icon, title, subtitle, tone }: any) {
         <Icon className="h-4 w-4" />
       </div>
       <div>
-        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{subtitle}</p>
+        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-ink-white leading-tight">{title}</h3>
+        <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{subtitle}</p>
       </div>
     </div>
   );
@@ -1042,7 +1042,7 @@ function StatusButton({ active, onClick, icon: Icon, label, value, tone }: any) 
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className={`text-[0.6875rem] uppercase font-extrabold ${t.iconC}`}>{label}</div>
-          <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-1 tabular-nums">{value}</div>
+          <div className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white mt-1 tabular-nums">{value}</div>
         </div>
         <Icon className={`h-7 w-7 sm:h-8 sm:w-8 ${t.iconC} shrink-0`} />
       </div>
@@ -1053,7 +1053,7 @@ function StatusButton({ active, onClick, icon: Icon, label, value, tone }: any) 
 function FilterField({ label, children }: any) {
   return (
     <div>
-      <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs font-extrabold text-slate-600 dark:text-ink-400 mb-1">{label}</label>
       {children}
     </div>
   );
@@ -1061,7 +1061,7 @@ function FilterField({ label, children }: any) {
 
 function SortHeader({ label, active, dir, onClick, align }: any) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 text-${align}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 text-${align}`}>
       <button
         onClick={onClick}
         className={`inline-flex items-center gap-1 hover:text-sky-700 dark:hover:text-sky-400 transition ${active ? 'text-sky-700 dark:text-sky-400' : ''}`}
@@ -1098,7 +1098,7 @@ function ExpandedDetail({ row, hideCost, margin }: { row: any; hideCost: boolean
 
 function DetailBox({ label, value, tone = 'slate', mono }: any) {
   const tones: Record<string, string> = {
-    slate: 'text-slate-900 dark:text-white',
+    slate: 'text-slate-900 dark:text-ink-white',
     emerald: 'text-emerald-700 dark:text-emerald-400',
     blue: 'text-blue-700 dark:text-blue-400',
     amber: 'text-amber-700 dark:text-amber-400',
@@ -1106,8 +1106,8 @@ function DetailBox({ label, value, tone = 'slate', mono }: any) {
     violet: 'text-violet-700 dark:text-violet-400',
   };
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5">
-      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+    <div className="rounded-xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 p-2.5">
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">{label}</div>
       <div className={`text-sm font-extrabold mt-0.5 truncate ${tones[tone]} ${mono ? 'font-mono' : ''}`}>
         {value}
       </div>

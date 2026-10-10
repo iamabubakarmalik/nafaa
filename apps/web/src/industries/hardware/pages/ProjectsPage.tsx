@@ -72,16 +72,16 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search project, customer, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search project, customer, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {['active', 'all', ...Object.keys(STATUS_CONFIG)].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {s === 'active' ? '🔥 Active' : s === 'all' ? 'All' : STATUS_CONFIG[s as ProjectStatus]?.label || s}
             </button>
@@ -103,10 +103,10 @@ export default function ProjectsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Building className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No projects</p>
           <Button className="mt-4 bg-gradient-to-r from-blue-600 to-indigo-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -129,7 +129,7 @@ function ProjectCard({ project }: { project: HardwareProject }) {
   const progressPct = project.totalOrdered > 0 ? (project.totalDelivered / project.totalOrdered) * 100 : 0;
 
   return (
-    <Link to={'/hardware/projects/' + project.id} className="block rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg hover:border-blue-300 transition p-4">
+    <Link to={'/hardware/projects/' + project.id} className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-blue-300 transition p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow shrink-0">
@@ -137,13 +137,13 @@ function ProjectCard({ project }: { project: HardwareProject }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{project.projectNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{project.projectNumber}</span>
               <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
               </span>
             </div>
-            <h3 className="mt-1 font-extrabold text-slate-900 dark:text-white">{project.name}</h3>
+            <h3 className="mt-1 font-extrabold text-slate-900 dark:text-ink-white">{project.name}</h3>
             <div className="mt-1 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <User className="h-3 w-3" />
@@ -186,7 +186,7 @@ function ProjectCard({ project }: { project: HardwareProject }) {
             <span>Delivery Progress</span>
             <span>{progressPct.toFixed(0)}% ({formatPKR(project.totalDelivered)} / {formatPKR(project.totalOrdered)})</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600" style={{ width: progressPct + '%' }} />
           </div>
         </div>
@@ -252,9 +252,9 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Project' : 'New Project'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Project' : 'New Project'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -275,8 +275,8 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
         ) : (
           <>
             <div className="grid sm:grid-cols-2 gap-3">
-              <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Customer phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Customer phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
             <button onClick={() => setShowPicker(!showPicker)} className="text-xs font-extrabold text-blue-600 hover:underline">🔍 Or pick existing customer</button>
             {showPicker && (
@@ -296,7 +296,7 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
           </>
         )}
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Project description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Project description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
         {/* Contractor/Architect */}
         <div className="rounded-xl border-2 border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/30 p-4 space-y-3">
@@ -328,23 +328,23 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
 
         {/* Project details */}
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.projectType} onChange={(e) => setForm({ ...form, projectType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+          <select value={form.projectType} onChange={(e) => setForm({ ...form, projectType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             <option value="">Project Type</option>
             {PROJECT_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <input type="number" value={form.builtUpArea} onChange={(e) => setForm({ ...form, builtUpArea: e.target.value })} placeholder="Built-up area (sq ft)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          <input type="number" value={form.floors} onChange={(e) => setForm({ ...form, floors: e.target.value })} placeholder="Floors" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.builtUpArea} onChange={(e) => setForm({ ...form, builtUpArea: e.target.value })} placeholder="Built-up area (sq ft)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.floors} onChange={(e) => setForm({ ...form, floors: e.target.value })} placeholder="Floors" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
         </div>
 
         {/* Dates */}
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
-            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Expected End Date</label>
-            <input type="date" value={form.expectedEndDate} onChange={(e) => setForm({ ...form, expectedEndDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+            <input type="date" value={form.expectedEndDate} onChange={(e) => setForm({ ...form, expectedEndDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
           </div>
         </div>
 
@@ -391,9 +391,9 @@ function ProjectForm({ editing, onClose, onSaved }: any) {
           }} />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.customerName.trim() || !form.siteAddress.trim()}>
             <Save className="h-4 w-4" />

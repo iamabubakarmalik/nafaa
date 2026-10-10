@@ -128,10 +128,10 @@ export default function JobsListPage() {
       </section>
 
       {/* Filters */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search job#, customer, phone, serial..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search job#, customer, phone, serial..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
         </div>
 
         <div className="flex gap-1.5 overflow-x-auto pb-1">
@@ -148,7 +148,7 @@ export default function JobsListPage() {
           ].map((s) => (
             <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s.label}</button>
           ))}
         </div>
@@ -157,7 +157,7 @@ export default function JobsListPage() {
           {['all', 'EMERGENCY', 'URGENT', 'HIGH', 'NORMAL', 'LOW'].map((p) => (
             <button key={p} onClick={() => setPriorityFilter(p)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (priorityFilter === p ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (priorityFilter === p ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {p === 'all' ? 'All Priority' : (PRIORITY_CONFIG[p as Priority]?.emoji || '') + ' ' + (PRIORITY_CONFIG[p as Priority]?.label || p)}
             </button>
@@ -170,7 +170,7 @@ export default function JobsListPage() {
           ].map((d) => (
             <button key={d.v} onClick={() => setDateFilter(d.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (dateFilter === d.v ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (dateFilter === d.v ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{d.label}</button>
           ))}
         </div>
@@ -178,10 +178,10 @@ export default function JobsListPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Briefcase className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No jobs found</p>
           <Link to="/services-biz/jobs/new">
@@ -210,12 +210,12 @@ function StatCard({ label, value, icon: Icon, color, highlight }: any) {
   return (
     <div className={
       'rounded-2xl border-2 p-5 shadow-sm ' +
-      (highlight ? 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-950/40 border-red-300 animate-pulse' : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800')
+      (highlight ? 'bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-950/40 border-red-300 animate-pulse' : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -236,10 +236,10 @@ function JobCard({ job }: any) {
 
   return (
     <Link to={'/services-biz/jobs/' + job.id} className={
-      'block rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-lg transition p-4 ' +
+      'block rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 ' +
       (isSoon ? 'border-amber-400 ring-2 ring-amber-100' :
        ['EMERGENCY', 'URGENT'].includes(job.priority) && !['COMPLETED', 'CANCELLED'].includes(job.status) ? 'border-red-300' :
-       'border-slate-200 dark:border-neutral-800 hover:border-blue-300')
+       'border-slate-200 dark:border-ink-800 hover:border-blue-300')
     }>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -253,7 +253,7 @@ function JobCard({ job }: any) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{job.jobNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{job.jobNumber}</span>
               <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
@@ -276,8 +276,8 @@ function JobCard({ job }: any) {
               )}
             </div>
 
-            <div className="mt-1 text-sm font-bold text-slate-900 dark:text-white">{job.serviceName}</div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">{job.problemDescription}</p>
+            <div className="mt-1 text-sm font-bold text-slate-900 dark:text-ink-white">{job.serviceName}</div>
+            <p className="text-xs text-slate-600 dark:text-ink-400 line-clamp-1">{job.problemDescription}</p>
 
             <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 font-semibold flex-wrap">
               {job.customerName && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{job.customerName}</span>}

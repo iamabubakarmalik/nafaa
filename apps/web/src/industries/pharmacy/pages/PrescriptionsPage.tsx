@@ -94,14 +94,14 @@ export default function PrescriptionsPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search Rx#, patient, phone, doctor..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-violet-500"
           />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -119,7 +119,7 @@ export default function PrescriptionsPage() {
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
                 (statusFilter === s
                   ? 'bg-violet-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300')
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
               }
             >
               {s === 'all' ? 'All' : STATUS_CONFIG[s as PrescriptionStatus]?.label || s}
@@ -131,14 +131,14 @@ export default function PrescriptionsPage() {
       {/* LIST */}
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : prescriptions.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-violet-100 dark:bg-violet-950/40 mx-auto flex items-center justify-center">
             <FileText className="h-10 w-10 text-violet-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No prescriptions</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No prescriptions</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Pehla prescription banao</p>
         </div>
       ) : (
@@ -156,11 +156,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     amber: 'from-amber-500 to-orange-600', emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -179,7 +179,7 @@ function RxCard({ rx }: { rx: Prescription }) {
   return (
     <Link
       to={'/pharmacy/prescriptions/' + rx.id}
-      className="block rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg hover:border-violet-300 transition p-4"
+      className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-violet-300 transition p-4"
     >
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -188,12 +188,12 @@ function RxCard({ rx }: { rx: Prescription }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{rx.prescriptionNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{rx.prescriptionNumber}</span>
               <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className="h-2.5 w-2.5" />
                 {statusCfg.label}
               </span>
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 text-[0.625rem] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 text-[0.625rem] font-extrabold uppercase">
                 {TYPE_LABELS[rx.type] || rx.type}
               </span>
               {rx.isRefillable && (
@@ -209,7 +209,7 @@ function RxCard({ rx }: { rx: Prescription }) {
               )}
             </div>
 
-            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-semibold flex-wrap">
+            <div className="mt-2 flex items-center gap-3 text-xs text-slate-600 dark:text-ink-400 font-semibold flex-wrap">
               {rx.patientName && (
                 <span className="inline-flex items-center gap-1">
                   <User className="h-3 w-3" />
@@ -243,13 +243,13 @@ function RxCard({ rx }: { rx: Prescription }) {
               {rx.items?.slice(0, 4).map((it, i) => (
                 <span key={i} className={
                   'px-2 py-0.5 rounded text-[0.6875rem] font-extrabold ' +
-                  (it.isDispensed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                  (it.isDispensed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
                 }>
                   {it.medicineName} × {it.prescribedQty}
                 </span>
               ))}
               {(rx.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-extrabold text-slate-500">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-500">
                   +{(rx.items?.length || 0) - 4} more
                 </span>
               )}

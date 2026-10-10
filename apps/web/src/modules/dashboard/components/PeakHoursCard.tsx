@@ -62,7 +62,7 @@ export function PeakHoursCard({
     subtitle={hourDays === 1 ? 'Aaj kis waqt zyada bika' : '7 din ka rozana ausat'}
     tone="violet"
     right={
-      <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
+      <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1 text-[0.6875rem] font-extrabold">
         {([[1, 'Aaj'], [7, '7 Din']] as const).map(([d, l]) => (
           <button
             key={d}
@@ -70,8 +70,8 @@ export function PeakHoursCard({
             className={[
               'px-3 py-1.5 rounded-lg transition-all',
               hourDays === d
-                ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 shadow-md'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                ? 'bg-white dark:bg-ink-900 text-violet-700 dark:text-violet-300 shadow-md'
+                : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-200',
             ].join(' ')}
           >
             {l}
@@ -91,9 +91,9 @@ export function PeakHoursCard({
         <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300">
           Sab se masroof waqt
         </div>
-        <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">
+        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">
           {hourLabel(peakHour)} – {hourLabel((peakHour + 1) % 24)}
-          <span className="text-slate-500 dark:text-slate-400 font-bold">
+          <span className="text-slate-500 dark:text-ink-400 font-bold">
             {' • '}{formatPKR((hourly as any)?.peakTotal ?? 0)}
             {hourDays > 1 ? ' rozana' : ''}
           </span>
@@ -116,9 +116,9 @@ export function PeakHoursCard({
               <stop offset="100%" stopColor="#ea580c" stopOpacity={0.8} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
-          <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
-          <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+          <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.4} />
+          <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
+          <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
           <Tooltip
             formatter={(v: any, _n: any, item: any) => [
               formatPKR(Number(v)),

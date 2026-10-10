@@ -168,7 +168,7 @@ export default function NewOrderPage() {
   return (
     <div className="grid xl:grid-cols-[1fr_460px] gap-4 h-[calc(100dvh-7rem)]">
       {/* MENU SIDE */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden flex flex-col">
         {/* Header */}
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white shrink-0">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-orange-400/20 blur-2xl" />
@@ -192,7 +192,7 @@ export default function NewOrderPage() {
         </div>
 
         {/* Mode Picker */}
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/30">
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30">
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
             {MODES.map((m) => {
               const Icon = m.icon;
@@ -205,7 +205,7 @@ export default function NewOrderPage() {
                     'p-2 rounded-xl border-2 text-center transition ' +
                     (active
                       ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300 shadow'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 hover:border-orange-300')
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-orange-300')
                   }
                 >
                   <Icon className="h-4 w-4 mx-auto mb-1" />
@@ -217,14 +217,14 @@ export default function NewOrderPage() {
         </div>
 
         {/* Search */}
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-ink-800">
           <div className="relative">
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search menu items..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500"
             />
           </div>
         </div>
@@ -239,12 +239,12 @@ export default function NewOrderPage() {
                   key={mi.id}
                   onClick={() => addToCart(mi)}
                   className={
-                    'group relative text-left rounded-2xl border-2 overflow-hidden transition-all bg-white dark:bg-neutral-800 ' +
-                    (mi.chefSpecial ? 'border-amber-400 hover:border-amber-500' : 'border-slate-200 dark:border-neutral-700 hover:border-orange-400') +
+                    'group relative text-left rounded-2xl border-2 overflow-hidden transition-all bg-white dark:bg-ink-800 ' +
+                    (mi.chefSpecial ? 'border-amber-400 hover:border-amber-500' : 'border-slate-200 dark:border-ink-700 hover:border-orange-400') +
                     ' hover:shadow-lg hover:-translate-y-0.5'
                   }
                 >
-                  <div className="aspect-square bg-slate-100 dark:bg-neutral-900 overflow-hidden relative">
+                  <div className="aspect-square bg-slate-100 dark:bg-ink-900 overflow-hidden relative">
                     {mi.imageUrl || p?.images?.[0]?.url ? (
                       <img src={mi.imageUrl || p?.images?.[0]?.url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
                     ) : (
@@ -270,7 +270,7 @@ export default function NewOrderPage() {
                     )}
                   </div>
                   <div className="p-2">
-                    <div className="text-xs font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight min-h-[2rem]">{p?.name}</div>
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white line-clamp-2 leading-tight min-h-[2rem]">{p?.name}</div>
                     <div className="mt-1 text-sm font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(p?.price ?? 0)}</div>
                   </div>
                 </button>
@@ -281,7 +281,7 @@ export default function NewOrderPage() {
       </section>
 
       {/* CART SIDE */}
-      <aside className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden flex flex-col">
+      <aside className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden flex flex-col">
         <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 text-white shrink-0 px-5 py-4">
           <div className="flex items-center justify-between">
             <div>
@@ -300,7 +300,7 @@ export default function NewOrderPage() {
         </div>
 
         {/* Customer + Options */}
-        <div className="p-3 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/30 space-y-2 max-h-56 overflow-y-auto">
+        <div className="p-3 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30 space-y-2 max-h-56 overflow-y-auto">
           {mode === 'DINE_IN' && (
             <>
               <div>
@@ -308,7 +308,7 @@ export default function NewOrderPage() {
                 <select
                   value={tableId}
                   onChange={(e) => setTableId(e.target.value)}
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500"
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500"
                 >
                   <option value="">Select table...</option>
                   {tables.map((t) => (
@@ -325,7 +325,7 @@ export default function NewOrderPage() {
                   min="1"
                   value={numberOfGuests}
                   onChange={(e) => setNumberOfGuests(Number(e.target.value))}
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-orange-500"
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-orange-500"
                 />
               </div>
             </>
@@ -340,7 +340,7 @@ export default function NewOrderPage() {
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="Name"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500"
                   />
                 </div>
                 <div>
@@ -349,7 +349,7 @@ export default function NewOrderPage() {
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="03XX..."
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -372,7 +372,7 @@ export default function NewOrderPage() {
                       value={deliveryNotes}
                       onChange={(e) => setDeliveryNotes(e.target.value)}
                       placeholder="Landmark, gate code..."
-                      className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                      className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                     />
                   </div>
                 </>
@@ -386,7 +386,7 @@ export default function NewOrderPage() {
               value={specialRequests}
               onChange={(e) => setSpecialRequests(e.target.value)}
               placeholder="Any preferences..."
-              className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-orange-500"
+              className="h-9 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-orange-500"
             />
           </div>
         </div>
@@ -394,9 +394,9 @@ export default function NewOrderPage() {
         {/* Cart Items */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {cart.length === 0 ? (
-            <div className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 border-2 border-dashed border-slate-200 dark:border-neutral-700 p-8 text-center">
+            <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 border-2 border-dashed border-slate-200 dark:border-ink-700 p-8 text-center">
               <ShoppingBag className="h-12 w-12 text-slate-400 mx-auto mb-2" />
-              <p className="font-extrabold text-slate-700 dark:text-slate-300 text-sm">Empty cart</p>
+              <p className="font-extrabold text-slate-700 dark:text-ink-300 text-sm">Empty cart</p>
               <p className="text-xs text-slate-500 font-semibold mt-1">Click menu items to add</p>
             </div>
           ) : (
@@ -414,14 +414,14 @@ export default function NewOrderPage() {
 
         {/* Checkout */}
         {cart.length > 0 && (
-          <div className="border-t-2 border-slate-200 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/30 p-3 space-y-2">
+          <div className="border-t-2 border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/30 p-3 space-y-2">
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <input type="number" placeholder="Discount" value={discount || ''} onChange={(e) => setDiscount(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 font-bold tabular-nums" />
-              <input type="number" placeholder="Tax %" value={taxPct || ''} onChange={(e) => setTaxPct(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 font-bold tabular-nums" />
-              <input type="number" placeholder="Service %" value={serviceChargePct || ''} onChange={(e) => setServiceChargePct(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 font-bold tabular-nums" />
-              {mode === 'DELIVERY' && <input type="number" placeholder="Delivery fee" value={deliveryFee || ''} onChange={(e) => setDeliveryFee(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 font-bold tabular-nums" />}
-              {mode !== 'DINE_IN' && <input type="number" placeholder="Packaging" value={packagingFee || ''} onChange={(e) => setPackagingFee(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 font-bold tabular-nums" />}
-              <input type="number" placeholder="Tip" value={tip || ''} onChange={(e) => setTip(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 font-bold tabular-nums" />
+              <input type="number" placeholder="Discount" value={discount || ''} onChange={(e) => setDiscount(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 font-bold tabular-nums" />
+              <input type="number" placeholder="Tax %" value={taxPct || ''} onChange={(e) => setTaxPct(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 font-bold tabular-nums" />
+              <input type="number" placeholder="Service %" value={serviceChargePct || ''} onChange={(e) => setServiceChargePct(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 font-bold tabular-nums" />
+              {mode === 'DELIVERY' && <input type="number" placeholder="Delivery fee" value={deliveryFee || ''} onChange={(e) => setDeliveryFee(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 font-bold tabular-nums" />}
+              {mode !== 'DINE_IN' && <input type="number" placeholder="Packaging" value={packagingFee || ''} onChange={(e) => setPackagingFee(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 font-bold tabular-nums" />}
+              <input type="number" placeholder="Tip" value={tip || ''} onChange={(e) => setTip(Number(e.target.value))} className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 font-bold tabular-nums" />
             </div>
 
             <div className="rounded-xl bg-gradient-to-br from-slate-950 to-emerald-900 text-white p-3 space-y-1 text-xs">
@@ -488,10 +488,10 @@ function CartLine({ item, onQty, onRemove, onInstruction }: {
   const lineTotal = (item.basePrice + modTotal) * item.quantity;
 
   return (
-    <div className="rounded-xl bg-white dark:bg-neutral-800 border-2 border-slate-200 dark:border-neutral-700 p-3">
+    <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{item.product?.name}</div>
+          <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{item.product?.name}</div>
           {item.selectedModifiers.length > 0 && (
             <div className="mt-1 flex flex-wrap gap-1">
               {item.selectedModifiers.map((m: any, i: number) => (
@@ -512,7 +512,7 @@ function CartLine({ item, onQty, onRemove, onInstruction }: {
       </div>
 
       <div className="mt-2 flex items-center justify-between gap-2">
-        <div className="inline-flex items-center bg-slate-100 dark:bg-neutral-900 rounded-lg overflow-hidden">
+        <div className="inline-flex items-center bg-slate-100 dark:bg-ink-900 rounded-lg overflow-hidden">
           <button onClick={() => onQty(item.quantity - 1)} className="h-8 w-8 hover:bg-slate-200 font-extrabold">−</button>
           <span className="h-8 w-10 flex items-center justify-center text-sm font-extrabold tabular-nums">{item.quantity}</span>
           <button onClick={() => onQty(item.quantity + 1)} className="h-8 w-8 bg-orange-600 text-white hover:bg-orange-700 font-extrabold">+</button>
@@ -534,7 +534,7 @@ function CartLine({ item, onQty, onRemove, onInstruction }: {
           value={item.specialInstructions || ''}
           onChange={(e) => onInstruction(e.target.value)}
           placeholder="e.g. Less oil, extra spicy..."
-          className="mt-2 h-8 w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
+          className="mt-2 h-8 w-full rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-semibold focus:outline-none focus:border-blue-500"
         />
       )}
     </div>
@@ -586,8 +586,8 @@ function ModifierPicker({ menuItem, onConfirm, onClose }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between">
+      <div className="w-full max-w-lg bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between">
           <div>
             <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Customize</div>
             <h3 className="font-extrabold text-lg">{menuItem.product?.name}</h3>
@@ -601,10 +601,10 @@ function ModifierPicker({ menuItem, onConfirm, onClose }: {
           {groups.map((g: any) => {
             const sel = selections[g.id] || [];
             return (
-              <div key={g.id} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-3">
+              <div key={g.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm">{g.name}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{g.name}</div>
                     <div className="text-[0.6875rem] text-slate-500 font-bold">
                       {g.isRequired ? 'Required' : 'Optional'} • Choose {g.minSelections}-{g.maxSelections}
                     </div>
@@ -627,7 +627,7 @@ function ModifierPicker({ menuItem, onConfirm, onClose }: {
                           'p-2 rounded-lg border-2 text-left text-xs font-extrabold transition ' +
                           (active
                             ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700 shadow'
-                            : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-orange-300')
+                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-orange-300')
                         }
                       >
                         <div className="flex items-center justify-between">
@@ -650,7 +650,7 @@ function ModifierPicker({ menuItem, onConfirm, onClose }: {
           })}
         </div>
 
-        <div className="border-t-2 border-slate-200 dark:border-neutral-800 p-4 flex gap-2">
+        <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-orange-600 to-red-700"

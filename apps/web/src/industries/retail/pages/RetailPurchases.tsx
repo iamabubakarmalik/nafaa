@@ -308,7 +308,7 @@ export default function RetailPurchasesV2() {
       {showTeacher && <PurchasesTeacher onClose={() => setShowTeacher(false)} />}
 
       <PurchasesHero
-        gradient="from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900"
+        gradient="from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-sky-950 dark:to-cyan-900"
         emoji="🛒"
         industryLabel="Retail"
         industryBadgeColor="bg-sky-500/30 border border-sky-300/40"
@@ -355,35 +355,35 @@ export default function RetailPurchasesV2() {
       {tab === 'create' && (
         <section className="grid xl:grid-cols-[1.2fr_1fr] gap-4 sm:gap-6">
           {/* ─── Left: form + cart ─── */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-6 space-y-4 sm:space-y-5">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-lg shadow-sky-500/30 shrink-0">
                   <ShoppingCart className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Nayi Purchase</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold">
+                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-ink-white">Nayi Purchase</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-semibold">
                     4 step: supplier → products → payment → save
                   </p>
                 </div>
               </div>
-              <div className="hidden lg:flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-400 dark:text-slate-500 shrink-0">
-                <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">/</kbd> search
-                <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700">Ctrl+↵</kbd> save
+              <div className="hidden lg:flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-400 dark:text-ink-500 shrink-0">
+                <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 border border-slate-300 dark:border-ink-700">/</kbd> search
+                <kbd className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 border border-slate-300 dark:border-ink-700">Ctrl+↵</kbd> save
               </div>
             </div>
 
             {/* ① Supplier + Payment */}
             <div className="grid sm:grid-cols-2 gap-3 sm:gap-4">
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                   ① Supplier *
                 </label>
                 <select
                   value={supplierId}
                   onChange={(e) => setSupplierId(e.target.value)}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 sm:px-4 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 sm:px-4 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
                 >
                   <option value="">Select supplier...</option>
                   {suppliers.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
@@ -396,7 +396,7 @@ export default function RetailPurchasesV2() {
                 )}
               </div>
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                   Payment Method
                 </label>
                 <div className="grid grid-cols-5 gap-1.5">
@@ -411,11 +411,11 @@ export default function RetailPurchasesV2() {
                         className={`h-11 rounded-xl border-2 flex flex-col items-center justify-center gap-0.5 transition ${
                           active
                             ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/15 shadow-sm'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-sky-300 dark:hover:border-sky-500/50'
+                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-sky-300 dark:hover:border-sky-500/50'
                         }`}
                       >
                         <span className="text-base leading-none">{m.emoji}</span>
-                        <span className={`text-[0.625rem] font-extrabold ${active ? 'text-sky-700 dark:text-sky-300' : 'text-slate-500 dark:text-slate-400'}`}>
+                        <span className={`text-[0.625rem] font-extrabold ${active ? 'text-sky-700 dark:text-sky-300' : 'text-slate-500 dark:text-ink-400'}`}>
                           {m.label}
                         </span>
                       </button>
@@ -428,8 +428,8 @@ export default function RetailPurchasesV2() {
             {/* ② Product picker */}
             <div className="rounded-2xl border-2 border-sky-200 dark:border-sky-500/40 bg-sky-50/40 dark:bg-sky-500/5 p-3 sm:p-4 space-y-3">
               <div>
-                <label className="block text-[0.6875rem] sm:text-xs font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                  ② Product Add Karo <span className="normal-case font-bold text-slate-400 dark:text-slate-500">(/ dabao)</span>
+                <label className="block text-[0.6875rem] sm:text-xs font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 uppercase tracking-wider">
+                  ② Product Add Karo <span className="normal-case font-bold text-slate-400 dark:text-ink-500">(/ dabao)</span>
                 </label>
                 <div className="relative">
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -449,16 +449,16 @@ export default function RetailPurchasesV2() {
                       }
                     }}
                     placeholder="Naam, SKU ya barcode scan karo..."
-                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
+                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
                   />
                   {productSearch && (
-                    <button onClick={() => { setProductSearch(''); setSelectedProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                    <button onClick={() => { setProductSearch(''); setSelectedProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                       <X className="h-4 w-4 text-slate-400" />
                     </button>
                   )}
                 </div>
                 {productSearch && !selectedProductId && filteredProducts.length > 0 && (
-                  <div className="mt-2 max-h-[280px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700 shadow-lg">
+                  <div className="mt-2 max-h-[280px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 divide-y divide-slate-100 dark:divide-ink-700 shadow-lg">
                     {filteredProducts.map((p, idx) => {
                       const isLow = p.stock <= p.lowStockAlert;
                       return (
@@ -474,7 +474,7 @@ export default function RetailPurchasesV2() {
                           className="w-full px-3 py-2.5 text-left hover:bg-sky-50 dark:hover:bg-sky-500/10 transition active:scale-[0.99]"
                         >
                           <div className="flex items-center gap-2">
-                            <div className="font-bold text-sm text-slate-900 dark:text-white truncate flex-1">{p.name}</div>
+                            <div className="font-bold text-sm text-slate-900 dark:text-ink-white truncate flex-1">{p.name}</div>
                             {idx === 0 && (
                               <span className="hidden sm:inline px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 shrink-0">↵ Enter</span>
                             )}
@@ -484,7 +484,7 @@ export default function RetailPurchasesV2() {
                               </span>
                             )}
                           </div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono mt-0.5">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono mt-0.5">
                             Stock: <span className={`font-bold ${isLow ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'}`}>{formatQty(p.stock)} {p.unit}</span>
                             {p.costPrice > 0 && <> • Last cost: <span className="font-bold">{formatPKR(p.costPrice)}</span></>}
                           </div>
@@ -497,10 +497,10 @@ export default function RetailPurchasesV2() {
 
               {selectedProduct && (
                 <>
-                  <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-sky-200 dark:border-sky-500/40 p-3 flex items-center justify-between gap-2">
+                  <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-sky-200 dark:border-sky-500/40 p-3 flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">✓ {selectedProduct.name}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-bold tabular-nums">
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">✓ {selectedProduct.name}</div>
+                      <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-bold tabular-nums">
                         Stock abhi: <span className="text-emerald-700 dark:text-emerald-400">{formatQty(selectedProduct.stock)} {selectedProduct.unit}</span>
                         {qty && Number(qty) > 0 && (
                           <span className="text-sky-700 dark:text-sky-300"> → baad me: {formatQty(Number(selectedProduct.stock) + Number(qty))}</span>
@@ -516,7 +516,7 @@ export default function RetailPurchasesV2() {
                   </div>
                   <div className="grid grid-cols-[1fr_1fr_auto] gap-2">
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 mb-1 uppercase">Qty ({selectedProduct.unit}) *</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 mb-1 uppercase">Qty ({selectedProduct.unit}) *</label>
                       <input
                         ref={qtyRef}
                         type="number" step="0.01" inputMode="decimal" value={qty}
@@ -528,11 +528,11 @@ export default function RetailPurchasesV2() {
                             addToCart();
                           }
                         }}
-                        className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+                        className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
                       />
                     </div>
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 mb-1 uppercase">Cost/pc *</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 mb-1 uppercase">Cost/pc *</label>
                       <input
                         type="number" step="0.01" inputMode="decimal" value={cost}
                         onChange={(e) => setCost(e.target.value)}
@@ -543,7 +543,7 @@ export default function RetailPurchasesV2() {
                             addToCart();
                           }
                         }}
-                        className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+                        className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
                       />
                     </div>
                     <div className="flex items-end">
@@ -564,9 +564,9 @@ export default function RetailPurchasesV2() {
             {/* Cart */}
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {cart.length === 0 ? (
-                <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-6 sm:p-8 text-center">
-                  <ShoppingCart className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Cart khaali hai</div>
+                <div className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-6 sm:p-8 text-center">
+                  <ShoppingCart className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <div className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Cart khaali hai</div>
                   {lowStockProducts.length > 0 && (
                     <button onClick={() => setTab('reorder')} className="mt-2 text-xs font-extrabold text-sky-600 dark:text-sky-400 hover:underline">
                       💡 {lowStockProducts.length} low stock items — Smart Reorder dekho →
@@ -576,7 +576,7 @@ export default function RetailPurchasesV2() {
               ) : (
                 <>
                   <div className="flex items-center justify-between">
-                    <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider tabular-nums">
+                    <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider tabular-nums">
                       Cart ({cartCount} items)
                     </div>
                     <button
@@ -587,22 +587,22 @@ export default function RetailPurchasesV2() {
                     </button>
                   </div>
                   {cart.map((line) => (
-                    <div key={line.productId} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3">
+                    <div key={line.productId} className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-3">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{line.name}</div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{line.name}</div>
+                          <div className="text-xs text-slate-500 dark:text-ink-400 font-bold tabular-nums">
                             {formatPKR(line.costPrice)} × {formatQty(line.quantity)} {line.unit}
                           </div>
                         </div>
                         <div className="font-extrabold text-sky-700 dark:text-sky-300 shrink-0 tabular-nums">{formatPKR(line.costPrice * line.quantity)}</div>
                       </div>
                       <div className="mt-2 flex items-center justify-between gap-2">
-                        <div className="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 rounded-xl p-1 border-2 border-slate-200 dark:border-slate-700">
-                          <button onClick={() => updateQty(line.productId, -1)} className="h-8 w-8 rounded-lg bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 active:scale-95 flex items-center justify-center transition">
-                            <Minus className="h-3 w-3 text-slate-600 dark:text-slate-300" />
+                        <div className="inline-flex items-center gap-1.5 bg-slate-50 dark:bg-ink-800 rounded-xl p-1 border-2 border-slate-200 dark:border-ink-700">
+                          <button onClick={() => updateQty(line.productId, -1)} className="h-8 w-8 rounded-lg bg-white dark:bg-ink-700 border border-slate-200 dark:border-ink-600 hover:bg-slate-50 dark:hover:bg-ink-600 active:scale-95 flex items-center justify-center transition">
+                            <Minus className="h-3 w-3 text-slate-600 dark:text-ink-300" />
                           </button>
-                          <span className="w-12 text-center font-extrabold text-sm tabular-nums text-slate-900 dark:text-white">{formatQty(line.quantity)}</span>
+                          <span className="w-12 text-center font-extrabold text-sm tabular-nums text-slate-900 dark:text-ink-white">{formatQty(line.quantity)}</span>
                           <button onClick={() => updateQty(line.productId, 1)} className="h-8 w-8 rounded-lg bg-sky-600 hover:bg-sky-700 active:scale-95 text-white flex items-center justify-center transition">
                             <Plus className="h-3 w-3" />
                           </button>
@@ -627,8 +627,8 @@ export default function RetailPurchasesV2() {
             {/* Totals */}
             <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-cyan-50 dark:from-sky-500/10 dark:to-cyan-500/10 border-2 border-sky-200 dark:border-sky-500/40 p-3 sm:p-4 space-y-1.5">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-300 font-bold">Subtotal</span>
-                <span className="font-bold text-slate-900 dark:text-white tabular-nums">{formatPKR(subtotal)}</span>
+                <span className="text-slate-600 dark:text-ink-300 font-bold">Subtotal</span>
+                <span className="font-bold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(subtotal)}</span>
               </div>
               {discountValue > 0 && (
                 <div className="flex items-center justify-between text-sm">
@@ -637,7 +637,7 @@ export default function RetailPurchasesV2() {
                 </div>
               )}
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600 dark:text-slate-300 font-bold">Abhi diya</span>
+                <span className="text-slate-600 dark:text-ink-300 font-bold">Abhi diya</span>
                 <span className="font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(paidValue)}</span>
               </div>
               {dueValue > 0 && (
@@ -647,7 +647,7 @@ export default function RetailPurchasesV2() {
                 </div>
               )}
               <div className="flex items-center justify-between pt-2 border-t-2 border-sky-200 dark:border-sky-500/30">
-                <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Total Bill</span>
+                <span className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Total Bill</span>
                 <span className="text-2xl sm:text-3xl font-extrabold text-sky-700 dark:text-sky-300 tabular-nums">{formatPKR(total)}</span>
               </div>
             </div>
@@ -671,34 +671,34 @@ export default function RetailPurchasesV2() {
 
           {/* ─── Right sidebar ─── */}
           <div className="space-y-4">
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="px-4 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-4 sm:px-5 py-3 sm:py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">Recent Purchases</h3>
-                  <p className="text-[0.6875rem] sm:text-xs text-slate-500 dark:text-slate-400 font-bold">Latest 5</p>
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base">Recent Purchases</h3>
+                  <p className="text-[0.6875rem] sm:text-xs text-slate-500 dark:text-ink-400 font-bold">Latest 5</p>
                 </div>
                 <button onClick={() => setTab('history')} className="text-xs font-extrabold text-sky-600 dark:text-sky-400 hover:underline inline-flex items-center gap-1">
                   Sab <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {summary?.recentPurchases?.length ? (
                   summary.recentPurchases.slice(0, 5).map((p: any) => (
-                    <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-5 py-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="font-extrabold text-slate-900 dark:text-white font-mono text-xs">{p.purchaseNumber}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold truncate">{p.supplierName}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-xs">{p.purchaseNumber}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold truncate">{p.supplierName}</div>
                         </div>
                         <div className="text-right shrink-0">
                           <div className="font-extrabold text-sky-700 dark:text-sky-300 text-sm tabular-nums">{formatPKR(p.total)}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{formatDate(p.purchasedAt)}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{formatDate(p.purchasedAt)}</div>
                         </div>
                       </div>
                     </Link>
                   ))
                 ) : (
-                  <div className="px-5 py-8 text-center text-sm text-slate-500 dark:text-slate-400 font-semibold">Abhi koi purchase nahi</div>
+                  <div className="px-5 py-8 text-center text-sm text-slate-500 dark:text-ink-400 font-semibold">Abhi koi purchase nahi</div>
                 )}
               </div>
             </div>
@@ -729,15 +729,15 @@ export default function RetailPurchasesV2() {
 
       {/* ═══════════════════════ REORDER TAB ═══════════════════════ */}
       {tab === 'reorder' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6 space-y-4">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-6 space-y-4">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
                 <RefreshCw className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Smart Reorder</h3>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-ink-white">Smart Reorder</h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-semibold">
                   Low stock items — one-click cart me add karo
                 </p>
               </div>
@@ -775,7 +775,7 @@ export default function RetailPurchasesV2() {
                     }`}
                   >
                     <div className="flex items-start gap-3 mb-2">
-                      <div className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                      <div className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                         {p.images?.[0]?.url ? (
                           <img src={p.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                         ) : (
@@ -783,8 +783,8 @@ export default function RetailPurchasesV2() {
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{p.name}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">{p.sku || '—'}</div>
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{p.name}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">{p.sku || '—'}</div>
                       </div>
                       {isOut ? (
                         <span className="px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold bg-rose-600 text-white shrink-0">KHATAM</span>
@@ -794,8 +794,8 @@ export default function RetailPurchasesV2() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
-                      <div className="rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2">
-                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Abhi Hai</div>
+                      <div className="rounded-lg bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 p-2">
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Abhi Hai</div>
                         <div className={`text-lg font-extrabold tabular-nums ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
                           {formatQty(p.stock)}
                         </div>
@@ -808,8 +808,8 @@ export default function RetailPurchasesV2() {
                       </div>
                     </div>
 
-                    <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold mb-2 tabular-nums">
-                      {formatPKR(unitCost)}/{p.unit} • Total ≈ <span className="font-extrabold text-slate-900 dark:text-white">{formatPKR(unitCost * suggestedQty)}</span>
+                    <div className="text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold mb-2 tabular-nums">
+                      {formatPKR(unitCost)}/{p.unit} • Total ≈ <span className="font-extrabold text-slate-900 dark:text-ink-white">{formatPKR(unitCost * suggestedQty)}</span>
                     </div>
 
                     {inCart ? (
@@ -836,11 +836,11 @@ export default function RetailPurchasesV2() {
       {tab === 'analytics' && (
         <>
           <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 sm:gap-6">
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">7-Day Purchases</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Roz kitne ka maal aaya</p>
+                  <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">7-Day Purchases</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Roz kitne ka maal aaya</p>
                 </div>
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-md shrink-0">
                   <BarChart3 className="h-5 w-5" />
@@ -868,9 +868,9 @@ export default function RetailPurchasesV2() {
               </div>
             </div>
 
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Payment Methods</h3>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Payment Methods</h3>
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md shrink-0">
                   <Wallet className="h-5 w-5" />
                 </div>
@@ -899,50 +899,50 @@ export default function RetailPurchasesV2() {
                 </div>
               ) : (
                 <div className="h-[240px] flex flex-col items-center justify-center gap-2">
-                  <Wallet className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-                  <p className="text-sm font-extrabold text-slate-500 dark:text-slate-400">Abhi koi data nahi</p>
+                  <Wallet className="h-10 w-10 text-slate-300 dark:text-ink-600" />
+                  <p className="text-sm font-extrabold text-slate-500 dark:text-ink-400">Abhi koi data nahi</p>
                 </div>
               )}
             </div>
           </section>
 
           <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-sky-200 dark:border-sky-500/30 shadow-sm overflow-hidden">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-sky-200 dark:border-sky-500/30 shadow-sm overflow-hidden">
               <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/10 dark:to-cyan-500/10 border-b-2 border-sky-200 dark:border-sky-500/30">
                 <div className="flex items-center gap-2">
                   <Crown className="h-5 w-5 text-amber-500" />
                   <h3 className="font-extrabold text-sky-900 dark:text-sky-200">Top Suppliers</h3>
                 </div>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {summary?.topSuppliers?.length ? (
                   summary.topSuppliers.map((ts: any, idx: number) => {
                     const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
                     return (
-                      <Link key={ts.supplierId} to={`/suppliers/${ts.supplierId}`} className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition active:scale-[0.99]">
+                      <Link key={ts.supplierId} to={`/suppliers/${ts.supplierId}`} className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition active:scale-[0.99]">
                         <div className={`h-9 w-9 rounded-lg ${rankColors[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0`}>
                           {idx < 3 ? <Crown className="h-4 w-4" /> : idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{ts.supplier?.name}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{ts.orderCount} orders</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{ts.supplier?.name}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{ts.orderCount} orders</div>
                         </div>
                         <div className="font-extrabold text-sky-700 dark:text-sky-300 text-sm tabular-nums">{formatPKR(ts.totalSpent)}</div>
                       </Link>
                     );
                   })
-                ) : <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-slate-400 font-semibold">Abhi koi supplier nahi</div>}
+                ) : <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-ink-400 font-semibold">Abhi koi supplier nahi</div>}
               </div>
             </div>
 
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-violet-200 dark:border-violet-500/30 shadow-sm overflow-hidden">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-violet-200 dark:border-violet-500/30 shadow-sm overflow-hidden">
               <div className="px-4 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10 border-b-2 border-violet-200 dark:border-violet-500/30">
                 <div className="flex items-center gap-2">
                   <Award className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                   <h3 className="font-extrabold text-violet-900 dark:text-violet-200">Sab Se Zyada Mangwaya</h3>
                 </div>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {summary?.topProducts?.length ? (
                   summary.topProducts.map((tp: any, idx: number) => {
                     const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-violet-500', 'bg-blue-500'];
@@ -952,8 +952,8 @@ export default function RetailPurchasesV2() {
                           {idx < 3 ? <Star className="h-4 w-4 fill-white" /> : idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{tp.product?.name}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{tp.product?.name}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold tabular-nums">
                             {formatQty(tp.quantityPurchased)} {tp.product?.unit} • {tp.orderCount} orders
                           </div>
                         </div>
@@ -961,7 +961,7 @@ export default function RetailPurchasesV2() {
                       </div>
                     );
                   })
-                ) : <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-slate-400 font-semibold">Abhi koi data nahi</div>}
+                ) : <div className="px-5 py-12 text-center text-sm text-slate-500 dark:text-ink-400 font-semibold">Abhi koi data nahi</div>}
               </div>
             </div>
           </section>
@@ -979,23 +979,23 @@ export default function RetailPurchasesV2() {
 
       {/* ═══════════════════════ HISTORY TAB ═══════════════════════ */}
       {tab === 'history' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-4 sm:px-6 py-4 sm:py-5 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Saari Purchases</h3>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold tabular-nums">{filteredPurchases.length} of {purchases.length}</p>
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white">Saari Purchases</h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold tabular-nums">{filteredPurchases.length} of {purchases.length}</p>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => window.print()}
-                  className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition print:hidden"
+                  className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-50 dark:hover:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition print:hidden"
                 >
                   <Printer className="h-4 w-4" /> Print
                 </button>
                 <button
                   onClick={exportCSV}
-                  className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition print:hidden"
+                  className="h-10 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-50 dark:hover:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition print:hidden"
                 >
                   <FileSpreadsheet className="h-4 w-4" /> CSV
                 </button>
@@ -1007,15 +1007,15 @@ export default function RetailPurchasesV2() {
                 value={historySearch}
                 onChange={(e) => setHistorySearch(e.target.value)}
                 placeholder="Purchase # ya supplier ka naam..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-500/30 transition"
               />
               {historySearch && (
-                <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setHistorySearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
             </div>
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit print:hidden">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 w-fit print:hidden">
               {[
                 { v: 'all' as const, l: `Sab (${purchases.length})` },
                 { v: 'pending' as const, l: `Pending (${purchases.filter((p: any) => p.status === 'PENDING').length})` },
@@ -1028,7 +1028,7 @@ export default function RetailPurchasesV2() {
                     'px-3 py-1.5 rounded-lg text-xs font-extrabold transition tabular-nums',
                     historyFilter === o.v
                       ? 'bg-sky-600 text-white shadow-sm'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                      : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white',
                   ].join(' ')}
                 >
                   {o.l}
@@ -1039,20 +1039,20 @@ export default function RetailPurchasesV2() {
 
           {filteredPurchases.length === 0 ? (
             <div className="p-12 text-center">
-              <ShoppingCart className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <h4 className="font-extrabold text-slate-900 dark:text-white">
+              <ShoppingCart className="h-16 w-16 text-slate-300 dark:text-ink-600 mx-auto mb-3" />
+              <h4 className="font-extrabold text-slate-900 dark:text-ink-white">
                 {historySearch || historyFilter !== 'all' ? 'Kuch nahi mila' : 'Abhi koi purchase nahi'}
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                 {historySearch || historyFilter !== 'all' ? 'Search ya filter change karo' : '"New Purchase" tab se pehli purchase karo'}
               </p>
             </div>
           ) : (
-            <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
               {filteredPurchases.map((p: any) => {
                 const balance = Math.max(p.total - p.paidAmount, 0);
                 return (
-                  <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-6 py-3 sm:py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition group">
+                  <Link key={p.id} to={`/purchases/${p.id}`} className="block px-4 sm:px-6 py-3 sm:py-4 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition group">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0 flex-1">
                         <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-2xl bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300 flex items-center justify-center shrink-0">
@@ -1060,7 +1060,7 @@ export default function RetailPurchasesV2() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-extrabold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">{p.purchaseNumber}</span>
+                            <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-xs sm:text-sm">{p.purchaseNumber}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase ${
                               p.status === 'RECEIVED'
                                 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
@@ -1076,9 +1076,9 @@ export default function RetailPurchasesV2() {
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs">
                             <Building2 className="h-3 w-3 text-slate-400 shrink-0" />
-                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate">{p.supplier?.name || '—'}</span>
+                            <span className="font-bold text-slate-700 dark:text-ink-200 truncate">{p.supplier?.name || '—'}</span>
                           </div>
-                          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold flex-wrap">
+                          <div className="flex items-center gap-3 mt-1.5 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold flex-wrap">
                             <span className="inline-flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {formatDate(p.purchasedAt)}
@@ -1090,13 +1090,13 @@ export default function RetailPurchasesV2() {
                           </div>
                           <div className="mt-2 flex flex-wrap gap-1">
                             {p.items?.slice(0, 3).map((it: any) => (
-                              <span key={it.id} className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate inline-flex items-center gap-1">
+                              <span key={it.id} className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 max-w-[180px] truncate inline-flex items-center gap-1">
                                 <Boxes className="h-2.5 w-2.5 text-sky-600 dark:text-sky-400 shrink-0" />
                                 {it.product.name} × {formatQty(it.quantity)}
                               </span>
                             ))}
                             {(p.items?.length || 0) > 3 && (
-                              <span className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                              <span className="px-2 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400">
                                 +{(p.items?.length || 0) - 3} aur
                               </span>
                             )}
@@ -1105,7 +1105,7 @@ export default function RetailPurchasesV2() {
                       </div>
                       <div className="text-right shrink-0">
                         <div className="text-lg sm:text-2xl font-extrabold text-sky-700 dark:text-sky-300 tabular-nums">{formatPKR(p.total)}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-bold tabular-nums">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-bold tabular-nums">
                           Paid: <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{formatPKR(p.paidAmount)}</span>
                         </div>
                         <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-sky-600 dark:text-sky-400 group-hover:text-sky-700 print:hidden">
@@ -1169,26 +1169,26 @@ function PurchasesTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Purchase Kaise Karein?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Jab supplier se maal aata hai to yahan <strong>purchase entry</strong> karo.
             Save karte hi <strong>stock apne aap barh jata hai</strong> aur supplier ka hisaab ban jata hai.
           </p>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5">
-            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">4 Asaan Steps</div>
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3.5">
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-2">4 Asaan Steps</div>
             <div className="space-y-2">
               <FlowRow num="①" title="Supplier" desc="Kis se maal aaya — pehle se udhaar bhi dikhta hai" />
               <FlowRow num="②" title="Products" desc="Search karo, qty + cost likho, Add dabao" />
@@ -1197,7 +1197,7 @@ function PurchasesTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⚡ Enter se tez kaam</strong> — search me Enter = pehla product select, qty/cost me Enter = cart me add</TipRow>
             <TipRow><strong>⌨️ Ctrl+Enter</strong> — kahin se bhi purchase save</TipRow>
             <TipRow><strong>🔁 Smart Reorder</strong> — low stock items ek click me cart me, phir Save</TipRow>
@@ -1242,8 +1242,8 @@ function FlowRow({ num, title, desc }: { num: string; title: string; desc: strin
         {num}
       </div>
       <div className="min-w-0">
-        <div className="text-xs font-extrabold text-slate-900 dark:text-white">{title}</div>
-        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">{desc}</div>
+        <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">{desc}</div>
       </div>
     </div>
   );

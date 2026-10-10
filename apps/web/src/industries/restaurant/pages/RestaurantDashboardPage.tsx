@@ -75,7 +75,7 @@ export default function RestaurantDashboardPage() {
     return (
       <div className="grid gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+          <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
         ))}
       </div>
     );
@@ -155,10 +155,10 @@ export default function RestaurantDashboardPage() {
       </section>
 
       {/* TABLES OVERVIEW */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Utensils className="h-5 w-5 text-orange-600" />
               Tables Status
             </h3>
@@ -175,13 +175,13 @@ export default function RestaurantDashboardPage() {
             const count = tableSummary[status] ?? 0;
             const pct = totalTables > 0 ? (count / totalTables) * 100 : 0;
             return (
-              <div key={status} className="rounded-2xl bg-slate-50 dark:bg-neutral-800/50 p-3">
+              <div key={status} className="rounded-2xl bg-slate-50 dark:bg-ink-800/50 p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <div className={'h-3 w-3 rounded-full ' + cfg.bg} />
                   <span className={'text-[0.6875rem] uppercase font-extrabold ' + cfg.color}>{cfg.label}</span>
                 </div>
-                <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{count}</div>
-                <div className="mt-1 h-1.5 rounded-full bg-slate-200 dark:bg-neutral-700 overflow-hidden">
+                <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{count}</div>
+                <div className="mt-1 h-1.5 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                   <div className={'h-full ' + cfg.bg} style={{ width: pct + '%' }} />
                 </div>
               </div>
@@ -192,10 +192,10 @@ export default function RestaurantDashboardPage() {
 
       {/* CHARTS */}
       <section className="grid lg:grid-cols-[1.5fr_1fr] gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Hourly Orders</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white">Hourly Orders</h3>
               <p className="text-xs text-slate-500 font-semibold">Peak hours identify karo</p>
             </div>
             <Clock className="h-5 w-5 text-emerald-500" />
@@ -217,10 +217,10 @@ export default function RestaurantDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order Modes</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white">Order Modes</h3>
               <p className="text-xs text-slate-500 font-semibold">Aaj ka breakdown</p>
             </div>
             <BarChart3 className="h-5 w-5 text-violet-500" />
@@ -271,17 +271,17 @@ export default function RestaurantDashboardPage() {
 
       {/* ACTIVE ORDERS + TOP ITEMS */}
       <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">🔥 Live Orders</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white">🔥 Live Orders</h3>
               <p className="text-xs text-slate-500 font-semibold">Currently in progress</p>
             </div>
             <Link to="/restaurant/orders" className="text-xs font-extrabold text-orange-600 hover:text-orange-700 inline-flex items-center gap-1">
               View All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {activeOrders.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">No active orders</div>
             ) : (
@@ -293,14 +293,14 @@ export default function RestaurantDashboardPage() {
                   <Link
                     key={order.id}
                     to={'/restaurant/orders/' + order.id}
-                    className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition"
+                    className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition"
                   >
                     <div className={'h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ' + statusCfg.color + ' text-white'}>
                       <ModeIcon className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">{order.orderNumber}</span>
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{order.orderNumber}</span>
                         <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + statusCfg.color}>
                           {statusCfg.label}
                         </span>
@@ -323,14 +323,14 @@ export default function RestaurantDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">🏆 Top Selling Items (7d)</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white">🏆 Top Selling Items (7d)</h3>
               <p className="text-xs text-slate-500 font-semibold">Best sellers</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topItems.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">No data yet</div>
             ) : (
@@ -339,7 +339,7 @@ export default function RestaurantDashboardPage() {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center font-extrabold text-sm shadow shrink-0">
                     {i + 1}
                   </div>
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
                     {it.product?.images?.[0]?.url ? (
                       <img src={it.product.images[0].url} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -347,7 +347,7 @@ export default function RestaurantDashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">
+                    <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">
                       {it.product?.name || 'Unknown'}
                     </div>
                     <div className="text-xs text-slate-500 font-semibold">
@@ -423,13 +423,13 @@ function KpiCard({ label, value, sub, icon: Icon, color, growth, highlight }: an
       'rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition ' +
       (highlight
         ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-300 dark:border-amber-800'
-        : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800')
+        : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1 flex items-center gap-1">
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1 flex items-center gap-1">
             {sub}
             {typeof growth === 'number' && growth !== 0 && (
               <span className={
@@ -466,7 +466,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 dark:hover:border-neutral-700 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 dark:hover:border-ink-700 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -474,7 +474,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

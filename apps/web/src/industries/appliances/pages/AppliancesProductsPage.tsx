@@ -348,23 +348,23 @@ export default function AppliancesProductsPage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
           <TabBtn active={tab === 'list'} onClick={() => setTab('list')} icon={Package} label="Maal" />
           <TabBtn active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={BarChart3} label="Analytics" />
         </div>
         {tab === 'list' && (
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
             <button onClick={() => setViewSafe('grid')}
-              className={`px-3 py-2 rounded-xl transition ${view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+              className={`px-3 py-2 rounded-xl transition ${view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}>
               <LayoutGrid className="h-4 w-4" />
             </button>
             <button onClick={() => setViewSafe('list')}
-              className={`px-3 py-2 rounded-xl transition ${view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
+              className={`px-3 py-2 rounded-xl transition ${view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}>
               <ListIcon className="h-4 w-4" />
             </button>
           </div>
         )}
-        <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">{filtered.length} products</div>
+        <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">{filtered.length} products</div>
       </div>
 
       {tab === 'analytics' ? (
@@ -379,7 +379,7 @@ export default function AppliancesProductsPage() {
                 placeholder="Naam, brand, model, SKU, barcode... (/)"
                 value={search} onChange={(e) => setSearch(e.target.value)} />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -388,7 +388,7 @@ export default function AppliancesProductsPage() {
               className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                 showFilters || hasFilters
                   ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-cyan-300'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-cyan-300'
               }`}>
               <Filter className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
               {hasFilters && <span className="h-5 w-5 rounded-full bg-cyan-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">!</span>}
@@ -398,13 +398,13 @@ export default function AppliancesProductsPage() {
           {showFilters && (
             <Panel className="space-y-3">
               <div>
-                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Qism</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Qism</div>
                 <ChipRow
                   options={CATEGORY_GROUPS.filter((g) => groupCounts.get(g)).map((g) => ({ value: g, label: g, count: groupCounts.get(g) }))}
                   value={group} onChange={setGroup} allLabel={`Sab (${rows.length})`} />
               </div>
               <div>
-                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Khaas</div>
+                <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Khaas</div>
                 <ChipRow
                   options={[
                     { value: 'serial', label: 'Serial wale', emoji: '🔖' },
@@ -416,7 +416,7 @@ export default function AppliancesProductsPage() {
               </div>
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Brand</div>
+                  <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">Brand</div>
                   <select className={inputCls('h-11 text-xs font-extrabold')} value={brandId} onChange={(e) => setBrandId(e.target.value)}>
                     <option value="">Sab brands</option>
                     {(brands as any[]).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
@@ -433,7 +433,7 @@ export default function AppliancesProductsPage() {
 
           {/* Bulk bar */}
           {picked.size > 0 && (
-            <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-900 dark:from-slate-950 dark:to-cyan-950 text-white border-2 border-cyan-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
+            <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-900 dark:from-ink-950 dark:to-cyan-950 text-white border-2 border-cyan-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 mr-1">
                 <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center font-extrabold tabular-nums text-sm">{picked.size}</div>
                 <div className="text-xs font-extrabold leading-tight">
@@ -460,7 +460,7 @@ export default function AppliancesProductsPage() {
           {/* List */}
           {isLoading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : filtered.length === 0 ? (
             <Empty
@@ -499,7 +499,7 @@ function TabBtn({ active, onClick, icon: Icon, label }: any) {
   return (
     <button onClick={onClick}
       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
     </button>
@@ -513,16 +513,16 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
   const margin = r.price > 0 ? ((r.price - r.costPrice) / r.price) * 100 : 0;
 
   return (
-    <div className={`group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
+    <div className={`group relative rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
       checked ? 'border-cyan-500 dark:border-cyan-400 ring-2 ring-cyan-200 dark:ring-cyan-500/25'
         : r.isOut ? 'border-rose-300 dark:border-rose-500/40'
         : r.isLow ? 'border-amber-300 dark:border-amber-500/40'
-        : 'border-slate-200 dark:border-slate-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
+        : 'border-slate-200 dark:border-ink-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
     }`}>
       <button onClick={onToggle} title="Chunein"
         className={`absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition ${
           checked ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-            : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+            : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-cyan-400'
         }`}>
         <CheckCircle2 className="h-4 w-4" />
       </button>
@@ -532,19 +532,19 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
           {img ? (
             <img src={img} alt={r.name} className="h-14 w-14 rounded-xl object-cover shadow shrink-0" />
           ) : (
-            <div className="h-14 w-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
+            <div className="h-14 w-14 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-2xl shrink-0">
               {cm.emoji}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
               {r.name}
             </h3>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {r.brandLabel ? `${r.brandLabel} • ` : ''}{cm.label}{r.capacity ? ` • ${r.capacity}` : ''}
             </div>
             {r.modelNumber && (
-              <div className="font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{r.modelNumber}</div>
+              <div className="font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">{r.modelNumber}</div>
             )}
           </div>
         </div>
@@ -580,7 +580,7 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
 
         {/* Warranty — teen alag */}
         {(r.warrantyMonths || r.compressorWarrantyMonths || r.motorWarrantyMonths) && (
-          <div className="mt-2 flex gap-1.5 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <div className="mt-2 flex gap-1.5 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             {r.warrantyMonths ? <span>🛡️ {r.warrantyMonths}m</span> : null}
             {r.compressorWarrantyMonths ? <span>❄️ Comp {r.compressorWarrantyMonths}m</span> : null}
             {r.motorWarrantyMonths ? <span>⚙️ Motor {r.motorWarrantyMonths}m</span> : null}
@@ -591,13 +591,13 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
           <div className={`rounded-xl px-2.5 py-2 border ${
             r.isOut ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30'
               : r.isLow ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
-              : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+              : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'
           }`}>
             <div className={`text-[0.625rem] font-extrabold uppercase tracking-wider ${
-              r.isOut ? 'text-rose-700 dark:text-rose-400' : r.isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400'
+              r.isOut ? 'text-rose-700 dark:text-rose-400' : r.isLow ? 'text-amber-700 dark:text-amber-400' : 'text-slate-500 dark:text-ink-400'
             }`}>Stock</div>
             <div className={`text-sm font-extrabold tabular-nums ${
-              r.isOut ? 'text-rose-700 dark:text-rose-300' : r.isLow ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-slate-100'
+              r.isOut ? 'text-rose-700 dark:text-rose-300' : r.isLow ? 'text-amber-700 dark:text-amber-300' : 'text-slate-800 dark:text-ink-100'
             }`}>
               {r.isOut ? 'Khatam' : `${r.stock} ${r.unit ?? 'pcs'}`}
             </div>
@@ -608,7 +608,7 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
           </div>
         </div>
 
-        <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
           <span>Lagat {formatPKR(r.costPrice)}</span>
           <span className={margin >= 15 ? 'text-emerald-600 dark:text-emerald-400' : margin > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'}>
             {margin.toFixed(0)}% margin
@@ -616,13 +616,13 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
         </div>
       </Link>
 
-      <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-1">
-        <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">
+      <div className="px-3 py-2 border-t border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between gap-1">
+        <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">
           {r.sku || r.barcode || '—'}
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <Link to={`/appliance-products/${r.id}`}
-            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             Detail <ChevronRight className="h-3 w-3" />
           </Link>
           <Link to={`/appliance-products/${r.id}/edit`}
@@ -642,16 +642,16 @@ function ProductCard({ r, checked, onToggle, onDelete }: any) {
 /* ═════════════ TABLE ═════════════ */
 function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[980px]">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+            <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
               <th className="px-3 py-3 w-10">
                 <button onClick={onToggleAll}
                   className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
                     allPicked ? 'bg-cyan-600 border-cyan-600 text-white'
-                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+                      : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-cyan-400'
                   }`}>
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </button>
@@ -670,14 +670,14 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
             {rows.map((r: any) => {
               const on = picked.has(r.id);
               return (
-                <tr key={r.id} className={`border-b border-slate-100 dark:border-slate-800 transition ${
-                  on ? 'bg-cyan-50 dark:bg-cyan-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                <tr key={r.id} className={`border-b border-slate-100 dark:border-ink-800 transition ${
+                  on ? 'bg-cyan-50 dark:bg-cyan-500/10' : 'hover:bg-slate-50 dark:hover:bg-ink-800/50'
                 }`}>
                   <td className="px-3 py-2.5">
                     <button onClick={() => onToggle(r.id)}
                       className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
                         on ? 'bg-cyan-600 border-cyan-600 text-white'
-                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+                          : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-cyan-400'
                       }`}>
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </button>
@@ -686,7 +686,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
                     <Link to={`/appliance-products/${r.id}`} className="flex items-center gap-2 group">
                       <span className="text-lg shrink-0">{catEmoji(r.categoryType)}</span>
                       <div className="min-w-0">
-                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                           {r.name}
                         </div>
                         <div className="text-[0.6875rem] font-bold text-slate-400">
@@ -695,7 +695,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
                       </div>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                     {r.brandLabel || '—'}
                     {r.modelNumber && <div className="font-mono text-[0.6875rem] text-slate-400">{r.modelNumber}</div>}
                   </td>
@@ -707,7 +707,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
                       {!r.hasProfile && <span title="Appliance tafseel adhoori" className="text-amber-500">⚠️</span>}
                     </div>
                   </td>
-                  <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                  <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 whitespace-nowrap">
                     {r.warrantyMonths ? `${r.warrantyMonths}m` : '—'}
                     {r.compressorWarrantyMonths ? ` / ${r.compressorWarrantyMonths}m` : ''}
                   </td>
@@ -715,15 +715,15 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
                     <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold tabular-nums ${
                       r.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                         : r.isLow ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                     }`}>{r.stock}</span>
                   </td>
-                  <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatPKR(r.costPrice)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold tabular-nums text-slate-600 dark:text-ink-300 whitespace-nowrap">{formatPKR(r.costPrice)}</td>
                   <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400 whitespace-nowrap">{formatPKR(r.price)}</td>
                   <td className="px-3 py-2.5 pr-4">
                     <div className="flex items-center justify-end gap-1">
                       <Link to={`/appliance-products/${r.id}`}
-                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center transition" title="Detail">
+                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-700 dark:text-ink-200 flex items-center justify-center transition" title="Detail">
                         <ChevronRight className="h-3.5 w-3.5" />
                       </Link>
                       <Link to={`/appliance-products/${r.id}/edit`}
@@ -741,7 +741,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+            <tr className="bg-slate-900 dark:bg-ink-950 text-white">
               <td colSpan={6} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">
                 {rows.length} products ka total
               </td>
@@ -762,7 +762,7 @@ function ProductTable({ rows, picked, allPicked, onToggle, onToggleAll, onDelete
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -852,7 +852,7 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
                 <Link key={r.id} to={`/appliance-products/${r.id}/edit`}
                   className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-2 hover:shadow transition">
                   <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
-                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate flex-1">{r.name}</span>
+                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate flex-1">{r.name}</span>
                   <Pencil className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                 </Link>
               ))}
@@ -870,7 +870,7 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
                 <Link key={r.id} to={`/appliance-products/${r.id}/edit`}
                   className="flex items-center gap-2 rounded-xl bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30 px-2.5 py-2 hover:shadow transition">
                   <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
-                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate flex-1">{r.name}</span>
+                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate flex-1">{r.name}</span>
                   <Pencil className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400 shrink-0" />
                 </Link>
               ))}
@@ -888,7 +888,7 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
                 <Link key={r.id} to={`/appliance-products/${r.id}/edit`}
                   className="flex items-center gap-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 px-2.5 py-2 hover:shadow transition">
                   <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
-                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate flex-1">{r.name}</span>
+                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate flex-1">{r.name}</span>
                   <Pencil className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
                 </Link>
               ))}
@@ -906,10 +906,10 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
             <div className="space-y-1">
               {a.lowMargin.map((r: any) => (
                 <Link key={r.id} to={`/appliance-products/${r.id}`}
-                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                   <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400">
                       Lagat {formatPKR(r.costPrice)} → Bechna {formatPKR(r.price)}
                     </div>
@@ -930,12 +930,12 @@ function ProductAnalytics({ rows }: { rows: any[] }) {
             <div className="space-y-1">
               {a.topMargin.map((r: any, i: number) => (
                 <Link key={r.id} to={`/appliance-products/${r.id}`}
-                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                  className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                   <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
-                    i === 0 ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    i === 0 ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                   }`}>{i + 1}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                    <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400">{formatPKR(r.price - r.costPrice)} per unit</div>
                   </div>
                   <span className="px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">

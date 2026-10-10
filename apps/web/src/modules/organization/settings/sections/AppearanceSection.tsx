@@ -61,7 +61,7 @@ export function AppearanceSection({ settings }: { settings: TenantSettings }) {
                 title={c.name}
                 className={[
                   'aspect-square rounded-2xl transition-all active:scale-95 relative group',
-                  active ? 'ring-4 ring-offset-2 dark:ring-offset-slate-900 ring-slate-900 dark:ring-white scale-110 shadow-xl z-10' : 'ring-2 ring-white dark:ring-slate-700 shadow-md hover:scale-105',
+                  active ? 'ring-4 ring-offset-2 dark:ring-offset-ink-900 ring-slate-900 dark:ring-ink-white scale-110 shadow-xl z-10' : 'ring-2 ring-white dark:ring-ink-700 shadow-md hover:scale-105',
                 ].join(' ')}
                 style={{ backgroundColor: c.hex }}
               >
@@ -77,16 +77,16 @@ export function AppearanceSection({ settings }: { settings: TenantSettings }) {
           })}
         </div>
 
-        <div className="mt-4 flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
+        <div className="mt-4 flex items-center gap-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-3">
           <input
             type="color"
             value={draft.brandColor || '#10b981'}
             onChange={(e) => set('brandColor', e.target.value)}
-            className="h-12 w-12 rounded-xl cursor-pointer border-2 border-white dark:border-slate-700 shadow"
+            className="h-12 w-12 rounded-xl cursor-pointer border-2 border-white dark:border-ink-700 shadow"
           />
           <div className="flex-1 min-w-0">
-            <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Custom Color</div>
-            <div className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{draft.brandColor}</div>
+            <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider">Custom Color</div>
+            <div className="font-mono font-extrabold text-slate-900 dark:text-ink-white text-sm">{draft.brandColor}</div>
           </div>
           <div className="hidden sm:block">
             <button

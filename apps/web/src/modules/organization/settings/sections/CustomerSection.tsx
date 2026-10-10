@@ -110,8 +110,8 @@ export function CustomerSection({ settings }: { settings: TenantSettings }) {
               <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 mb-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" /> Live Example
               </div>
-              <div className="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
-                Customer <strong className="text-slate-900 dark:text-white">Rs 1,000</strong> ki shopping karega →{' '}
+              <div className="text-xs font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
+                Customer <strong className="text-slate-900 dark:text-ink-white">Rs 1,000</strong> ki shopping karega →{' '}
                 <strong className="text-rose-700 dark:text-rose-300">
                   {(1000 * (Number(draft.loyaltyPointsPerRupee) || 0)).toFixed(1)} points
                 </strong>{' '}

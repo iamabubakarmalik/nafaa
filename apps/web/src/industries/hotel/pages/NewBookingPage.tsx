@@ -178,8 +178,8 @@ export default function NewBookingPage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <div className="space-y-6">
           {/* Guest */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-blue-600" />
               Primary Guest
             </h3>
@@ -217,27 +217,27 @@ export default function NewBookingPage() {
                   </div>
                 )}
                 <div className="grid sm:grid-cols-2 gap-3">
-                  <input value={form.guestName} onChange={(e) => setForm({ ...form, guestName: e.target.value })} placeholder="Guest name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-                  <input value={form.guestPhone} onChange={(e) => setForm({ ...form, guestPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input value={form.guestName} onChange={(e) => setForm({ ...form, guestName: e.target.value })} placeholder="Guest name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+                  <input value={form.guestPhone} onChange={(e) => setForm({ ...form, guestPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
                 </div>
               </>
             )}
             <div className="grid sm:grid-cols-3 gap-3">
-              <input value={form.guestEmail} onChange={(e) => setForm({ ...form, guestEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.guestEmail} onChange={(e) => setForm({ ...form, guestEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Adults</label>
-                <input type="number" value={form.totalAdults} onChange={(e) => setForm({ ...form, totalAdults: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
+                <input type="number" value={form.totalAdults} onChange={(e) => setForm({ ...form, totalAdults: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
               </div>
               <div>
                 <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Children</label>
-                <input type="number" value={form.totalChildren} onChange={(e) => setForm({ ...form, totalChildren: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
+                <input type="number" value={form.totalChildren} onChange={(e) => setForm({ ...form, totalChildren: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-center focus:outline-none focus:border-blue-500" />
               </div>
             </div>
           </section>
 
           {/* Dates */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Calendar className="h-4 w-4 text-cyan-600" />
               Dates & Stay Details
             </h3>
@@ -251,23 +251,23 @@ export default function NewBookingPage() {
                 <input type="date" value={form.checkOutDate} onChange={(e) => setForm({ ...form, checkOutDate: e.target.value })} min={form.checkInDate} className="h-11 w-full rounded-xl border-2 border-rose-300 bg-rose-50 dark:bg-rose-950/30 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
               </div>
             </div>
-            <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-3 text-center">
+            <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-3 text-center">
               <div className="text-xs font-bold text-slate-500">Total Stay</div>
-              <div className="text-2xl font-extrabold text-slate-900 dark:text-white">{nights} night{nights > 1 ? 's' : ''}</div>
+              <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white">{nights} night{nights > 1 ? 's' : ''}</div>
             </div>
             <div className="grid sm:grid-cols-3 gap-3">
-              <select value={form.mealPlan} onChange={(e) => setForm({ ...form, mealPlan: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+              <select value={form.mealPlan} onChange={(e) => setForm({ ...form, mealPlan: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
                 {MEAL_PLANS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
               </select>
-              <input type="time" value={form.arrivalTime} onChange={(e) => setForm({ ...form, arrivalTime: e.target.value })} placeholder="Arrival Time" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-              <input value={form.purposeOfVisit} onChange={(e) => setForm({ ...form, purposeOfVisit: e.target.value })} placeholder="Purpose (Business, Leisure...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input type="time" value={form.arrivalTime} onChange={(e) => setForm({ ...form, arrivalTime: e.target.value })} placeholder="Arrival Time" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.purposeOfVisit} onChange={(e) => setForm({ ...form, purposeOfVisit: e.target.value })} placeholder="Purpose (Business, Leisure...)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             </div>
           </section>
 
           {/* Rooms */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Bed className="h-4 w-4 text-indigo-600" />
                 Rooms ({rooms.length})
               </h3>
@@ -284,7 +284,7 @@ export default function NewBookingPage() {
             ) : (
               <div className="space-y-2">
                 {rooms.map((room, i) => (
-                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 p-3 space-y-2">
+                  <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 p-3 space-y-2">
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-extrabold">{room.roomTypeName}</div>
@@ -322,13 +322,13 @@ export default function NewBookingPage() {
           </section>
 
           {/* Source */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Booking Source</h3>
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Booking Source</h3>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
               {SOURCES.map((s) => (
                 <button key={s.value} onClick={() => setForm({ ...form, source: s.value })} className={
                   'p-2 rounded-xl border-2 text-center transition ' +
-                  (form.source === s.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 hover:border-blue-300')
+                  (form.source === s.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-ink-700 hover:border-blue-300')
                 }>
                   <div className="text-xl">{s.emoji}</div>
                   <div className="text-[0.625rem] font-extrabold">{s.label}</div>
@@ -336,11 +336,11 @@ export default function NewBookingPage() {
               ))}
             </div>
             {form.source !== 'DIRECT' && form.source !== 'WALK_IN' && (
-              <input value={form.sourceRef} onChange={(e) => setForm({ ...form, sourceRef: e.target.value })} placeholder="Reference # (OTA booking ID, agent name...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+              <input value={form.sourceRef} onChange={(e) => setForm({ ...form, sourceRef: e.target.value })} placeholder="Reference # (OTA booking ID, agent name...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
             )}
           </section>
 
-          <textarea rows={3} value={form.specialRequests} onChange={(e) => setForm({ ...form, specialRequests: e.target.value })} placeholder="Special requests..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+          <textarea rows={3} value={form.specialRequests} onChange={(e) => setForm({ ...form, specialRequests: e.target.value })} placeholder="Special requests..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
         </div>
 
         {/* Sidebar */}
@@ -393,7 +393,7 @@ export default function NewBookingPage() {
       {/* Room picker modal */}
       {showRoomPicker && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+          <div className="w-full max-w-3xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <div className="px-5 py-3 border-b bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold">Select Room</h3>
@@ -410,7 +410,7 @@ export default function NewBookingPage() {
                 <p className="text-center text-slate-500 font-semibold py-8">No rooms available for selected dates</p>
               ) : (
                 availability.byRoomType.map((group: any) => (
-                  <div key={group.roomType.id} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-3">
+                  <div key={group.roomType.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3">
                     <div className="flex items-center justify-between mb-2">
                       <div>
                         <div className="font-extrabold">{group.roomType.name}</div>

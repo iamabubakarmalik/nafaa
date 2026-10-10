@@ -88,12 +88,12 @@ export default function MembershipsPage() {
         {['ACTIVE', 'all', 'PENDING_PAYMENT', 'FROZEN', 'EXPIRED', 'CANCELLED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{s === 'all' ? 'All' : s.replace('_', ' ')}</button>
         ))}
         <button onClick={() => setExpiringFilter(!expiringFilter)} className={
           'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (expiringFilter ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+          (expiringFilter ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
         }>⚠️ Expiring in 7 days</button>
       </div>
 
@@ -122,10 +122,10 @@ export default function MembershipsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : memberships.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Award className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No memberships</p>
         </div>
@@ -136,10 +136,10 @@ export default function MembershipsPage() {
             const isExpiringSoon = m.status === 'ACTIVE' && daysLeft <= 7 && daysLeft > 0;
             return (
               <div key={m.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
                 (isExpiringSoon ? 'border-amber-400 ring-2 ring-amber-100' :
                  m.status === 'PENDING_PAYMENT' ? 'border-orange-400' :
-                 'border-slate-200 dark:border-neutral-800')
+                 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -148,7 +148,7 @@ export default function MembershipsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white">{m.membershipNumber}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{m.membershipNumber}</span>
                         <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[m.status]}>
                           {m.status.replace('_', ' ')}
                         </span>
@@ -202,7 +202,7 @@ export default function MembershipsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-1 flex-wrap pt-2 border-t border-slate-100 dark:border-neutral-800">
+                <div className="flex gap-1 flex-wrap pt-2 border-t border-slate-100 dark:border-ink-800">
                   {m.balanceDue > 0 && (
                     <button onClick={() => setPaying(m)} className="flex-1 min-w-[100px] h-9 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
                       <DollarSign className="h-3 w-3" />
@@ -289,7 +289,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">New Membership Subscription</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -332,7 +332,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
             {plans.map((p: any) => (
               <button key={p.id} onClick={() => { setSelectedPlan(p); setForm({ ...form, planId: p.id, paidAmount: p.price + p.registrationFee + p.securityDeposit }); }} className={
                 'p-3 rounded-xl border-2 text-left transition ' +
-                (form.planId === p.id ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-amber-300')
+                (form.planId === p.id ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300')
               }>
                 <div className="font-extrabold text-sm">{p.name}</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 uppercase">{p.planType.replace('_', ' ')}</div>
@@ -361,7 +361,7 @@ function SubscribeForm({ onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
-            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Paid Amount</label>
@@ -375,9 +375,9 @@ function SubscribeForm({ onClose, onSaved }: any) {
           <span className="text-sm font-extrabold text-blue-900">Auto-renew on expiry</span>
         </label>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.memberId || !form.planId}>
             <CheckCircle2 className="h-4 w-4" />
@@ -399,7 +399,7 @@ function PaymentModal({ membership, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -437,7 +437,7 @@ function FreezeModal({ membership, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
           <h3 className="font-extrabold">❄️ Freeze Membership</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -452,7 +452,7 @@ function FreezeModal({ membership, onClose, onDone }: any) {
             <label className="text-[0.6875rem] uppercase font-extrabold text-cyan-700 mb-1 block">Days to freeze *</label>
             <input type="number" min="1" autoFocus value={days} onChange={(e) => setDays(Number(e.target.value))} className="h-14 w-full rounded-xl border-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 px-4 text-2xl font-extrabold tabular-nums text-center focus:outline-none focus:border-cyan-500" />
           </div>
-          <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (travel, medical...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+          <textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason (travel, medical...)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-700" onClick={() => freezeMutation.mutate()} loading={freezeMutation.isPending} disabled={days <= 0}>

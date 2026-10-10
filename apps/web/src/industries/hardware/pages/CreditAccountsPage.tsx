@@ -65,12 +65,12 @@ export default function CreditAccountsPage() {
       </section>
 
       {aging && (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
           <h3 className="text-sm font-extrabold mb-3 flex items-center gap-2">📊 Aging Analysis</h3>
           <div className="grid sm:grid-cols-5 gap-3">
-            <div className="rounded-xl bg-slate-100 dark:bg-neutral-800 p-3 text-center">
+            <div className="rounded-xl bg-slate-100 dark:bg-ink-800 p-3 text-center">
               <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500">Total Outstanding</div>
-              <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(aging.totalOutstanding)}</div>
+              <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(aging.totalOutstanding)}</div>
               <div className="text-[0.6875rem] font-bold text-slate-500">{aging.accountsCount} accounts</div>
             </div>
             <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-center">
@@ -93,20 +93,20 @@ export default function CreditAccountsPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search account #, customer, phone, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search account #, customer, phone, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setStatusFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === 'all' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === 'all' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {Object.entries(STATUS_CONFIG).map(([k, v]) => (
             <button key={k} onClick={() => setStatusFilter(k)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === k ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === k ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{v.label}</button>
           ))}
         </div>
@@ -126,10 +126,10 @@ export default function CreditAccountsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : accounts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <CreditCard className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No credit accounts</p>
         </div>
@@ -147,7 +147,7 @@ function AccountCard({ a }: any) {
   const utilizationPct = a.creditLimit > 0 ? (a.currentBalance / a.creditLimit) * 100 : 0;
 
   return (
-    <Link to={'/hardware/credit-accounts/' + a.id} className="block rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4">
+    <Link to={'/hardware/credit-accounts/' + a.id} className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shadow shrink-0">
@@ -176,7 +176,7 @@ function AccountCard({ a }: any) {
         <div className="text-right shrink-0">
           <div className={
             'text-2xl font-extrabold tabular-nums ' +
-            (a.currentBalance > a.creditLimit ? 'text-rose-700' : 'text-slate-900 dark:text-white')
+            (a.currentBalance > a.creditLimit ? 'text-rose-700' : 'text-slate-900 dark:text-ink-white')
           }>{formatPKR(a.currentBalance)}</div>
           <div className="text-[0.6875rem] font-bold text-slate-500">Limit: {formatPKR(a.creditLimit)}</div>
         </div>
@@ -190,7 +190,7 @@ function AccountCard({ a }: any) {
               {utilizationPct.toFixed(1)}%
             </span>
           </div>
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
             <div className={
               'h-full ' +
               (utilizationPct > 100 ? 'bg-gradient-to-r from-rose-500 to-red-600' :
@@ -239,8 +239,8 @@ function AccountForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-rose-300 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Account' : 'New Credit Account'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
@@ -248,12 +248,12 @@ function AccountForm({ editing, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-rose-500" />
-          <input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} placeholder="Business name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} placeholder="Business name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
         </div>
-        <textarea rows={2} value={form.businessAddress} onChange={(e) => setForm({ ...form, businessAddress: e.target.value })} placeholder="Business address" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+        <textarea rows={2} value={form.businessAddress} onChange={(e) => setForm({ ...form, businessAddress: e.target.value })} placeholder="Business address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
 
         <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
           <div className="text-sm font-extrabold text-amber-900 flex items-center gap-2"><DollarSign className="h-4 w-4" />Credit Terms</div>
@@ -283,11 +283,11 @@ function AccountForm({ editing, onClose, onSaved }: any) {
           </div>
         </div>
 
-        <input value={form.chequeSecurity} onChange={(e) => setForm({ ...form, chequeSecurity: e.target.value })} placeholder="Cheque security (bank + amount)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <input value={form.referredBy} onChange={(e) => setForm({ ...form, referredBy: e.target.value })} placeholder="Referred by" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+        <input value={form.chequeSecurity} onChange={(e) => setForm({ ...form, chequeSecurity: e.target.value })} placeholder="Cheque security (bank + amount)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+        <input value={form.referredBy} onChange={(e) => setForm({ ...form, referredBy: e.target.value })} placeholder="Referred by" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName.trim()}>
             <Save className="h-4 w-4" />

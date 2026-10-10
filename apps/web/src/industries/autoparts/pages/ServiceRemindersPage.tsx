@@ -55,17 +55,17 @@ export default function ServiceRemindersPage() {
         ].map((f) => (
           <button key={f.v} onClick={() => setFilter(f.v)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (filter === f.v ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (filter === f.v ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{f.label}</button>
         ))}
       </div>
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : reminders.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <CheckCircle2 className="h-16 w-16 text-emerald-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No reminders</p>
         </div>
@@ -77,8 +77,8 @@ export default function ServiceRemindersPage() {
             const isSoon = daysLeft !== null && daysLeft >= 0 && daysLeft <= 7;
             return (
               <div key={r.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 ' +
-                (isOverdue ? 'border-rose-400 ring-2 ring-rose-100' : isSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 ' +
+                (isOverdue ? 'border-rose-400 ring-2 ring-rose-100' : isSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -90,7 +90,7 @@ export default function ServiceRemindersPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white">{r.title}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{r.title}</span>
                         <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[0.625rem] font-extrabold uppercase">{r.reminderType}</span>
                         <span className={
                           'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +

@@ -120,12 +120,12 @@ export default function RestaurantOrdersPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-orange-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold focus:outline-none focus:border-orange-500"
               placeholder="Search order #, customer, phone..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -140,7 +140,7 @@ export default function RestaurantOrdersPage() {
           <select
             value={modeFilter}
             onChange={(e) => setModeFilter(e.target.value)}
-            className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm font-bold focus:outline-none focus:border-orange-500"
+            className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-sm font-bold focus:outline-none focus:border-orange-500"
           >
             <option value="all">All Modes</option>
             {Object.entries(MODE_CONFIG).map(([k, v]) => (
@@ -159,7 +159,7 @@ export default function RestaurantOrdersPage() {
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
                 (statusFilter === s
                   ? 'bg-orange-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200')
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200')
               }
             >
               {s === 'all' ? 'All' : STATUS_CONFIG[s as OrderStatus]?.label || s}
@@ -171,14 +171,14 @@ export default function RestaurantOrdersPage() {
       {/* ORDERS LIST */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : orders.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-slate-100 dark:bg-neutral-800 mx-auto flex items-center justify-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
+          <div className="h-20 w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
             <ShoppingBag className="h-10 w-10 text-slate-400" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No orders</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No orders</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">
             {search || statusFilter !== 'all' || modeFilter !== 'all' ? 'No orders match filters' : 'Naya order banao'}
           </p>
@@ -207,11 +207,11 @@ function StatCard({ label, value, sub, icon: Icon, color }: any) {
     violet: 'from-violet-500 to-purple-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
           <div className="text-xs text-slate-600 font-semibold mt-1">{sub}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
@@ -253,7 +253,7 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
     : 0;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         {/* LEFT */}
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -263,7 +263,7 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white text-lg">{order.orderNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{order.orderNumber}</span>
               <span className={'px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold uppercase inline-flex items-center gap-1 text-white ' + statusCfg.color}>
                 <StatusIcon className={'h-2.5 w-2.5 ' + (order.status === 'COOKING' ? 'animate-pulse' : '')} />
                 {statusCfg.label}
@@ -310,12 +310,12 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
             {/* Items preview */}
             <div className="mt-2 flex flex-wrap gap-1">
               {order.items?.slice(0, 4).map((item, i) => (
-                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-300">
+                <span key={i} className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-300">
                   {item.product?.name || 'Item'} × {item.quantity}
                 </span>
               ))}
               {(order.items?.length || 0) > 4 && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-bold text-slate-500">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-bold text-slate-500">
                   +{(order.items?.length || 0) - 4} more
                 </span>
               )}
@@ -355,7 +355,7 @@ function OrderCard({ order, onStatusChange, isUpdating }: {
 
             <Link
               to={'/restaurant/orders/' + order.id}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-extrabold"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 dark:text-ink-300 text-xs font-extrabold"
             >
               <Eye className="h-3 w-3" />
               View

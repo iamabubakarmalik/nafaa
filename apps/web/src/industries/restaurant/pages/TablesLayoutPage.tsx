@@ -115,15 +115,15 @@ export default function TablesLayoutPage() {
               className={
                 'rounded-2xl p-4 text-left transition-all border-2 ' +
                 (statusFilter === status
-                  ? cfg.border + ' shadow-lg scale-[1.02] bg-white dark:bg-neutral-900'
-                  : 'border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-slate-300')
+                  ? cfg.border + ' shadow-lg scale-[1.02] bg-white dark:bg-ink-900'
+                  : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 hover:border-slate-300')
               }
             >
               <div className="flex items-center gap-2">
                 <div className={'h-4 w-4 rounded-full ' + cfg.bg} />
                 <span className={'text-[0.6875rem] uppercase font-extrabold ' + cfg.text}>{cfg.label}</span>
               </div>
-              <div className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">{count}</div>
+              <div className="mt-2 text-3xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{count}</div>
             </button>
           );
         })}
@@ -138,7 +138,7 @@ export default function TablesLayoutPage() {
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
               (sectionFilter === 'all'
                 ? 'bg-emerald-600 text-white shadow'
-                : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300')
+                : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
             }
           >
             All Sections ({tables.length})
@@ -151,7 +151,7 @@ export default function TablesLayoutPage() {
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
                 (sectionFilter === s
                   ? 'bg-emerald-600 text-white shadow'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-700 dark:text-slate-300')
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
               }
             >
               {s} ({tables.filter((t) => (t.section || 'Main') === s).length})
@@ -176,15 +176,15 @@ export default function TablesLayoutPage() {
       {isLoading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="aspect-square rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+            <div key={i} className="aspect-square rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
       ) : filteredTables.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
-          <div className="h-20 w-20 rounded-3xl bg-slate-100 dark:bg-neutral-800 mx-auto flex items-center justify-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
+          <div className="h-20 w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
             <Utensils className="h-10 w-10 text-slate-400" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No tables</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No tables</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Pehla table add karo</p>
           <Button
             className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-700"
@@ -198,7 +198,7 @@ export default function TablesLayoutPage() {
         <div className="space-y-6">
           {Object.entries(bySection).map(([section, sectionTables]) => (
             <section key={section}>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">{section}</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-3">{section}</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 {sectionTables.map((table) => (
                   <TableCard
@@ -234,11 +234,11 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
 
   return (
     <div className={
-      'group relative rounded-2xl border-4 p-4 shadow-md hover:shadow-xl transition-all bg-white dark:bg-neutral-900 ' +
+      'group relative rounded-2xl border-4 p-4 shadow-md hover:shadow-xl transition-all bg-white dark:bg-ink-900 ' +
       cfg.border
     }>
       {/* Status indicator */}
-      <div className={'absolute -top-2 -right-2 h-4 w-4 rounded-full ring-2 ring-white dark:ring-neutral-900 ' + cfg.bg + (isOccupied ? ' animate-pulse' : '')} />
+      <div className={'absolute -top-2 -right-2 h-4 w-4 rounded-full ring-2 ring-white dark:ring-ink-900 ' + cfg.bg + (isOccupied ? ' animate-pulse' : '')} />
 
       {/* Actions overlay */}
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
@@ -258,11 +258,11 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
 
       {/* Table number + name */}
       <div className="text-center">
-        <div className="text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+        <div className="text-3xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
           {table.tableNumber}
         </div>
         {table.tableName && (
-          <div className="text-xs text-slate-600 dark:text-slate-400 font-bold truncate">{table.tableName}</div>
+          <div className="text-xs text-slate-600 dark:text-ink-400 font-bold truncate">{table.tableName}</div>
         )}
       </div>
 
@@ -286,7 +286,7 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
       </div>
 
       {/* Capacity */}
-      <div className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-400">
+      <div className="mt-2 flex items-center justify-center gap-1 text-xs font-bold text-slate-600 dark:text-ink-400">
         <Users className="h-3 w-3" />
         {table.capacity} seats
       </div>
@@ -307,7 +307,7 @@ function TableCard({ table, onEdit, onDelete, onStatusChange }: {
       )}
 
       {/* Status change quick actions */}
-      <div className="mt-3 pt-2 border-t border-slate-200 dark:border-neutral-700">
+      <div className="mt-3 pt-2 border-t border-slate-200 dark:border-ink-700">
         <select
           value={table.status}
           onChange={(e) => onStatusChange(e.target.value as TableStatus)}
@@ -365,12 +365,12 @@ function TableForm({ editing, onClose, onSaved }: {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-700 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-700 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Table' : 'New Table'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -383,7 +383,7 @@ function TableForm({ editing, onClose, onSaved }: {
             value={form.tableNumber}
             onChange={(e) => setForm({ ...form, tableNumber: e.target.value })}
             placeholder="T-01"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
           />
         </div>
         <div>
@@ -392,7 +392,7 @@ function TableForm({ editing, onClose, onSaved }: {
             value={form.tableName}
             onChange={(e) => setForm({ ...form, tableName: e.target.value })}
             placeholder="Window Booth"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
           />
         </div>
 
@@ -403,7 +403,7 @@ function TableForm({ editing, onClose, onSaved }: {
               type="number"
               value={form.minCapacity}
               onChange={(e) => setForm({ ...form, minCapacity: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
             />
           </div>
           <div>
@@ -421,7 +421,7 @@ function TableForm({ editing, onClose, onSaved }: {
               type="number"
               value={form.maxCapacity}
               onChange={(e) => setForm({ ...form, maxCapacity: Number(e.target.value) })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-emerald-500"
             />
           </div>
         </div>
@@ -432,7 +432,7 @@ function TableForm({ editing, onClose, onSaved }: {
             value={form.section}
             onChange={(e) => setForm({ ...form, section: e.target.value })}
             placeholder="Ground Floor / Rooftop / Family Area"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
           />
         </div>
         <div>
@@ -441,7 +441,7 @@ function TableForm({ editing, onClose, onSaved }: {
             value={form.floor}
             onChange={(e) => setForm({ ...form, floor: e.target.value })}
             placeholder="GF / 1st"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
           />
         </div>
 
@@ -457,7 +457,7 @@ function TableForm({ editing, onClose, onSaved }: {
               'flex items-center gap-2 p-2 rounded-xl border-2 cursor-pointer transition ' +
               ((form as any)[opt.key]
                 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40'
-                : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
             }>
               <input
                 type="checkbox"
@@ -478,7 +478,7 @@ function TableForm({ editing, onClose, onSaved }: {
             value={form.minOrderAmount}
             onChange={(e) => setForm({ ...form, minOrderAmount: e.target.value as any })}
             placeholder="Optional"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500"
           />
         </div>
         <div>
@@ -486,7 +486,7 @@ function TableForm({ editing, onClose, onSaved }: {
           <select
             value={form.shape}
             onChange={(e) => setForm({ ...form, shape: e.target.value })}
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
           >
             <option value="square">Square</option>
             <option value="round">Round</option>
@@ -501,7 +501,7 @@ function TableForm({ editing, onClose, onSaved }: {
             value={form.notes}
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
             placeholder="Corner table with window view"
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none"
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none"
           />
         </div>
 

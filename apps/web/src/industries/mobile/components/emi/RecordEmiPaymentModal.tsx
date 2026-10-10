@@ -95,7 +95,7 @@ export function RecordEmiPaymentModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border-2 border-emerald-200 dark:border-emerald-500/40"
+        className="w-full max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden border-2 border-emerald-200 dark:border-emerald-500/40"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-4 border-b-2 border-emerald-100 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between">
@@ -107,19 +107,19 @@ export function RecordEmiPaymentModal({
               <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-extrabold">
                 Installment #{installmentNumber} — Payment
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white font-mono truncate">{planNumber}</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white font-mono truncate">{planNumber}</h3>
             </div>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition shrink-0">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition shrink-0">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
           <div className="rounded-xl bg-gradient-to-br from-emerald-50 to-blue-50 dark:from-emerald-500/10 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 grid grid-cols-3 gap-2 text-center">
             <div>
-              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Amount</div>
-              <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">{formatPKR(installmentAmount)}</div>
+              <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Amount</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm tabular-nums">{formatPKR(installmentAmount)}</div>
             </div>
             <div>
               <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700 dark:text-emerald-400">Paid</div>
@@ -132,7 +132,7 @@ export function RecordEmiPaymentModal({
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
               Kitna Mila? (PKR) *
             </label>
             <div className="relative">
@@ -143,7 +143,7 @@ export function RecordEmiPaymentModal({
                 onChange={(e) => setAmount(e.target.value)}
                 onFocus={(e) => e.target.select()}
                 autoFocus
-                className="h-14 w-full rounded-xl border-2 border-emerald-300 dark:border-emerald-500/50 bg-white dark:bg-slate-800 pl-9 pr-3 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
+                className="h-14 w-full rounded-xl border-2 border-emerald-300 dark:border-emerald-500/50 bg-white dark:bg-ink-800 pl-9 pr-3 text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
               />
             </div>
             <div className="flex gap-1.5 mt-1.5">
@@ -158,7 +158,7 @@ export function RecordEmiPaymentModal({
                 <button
                   type="button"
                   onClick={() => setAmount(String(Math.round(balance / 2)))}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[0.6875rem] font-extrabold hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 text-[0.6875rem] font-extrabold hover:bg-slate-200 dark:hover:bg-ink-700 transition"
                 >
                   Half
                 </button>
@@ -178,7 +178,7 @@ export function RecordEmiPaymentModal({
                   className={`p-2 rounded-xl border-2 text-[0.625rem] font-extrabold transition ${
                     active
                       ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-400 dark:border-emerald-500/50 text-emerald-800 dark:text-emerald-200 shadow-md'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
                   }`}
                 >
                   <div className="text-base leading-none">{m.emoji}</div>
@@ -203,7 +203,7 @@ export function RecordEmiPaymentModal({
           />
         </div>
 
-        <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-2">
+        <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button
             onClick={submit}

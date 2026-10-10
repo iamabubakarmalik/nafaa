@@ -176,12 +176,12 @@ export default function AppliancesDashboardPage() {
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {QUICK.map((q) => (
           <Link key={q.to} to={q.to}
-            className="group flex flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 p-3 hover:border-cyan-400 hover:shadow-lg hover:-translate-y-0.5 transition-all">
+            className="group flex flex-col items-center gap-1.5 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900/80 p-3 hover:border-cyan-400 hover:shadow-lg hover:-translate-y-0.5 transition-all">
             <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${q.tone} text-white flex items-center justify-center shadow group-hover:scale-110 transition`}>
               <q.icon className="h-4.5 w-4.5" />
             </div>
             <div className="text-center min-w-0">
-              <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">{q.label}</div>
+              <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 truncate">{q.label}</div>
               <div className="text-[0.625rem] font-bold text-slate-400 truncate hidden sm:block">{q.hint}</div>
             </div>
           </Link>
@@ -191,7 +191,7 @@ export default function AppliancesDashboardPage() {
       {/* Money KPIs */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : (
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
@@ -260,7 +260,7 @@ export default function AppliancesDashboardPage() {
               <Link key={`${w.kind}-${w.id}`} to={w.to}
                 className={`flex items-center gap-2.5 rounded-xl border px-2.5 py-2 hover:shadow-md transition group ${
                   w.overdue ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30'
-                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                    : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'
                 }`}>
                 <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
                   w.kind === 'install' ? 'bg-blue-100 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400'
@@ -270,11 +270,11 @@ export default function AppliancesDashboardPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white truncate">{w.title}</span>
+                    <span className="text-[0.75rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{w.title}</span>
                     {w.overdue && <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-rose-600 text-white">LATE</span>}
                     {w.priority === 'URGENT' && <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black ${prioMeta('URGENT').cls}`}>FORAN</span>}
                   </div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                     {w.num} • {w.sub}
                   </div>
                 </div>
@@ -398,10 +398,10 @@ export default function AppliancesDashboardPage() {
               <div className="space-y-1.5">
                 {(low?.items ?? []).slice(0, 6).map((r) => (
                   <Link key={r.productId} to={`/appliance-products/${r.productId}`}
-                    className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
+                    className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 px-2.5 py-2 transition">
                     <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                       <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{catLabel(r.categoryType)}{r.brand ? ` • ${r.brand}` : ''}</div>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums shrink-0 ${
@@ -429,12 +429,12 @@ export default function AppliancesDashboardPage() {
                 return (
                   <div key={s.key}>
                     <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
-                      <span className="text-slate-700 dark:text-slate-200">{s.label}</span>
-                      <span className="tabular-nums text-slate-500 dark:text-slate-400">
+                      <span className="text-slate-700 dark:text-ink-200">{s.label}</span>
+                      <span className="tabular-nums text-slate-500 dark:text-ink-400">
                         {formatPKR(s.revenue)} <span className="opacity-60">({share.toFixed(0)}%)</span>
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div className="h-2 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-500"
                         style={{ width: `${Math.min(share, 100)}%`, background: colors[s.key] }} />
                     </div>
@@ -458,19 +458,19 @@ function ModuleCard({ to, icon: Icon, title, tone, rows }: {
 }) {
   return (
     <Link to={to}
-      className="group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 hover:shadow-xl hover:-translate-y-0.5 hover:border-cyan-300 dark:hover:border-cyan-500/50 transition-all">
+      className="group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 hover:shadow-xl hover:-translate-y-0.5 hover:border-cyan-300 dark:hover:border-cyan-500/50 transition-all">
       <div className="flex items-center gap-2.5 mb-3">
         <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shadow group-hover:scale-110 transition`}>
           <Icon className="h-4.5 w-4.5" />
         </div>
-        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition flex-1">{title}</h3>
-        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:translate-x-1 group-hover:text-cyan-500 transition" />
+        <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition flex-1">{title}</h3>
+        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-ink-600 group-hover:translate-x-1 group-hover:text-cyan-500 transition" />
       </div>
       <div className="space-y-1.5">
         {rows.map(([k, v]) => (
           <div key={k} className="flex items-center justify-between text-[0.6875rem]">
-            <span className="font-bold text-slate-500 dark:text-slate-400">{k}</span>
-            <span className="font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{v}</span>
+            <span className="font-bold text-slate-500 dark:text-ink-400">{k}</span>
+            <span className="font-extrabold tabular-nums text-slate-800 dark:text-ink-100">{v}</span>
           </div>
         ))}
       </div>

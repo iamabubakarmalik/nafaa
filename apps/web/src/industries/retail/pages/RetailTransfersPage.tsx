@@ -322,7 +322,7 @@ export default function RetailTransfersPage() {
       {showTeacher && <TransferTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-cyan-700 dark:from-slate-950 dark:via-cyan-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-cyan-900 to-cyan-700 dark:from-ink-950 dark:via-cyan-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-cyan-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
 
@@ -394,17 +394,17 @@ export default function RetailTransfersPage() {
       </section>
 
       {/* ═══ FILTER BAR ═══ */}
-      <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+      <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-500/30 transition"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 dark:focus:ring-cyan-500/30 transition"
             placeholder="Search transfer #, shop ya product..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
@@ -414,8 +414,8 @@ export default function RetailTransfersPage() {
             onClick={() => setStatusFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 ${
               statusFilter === 'all'
-                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-sm'
-                : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 border-transparent shadow-sm'
+                : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400'
             }`}
           >
             Sab ({transfers.length})
@@ -429,7 +429,7 @@ export default function RetailTransfersPage() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition border-2 inline-flex items-center gap-1 ${
                   statusFilter === key
                     ? `${cfg.light} ${cfg.dark} shadow-sm`
-                    : 'border-transparent bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                    : 'border-transparent bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400'
                 }`}
               >
                 {cfg.emoji} {cfg.label} <span className="tabular-nums opacity-70">({count})</span>
@@ -448,11 +448,11 @@ export default function RetailTransfersPage() {
       </div>
 
       {/* ═══ TRANSFER LIST ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Saare Transfers</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tabular-nums">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Saare Transfers</h3>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold tabular-nums">
               {filtered.length} of {transfers.length}
             </p>
           </div>
@@ -461,7 +461,7 @@ export default function RetailTransfersPage() {
         {isLoading ? (
           <div className="p-6 space-y-2">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-20 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
@@ -469,10 +469,10 @@ export default function RetailTransfersPage() {
             <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-cyan-100 to-blue-200 dark:from-cyan-500/20 dark:to-blue-500/20 flex items-center justify-center">
               <ArrowLeftRight className="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
             </div>
-            <h4 className="mt-3 font-extrabold text-slate-900 dark:text-white">
+            <h4 className="mt-3 font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Kuch nahi mila' : 'Abhi koi transfer nahi'}
             </h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+            <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
               {hasFilters ? 'Filter change karo' : '"New Transfer" se pehla transfer banao'}
             </p>
             {!hasFilters && (
@@ -482,7 +482,7 @@ export default function RetailTransfersPage() {
             )}
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {filtered.map((t) => {
               const cfg = statusConfig[t.status];
               const Icon = cfg?.icon || Clock;
@@ -490,7 +490,7 @@ export default function RetailTransfersPage() {
                 <button
                   key={t.id}
                   onClick={() => setViewTransfer(t)}
-                  className="w-full text-left px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
+                  className="w-full text-left px-5 py-4 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -499,18 +499,18 @@ export default function RetailTransfersPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{t.transferNumber}</span>
+                          <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-sm">{t.transferNumber}</span>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg?.light} ${cfg?.dark}`}>
                             <Icon className="h-2.5 w-2.5" /> {cfg?.label}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 mt-1 font-bold flex-wrap">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-ink-300 mt-1 font-bold flex-wrap">
                           <Building2 className="h-3 w-3 shrink-0" />
                           <span className="truncate">{t.fromShop?.name || '—'}</span>
                           <ArrowRight className="h-3 w-3 text-slate-400 shrink-0" />
                           <span className="truncate">{t.toShop?.name || '—'}</span>
                         </div>
-                        <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                        <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
                           <span className="inline-flex items-center gap-0.5">
                             <Package className="h-2.5 w-2.5" /> {t.items?.length || 0} items
                           </span>
@@ -537,7 +537,7 @@ export default function RetailTransfersPage() {
           onClick={() => setCreateOpen(false)}
         >
           <div
-            className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-cyan-200 dark:border-cyan-500/40"
+            className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-cyan-200 dark:border-cyan-500/40"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -547,12 +547,12 @@ export default function RetailTransfersPage() {
                   <ArrowLeftRight className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Naya Transfer</h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">Ek shop se dusri shop maal bhejo</p>
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Naya Transfer</h3>
+                  <p className="text-xs text-slate-600 dark:text-ink-300 font-semibold">Ek shop se dusri shop maal bhejo</p>
                 </div>
               </div>
-              <button onClick={() => setCreateOpen(false)} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-                <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+              <button onClick={() => setCreateOpen(false)} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+                <X className="h-5 w-5 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
 
@@ -561,13 +561,13 @@ export default function RetailTransfersPage() {
               {/* ① Shops */}
               <div className="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                     ① Kahan Se? *
                   </label>
                   <select
                     value={fromShopId}
                     onChange={(e) => setFromShopId(e.target.value)}
-                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition"
+                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition"
                   >
                     <option value="">Source shop...</option>
                     {activeShops.map((s) => (
@@ -576,14 +576,14 @@ export default function RetailTransfersPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                  <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                     ② Kahan Ko? *
                   </label>
                   <select
                     value={toShopId}
                     onChange={(e) => setToShopId(e.target.value)}
                     disabled={!fromShopId}
-                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
                     <option value="">Destination shop...</option>
                     {toShops.map((s) => (
@@ -604,8 +604,8 @@ export default function RetailTransfersPage() {
 
               {/* ③ Product search */}
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-                  ③ Products Add Karo <span className="normal-case font-bold text-slate-400 dark:text-slate-500">(/ dabao)</span>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
+                  ③ Products Add Karo <span className="normal-case font-bold text-slate-400 dark:text-ink-500">(/ dabao)</span>
                 </label>
                 <div className="relative">
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -615,16 +615,16 @@ export default function RetailTransfersPage() {
                     onChange={(e) => setProductSearch(e.target.value)}
                     placeholder="Naam, SKU ya barcode..."
                     disabled={!fromShopId}
-                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   />
                   {productSearch && (
-                    <button onClick={() => setProductSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                    <button onClick={() => setProductSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                       <X className="h-4 w-4 text-slate-400" />
                     </button>
                   )}
                 </div>
                 {filteredProducts.length > 0 && (
-                  <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700 shadow-lg">
+                  <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 divide-y divide-slate-100 dark:divide-ink-700 shadow-lg">
                     {filteredProducts.map((p) => {
                       const inCart = cart.some((i) => i.productId === p.id);
                       return (
@@ -635,7 +635,7 @@ export default function RetailTransfersPage() {
                           disabled={inCart}
                           className="w-full px-3 py-2 text-left hover:bg-cyan-50 dark:hover:bg-cyan-500/10 transition flex items-center gap-2.5 disabled:opacity-50"
                         >
-                          <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+                          <div className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-700 overflow-hidden flex items-center justify-center shrink-0">
                             {p.images?.[0]?.url ? (
                               <img src={p.images[0].url} alt="" className="h-full w-full object-cover" />
                             ) : (
@@ -643,8 +643,8 @@ export default function RetailTransfersPage() {
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
+                            <div className="font-bold text-sm text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">
                               {p.sku || '—'} • Stock: <span className={`font-bold tabular-nums ${Number(p.stock) > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{formatQty(Number(p.stock || 0))} {p.unit}</span>
                             </div>
                           </div>
@@ -662,14 +662,14 @@ export default function RetailTransfersPage() {
 
               {/* Cart lines */}
               {cart.length === 0 ? (
-                <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
-                  <Package className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="font-extrabold text-slate-700 dark:text-slate-200 text-sm">Abhi koi item nahi</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Upar search karke products add karo</p>
+                <div className="rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-700 p-8 text-center">
+                  <Package className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <p className="font-extrabold text-slate-700 dark:text-ink-200 text-sm">Abhi koi item nahi</p>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">Upar search karke products add karo</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider tabular-nums">
+                  <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider tabular-nums">
                     Items ({cart.length})
                   </div>
                   {cart.map((line) => {
@@ -681,14 +681,14 @@ export default function RetailTransfersPage() {
                         className={`rounded-xl border-2 p-3 ${
                           over
                             ? 'border-rose-300 dark:border-rose-500/50 bg-rose-50 dark:bg-rose-500/10'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'
+                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60'
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <div className="min-w-0 flex-1">
-                            <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{line.productName}</div>
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{line.productName}</div>
                             <div className="text-[0.6875rem] font-bold mt-0.5 tabular-nums">
-                              <span className="text-slate-500 dark:text-slate-400">Stock: {formatQty(line.available)} {line.unit}</span>
+                              <span className="text-slate-500 dark:text-ink-400">Stock: {formatQty(line.available)} {line.unit}</span>
                               {line.available > 0 && (
                                 <span className={`ml-2 ${over ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                                   → baad me: {formatQty(remaining)}
@@ -700,9 +700,9 @@ export default function RetailTransfersPage() {
                             <button
                               type="button"
                               onClick={() => updateQty(line.productId, Math.max(0.01, line.quantity - 1))}
-                              className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                              className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition"
                             >
-                              <Minus className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                              <Minus className="h-4 w-4 text-slate-600 dark:text-ink-300" />
                             </button>
                             <input
                               type="number"
@@ -711,14 +711,14 @@ export default function RetailTransfersPage() {
                               min="0.01"
                               value={line.quantity}
                               onChange={(e) => updateQty(line.productId, Number(e.target.value))}
-                              className="h-9 w-20 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-center text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition"
+                              className="h-9 w-20 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-center text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition"
                             />
                             <button
                               type="button"
                               onClick={() => updateQty(line.productId, line.quantity + 1)}
-                              className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                              className="h-9 w-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition"
                             >
-                              <Plus className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                              <Plus className="h-4 w-4 text-slate-600 dark:text-ink-300" />
                             </button>
                             <button
                               type="button"
@@ -742,7 +742,7 @@ export default function RetailTransfersPage() {
 
               {/* ④ Purpose */}
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                   ④ Wajah / Note (optional)
                 </label>
                 <div className="flex flex-wrap gap-1.5 mb-2">
@@ -757,7 +757,7 @@ export default function RetailTransfersPage() {
                         className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition ${
                           active
                             ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15 text-cyan-700 dark:text-cyan-300'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-cyan-300 dark:hover:border-cyan-500/50'
+                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-cyan-300 dark:hover:border-cyan-500/50'
                         }`}
                       >
                         {label}
@@ -770,20 +770,20 @@ export default function RetailTransfersPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Ya apni wajah likho..."
                   rows={2}
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 resize-none transition"
+                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-cyan-500 resize-none transition"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-3 shrink-0">
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+            <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between gap-3 shrink-0">
+              <div className="text-xs text-slate-500 dark:text-ink-400 font-bold tabular-nums">
                 {cart.length > 0 && `${cart.length} item${cart.length !== 1 ? 's' : ''}`}
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => setCreateOpen(false)}
-                  className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition"
+                  className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:bg-slate-100 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition"
                 >
                   Cancel
                 </button>
@@ -808,29 +808,29 @@ export default function RetailTransfersPage() {
           onClick={() => setViewTransfer(null)}
         >
           <div
-            className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-cyan-200 dark:border-cyan-500/40"
+            className="w-full max-w-xl bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col border-2 border-cyan-200 dark:border-cyan-500/40"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="px-5 py-4 border-b-2 border-cyan-100 dark:border-cyan-500/30 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-500/15 dark:to-blue-500/15 flex items-center justify-between shrink-0">
               <div className="min-w-0">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg font-mono truncate">{viewTransfer.transferNumber}</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 font-bold mt-0.5 flex items-center gap-1.5">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg font-mono truncate">{viewTransfer.transferNumber}</h3>
+                <p className="text-xs text-slate-600 dark:text-ink-300 font-bold mt-0.5 flex items-center gap-1.5">
                   <span className="truncate">{viewTransfer.fromShop?.name}</span>
                   <ArrowRight className="h-3 w-3 shrink-0" />
                   <span className="truncate">{viewTransfer.toShop?.name}</span>
                 </p>
               </div>
-              <button onClick={() => setViewTransfer(null)} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition shrink-0">
-                <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+              <button onClick={() => setViewTransfer(null)} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition shrink-0">
+                <X className="h-5 w-5 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               <div className="grid grid-cols-2 gap-2.5">
-                <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</div>
+                <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider">Status</div>
                   <div className="mt-1.5">
                     {(() => {
                       const cfg = statusConfig[viewTransfer.status];
@@ -843,9 +843,9 @@ export default function RetailTransfersPage() {
                     })()}
                   </div>
                 </div>
-                <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bheja Gaya</div>
-                  <div className="mt-1.5 font-extrabold text-slate-900 dark:text-white text-xs">{formatDate(viewTransfer.createdAt)}</div>
+                <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider">Bheja Gaya</div>
+                  <div className="mt-1.5 font-extrabold text-slate-900 dark:text-ink-white text-xs">{formatDate(viewTransfer.createdAt)}</div>
                 </div>
                 {viewTransfer.receivedAt && (
                   <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/40 p-3">
@@ -854,34 +854,34 @@ export default function RetailTransfersPage() {
                   </div>
                 )}
                 {viewTransfer.createdBy && (
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Banaya</div>
-                    <div className="mt-1.5 font-extrabold text-slate-900 dark:text-white text-xs truncate">{viewTransfer.createdBy.fullName}</div>
+                  <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider">Banaya</div>
+                    <div className="mt-1.5 font-extrabold text-slate-900 dark:text-ink-white text-xs truncate">{viewTransfer.createdBy.fullName}</div>
                   </div>
                 )}
               </div>
 
               <div>
-                <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 tabular-nums">
+                <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider mb-2 tabular-nums">
                   Items ({viewTransfer.items.length})
                 </div>
                 <div className="space-y-1.5">
                   {viewTransfer.items.map((it: any) => (
                     <div
                       key={it.id}
-                      className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 flex items-center gap-3"
+                      className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-3 flex items-center gap-3"
                     >
                       <div className="h-9 w-9 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 flex items-center justify-center shrink-0">
                         <Package className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{it.product.name}</div>
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{it.product.name}</div>
                         {it.notes && (
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 italic mt-0.5">{it.notes}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 italic mt-0.5">{it.notes}</div>
                         )}
                       </div>
                       <div className="font-extrabold text-cyan-700 dark:text-cyan-300 tabular-nums shrink-0">
-                        {formatQty(it.quantity)} <span className="text-xs text-slate-500 dark:text-slate-400 font-bold">{it.product.unit}</span>
+                        {formatQty(it.quantity)} <span className="text-xs text-slate-500 dark:text-ink-400 font-bold">{it.product.unit}</span>
                       </div>
                     </div>
                   ))}
@@ -906,7 +906,7 @@ export default function RetailTransfersPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-end gap-2 shrink-0">
+            <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-end gap-2 shrink-0">
               {viewTransfer.status === 'IN_TRANSIT' ? (
                 <>
                   <button
@@ -931,7 +931,7 @@ export default function RetailTransfersPage() {
               ) : (
                 <button
                   onClick={() => setViewTransfer(null)}
-                  className="h-11 px-4 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition"
+                  className="h-11 px-4 rounded-xl bg-slate-200 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition"
                 >
                   Band Karo
                 </button>
@@ -973,26 +973,26 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-cyan-300 dark:border-cyan-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-cyan-200 dark:border-cyan-500/30 bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-500/15 dark:to-blue-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-cyan-900 dark:text-cyan-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Stock Transfer Kya Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Jab maal <strong>ek shop se dusri shop</strong> jata hai, to use yahan record karo.
             Ye sale nahi hai — maal sirf <strong>jagah badalta hai</strong>, total stock wohi rehta hai.
           </p>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5">
-            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaise Kaam Karta Hai</div>
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3.5">
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-2">Kaise Kaam Karta Hai</div>
             <div className="flex items-center justify-between gap-2 text-center">
               <FlowStep emoji="📝" label="Banao" />
               <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
@@ -1000,13 +1000,13 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
               <ArrowRight className="h-4 w-4 text-slate-400 shrink-0" />
               <FlowStep emoji="✅" label="Mil Gaya" />
             </div>
-            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 mt-2.5 leading-relaxed">
+            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 mt-2.5 leading-relaxed">
               "Mil Gaya ✓" dabate hi stock destination shop me <strong>apne aap</strong> add ho jata hai.
               Cancel karne par stock source shop ko wapas chala jata hai.
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>👁️ Stock preview</strong> — har item ke neeche dikhta hai transfer ke baad kitna bachega</TipRow>
             <TipRow><strong>Stock se zyada nahi bhej sakte</strong> — system rok dega</TipRow>
             <TipRow><strong>⌨️ Shortcut</strong> — <span className="font-mono">/</span> dabao aur product search khul jayegi</TipRow>
@@ -1046,9 +1046,9 @@ function TransferTeacher({ onClose }: { onClose: () => void }) {
 
 function FlowStep({ emoji, label }: { emoji: string; label: string }) {
   return (
-    <div className="flex-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 py-2 px-1">
+    <div className="flex-1 rounded-lg bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 py-2 px-1">
       <div className="text-lg">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 mt-0.5">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 mt-0.5">{label}</div>
     </div>
   );
 }
@@ -1104,13 +1104,13 @@ function Kpi({
     <div className={`rounded-2xl border-2 p-3 sm:p-4 ${c.wrap}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <div className="text-[0.6875rem] sm:text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">
             {label}
           </div>
           <div className={`mt-1 text-xl sm:text-2xl font-extrabold tabular-nums ${c.text}`}>
             {value}
           </div>
-          <div className="text-[0.6875rem] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+          <div className="text-[0.6875rem] sm:text-xs font-semibold text-slate-500 dark:text-ink-400 mt-0.5">
             {sub}
           </div>
         </div>

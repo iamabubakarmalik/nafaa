@@ -21,13 +21,13 @@ export function ClinicWizardStep3Safety({
   return (
     <div className="space-y-5">
       {/* ─── AGE RESTRICTIONS ─── */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow-md">
             <Users className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Age Restrictions</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Age Restrictions</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Kis umar ke patients ke liye</p>
           </div>
         </div>
@@ -57,13 +57,13 @@ export function ClinicWizardStep3Safety({
       </section>
 
       {/* ─── PREGNANCY & LACTATION ─── */}
-      <section className="rounded-3xl bg-gradient-to-br from-pink-50 via-white to-rose-50 dark:from-pink-950/30 dark:via-neutral-900 dark:to-rose-950/30 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-pink-50 via-white to-rose-50 dark:from-pink-950/30 dark:via-ink-900 dark:to-rose-950/30 border-2 border-pink-200 dark:border-pink-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-pink-200/60">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white flex items-center justify-center shadow-md">
             <Baby className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Maternal Safety</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Maternal Safety</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Pregnancy & breastfeeding safe?</p>
           </div>
         </div>
@@ -75,13 +75,13 @@ export function ClinicWizardStep3Safety({
       </section>
 
       {/* ─── CONSENT & GUARDIAN ─── */}
-      <section className="rounded-3xl bg-gradient-to-br from-purple-50 via-white to-violet-50 dark:from-purple-950/30 dark:via-neutral-900 dark:to-violet-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-purple-50 via-white to-violet-50 dark:from-purple-950/30 dark:via-ink-900 dark:to-violet-950/30 border-2 border-purple-200 dark:border-purple-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-purple-200/60">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-violet-600 text-white flex items-center justify-center shadow-md">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Legal & Consent</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Legal & Consent</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Documentation required</p>
           </div>
         </div>
@@ -93,13 +93,13 @@ export function ClinicWizardStep3Safety({
       </section>
 
       {/* ─── FOLLOW-UP ─── */}
-      <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-emerald-950/30 dark:via-neutral-900 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-teal-50 dark:from-emerald-950/30 dark:via-ink-900 dark:to-teal-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-emerald-200/60">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md">
             <RefreshCw className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Follow-up</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Follow-up</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Repeat visits required?</p>
           </div>
         </div>
@@ -121,13 +121,13 @@ export function ClinicWizardStep3Safety({
       </section>
 
       {/* ─── WARNING NOTES ─── */}
-      <section className="rounded-3xl bg-gradient-to-br from-red-50 via-white to-rose-50 dark:from-red-950/30 dark:via-neutral-900 dark:to-rose-950/30 border-2 border-red-200 dark:border-red-800 shadow-sm p-5 space-y-3">
+      <section className="rounded-3xl bg-gradient-to-br from-red-50 via-white to-rose-50 dark:from-red-950/30 dark:via-ink-900 dark:to-rose-950/30 border-2 border-red-200 dark:border-red-800 shadow-sm p-5 space-y-3">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-md">
             <ShieldAlert className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Warning Notes</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Warning Notes</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Important safety warnings</p>
           </div>
         </div>
@@ -185,7 +185,7 @@ function SafeToggle({ active, onToggle, emoji, label, desc, tone }: any) {
       className={[
         'p-4 rounded-2xl border-2 text-left transition-all',
         active ? 'bg-gradient-to-br ' + tones[tone] + ' text-white shadow-md'
-          : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-slate-300',
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300',
       ].join(' ')}
     >
       <div className="flex items-center gap-2">

@@ -14,15 +14,15 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  default: 'bg-slate-100 text-slate-700 dark:bg-neutral-800 dark:text-slate-300',
+  default: 'bg-slate-100 text-slate-700 dark:bg-ink-800 dark:text-ink-300',
   brand:   'bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-300',
   accent:  'bg-accent-100 text-accent-800 dark:bg-accent-900/40 dark:text-accent-300',
   success: 'bg-success-50 text-success-700 dark:bg-success-900/30 dark:text-success-400',
   warning: 'bg-accent-100 text-accent-800 dark:bg-accent-900/40 dark:text-accent-300',
   danger:  'bg-rose-50 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
   info:    'bg-info-50 text-info-700 dark:bg-info-900/30 dark:text-info-400',
-  outline: 'bg-transparent border border-slate-300 text-slate-700 dark:border-neutral-600 dark:text-slate-300',
-  ghost:   'bg-transparent text-slate-600 dark:text-slate-400',
+  outline: 'bg-transparent border border-slate-300 text-slate-700 dark:border-ink-600 dark:text-ink-300',
+  ghost:   'bg-transparent text-slate-600 dark:text-ink-400',
 };
 
 const sizeClasses: Record<Size, string> = {

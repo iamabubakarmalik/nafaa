@@ -67,7 +67,7 @@ const typeConfig: Record<StockMovementType, { label: string; light: string; dark
   OPENING_BALANCE: {
     label: 'Opening',
     light: 'bg-slate-100 text-slate-700 border-slate-200',
-    dark: 'dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600',
+    dark: 'dark:bg-ink-700 dark:text-ink-200 dark:border-ink-600',
     icon: ArrowUp, isPositive: true, color: '#64748b', emoji: '🎬',
   },
 };
@@ -268,7 +268,7 @@ export default function StockMovementsPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
@@ -372,11 +372,11 @@ export default function StockMovementsPage() {
       {/* ═══ CHARTS ═══ */}
       {movements.length > 0 && (
         <section className="grid lg:grid-cols-[1.5fr_1fr] gap-4 print:hidden">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">7-Din Movement Trend</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Stock IN vs OUT daily</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">7-Din Movement Trend</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Stock IN vs OUT daily</p>
               </div>
               <BarChart3 className="h-5 w-5 text-blue-500" />
             </div>
@@ -405,11 +405,11 @@ export default function StockMovementsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Type Breakdown</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Movement types split</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Type Breakdown</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Movement types split</p>
               </div>
               <Filter className="h-5 w-5 text-violet-500" />
             </div>
@@ -434,7 +434,7 @@ export default function StockMovementsPage() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-slate-400 font-semibold">
+              <div className="h-[260px] flex items-center justify-center text-sm text-slate-500 dark:text-ink-400 font-semibold">
                 Koi data nahi
               </div>
             )}
@@ -443,7 +443,7 @@ export default function StockMovementsPage() {
       )}
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3 print:hidden">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -452,10 +452,10 @@ export default function StockMovementsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Product, SKU, reference, note... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -464,14 +464,14 @@ export default function StockMovementsPage() {
 
         {/* Date presets */}
         <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 items-center">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 items-center">
             <Calendar className="h-3.5 w-3.5 text-slate-400 ml-1.5 shrink-0" />
             {DATE_PRESETS.map((o) => (
               <button
                 key={o.v}
                 onClick={() => setDateFilter(o.v)}
                 className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
-                  dateFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  dateFilter === o.v ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
                 {o.l}
@@ -488,7 +488,7 @@ export default function StockMovementsPage() {
             </button>
           )}
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} / {movements.length} movements
           </div>
         </div>
@@ -498,10 +498,10 @@ export default function StockMovementsPage() {
           <button
             onClick={() => setTypeFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-              typeFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              typeFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
             }`}
           >
-            Sab <span className={`ml-1 tabular-nums ${typeFilter === 'all' ? 'opacity-70' : 'text-slate-400 dark:text-slate-500'}`}>{typeCounts.all}</span>
+            Sab <span className={`ml-1 tabular-nums ${typeFilter === 'all' ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{typeCounts.all}</span>
           </button>
           {(Object.entries(typeConfig) as [StockMovementType, any][]).map(([key, cfg]) => {
             const count = typeCounts[key] || 0;
@@ -512,12 +512,12 @@ export default function StockMovementsPage() {
                 key={key}
                 onClick={() => setTypeFilter(key)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1 border ${
-                  active ? `${cfg.light} ${cfg.dark} shadow-sm ring-2` : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600'
+                  active ? `${cfg.light} ${cfg.dark} shadow-sm ring-2` : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600'
                 }`}
               >
                 <span>{cfg.emoji}</span>
                 {cfg.label}
-                <span className={`ml-0.5 tabular-nums ${active ? 'opacity-70' : 'text-slate-400 dark:text-slate-500'}`}>{count}</span>
+                <span className={`ml-0.5 tabular-nums ${active ? 'opacity-70' : 'text-slate-400 dark:text-ink-500'}`}>{count}</span>
               </button>
             );
           })}
@@ -525,11 +525,11 @@ export default function StockMovementsPage() {
       </section>
 
       {/* ═══ TABLE ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Sab Movements</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Sab Movements</h3>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
               {filtered.length} events dikh rahi hain
             </p>
           </div>
@@ -537,17 +537,17 @@ export default function StockMovementsPage() {
 
         {isLoading ? (
           <div className="p-6 space-y-2">
-            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 sm:p-16 text-center">
             <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-blue-100 to-cyan-200 dark:from-blue-500/20 dark:to-cyan-500/20 flex items-center justify-center">
               <Activity className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
-            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Filter me kuch nahi mila' : 'Koi movement record nahi'}
             </h4>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
               {hasFilters
                 ? 'Date range badhao ya filters clear karo'
                 : 'Sales aur purchases ke saath movements automatic record hote hain — abhi shuruwat karo'}
@@ -561,22 +561,22 @@ export default function StockMovementsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Type</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Product</th>
-                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Quantity</th>
-                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Balance After</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Reference</th>
-                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Date</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Type</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Product</th>
+                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Quantity</th>
+                  <th className="text-right px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Balance After</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Reference</th>
+                  <th className="text-left px-4 py-3 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Date</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {filtered.map((m: any) => {
                   const cfg = typeConfig[m.type as StockMovementType] ?? {
                     label: m.type,
                     light: 'bg-slate-100 text-slate-700 border-slate-200',
-                    dark: 'dark:bg-slate-700 dark:text-slate-200 dark:border-slate-600',
+                    dark: 'dark:bg-ink-700 dark:text-ink-200 dark:border-ink-600',
                     icon: Package,
                     isPositive: m.quantity > 0,
                     color: '#64748b',
@@ -594,22 +594,22 @@ export default function StockMovementsPage() {
                       </td>
                       <td className="px-4 py-3">
                         <Link to={`/products/${m.productId}`} className="hover:underline">
-                          <div className="font-extrabold text-slate-900 dark:text-white">{m.product?.name}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">{m.product?.sku || '—'}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white">{m.product?.name}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">{m.product?.sku || '—'}</div>
                         </Link>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className={`font-extrabold text-base tabular-nums ${
                           isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'
                         }`}>
-                          {isPositive ? '+' : ''}{formatQty(m.quantity)} <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{m.product?.unit}</span>
+                          {isPositive ? '+' : ''}{formatQty(m.quantity)} <span className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{m.product?.unit}</span>
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white tabular-nums">
-                        {formatQty(m.balanceAfter)} <span className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{m.product?.unit}</span>
+                      <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-ink-white tabular-nums">
+                        {formatQty(m.balanceAfter)} <span className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{m.product?.unit}</span>
                       </td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-mono text-xs">{m.reference || '—'}</td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-xs font-semibold">{formatDate(m.createdAt)}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-ink-300 font-mono text-xs">{m.reference || '—'}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-ink-400 text-xs font-semibold">{formatDate(m.createdAt)}</td>
                     </tr>
                   );
                 })}
@@ -659,26 +659,26 @@ function MovementsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Stock Movements — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye <strong>stock ka poora hisaab-kitab</strong> hai — har baar jab maal andar aata hai
             ya bahar jata hai, yahan record ho jata hai <strong>automatic</strong>. Kuch bhi manually
             nahi karna!
           </p>
 
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">
               📋 6 Types ka Ledger
             </div>
@@ -687,10 +687,10 @@ function MovementsTeacher({ onClose }: { onClose: () => void }) {
             <TypeRow emoji="➕" label="Adjustment +" color="text-blue-700 dark:text-blue-400" desc="Manually barhaya (ganti-mistake fix)" />
             <TypeRow emoji="➖" label="Adjustment −" color="text-orange-700 dark:text-orange-400" desc="Manually kam (damage, chori, kharaab)" />
             <TypeRow emoji="↩️" label="Return" color="text-violet-700 dark:text-violet-400" desc="Customer ne wapas kiya → stock +" />
-            <TypeRow emoji="🎬" label="Opening" color="text-slate-700 dark:text-slate-300" desc="Product banate waqt initial stock" />
+            <TypeRow emoji="🎬" label="Opening" color="text-slate-700 dark:text-ink-300" desc="Product banate waqt initial stock" />
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>Balance After</strong> — us movement ke baad us product ka total stock</TipRow>
             <TipRow><strong>Reference</strong> — sale/purchase ka number, click karke original bill dekh sakte ho</TipRow>
             <TipRow><strong>Sab se bara movement</strong> hero me highlight — kaunsa event sab se important tha</TipRow>
@@ -717,11 +717,11 @@ function MovementsTeacher({ onClose }: { onClose: () => void }) {
 
 function TypeRow({ emoji, label, color, desc }: { emoji: string; label: string; color: string; desc: string }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg bg-white dark:bg-slate-800 border border-blue-100 dark:border-blue-500/20 p-2">
+    <div className="flex items-start gap-2 rounded-lg bg-white dark:bg-ink-800 border border-blue-100 dark:border-blue-500/20 p-2">
       <span className="text-base shrink-0">{emoji}</span>
       <div className="min-w-0 flex-1">
         <div className={`text-xs font-extrabold ${color}`}>{label}</div>
-        <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">{desc}</div>
+        <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">{desc}</div>
       </div>
     </div>
   );
@@ -753,14 +753,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, isPositive, isNegative }: an
   };
   return (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm transition-all',
-      isPositive ? 'border-emerald-300 dark:border-emerald-500/40' : isNegative ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800',
+      'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm transition-all',
+      isPositive ? 'border-emerald-300 dark:border-emerald-500/40' : isNegative ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

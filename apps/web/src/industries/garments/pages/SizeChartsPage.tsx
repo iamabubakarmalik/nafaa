@@ -79,7 +79,7 @@ export default function SizeChartsPage() {
           onClick={() => setGenderFilter('all')}
           className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-            (genderFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (genderFilter === 'all' ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }
         >
           All
@@ -90,7 +90,7 @@ export default function SizeChartsPage() {
             onClick={() => setGenderFilter(g.value)}
             className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (genderFilter === g.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (genderFilter === g.value ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }
           >
             {g.emoji} {g.label}
@@ -112,10 +112,10 @@ export default function SizeChartsPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : charts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Ruler className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No size charts yet</p>
           <Button className="mt-4 bg-gradient-to-r from-cyan-600 to-blue-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -147,15 +147,15 @@ function SizeChartCard({ chart, onEdit, onDelete }: { chart: SizeChart; onEdit: 
   const genderCfg = GENDERS.find((g) => g.value === chart.gender);
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between gap-3 flex-wrap">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow shrink-0">
             <Ruler className="h-5 w-5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-extrabold text-slate-900 dark:text-white">{chart.name}</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{chart.name}</h3>
               {chart.isDefault && (
                 <span className="px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                   <Award className="h-2 w-2" />
@@ -168,7 +168,7 @@ function SizeChartCard({ chart, onEdit, onDelete }: { chart: SizeChart; onEdit: 
                 </span>
               )}
               {chart.categoryType && (
-                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
+                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                   {chart.categoryType.replace('_', ' ')}
                 </span>
               )}
@@ -177,12 +177,12 @@ function SizeChartCard({ chart, onEdit, onDelete }: { chart: SizeChart; onEdit: 
               </span>
             </div>
             {chart.description && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{chart.description}</p>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-0.5">{chart.description}</p>
             )}
           </div>
         </div>
         <div className="flex gap-1">
-          <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+          <button onClick={onEdit} className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
             <Edit3 className="h-4 w-4" />
           </button>
           <button onClick={onDelete} className="h-9 w-9 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -194,20 +194,20 @@ function SizeChartCard({ chart, onEdit, onDelete }: { chart: SizeChart; onEdit: 
       {rows.length > 0 && (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 dark:bg-neutral-800/50">
+            <thead className="bg-slate-50 dark:bg-ink-800/50">
               <tr>
                 {columns.map((col) => (
-                  <th key={col} className="px-3 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400">
+                  <th key={col} className="px-3 py-2 text-left text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400">
                     {col}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {rows.map((row: any, i: number) => (
-                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-neutral-800/30">
+                <tr key={i} className="hover:bg-slate-50 dark:hover:bg-ink-800/30">
                   {columns.map((col) => (
-                    <td key={col} className="px-3 py-2 text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+                    <td key={col} className="px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white tabular-nums">
                       {row[col] ?? '—'}
                     </td>
                   ))}
@@ -312,9 +312,9 @@ function SizeChartForm({ editing, onClose, onSaved }: {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Size Chart' : 'New Size Chart'}
         </h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -332,7 +332,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="e.g. Men's Kurta Standard, Ladies Shirt EU"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
             />
           </div>
 
@@ -341,7 +341,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
             <select
               value={form.gender}
               onChange={(e) => setForm({ ...form, gender: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
             >
               <option value="">Any</option>
               {GENDERS.map((g) => (
@@ -355,7 +355,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
             <select
               value={form.categoryType}
               onChange={(e) => setForm({ ...form, categoryType: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
             >
               <option value="">Any</option>
               {CATEGORY_TYPES.map((c) => (
@@ -371,7 +371,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
                 onClick={() => setForm({ ...form, unit: 'INCH' })}
                 className={
                   'h-11 rounded-xl text-sm font-extrabold transition border-2 ' +
-                  (form.unit === 'INCH' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600')
+                  (form.unit === 'INCH' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600')
                 }
               >
                 Inches
@@ -380,7 +380,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
                 onClick={() => setForm({ ...form, unit: 'CM' })}
                 className={
                   'h-11 rounded-xl text-sm font-extrabold transition border-2 ' +
-                  (form.unit === 'CM' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600')
+                  (form.unit === 'CM' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600')
                 }
               >
                 Cm
@@ -394,16 +394,16 @@ function SizeChartForm({ editing, onClose, onSaved }: {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Optional notes about this chart"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
             />
           </div>
         </div>
 
         {/* Columns */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white">Measurement Columns</div>
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Measurement Columns</div>
               <p className="text-xs text-slate-500 font-semibold">'size' is always required</p>
             </div>
           </div>
@@ -412,7 +412,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
             {columns.map((col) => (
               <div key={col} className={
                 'inline-flex items-center gap-1 px-2 py-1 rounded-lg border text-xs font-extrabold ' +
-                (col === 'size' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700')
+                (col === 'size' ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700')
               }>
                 {col}
                 {col !== 'size' && (
@@ -430,7 +430,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
               onChange={(e) => setNewColumn(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addColumn(); } }}
               placeholder="Add column name (e.g. inseam)"
-              className="flex-1 h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xs font-bold focus:outline-none focus:border-cyan-500"
+              className="flex-1 h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold focus:outline-none focus:border-cyan-500"
             />
             <Button size="sm" onClick={addColumn} disabled={!newColumn.trim()}>
               <Plus className="h-3.5 w-3.5" />
@@ -440,9 +440,9 @@ function SizeChartForm({ editing, onClose, onSaved }: {
         </div>
 
         {/* Rows table */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 overflow-hidden">
-          <div className="px-4 py-2 bg-slate-50 dark:bg-neutral-800/50 flex items-center justify-between">
-            <div className="text-sm font-extrabold text-slate-900 dark:text-white">Size Rows ({rows.length})</div>
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
+          <div className="px-4 py-2 bg-slate-50 dark:bg-ink-800/50 flex items-center justify-between">
+            <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Size Rows ({rows.length})</div>
             <Button size="sm" onClick={addRow} className="bg-gradient-to-r from-cyan-600 to-blue-700">
               <Plus className="h-3.5 w-3.5" />
               Add Row
@@ -451,7 +451,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-100 dark:bg-neutral-800">
+              <thead className="bg-slate-100 dark:bg-ink-800">
                 <tr>
                   <th className="px-2 py-2 text-[0.6875rem] uppercase font-extrabold text-slate-600 w-12">#</th>
                   {columns.map((col) => (
@@ -462,7 +462,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
                   <th className="px-2 py-2 w-24"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-neutral-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {rows.map((row, i) => (
                   <tr key={i}>
                     <td className="px-2 py-1 text-xs font-bold text-slate-500 text-center">{i + 1}</td>
@@ -473,7 +473,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
                           step={col === 'size' ? undefined : '0.1'}
                           value={row[col] ?? ''}
                           onChange={(e) => updateCell(i, col, e.target.value)}
-                          className="w-full h-8 rounded border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500"
+                          className="w-full h-8 rounded border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500"
                         />
                       </td>
                     ))}
@@ -514,7 +514,7 @@ function SizeChartForm({ editing, onClose, onSaved }: {
           </div>
         </label>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-cyan-600 to-blue-700"

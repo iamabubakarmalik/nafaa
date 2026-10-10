@@ -40,7 +40,7 @@ export default function ControlledLogPage() {
         {['all', 'SALE', 'PURCHASE', 'ADJUSTMENT', 'DAMAGE'].map((t) => (
           <button key={t} onClick={() => setLogType(t)} className={
             'px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-            (logType === t ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (logType === t ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>
             {t === 'all' ? 'All' : t}
           </button>
@@ -49,18 +49,18 @@ export default function ControlledLogPage() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : logs.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <ShieldAlert className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No narcotic transactions logged yet</p>
         </div>
       ) : (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {logs.map((log) => (
-              <div key={log.id} className="p-4 hover:bg-slate-50 dark:hover:bg-neutral-800/50">
+              <div key={log.id} className="p-4 hover:bg-slate-50 dark:hover:bg-ink-800/50">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className={
@@ -71,7 +71,7 @@ export default function ControlledLogPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white font-mono">{log.logNumber}</span>
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white font-mono">{log.logNumber}</span>
                         <span className={
                           'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                           (log.logType === 'SALE' ? 'bg-rose-500' : log.logType === 'PURCHASE' ? 'bg-emerald-500' : 'bg-amber-500')
@@ -103,7 +103,7 @@ export default function ControlledLogPage() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+                    <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                       {log.logType === 'SALE' || log.logType === 'DAMAGE' ? '−' : '+'}{log.quantity} {log.unit}
                     </div>
                     <div className="text-[0.6875rem] font-bold text-slate-500">

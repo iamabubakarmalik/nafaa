@@ -128,9 +128,9 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg">
               <Banknote className="h-5 w-5" />
@@ -139,14 +139,14 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
               <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
                 Payment Record
               </div>
-              <h3 className="font-bold text-slate-900 dark:text-white">{ticketNumber}</h3>
+              <h3 className="font-bold text-slate-900 dark:text-ink-white">{ticketNumber}</h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"
+            className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"
           >
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -207,7 +207,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
                 key={a}
                 type="button"
                 onClick={() => setAmount(String(a))}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-bold"
+                className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-bold"
               >
                 Rs {a >= 1000 ? `${a / 1000}k` : a}
               </button>
@@ -234,7 +234,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
 
           {/* Method */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-2">
               Payment Method
             </label>
             <div className="grid grid-cols-5 gap-1.5">
@@ -249,7 +249,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
                     className={`p-2 rounded-lg border-2 text-[0.6875rem] font-bold transition ${
                       active
                         ? `bg-${m.color}-50 dark:bg-${m.color}-950/40 border-${m.color}-400 text-${m.color}-800 dark:text-${m.color}-200 shadow`
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                        : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-300'
                     }`}
                   >
                     <Icon className="h-4 w-4 mx-auto mb-1" />
@@ -279,7 +279,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
                   navigator.clipboard.writeText(reference);
                   toast.success('Copy ho gaya');
                 }}
-                className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center mb-0"
+                className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center mb-0"
                 title="Copy"
               >
                 <Copy className="h-4 w-4" />
@@ -294,7 +294,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
             placeholder="Optional"
           />
 
-          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+          <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-ink-300 cursor-pointer">
             <input
               type="checkbox"
               checked={printAfter}
@@ -305,7 +305,7 @@ ${remaining > 0 ? `<div class="row"><span>Balance:</span><span class="bold">Rs $
           </label>
         </div>
 
-        <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-2">
+        <div className="px-5 py-4 border-t border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button
             onClick={submit}

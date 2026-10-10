@@ -37,7 +37,7 @@ const PTA_COLORS: Record<string, string> = {
   NON_PTA: 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-500/40',
   PATCH: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-500/40',
   PENDING: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-500/40',
-  EXEMPT: 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600',
+  EXEMPT: 'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300 border-slate-300 dark:border-ink-600',
 };
 const PTA_HEX: Record<string, string> = { APPROVED: '#10b981', NON_PTA: '#f43f5e', PATCH: '#f59e0b', PENDING: '#3b82f6', EXEMPT: '#64748b' };
 
@@ -325,7 +325,7 @@ export default function MobileSalesPage() {
       </div>
 
       {/* HERO */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
         <div className="relative flex items-start justify-between gap-4 flex-wrap">
@@ -369,12 +369,12 @@ export default function MobileSalesPage() {
             className={`px-3.5 sm:px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center gap-1.5 transition ${
               view === t.v
                 ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-md'
-                : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-300 dark:hover:border-blue-500/40'
+                : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-blue-300 dark:hover:border-blue-500/40'
             }`}
           >
             <t.icon className="h-4 w-4" />
             <span className="hidden xs:inline sm:inline">{t.label}</span>
-            <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${view === t.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-800'}`}>{t.n}</span>
+            <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${view === t.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-ink-800'}`}>{t.n}</span>
           </button>
         ))}
       </div>
@@ -422,13 +422,13 @@ export default function MobileSalesPage() {
       {/* Charts */}
       {!hideAmounts && (
         <section className="grid lg:grid-cols-[1.4fr_1fr] gap-4 print:hidden">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-5">
             <div className="flex items-center justify-between mb-4">
-              <div><h3 className="text-lg font-extrabold text-slate-900 dark:text-white">PTA Status Breakdown</h3><p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Devices by compliance</p></div>
+              <div><h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">PTA Status Breakdown</h3><p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Devices by compliance</p></div>
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white flex items-center justify-center shadow-md"><BarChart3 className="h-5 w-5" /></div>
             </div>
             {ptaBreakdown.length === 0 ? (
-              <div className="h-[220px] flex flex-col items-center justify-center gap-2"><ShieldCheck className="h-10 w-10 text-slate-300 dark:text-slate-600" /><p className="text-sm font-extrabold text-slate-500 dark:text-slate-400">No IMEI data yet</p></div>
+              <div className="h-[220px] flex flex-col items-center justify-center gap-2"><ShieldCheck className="h-10 w-10 text-slate-300 dark:text-ink-600" /><p className="text-sm font-extrabold text-slate-500 dark:text-ink-400">No IMEI data yet</p></div>
             ) : (
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -446,13 +446,13 @@ export default function MobileSalesPage() {
             )}
           </div>
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-5">
             <div className="flex items-center justify-between mb-4">
-              <div><h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Payment Split</h3><p className="text-xs text-slate-500 dark:text-slate-400 font-bold">By method</p></div>
+              <div><h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Payment Split</h3><p className="text-xs text-slate-500 dark:text-ink-400 font-bold">By method</p></div>
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md"><CreditCard className="h-5 w-5" /></div>
             </div>
             {paymentBreakdown.length === 0 ? (
-              <div className="h-[220px] flex flex-col items-center justify-center gap-2"><CreditCard className="h-10 w-10 text-slate-300 dark:text-slate-600" /><p className="text-sm font-extrabold text-slate-500 dark:text-slate-400">No payment data</p></div>
+              <div className="h-[220px] flex flex-col items-center justify-center gap-2"><CreditCard className="h-10 w-10 text-slate-300 dark:text-ink-600" /><p className="text-sm font-extrabold text-slate-500 dark:text-ink-400">No payment data</p></div>
             ) : (
               <div className="h-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -472,27 +472,27 @@ export default function MobileSalesPage() {
       )}
 
       {/* Toolbar */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-4 space-y-3 print:hidden">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="IMEI, customer, device... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition" />
-            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"><X className="h-4 w-4 text-slate-400" /></button>}
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition" />
+            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"><X className="h-4 w-4 text-slate-400" /></button>}
           </div>
         </div>
 
         <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" /> Date Range</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1.5 inline-flex items-center gap-1"><CalendarRange className="h-3 w-3" /> Date Range</label>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
             {([{ v: 'today', l: 'Today' }, { v: 'yesterday', l: 'Yesterday' }, { v: 'week', l: '7 Days' }, { v: 'month', l: '30 Days' }, { v: 'year', l: 'This Year' }, { v: 'all', l: 'All Time' }, { v: 'custom', l: '📅 Custom' }] as { v: DateFilter; l: string }[]).map((d) => (
-              <button key={d.v} onClick={() => setDateFilter(d.v)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${dateFilter === d.v ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>{d.l}</button>
+              <button key={d.v} onClick={() => setDateFilter(d.v)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${dateFilter === d.v ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'}`}>{d.l}</button>
             ))}
           </div>
           {dateFilter === 'custom' && (
             <div className="mt-2 grid grid-cols-2 gap-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3">
-              <div><label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-400 mb-1 block">From</label><input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-blue-300 dark:border-blue-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500" /></div>
-              <div><label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-400 mb-1 block">To</label><input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-blue-300 dark:border-blue-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500" /></div>
+              <div><label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-400 mb-1 block">From</label><input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)} className="h-10 w-full rounded-lg border-2 border-blue-300 dark:border-blue-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500" /></div>
+              <div><label className="text-[0.6875rem] uppercase font-extrabold text-blue-700 dark:text-blue-400 mb-1 block">To</label><input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)} className="h-10 w-full rounded-lg border-2 border-blue-300 dark:border-blue-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500" /></div>
             </div>
           )}
         </div>
@@ -500,22 +500,22 @@ export default function MobileSalesPage() {
         {/* PTA sirf phone wale views par — repair/accessory me device hi nahi hota */}
         {(view === 'all' || view === 'new' || view === 'used') && (
         <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 block">PTA Status</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1.5 block">PTA Status</label>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
-            <button onClick={() => setPtaFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${ptaFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>All PTA</button>
+            <button onClick={() => setPtaFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${ptaFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}>All PTA</button>
             {Object.entries(PTA_LABELS).map(([k, l]) => (
-              <button key={k} onClick={() => setPtaFilter(k)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 border-2 transition ${ptaFilter === k ? PTA_COLORS[k] : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'}`}><ShieldCheck className="h-3 w-3" />{l}</button>
+              <button key={k} onClick={() => setPtaFilter(k)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 border-2 transition ${ptaFilter === k ? PTA_COLORS[k] : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300'}`}><ShieldCheck className="h-3 w-3" />{l}</button>
             ))}
           </div>
         </div>
         )}
 
         <div>
-          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 block">Payment Method</label>
+          <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 mb-1.5 block">Payment Method</label>
           <div className="flex gap-1.5 overflow-x-auto pb-1">
-            <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${paymentFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}>All</button>
+            <button onClick={() => setPaymentFilter('all')} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${paymentFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}>All</button>
             {Object.entries(paymentConfig).map(([k, cfg]) => (
-              <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 transition ${paymentFilter === k ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'}`}><cfg.icon className="h-3 w-3" />{cfg.label}</button>
+              <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)} className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 transition ${paymentFilter === k ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'}`}><cfg.icon className="h-3 w-3" />{cfg.label}</button>
             ))}
           </div>
         </div>
@@ -532,20 +532,20 @@ export default function MobileSalesPage() {
       </section>
 
       {/* List */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden print:border-0 print:rounded-none print:shadow-none">
         {isLoading ? (
-          <div className="p-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-32 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}</div>
+          <div className="p-6 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-32 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
         ) : filteredList.length === 0 ? (
           <div className="p-12 sm:p-16 text-center">
             <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-700 mx-auto flex items-center justify-center shadow-lg shadow-blue-500/40"><Smartphone className="h-10 w-10 text-white" /></div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">{hasFilters ? 'Kuch nahi mila' : 'Abhi koi sale nahi'}</h3>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">{hasFilters ? 'Filter change karo ya clear karo' : 'POS se pehli device sale karo'}</p>
+            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">{hasFilters ? 'Kuch nahi mila' : 'Abhi koi sale nahi'}</h3>
+            <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">{hasFilters ? 'Filter change karo ya clear karo' : 'POS se pehli device sale karo'}</p>
             <div className="mt-4 flex gap-2 justify-center flex-wrap">
               {hasFilters ? <Button variant="secondary" className="font-extrabold" onClick={clearFilters}><X className="h-4 w-4" /> Filters clear karo</Button> : <Link to="/pos"><Button className="bg-gradient-to-r from-blue-600 to-indigo-700 font-extrabold"><Smartphone className="h-4 w-4" /> POS pe jao</Button></Link>}
             </div>
           </div>
         ) : (
-          <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
             {filteredList.map((sale: any) => {
               const imeiItems = sale.items.filter((it: any) => (it.imeis?.length ?? 0) > 0);
               const usedItems = sale.items.filter((it: any) => it.usedPhone || it.usedPhoneId);
@@ -566,7 +566,7 @@ export default function MobileSalesPage() {
                       <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${kindCfg.grad} text-white flex items-center justify-center shrink-0 shadow-lg`}><KindIcon className="h-5 w-5" /></div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-extrabold text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
+                          <span className="font-mono font-extrabold text-slate-900 dark:text-ink-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                           {sale.status === 'VOIDED' && <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-extrabold">VOIDED</span>}
                           <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold inline-flex items-center gap-1 ${kindCfg.chip}`}>
                             <KindIcon className="h-2.5 w-2.5" />{kindCfg.label}
@@ -575,15 +575,15 @@ export default function MobileSalesPage() {
                           {usedItems.length > 0 && <span className="px-2 py-0.5 rounded-full bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1"><RotateCcw className="h-2.5 w-2.5" />{usedItems.length} used</span>}
                           {sale.creditAmount > 0 && <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1"><CreditCard className="h-2.5 w-2.5" />EMI/Udhaar</span>}
                         </div>
-                        <div className="mt-1 text-xs text-slate-600 dark:text-slate-300 font-semibold flex items-center gap-2 flex-wrap">
+                        <div className="mt-1 text-xs text-slate-600 dark:text-ink-300 font-semibold flex items-center gap-2 flex-wrap">
                           <User className="h-3 w-3" />{sale.customer?.name || 'Walk-in'}{sale.customer?.phone && <><span>•</span><span>{sale.customer.phone}</span></>}
                         </div>
-                        <div className="mt-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
+                        <div className="mt-1 text-[0.6875rem] text-slate-500 dark:text-ink-400 inline-flex items-center gap-1"><Clock className="h-2.5 w-2.5" />{formatDate(sale.soldAt)}</div>
 
                         {/* Repair ki tafseel */}
                         {isRepair && (
                           <div className="mt-2 pl-3 border-l-2 border-amber-300 dark:border-amber-500/40 space-y-1">
-                            <div className="font-extrabold text-sm text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white inline-flex items-center gap-1.5">
                               <Wrench className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                               {repair ? `${repair.deviceBrand} ${repair.deviceModel}` : saleItemName(sale.items[0])}
                             </div>
@@ -597,7 +597,7 @@ export default function MobileSalesPage() {
                                   {repair.ticketNumber}
                                 </Link>
                                 {(repair.diagnosedIssue || repair.reportedIssue) && (
-                                  <span className="text-slate-600 dark:text-slate-400 font-semibold truncate max-w-[22rem]">
+                                  <span className="text-slate-600 dark:text-ink-400 font-semibold truncate max-w-[22rem]">
                                     {repair.diagnosedIssue || repair.reportedIssue}
                                   </span>
                                 )}
@@ -609,7 +609,7 @@ export default function MobileSalesPage() {
                         {/* Used phone ki tafseel */}
                         {usedItems.map((it: any) => (
                           <div key={it.id} className="mt-2 pl-3 border-l-2 border-violet-300 dark:border-violet-500/40 space-y-1">
-                            <div className="font-extrabold text-sm text-slate-900 dark:text-white">{saleItemName(it)}</div>
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{saleItemName(it)}</div>
                             <div className="flex items-center gap-2 flex-wrap text-[0.6875rem]">
                               {it.usedPhone?.usedPhoneCode && (
                                 <span className="font-mono font-extrabold text-violet-700 dark:text-violet-300 bg-violet-100 dark:bg-violet-500/20 px-1.5 py-0.5 rounded">
@@ -617,7 +617,7 @@ export default function MobileSalesPage() {
                                 </span>
                               )}
                               {it.usedPhone?.imei1 && (
-                                <span className="font-mono font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                <span className="font-mono font-bold text-slate-700 dark:text-ink-300 bg-slate-100 dark:bg-ink-800 px-1.5 py-0.5 rounded">
                                   IMEI: {it.usedPhone.imei1}
                                 </span>
                               )}
@@ -639,7 +639,7 @@ export default function MobileSalesPage() {
                         {!isRepair && accItems.length > 0 && (
                           <div className="mt-2 pl-3 border-l-2 border-emerald-300 dark:border-emerald-500/40 space-y-0.5">
                             {accItems.slice(0, 4).map((it: any) => (
-                              <div key={it.id} className="text-[0.6875rem] font-bold text-slate-700 dark:text-slate-300 inline-flex items-center gap-1.5 mr-3">
+                              <div key={it.id} className="text-[0.6875rem] font-bold text-slate-700 dark:text-ink-300 inline-flex items-center gap-1.5 mr-3">
                                 <Cable className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
                                 {saleItemName(it)} <span className="text-slate-400">× {it.quantity}</span>
                               </div>
@@ -652,10 +652,10 @@ export default function MobileSalesPage() {
 
                         {imeiItems.map((it: any) => (
                           <div key={it.id} className="mt-2 pl-3 border-l-2 border-blue-200 dark:border-blue-500/30 space-y-1">
-                            <div className="font-extrabold text-sm text-slate-900 dark:text-white">{saleItemName(it)}</div>
+                            <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{saleItemName(it)}</div>
                             {(it.imeis || []).map((imei: any) => (
                               <div key={imei.id} className="flex items-center gap-2 flex-wrap text-[0.6875rem]">
-                                <span className="font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">IMEI: {imei.imei1}</span>
+                                <span className="font-mono font-extrabold text-slate-700 dark:text-ink-300 bg-slate-100 dark:bg-ink-800 px-1.5 py-0.5 rounded">IMEI: {imei.imei1}</span>
                                 {imei.ptaStatus && <span className={`px-1.5 py-0.5 rounded border-2 font-extrabold uppercase ${PTA_COLORS[imei.ptaStatus]}`}><ShieldCheck className="h-2.5 w-2.5 inline mr-0.5" />{PTA_LABELS[imei.ptaStatus]}</span>}
                                 {imei.warrantyMonths > 0 && <span className="text-teal-700 dark:text-teal-400 font-bold inline-flex items-center gap-0.5"><Award className="h-2.5 w-2.5" />{imei.warrantyMonths}m</span>}
                                 {imei.color && <span className="text-violet-700 dark:text-violet-400 font-bold inline-flex items-center gap-0.5"><Palette className="h-2.5 w-2.5" />{imei.color}</span>}
@@ -667,7 +667,7 @@ export default function MobileSalesPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xl sm:text-2xl font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">{showValue(formatPKR(sale.total))}</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 inline-flex items-center justify-end gap-1 mt-0.5"><PayIcon className="h-2.5 w-2.5" />{paymentConfig[sale.paymentMethod]?.label}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 inline-flex items-center justify-end gap-1 mt-0.5"><PayIcon className="h-2.5 w-2.5" />{paymentConfig[sale.paymentMethod]?.label}</div>
                       {sale.creditAmount > 0 && <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold mt-0.5">Balance: {showValue(formatPKR(sale.creditAmount))}</div>}
                       <div className="mt-2 inline-flex items-center gap-1 text-[0.6875rem] font-extrabold text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition"><Eye className="h-3 w-3" /> Invoice <ArrowRight className="h-3 w-3" /></div>
                     </div>
@@ -699,12 +699,12 @@ export default function MobileSalesPage() {
 function SalesTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Mobile Sales — Guide</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"><X className="h-4 w-4 text-slate-600 dark:text-slate-300" /></button>
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"><X className="h-4 w-4 text-slate-600 dark:text-ink-300" /></button>
         </div>
-        <div className="p-5 space-y-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+        <div className="p-5 space-y-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
           <Tip><strong>IMEI Sales tab</strong> — har phone jo IMEI ke saath bika, PTA status + warranty ke saath</Tip>
           <Tip><strong>EMI Sales tab</strong> — sirf udhaar/installment wali device sales</Tip>
           <Tip><strong>PTA chart</strong> — Non-PTA zyada ho tou compliance risk hai, dikhta hai</Tip>
@@ -723,12 +723,12 @@ function Tip({ children }: { children: React.ReactNode }) {
 function Kpi({ icon: Icon, label, value, sub, tone, alert }: any) {
   const tones: Record<string, string> = { blue: 'from-blue-500 to-indigo-700 shadow-blue-500/40', emerald: 'from-emerald-500 to-green-600 shadow-emerald-500/40', violet: 'from-violet-500 to-purple-600 shadow-violet-500/40', amber: 'from-amber-500 to-orange-600 shadow-amber-500/40' };
   return (
-    <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm ${alert ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800'}`}>
+    <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm ${alert ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800'}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}><Icon className="h-5 w-5" /></div>
       </div>
@@ -736,6 +736,6 @@ function Kpi({ icon: Icon, label, value, sub, tone, alert }: any) {
   );
 }
 function SummaryCell({ label, value, tone }: any) {
-  const tones: Record<string, string> = { blue: 'text-blue-700 dark:text-blue-400', slate: 'text-slate-900 dark:text-white', violet: 'text-violet-700 dark:text-violet-400', amber: 'text-amber-700 dark:text-amber-400' };
-  return <div><div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400">{label}</div><div className={`font-extrabold tabular-nums ${tones[tone]}`}>{value}</div></div>;
+  const tones: Record<string, string> = { blue: 'text-blue-700 dark:text-blue-400', slate: 'text-slate-900 dark:text-ink-white', violet: 'text-violet-700 dark:text-violet-400', amber: 'text-amber-700 dark:text-amber-400' };
+  return <div><div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400">{label}</div><div className={`font-extrabold tabular-nums ${tones[tone]}`}>{value}</div></div>;
 }

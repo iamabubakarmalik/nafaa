@@ -24,11 +24,11 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
   const potentialProfit = stockValue - stockCost;
 
   return (
-    <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 space-y-4">
-      <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/40 p-4">
+    <div className="p-4 border-t border-slate-100 dark:border-ink-800 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900 space-y-4">
+      <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/40 p-4">
         <div className="flex items-center gap-2 mb-3">
           <Cable className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
-          <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
             Stock for {bucketName}
           </div>
         </div>
@@ -54,7 +54,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
                   className={`px-2 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition active:scale-95 tabular-nums ${
                     currentUnits === q
                       ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}
                 >
                   {q}
@@ -74,7 +74,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
         </div>
       </div>
 
-      <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-3">
+      <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
         <div className="grid sm:grid-cols-2 gap-3">
           <Input
             label="Rack / Location"
@@ -84,13 +84,13 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
             leftIcon={<MapPin className="h-4 w-4 text-slate-400" />}
           />
           <div>
-            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-1">
+            <label className="block text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1">
               <StickyNote className="h-3 w-3 inline" /> Notes
             </label>
             <input
               value={stock?.notes ?? ''}
               onChange={(e) => onChange({ notes: e.target.value })}
-              className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+              className="h-11 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-3 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
               placeholder="Any note"
             />
           </div>
@@ -114,13 +114,13 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
                 ].join(' ')}>
                   {isLow ? '⚠️ Low stock — sale value' : 'Stock Sale Value'}
                 </div>
-                <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">
+                <div className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-ink-white">
                   {formatPKRFull(stockValue)}
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400 flex items-center gap-0.5 justify-end">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400 flex items-center gap-0.5 justify-end">
                 <Package className="h-2.5 w-2.5" /> Stock
               </div>
               <div className={[
@@ -133,7 +133,7 @@ export function MobileAccessoryStockCard({ basic, bucketName, stock, onChange }:
           </div>
           {costPrice > 0 && (
             <div className="mt-2 pt-2 border-t border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between text-[0.6875rem] font-bold">
-              <span className="text-slate-500 dark:text-slate-400">Cost: {formatPKRFull(stockCost)}</span>
+              <span className="text-slate-500 dark:text-ink-400">Cost: {formatPKRFull(stockCost)}</span>
               <span className={potentialProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                 Potential profit: {formatPKRFull(potentialProfit)}
               </span>

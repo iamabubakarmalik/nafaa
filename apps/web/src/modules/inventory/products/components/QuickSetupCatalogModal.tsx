@@ -162,7 +162,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
     const r = importMutation.data;
     return (
       <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+        <div className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
           <div className="bg-gradient-to-br from-emerald-500 to-teal-700 text-white p-6 text-center">
             <div className="h-20 w-20 rounded-3xl bg-white/20 backdrop-blur mx-auto flex items-center justify-center shadow-inner mb-3">
               <CheckCircle2 className="h-10 w-10" />
@@ -180,7 +180,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
             </div>
 
             {r.skipped > 0 && (
-              <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 text-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <div className="rounded-xl bg-slate-100 dark:bg-ink-800 p-3 text-center text-sm font-semibold text-slate-700 dark:text-ink-300">
                 {r.skipped} products already existed (skipped)
               </div>
             )}
@@ -214,18 +214,18 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
   if (step === 'importing') {
     return (
       <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
           <div className="p-8 text-center">
             <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-700 mx-auto flex items-center justify-center shadow-xl mb-4">
               <Loader2 className="h-10 w-10 text-white animate-spin" />
             </div>
-            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-ink-white">
               Importing {selectedIds.size} products...
             </h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 font-semibold">
+            <p className="text-sm text-slate-600 dark:text-ink-400 mt-2 font-semibold">
               Brands, categories, tags aur products ban rahe hain. 1-2 minute lag sakte hain.
             </p>
-            <div className="mt-6 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+            <div className="mt-6 h-2 bg-slate-200 dark:bg-ink-800 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-sky-500 to-cyan-700 rounded-full animate-pulse" style={{ width: '60%' }} />
             </div>
           </div>
@@ -239,7 +239,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
     const selectedProducts = data?.catalog.filter((p) => selectedIds.has(p.id)) ?? [];
     return (
       <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
           <div className="bg-gradient-to-br from-sky-600 to-cyan-700 text-white p-5 shrink-0">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -286,15 +286,15 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
               </div>
             </div>
 
-            <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+            <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider">
               Adjust prices / stock (optional)
             </div>
 
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="max-h-[300px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
+              <div className="max-h-[300px] overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
                 {selectedProducts.map((p) => (
-                  <div key={p.id} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden text-2xl">
+                  <div key={p.id} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50">
+                    <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0 overflow-hidden text-2xl">
                       {p.imageUrl ? (
                         <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
                       ) : (p as any).emoji ? (
@@ -304,7 +304,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{p.name}</div>
                       <div className="text-[0.6875rem] text-slate-500 font-bold">
                         {p.brand} • {p.category}
                       </div>
@@ -335,10 +335,10 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
             </div>
           </div>
 
-          <div className="border-t-2 border-slate-200 dark:border-slate-700 p-4 flex gap-2 shrink-0 bg-slate-50 dark:bg-slate-800/50">
+          <div className="border-t-2 border-slate-200 dark:border-ink-700 p-4 flex gap-2 shrink-0 bg-slate-50 dark:bg-ink-800/50">
             <button
               onClick={() => setStep('select')}
-              className="flex-1 h-12 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-extrabold text-sm"
+              className="flex-1 h-12 rounded-xl bg-slate-200 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-800 dark:text-ink-200 font-extrabold text-sm"
             >
               ← Back to Selection
             </button>
@@ -357,7 +357,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
   // ─── SELECT screen (main) ──────────────────────────
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
+      <div className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         <div className="relative bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 text-white p-5 shrink-0 overflow-hidden">
           <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-sky-400/20 blur-3xl" />
           <div className="absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-cyan-400/15 blur-3xl" />
@@ -403,7 +403,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
         </div>
 
         {/* Filters */}
-        <div className="p-4 border-b-2 border-slate-100 dark:border-slate-800 space-y-3 shrink-0">
+        <div className="p-4 border-b-2 border-slate-100 dark:border-ink-800 space-y-3 shrink-0">
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -411,10 +411,10 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search products, brands, tags..."
-                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-9 text-sm font-semibold focus:outline-none focus:border-sky-500"
+                className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-9 text-sm font-semibold focus:outline-none focus:border-sky-500"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-3.5 w-3.5 text-slate-400" />
                 </button>
               )}
@@ -422,21 +422,21 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
             <select
               value={activeBrand}
               onChange={(e) => setActiveBrand(e.target.value)}
-              className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold focus:outline-none focus:border-sky-500"
+              className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold focus:outline-none focus:border-sky-500"
             >
               <option value="all">All Brands</option>
               {data?.brands.map((b) => (
                 <option key={b.name} value={b.name}>{b.name} ({b.count})</option>
               ))}
             </select>
-            <label className="inline-flex items-center gap-2 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer">
+            <label className="inline-flex items-center gap-2 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 cursor-pointer">
               <input
                 type="checkbox"
                 checked={hideAlreadyImported}
                 onChange={(e) => setHideAlreadyImported(e.target.checked)}
                 className="h-4 w-4"
               />
-              <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Hide imported</span>
+              <span className="text-xs font-extrabold text-slate-700 dark:text-ink-300">Hide imported</span>
             </label>
           </div>
 
@@ -446,8 +446,8 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
               onClick={() => setActiveCategory('all')}
               className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
                 activeCategory === 'all'
-                  ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
+                  ? 'bg-slate-900 dark:bg-ink-100 text-white dark:text-ink-900 shadow-sm'
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200'
               }`}
             >
               All ({data?.total ?? 0})
@@ -509,7 +509,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
         </div>
 
         {/* Product grid */}
-        <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50 dark:bg-ink-900/50">
           {isLoading ? (
             <div className="flex items-center justify-center py-20">
               <Loader2 className="h-10 w-10 text-sky-600 animate-spin" />
@@ -517,7 +517,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
           ) : filtered.length === 0 ? (
             <div className="text-center py-20">
               <Package className="h-16 w-16 text-slate-300 mx-auto mb-3" />
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Kuch nahi mila</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Kuch nahi mila</h3>
               <p className="text-sm text-slate-500 mt-1">Filter change karo</p>
             </div>
           ) : (
@@ -536,10 +536,10 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
         </div>
 
         {/* Footer bar */}
-        <div className="border-t-2 border-slate-200 dark:border-slate-700 p-4 flex items-center gap-3 shrink-0 bg-white dark:bg-slate-900 flex-wrap">
+        <div className="border-t-2 border-slate-200 dark:border-ink-700 p-4 flex items-center gap-3 shrink-0 bg-white dark:bg-ink-900 flex-wrap">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">
                 {selectedIds.size} selected
               </span>
               {selectedIds.size > 0 && (
@@ -560,7 +560,7 @@ export function QuickSetupCatalogModal({ onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="px-4 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-extrabold"
+            className="px-4 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-300 text-sm font-extrabold"
           >
             Cancel
           </button>
@@ -593,12 +593,12 @@ function ProductCard({
       onClick={onToggle}
       disabled={p.alreadyExists}
       className={[
-        'group relative rounded-2xl bg-white dark:bg-slate-800 border-2 overflow-hidden transition-all text-left',
+        'group relative rounded-2xl bg-white dark:bg-ink-800 border-2 overflow-hidden transition-all text-left',
         selected
           ? 'border-sky-500 ring-2 ring-sky-200 dark:ring-sky-800 shadow-md'
           : p.alreadyExists
-          ? 'border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed'
-          : 'border-slate-200 dark:border-slate-700 hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5',
+          ? 'border-slate-200 dark:border-ink-700 opacity-50 cursor-not-allowed'
+          : 'border-slate-200 dark:border-ink-700 hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5',
       ].join(' ')}
     >
       {selected && (
@@ -640,7 +640,7 @@ function ProductCard({
             {p.category}
           </div>
         )}
-        <div className="font-extrabold text-slate-900 dark:text-white text-xs line-clamp-2 leading-tight min-h-[2rem]">
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs line-clamp-2 leading-tight min-h-[2rem]">
           {p.name}
         </div>
         <div className="text-[0.6875rem] font-bold text-violet-700 dark:text-violet-400 truncate">
@@ -665,13 +665,13 @@ function StatBox({ label, value, icon: Icon, tone }: any) {
     amber: 'from-amber-500 to-orange-600 shadow-amber-500/30',
   };
   return (
-    <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center gap-2.5">
+    <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center gap-2.5">
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-md shrink-0`}>
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
         <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-500">{label}</div>
-        <div className="text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+        <div className="text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
       </div>
     </div>
   );
@@ -712,7 +712,7 @@ function PriceInput({
         value={value}
         onChange={(e) => onChange(Number(e.target.value) || 0)}
         onClick={(e) => e.stopPropagation()}
-        className={`h-9 w-16 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-1.5 text-xs font-extrabold text-center tabular-nums focus:outline-none ${t.border}`}
+        className={`h-9 w-16 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-1.5 text-xs font-extrabold text-center tabular-nums focus:outline-none ${t.border}`}
       />
     </div>
   );

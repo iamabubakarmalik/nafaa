@@ -38,7 +38,7 @@ export function CodeBlock({
           <Copy className="h-3.5 w-3.5 text-slate-300" />
         )}
       </button>
-      <pre className="p-3.5 rounded-xl bg-slate-900 dark:bg-neutral-950 text-slate-100 text-[0.65625rem] leading-relaxed font-mono overflow-x-auto ring-1 ring-slate-700/50">
+      <pre className="p-3.5 rounded-xl bg-slate-900 dark:bg-ink-950 text-slate-100 text-[0.65625rem] leading-relaxed font-mono overflow-x-auto ring-1 ring-slate-700/50">
         <code>{code}</code>
       </pre>
     </div>
@@ -77,8 +77,8 @@ export function CopyField({
           readOnly
           onFocus={(e) => e.currentTarget.select()}
           className={cn(
-            'flex-1 h-10 px-3 rounded-xl border border-slate-200 dark:border-neutral-700',
-            'bg-slate-50 dark:bg-neutral-800 text-xs text-slate-800 dark:text-slate-200',
+            'flex-1 h-10 px-3 rounded-xl border border-slate-200 dark:border-ink-700',
+            'bg-slate-50 dark:bg-ink-800 text-xs text-slate-800 dark:text-ink-200',
             mono && 'font-mono',
           )}
         />
@@ -86,7 +86,7 @@ export function CopyField({
           <button
             type="button"
             onClick={() => setRevealed(!revealed)}
-            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-[0.6875rem] font-extrabold text-slate-600 shrink-0"
+            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-[0.6875rem] font-extrabold text-slate-600 shrink-0"
           >
             {revealed ? 'HIDE' : 'SHOW'}
           </button>

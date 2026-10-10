@@ -52,9 +52,9 @@ const typeColors: Record<NotificationType, { bg: string; text: string; ring: str
   INVOICE_DUE:           { bg: 'bg-amber-100',   text: 'text-amber-700',   ring: 'ring-amber-200',   gradient: 'from-amber-500 to-amber-600',     darkBg: 'dark:bg-amber-500/20',   darkText: 'dark:text-amber-300',   darkRing: 'dark:ring-amber-500/30' },
   SUBSCRIPTION_EXPIRING: { bg: 'bg-amber-100',   text: 'text-amber-700',   ring: 'ring-amber-200',   gradient: 'from-amber-500 to-amber-600',     darkBg: 'dark:bg-amber-500/20',   darkText: 'dark:text-amber-300',   darkRing: 'dark:ring-amber-500/30' },
   REGISTER_OPENED:       { bg: 'bg-blue-100',    text: 'text-blue-700',    ring: 'ring-blue-200',    gradient: 'from-blue-500 to-blue-600',       darkBg: 'dark:bg-blue-500/20',    darkText: 'dark:text-blue-300',    darkRing: 'dark:ring-blue-500/30' },
-  REGISTER_CLOSED:       { bg: 'bg-slate-100',   text: 'text-slate-700',   ring: 'ring-slate-200',   gradient: 'from-slate-500 to-slate-600',     darkBg: 'dark:bg-slate-500/20',   darkText: 'dark:text-slate-300',   darkRing: 'dark:ring-slate-500/30' },
+  REGISTER_CLOSED:       { bg: 'bg-slate-100',   text: 'text-slate-700',   ring: 'ring-slate-200',   gradient: 'from-slate-500 to-slate-600',     darkBg: 'dark:bg-ink-500/20',   darkText: 'dark:text-ink-300',   darkRing: 'dark:ring-ink-500/30' },
   CREDIT_ALERT:          { bg: 'bg-rose-100',    text: 'text-rose-700',    ring: 'ring-rose-200',    gradient: 'from-rose-500 to-rose-600',       darkBg: 'dark:bg-rose-500/20',    darkText: 'dark:text-rose-300',    darkRing: 'dark:ring-rose-500/30' },
-  SYSTEM:                { bg: 'bg-slate-100',   text: 'text-slate-700',   ring: 'ring-slate-200',   gradient: 'from-slate-500 to-slate-600',     darkBg: 'dark:bg-slate-500/20',   darkText: 'dark:text-slate-300',   darkRing: 'dark:ring-slate-500/30' },
+  SYSTEM:                { bg: 'bg-slate-100',   text: 'text-slate-700',   ring: 'ring-slate-200',   gradient: 'from-slate-500 to-slate-600',     darkBg: 'dark:bg-ink-500/20',   darkText: 'dark:text-ink-300',   darkRing: 'dark:ring-ink-500/30' },
 };
 
 const FILTER_TABS = [
@@ -300,7 +300,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* HERO */}
-      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-slate-950 dark:via-brand-950 dark:to-brand-800 text-white p-4 sm:p-6 shadow-2xl relative overflow-hidden print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-ink-950 dark:via-brand-950 dark:to-brand-800 text-white p-4 sm:p-6 shadow-2xl relative overflow-hidden print:hidden">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl animate-pulse" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl" />
 
@@ -311,7 +311,7 @@ export default function NotificationsPage() {
                 <Bell className={`h-8 w-8 sm:h-9 sm:w-9 text-white ${unreadCount > 0 ? 'animate-pulse' : ''}`} />
               </div>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-7 min-w-[28px] px-1.5 rounded-full bg-rose-500 text-white text-xs font-extrabold flex items-center justify-center ring-4 ring-slate-900 dark:ring-slate-950 shadow-lg">
+                <span className="absolute -top-1 -right-1 h-7 min-w-[28px] px-1.5 rounded-full bg-rose-500 text-white text-xs font-extrabold flex items-center justify-center ring-4 ring-slate-900 dark:ring-ink-950 shadow-lg">
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -397,10 +397,10 @@ export default function NotificationsPage() {
       </section>
 
       {/* FILTER + SEARCH */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
         <div className="flex items-center gap-3 flex-wrap">
           {/* Tabs */}
-          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-x-auto">
+          <div className="flex items-center gap-1 p-1 bg-slate-100 dark:bg-ink-800 rounded-2xl overflow-x-auto">
             {FILTER_TABS.map((tab, idx) => {
               const Icon = tab.icon;
               const isActive = filter === tab.value;
@@ -411,8 +411,8 @@ export default function NotificationsPage() {
                   onClick={() => setFilter(tab.value)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition whitespace-nowrap ${
                     isActive
-                      ? 'bg-white dark:bg-slate-700 text-brand-700 dark:text-brand-300 shadow-md'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
+                      ? 'bg-white dark:bg-ink-700 text-brand-700 dark:text-brand-300 shadow-md'
+                      : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white hover:bg-white/50 dark:hover:bg-ink-700/50'
                   }`}
                   title={`Press ${idx + 1}`}
                 >
@@ -422,7 +422,7 @@ export default function NotificationsPage() {
                     <span className={`px-1.5 py-0.5 rounded-full text-[0.625rem] font-extrabold tabular-nums ${
                       isActive
                         ? 'bg-brand-100 dark:bg-brand-500/30 text-brand-700 dark:text-brand-300'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                        : 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
                     }`}>
                       {count}
                     </span>
@@ -440,12 +440,12 @@ export default function NotificationsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search notifications... (/ shortcut)"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500"
             />
             {search && (
               <button
                 onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 h-6 w-6 rounded hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-ink-300 h-6 w-6 rounded hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -462,7 +462,7 @@ export default function NotificationsPage() {
               className={`h-11 px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition border-2 ${
                 selectMode
                   ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
-                  : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
+                  : 'bg-white dark:bg-ink-800 hover:bg-slate-50 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-300 border-slate-200 dark:border-ink-700'
               }`}
             >
               {selectMode ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
@@ -507,19 +507,19 @@ export default function NotificationsPage() {
       </section>
 
       {/* LIST */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         {isLoading ? (
           <div className="p-12 text-center">
             <RefreshCw className="h-10 w-10 mx-auto animate-spin text-brand-500 mb-3" />
-            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Loading notifications...</p>
+            <p className="text-sm font-semibold text-slate-600 dark:text-ink-400">Loading notifications...</p>
           </div>
         ) : filteredNotifications.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="h-24 w-24 mx-auto rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-800/60 flex items-center justify-center mb-4 shadow-inner">
+            <div className="h-24 w-24 mx-auto rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-ink-800 dark:to-ink-800/60 flex items-center justify-center mb-4 shadow-inner">
               <BellOff className="h-12 w-12 text-slate-400" />
             </div>
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">No notifications found</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto font-semibold">
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">No notifications found</h3>
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-2 max-w-sm mx-auto font-semibold">
               {search
                 ? 'Try a different search term'
                 : filter !== 'all'
@@ -542,22 +542,22 @@ export default function NotificationsPage() {
               return (
                 <div key={dateLabel}>
                   {/* Date group header */}
-                  <div className="px-5 py-3 bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900/60 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur">
+                  <div className="px-5 py-3 bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-900/60 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between sticky top-0 z-10 backdrop-blur">
                     <div className="flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm">
-                        <GroupIcon className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+                      <div className="h-7 w-7 rounded-lg bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 flex items-center justify-center shadow-sm">
+                        <GroupIcon className="h-3.5 w-3.5 text-slate-600 dark:text-ink-300" />
                       </div>
-                      <h4 className="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                      <h4 className="text-xs font-extrabold text-slate-700 dark:text-ink-200 uppercase tracking-wider">
                         {dateLabel}
                       </h4>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
+                    <span className="px-2 py-0.5 rounded-full bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300">
                       {items.length}
                     </span>
                   </div>
 
                   {/* Items */}
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <div className="divide-y divide-slate-100 dark:divide-ink-800">
                     {items.map((n) => {
                       const Icon = typeIcons[n.type] || Info;
                       const color = typeColors[n.type] || typeColors.SYSTEM;
@@ -571,7 +571,7 @@ export default function NotificationsPage() {
                               ? 'bg-blue-50 dark:bg-blue-500/10 ring-2 ring-blue-400 dark:ring-blue-500/60 ring-inset'
                               : !n.isRead
                                 ? 'bg-gradient-to-r from-blue-50/40 dark:from-blue-500/5 to-transparent hover:from-blue-50/70 dark:hover:from-blue-500/10'
-                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                : 'hover:bg-slate-50 dark:hover:bg-ink-800/40'
                           }`}
                         >
                           {!n.isRead && !isSelected && (
@@ -603,13 +603,13 @@ export default function NotificationsPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
-                                  <div className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-2 flex-wrap">
+                                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm flex items-center gap-2 flex-wrap">
                                     {n.title}
                                     {!n.isRead && (
                                       <span className="h-2 w-2 rounded-full bg-blue-500 shadow-sm animate-pulse" />
                                     )}
                                   </div>
-                                  <div className="text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                                  <div className="text-sm text-slate-600 dark:text-ink-300 mt-1 leading-relaxed">
                                     {n.message}
                                   </div>
                                   <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -619,7 +619,7 @@ export default function NotificationsPage() {
                                       {n.type.replace(/_/g, ' ')}
                                     </span>
                                     <span
-                                      className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-1"
+                                      className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold inline-flex items-center gap-1"
                                       title={formatFullTime(n.createdAt)}
                                     >
                                       <Clock className="h-2.5 w-2.5" />
@@ -710,20 +710,20 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Notifications — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Notifications = system ka real-time alert.</strong> Har important event — sale, stock,
             customer, expense — yahan turant dikhta hai. 30 seconds pe auto-refresh.
           </p>
@@ -733,7 +733,7 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-2">
               📊 5 Categories
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <Tip><strong>📥 All</strong> — sab notifications ek jagah</Tip>
               <Tip><strong>🔔 Unread</strong> — abhi tak nahi dekhi (dot animate hoti hai)</Tip>
               <Tip><strong>🛒 Sales</strong> — nayi sale, payment mila, approved</Tip>
@@ -747,7 +747,7 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2">
               ⚡ Bulk Actions
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <Tip><strong>Select button</strong> — checkbox mode on, multiple choose karo</Tip>
               <Tip><strong>Select all</strong> — visible sab select, ek click me</Tip>
               <Tip><strong>Bulk mark read / delete</strong> — 50 alerts ek saath saaf</Tip>
@@ -755,11 +755,11 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Priority colors */}
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 p-4">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/60 dark:bg-ink-800/40 p-4">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-2">
               🎨 Color Priority
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-ink-200">
               <div>🟢 Green — good news (sales, payments)</div>
               <div>🟡 Yellow — dhyaan do (low stock)</div>
               <div>🔴 Red — urgent (errors, credit alert)</div>
@@ -774,22 +774,22 @@ function NotificationsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-2">
               ⌨️ Shortcuts
             </div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">/</kbd> — Search focus</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">1-5</kbd> — Category tabs</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">R</kbd> — Mark all read</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">M</kbd> — Mute/unmute</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">G</kbd> — Guide</div>
-              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-slate-800 border font-mono font-bold text-[0.625rem]">Esc</kbd> — Close</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-ink-200">
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">/</kbd> — Search focus</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">1-5</kbd> — Category tabs</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">R</kbd> — Mark all read</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">M</kbd> — Mute/unmute</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">G</kbd> — Guide</div>
+              <div><kbd className="px-1 py-0.5 rounded bg-white dark:bg-ink-800 border font-mono font-bold text-[0.625rem]">Esc</kbd> — Close</div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💡 <strong>Pro tip:</strong> Notification pe click karne se — agar link hai to seedha us page pe le
             jayega (e.g. low stock → product page, new sale → receipt). Auto-mark as read bhi ho jayegi.
           </div>
 
-          <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/30 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             🔊 <strong>Sound:</strong> Naye notifications pe beep bajti hai. Mute karna ho to M dabao ya top-right
             speaker button. Dukan me shor ho to mute kar do — badge count phir bhi update hoga.
           </div>

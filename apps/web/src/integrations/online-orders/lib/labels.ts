@@ -2,7 +2,7 @@ import type { OnlineOrderStatus } from '../api/online-orders.api';
 
 export const STATUS_LABEL: Record<OnlineOrderStatus, { label: string; short: string; tone: string; dot: string }> = {
   PENDING:          { label: 'Naya order',    short: 'Naya',     tone: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',       dot: 'bg-amber-500' },
-  ACCEPTING:        { label: 'Bill ban raha', short: 'Ruko…',    tone: 'bg-slate-100 text-slate-700 dark:bg-slate-700/40 dark:text-slate-300',       dot: 'bg-slate-400' },
+  ACCEPTING:        { label: 'Bill ban raha', short: 'Ruko…',    tone: 'bg-slate-100 text-slate-700 dark:bg-ink-700/40 dark:text-ink-300',       dot: 'bg-slate-400' },
   CONFIRMED:        { label: 'Accept ho gaya', short: 'Accept',  tone: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300',               dot: 'bg-sky-500' },
   PREPARING:        { label: 'Tayyar ho raha', short: 'Packing', tone: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-300',   dot: 'bg-indigo-500' },
   READY:            { label: 'Pack ho gaya',  short: 'Ready',    tone: 'bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-violet-300',   dot: 'bg-violet-500' },
@@ -78,7 +78,7 @@ export function waNumber(phone?: string | null): string | null {
 export const PAYMENT_LABEL: Record<string, { label: string; tone: string }> = {
   PAID: { label: 'Paisa mil gaya', tone: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300' },
   COLLECTED: { label: 'Courier ke paas', tone: 'bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-300' },
-  NOT_COLLECTED: { label: 'Paisa nahi aaya (RTO)', tone: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
+  NOT_COLLECTED: { label: 'Paisa nahi aaya (RTO)', tone: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300' },
   PENDING: { label: 'Baqi', tone: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300' },
 };
 

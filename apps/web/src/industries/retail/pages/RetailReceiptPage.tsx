@@ -258,7 +258,7 @@ export default function RetailReceiptPage() {
   /* ── States ── */
   if (isLoading) {
     return (
-      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-neutral-950">
+      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-ink-950">
         <div className="flex flex-col items-center gap-3 text-neutral-500">
           <Loader2 className="h-8 w-8 animate-spin" />
           <p className="text-sm font-medium">Receipt load ho rahi hai…</p>
@@ -269,15 +269,15 @@ export default function RetailReceiptPage() {
 
   if (isError || !sale) {
     return (
-      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-neutral-950 p-6">
-        <div className="max-w-sm w-full rounded-2xl bg-white dark:bg-neutral-900 p-8 text-center shadow-lg">
+      <div className="min-h-screen grid place-items-center bg-neutral-100 dark:bg-ink-950 p-6">
+        <div className="max-w-sm w-full rounded-2xl bg-white dark:bg-ink-900 p-8 text-center shadow-lg">
           <AlertTriangle className="h-10 w-10 mx-auto text-amber-500" />
           <h2 className="mt-4 text-lg font-extrabold">Receipt nahi mili</h2>
           <p className="mt-1 text-sm text-neutral-500">Sale ID ghalat hai ya record delete ho chuka hai.</p>
           <div className="mt-6 flex gap-2 justify-center">
             <button
               onClick={() => refetch()}
-              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-white dark:text-neutral-900 text-white px-4 py-2 text-sm font-extrabold"
+              className="inline-flex items-center gap-2 rounded-xl bg-neutral-900 dark:bg-ink-white dark:text-ink-900 text-white px-4 py-2 text-sm font-extrabold"
             >
               <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} /> Retry
             </button>
@@ -293,13 +293,13 @@ export default function RetailReceiptPage() {
 
   /* ── UI ── */
   return (
-    <div className="min-h-screen bg-neutral-100 dark:bg-neutral-950 pb-28 print:bg-white">
+    <div className="min-h-screen bg-neutral-100 dark:bg-ink-950 pb-28 print:bg-white">
       <PrintStyles />
 
       {/* ══ Toolbar ══ */}
-      <div className="print:hidden sticky top-0 z-20 bg-white/90 dark:bg-neutral-900/90 backdrop-blur border-b">
+      <div className="print:hidden sticky top-0 z-20 bg-white/90 dark:bg-ink-900/90 backdrop-blur border-b">
         <div className="max-w-2xl mx-auto flex items-center gap-2 px-3 py-2.5">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Back">
+          <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Back">
             <ArrowLeft className="h-5 w-5" />
           </button>
           <h1 className="font-extrabold text-sm flex items-center gap-2">
@@ -310,13 +310,13 @@ export default function RetailReceiptPage() {
             <div className="flex rounded-xl border overflow-hidden">
               <button
                 onClick={() => setMode('short')}
-                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${!full ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : ''}`}
+                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${!full ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : ''}`}
               >
                 <Minimize2 className="h-3.5 w-3.5" /> Short
               </button>
               <button
                 onClick={() => setMode('full')}
-                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${full ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : ''}`}
+                className={`px-2.5 py-1.5 text-xs font-extrabold flex items-center gap-1 ${full ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : ''}`}
               >
                 <Maximize2 className="h-3.5 w-3.5" /> Full
               </button>
@@ -327,7 +327,7 @@ export default function RetailReceiptPage() {
                 <button
                   key={w}
                   onClick={() => setPaperWidth(w)}
-                  className={`px-2.5 py-1.5 text-xs font-extrabold tabular-nums ${paperWidth === w ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : ''}`}
+                  className={`px-2.5 py-1.5 text-xs font-extrabold tabular-nums ${paperWidth === w ? 'bg-neutral-900 text-white dark:bg-ink-white dark:text-ink-900' : ''}`}
                 >
                   {w}mm
                 </button>
@@ -337,10 +337,10 @@ export default function RetailReceiptPage() {
             <button onClick={shareWhatsApp} className="p-2 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700" aria-label="WhatsApp">
               <MessageCircle className="h-4 w-4" />
             </button>
-            <button onClick={shareNative} className="p-2 rounded-xl border hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Share">
+            <button onClick={shareNative} className="p-2 rounded-xl border hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Share">
               <Share2 className="h-4 w-4" />
             </button>
-            <button onClick={copyLink} className="p-2 rounded-xl border hover:bg-neutral-100 dark:hover:bg-neutral-800" aria-label="Copy link">
+            <button onClick={copyLink} className="p-2 rounded-xl border hover:bg-neutral-100 dark:hover:bg-ink-800" aria-label="Copy link">
               {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
             </button>
             <button
@@ -549,7 +549,7 @@ export default function RetailReceiptPage() {
       </div>
 
       {/* ══ Mobile bottom bar ══ */}
-      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-neutral-900/95 backdrop-blur border-t p-3 sm:hidden">
+      <div className="print:hidden fixed bottom-0 inset-x-0 z-20 bg-white/95 dark:bg-ink-900/95 backdrop-blur border-t p-3 sm:hidden">
         <div className="flex gap-2 max-w-2xl mx-auto">
           <button
             onClick={doPrint}

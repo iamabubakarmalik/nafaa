@@ -37,13 +37,13 @@ export function PosCartPanel({
   onSetPrice, onCheckout, onInstantCash, canCheckout, checkoutPending,
 }: any) {
   const containerClass = isMobile
-    ? 'fixed inset-0 z-40 bg-white dark:bg-slate-950 flex flex-col lg:hidden'
-    : 'hidden lg:flex rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden flex-col min-h-0';
+    ? 'fixed inset-0 z-40 bg-white dark:bg-ink-950 flex flex-col lg:hidden'
+    : 'hidden lg:flex rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden flex-col min-h-0';
   const hasDiscount = discountAmount > 0;
 
   return (
     <aside className={containerClass}>
-      <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
+      <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
@@ -86,7 +86,7 @@ export function PosCartPanel({
         </div>
       </div>
 
-      <div className="shrink-0 px-3 py-2.5 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
+      <div className="shrink-0 px-3 py-2.5 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60">
         <div className="flex gap-2">
           <div className="flex-1 min-w-0">
             <PosCustomerPicker
@@ -131,15 +131,15 @@ export function PosCartPanel({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 bg-slate-50/50 dark:bg-slate-950/40 min-h-0">
+      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 bg-slate-50/50 dark:bg-ink-950/40 min-h-0">
         {cart.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-4 border-dashed border-slate-200 dark:border-slate-700 p-8 sm:p-10 text-center">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
-              <ShoppingCart className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400 dark:text-slate-500" />
+          <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-4 border-dashed border-slate-200 dark:border-ink-700 p-8 sm:p-10 text-center">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
+              <ShoppingCart className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400 dark:text-ink-500" />
             </div>
-            <p className="mt-4 font-extrabold text-slate-700 dark:text-slate-200 text-lg sm:text-xl">Cart khaali hai</p>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">Scan karo, click karo, ya 🎤 bolo: "2 kilo chini"</p>
-            <p className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-2 inline-flex items-center gap-1">
+            <p className="mt-4 font-extrabold text-slate-700 dark:text-ink-200 text-lg sm:text-xl">Cart khaali hai</p>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-semibold mt-1">Scan karo, click karo, ya 🎤 bolo: "2 kilo chini"</p>
+            <p className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold mt-2 inline-flex items-center gap-1">
               <Zap className="h-3 w-3 text-amber-500" /> F12 = instant cash + print!
             </p>
           </div>
@@ -162,11 +162,11 @@ export function PosCartPanel({
       </div>
 
       {cart.length > 0 && (
-        <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-2">
+        <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900/80 space-y-2">
           <button onClick={onOpenDiscount}
             className={['w-full h-12 rounded-2xl font-extrabold text-sm inline-flex items-center justify-between px-4 border-2 transition active:scale-[0.98]',
               hasDiscount ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-500 text-white shadow-md shadow-amber-500/30'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-amber-400'].join(' ')}>
+              : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-amber-400'].join(' ')}>
             <span className="inline-flex items-center gap-2">
               <Tag className="h-4 w-4" />
               {hasDiscount ? <span>Discount: {discountMode === 'pct' ? `${discountPct}%` : formatPKR(discountRs)}</span> : <span>Discount lagayein?</span>}
@@ -184,7 +184,7 @@ export function PosCartPanel({
           </button>
 
           {hasDiscount && !hidePrices && (
-            <div className="text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums flex justify-between px-1">
+            <div className="text-xs font-bold text-slate-500 dark:text-ink-400 tabular-nums flex justify-between px-1">
               <span>Subtotal</span>
               <span className="line-through">{formatPKR(subtotal)}</span>
             </div>
@@ -255,10 +255,10 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
   };
 
   return (
-    <div className={['rounded-2xl bg-white dark:bg-slate-900 border-4 p-2.5 sm:p-3 shadow-sm dark:shadow-black/20',
-      l.type === 'combo' ? 'border-violet-300 dark:border-violet-500/40' : customPriced ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-700'].join(' ')}>
+    <div className={['rounded-2xl bg-white dark:bg-ink-900 border-4 p-2.5 sm:p-3 shadow-sm dark:shadow-black/20',
+      l.type === 'combo' ? 'border-violet-300 dark:border-violet-500/40' : customPriced ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-700'].join(' ')}>
       <div className="flex items-start gap-2.5 sm:gap-3">
-        <div className={['h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center relative bg-slate-100 dark:bg-slate-800',
+        <div className={['h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center relative bg-slate-100 dark:bg-ink-800',
           l.type === 'combo' ? 'bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/20 dark:to-fuchsia-500/20' : ''].join(' ')}>
           {l.image ? <img src={l.image} alt="" className="w-full h-full object-cover" /> : <span className="text-xl sm:text-2xl">{l.emoji}</span>}
           {l.type === 'combo' && (
@@ -269,14 +269,14 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2">{l.name}</div>
+            <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-ink-white leading-tight line-clamp-2">{l.name}</div>
             {l.type === 'combo' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Combo</span>}
             {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
           </div>
 
           {editing ? (
             <div className="mt-1 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Rs</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-ink-400">Rs</span>
               <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') onCancelPriceEdit(); }}
@@ -284,7 +284,7 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
                 className="h-9 w-28 rounded-lg border-2 border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 px-2 text-base font-extrabold tabular-nums text-amber-900 dark:text-amber-200 focus:outline-none" />
               <button onClick={commit} className="h-9 w-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Check className="h-4 w-4" /></button>
               <button onClick={() => onSetPrice(l.basePrice)} title="Wapas original rate"
-                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">Reset</button>
+                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold">Reset</button>
             </div>
           ) : (
             <button onClick={onStartPriceEdit} title="Rate badlo"
@@ -294,9 +294,9 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
             </button>
           )}
 
-          {l.note && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">{l.note}</div>}
+          {l.note && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5">{l.note}</div>}
           {customPriced && !editing && (
-            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
           )}
         </div>
         <button onClick={onRemove}
@@ -305,14 +305,14 @@ export function PosCartRow({ line: l, hidePrices, editing, onStartPriceEdit, onS
         </button>
       </div>
       <div className="mt-2.5 sm:mt-3 flex items-center justify-between gap-2">
-        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
-          <button onClick={() => onChangeQty(-1)} className="h-12 sm:h-14 w-12 sm:w-14 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 flex items-center justify-center transition">
-            <Minus className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700 dark:text-slate-200" />
+        <div className="inline-flex items-center bg-slate-100 dark:bg-ink-800 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
+          <button onClick={() => onChangeQty(-1)} className="h-12 sm:h-14 w-12 sm:w-14 hover:bg-slate-200 dark:hover:bg-ink-700 active:bg-slate-300 flex items-center justify-center transition">
+            <Minus className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700 dark:text-ink-200" />
           </button>
           <input type="number" step="0.001" value={l.quantity}
             onChange={(e) => onSetQty(Number(e.target.value))}
             onFocus={(e) => e.target.select()}
-            className="h-12 sm:h-14 min-w-[70px] w-[70px] sm:min-w-[80px] sm:w-[80px] text-center bg-white dark:bg-slate-900 border-0 text-lg sm:text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none" />
+            className="h-12 sm:h-14 min-w-[70px] w-[70px] sm:min-w-[80px] sm:w-[80px] text-center bg-white dark:bg-ink-900 border-0 text-lg sm:text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none" />
           <button onClick={() => onChangeQty(1)}
             className={['h-12 sm:h-14 w-12 sm:w-14 text-white flex items-center justify-center transition',
               l.type === 'combo' ? 'bg-violet-600 hover:bg-violet-700 active:bg-violet-800' : isWeight ? 'bg-amber-600 hover:bg-amber-700' : 'bg-sky-600 hover:bg-sky-700 active:bg-sky-800'].join(' ')}>

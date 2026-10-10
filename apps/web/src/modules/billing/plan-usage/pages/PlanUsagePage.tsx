@@ -75,7 +75,7 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
         ? 'border-rose-300 dark:border-rose-500/50 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10'
         : warning
           ? 'border-amber-300 dark:border-amber-500/50 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10'
-          : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm hover:border-brand-300 dark:hover:border-brand-500/50'
+          : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm hover:border-brand-300 dark:hover:border-brand-500/50'
     }`}>
       <div className={`absolute -top-8 -right-8 h-32 w-32 rounded-full ${c.bg} blur-2xl opacity-50 pointer-events-none`} />
 
@@ -86,10 +86,10 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
               <Icon className="h-6 w-6" />
             </div>
             <div className="min-w-0">
-              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400">
                 {isUnlimited ? 'Unlimited' : danger ? 'Critical' : warning ? 'Warning' : 'Healthy'}
               </div>
-              <div className="font-extrabold text-slate-900 dark:text-white text-sm">{label}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{label}</div>
             </div>
           </div>
 
@@ -119,18 +119,18 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
         <div className="mb-3">
           <div className="flex items-baseline gap-1">
             <div className={`text-2xl sm:text-3xl font-extrabold tabular-nums ${
-              danger ? 'text-rose-700 dark:text-rose-400' : warning ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-white'
+              danger ? 'text-rose-700 dark:text-rose-400' : warning ? 'text-amber-700 dark:text-amber-400' : 'text-slate-900 dark:text-ink-white'
             }`}>
               {formatNum(current)}
             </div>
             {!isUnlimited && (
-              <div className="text-sm text-slate-500 dark:text-slate-400 font-bold">
+              <div className="text-sm text-slate-500 dark:text-ink-400 font-bold">
                 / {formatNum(limit)}
               </div>
             )}
           </div>
           {!isUnlimited && (
-            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5">
               {formatNum(Math.max(0, limit - current))} remaining
             </div>
           )}
@@ -138,7 +138,7 @@ const UsageCard = ({ label, current, limit, icon: Icon, color }: UsageCardProps)
 
         {!isUnlimited && (
           <div className="space-y-1.5">
-            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden shadow-inner">
+            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden shadow-inner">
               <div
                 className={`h-full rounded-full transition-all duration-700 ${
                   danger ? 'bg-gradient-to-r from-rose-500 to-rose-600' :
@@ -186,25 +186,25 @@ const FeatureItem = ({ enabled, label, icon: Icon, description }: FeatureItemPro
   <div className={`group relative rounded-xl border-2 p-3 transition-all ${
     enabled
       ? 'border-emerald-200 dark:border-emerald-500/40 bg-emerald-50/30 dark:bg-emerald-500/5 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:shadow-md'
-      : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 opacity-70 hover:opacity-100'
+      : 'border-slate-200 dark:border-ink-800 bg-slate-50/50 dark:bg-ink-800/30 opacity-70 hover:opacity-100'
   }`}>
     <div className="flex items-start gap-3">
       <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
         enabled
           ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-md shadow-emerald-500/30'
-          : 'bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500'
+          : 'bg-slate-200 dark:bg-ink-700 text-slate-400 dark:text-ink-500'
       }`}>
         {enabled ? <Icon className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className={`font-extrabold text-sm ${enabled ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
+          <span className={`font-extrabold text-sm ${enabled ? 'text-slate-900 dark:text-ink-white' : 'text-slate-500 dark:text-ink-400'}`}>
             {label}
           </span>
           {enabled && <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />}
         </div>
         {description && (
-          <div className={`text-[0.6875rem] mt-0.5 font-semibold ${enabled ? 'text-slate-600 dark:text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>
+          <div className={`text-[0.6875rem] mt-0.5 font-semibold ${enabled ? 'text-slate-600 dark:text-ink-400' : 'text-slate-400 dark:text-ink-500'}`}>
             {description}
           </div>
         )}
@@ -298,10 +298,10 @@ export default function PlanUsagePage() {
   if (isLoading || !data || !summary) {
     return (
       <div className="space-y-6">
-        <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+        <div className="h-32 bg-slate-100 dark:bg-ink-800 rounded-3xl animate-pulse" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl animate-pulse" />
+            <div key={i} className="h-32 bg-slate-100 dark:bg-ink-800 rounded-2xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -355,7 +355,7 @@ export default function PlanUsagePage() {
       {showTeacher && <UsageTeacher onClose={() => setShowTeacher(false)} summary={summary} planName={data.plan.name} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-slate-950 dark:via-brand-950 dark:to-brand-900 text-white p-5 sm:p-8 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-ink-950 dark:via-brand-950 dark:to-brand-900 text-white p-5 sm:p-8 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-brand-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl pointer-events-none" />
 
@@ -497,8 +497,8 @@ export default function PlanUsagePage() {
               <Gauge className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Usage Limits</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Real-time tracking • Avg usage: {summary.avgUsage}%</p>
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white">Usage Limits</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Real-time tracking • Avg usage: {summary.avgUsage}%</p>
             </div>
           </div>
         </div>
@@ -519,21 +519,21 @@ export default function PlanUsagePage() {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Available Features</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white">Available Features</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                 <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">{summary.enabledCount}</span> of {summary.totalFeatures} enabled ({summary.featurePct}%)
               </p>
             </div>
           </div>
 
           <div className="hidden sm:flex items-center gap-2">
-            <div className="h-2 w-24 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden shadow-inner">
+            <div className="h-2 w-24 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden shadow-inner">
               <div
                 className="h-full bg-gradient-to-r from-emerald-500 to-green-600 transition-all duration-700"
                 style={{ width: `${summary.featurePct}%` }}
               />
             </div>
-            <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200">{summary.featurePct}%</span>
+            <span className="text-xs font-extrabold text-slate-700 dark:text-ink-200">{summary.featurePct}%</span>
           </div>
         </div>
 
@@ -572,7 +572,7 @@ export default function PlanUsagePage() {
 
       {/* ═══ SMART RECOMMENDATION ═══ */}
       {(summary.critical > 0 || summary.warning > 0 || summary.enabledCount < summary.totalFeatures) && (
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-emerald-700 dark:from-slate-950 dark:via-brand-950 dark:to-emerald-900 text-white p-5 sm:p-8 shadow-2xl">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-emerald-700 dark:from-ink-950 dark:via-brand-950 dark:to-emerald-900 text-white p-5 sm:p-8 shadow-2xl">
           <div className="absolute -top-12 -right-12 h-48 w-48 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
           <div className="absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
 
@@ -665,7 +665,7 @@ function FeatureGroup({ title, icon: Icon, tone, items, features, proBadge }: an
   const enabledInGroup = items.filter((f: any) => features[f.key]).length;
 
   return (
-    <div className={`rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm overflow-hidden ${tone === 'violet' ? 'border-violet-200 dark:border-violet-500/40' : 'border-slate-200 dark:border-slate-800'}`}>
+    <div className={`rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm overflow-hidden ${tone === 'violet' ? 'border-violet-200 dark:border-violet-500/40' : 'border-slate-200 dark:border-ink-800'}`}>
       <div className={`px-5 py-3 ${t.bg} border-b-2 ${t.border} flex items-center justify-between gap-2 flex-wrap`}>
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${t.iconBg}`} />
@@ -701,18 +701,18 @@ function FeatureGroup({ title, icon: Icon, tone, items, features, proBadge }: an
 function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; summary: any; planName: string }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-brand-200 dark:border-brand-500/30 bg-gradient-to-r from-brand-50 to-emerald-50 dark:from-brand-500/15 dark:to-emerald-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-brand-900 dark:text-brand-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Plan Usage — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Ye page tumhari <span className="text-brand-700 dark:text-brand-400">{planName}</span> plan ka control room hai.</strong> Kya use ho raha, kya limits hain, kaunse features enabled — sab yahan real-time.
           </p>
 
@@ -724,7 +724,7 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
                 ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40'
                 : 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
           }`}>
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1 mb-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 flex items-center gap-1 mb-2">
               <Gauge className="h-3 w-3" /> Aap Ka Health Score
             </div>
             <div className="flex items-center justify-between">
@@ -736,13 +736,13 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
                 }`}>
                   {summary.healthScore}
                 </div>
-                <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200 mt-1">
+                <div className="text-xs font-extrabold text-slate-700 dark:text-ink-200 mt-1">
                   {summary.healthScore >= 75 ? '🎉 Excellent — thoda margin hai grow karne ke liye' :
                    summary.healthScore >= 50 ? '⚠️ Fair — limits pe pressure barh raha hai' :
                    '🔴 Poor — foran upgrade zaroori'}
                 </div>
               </div>
-              <div className="text-right text-xs font-semibold text-slate-600 dark:text-slate-400">
+              <div className="text-right text-xs font-semibold text-slate-600 dark:text-ink-400">
                 <div>Usage: <strong>{summary.avgUsage}%</strong></div>
                 <div>Features: <strong>{summary.featurePct}%</strong></div>
               </div>
@@ -754,17 +754,17 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Package className="h-3 w-3" /> 4 Main Limits
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 📦 <strong>Products:</strong> Kitne unique items catalog me. 90%+ hit = purane inactive delete karo ya upgrade.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 👥 <strong>Users:</strong> Team members jo login karte hain. Salesman/manager add karne se pehle check karo.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 🏪 <strong>Shops:</strong> Branches/outlets count. Multi-shop features Pro+ me milta hai.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 🛒 <strong>Sales/month:</strong> Har mahine ke transactions. Har naye mahine reset hoti hai — end-of-month watch karo.
               </div>
             </div>
@@ -775,7 +775,7 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Target className="h-3 w-3" /> Color Coding
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2">
                 🟢 <strong>Healthy ({'<'}75%):</strong> Sab theek. Aaram se grow karo.
               </div>
@@ -785,15 +785,15 @@ function UsageTeacher({ onClose, summary, planName }: { onClose: () => void; sum
               <div className="rounded-lg bg-rose-100 dark:bg-rose-500/20 border border-rose-300 dark:border-rose-500/40 p-2">
                 🔴 <strong>Critical (90%+):</strong> Nayi entries block ho sakti hain! Foran upgrade karo.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 p-2">
                 ♾️ <strong>Unlimited:</strong> Enterprise plan — grow karte raho, koi ceiling nahi.
               </div>
             </div>
           </div>
 
           {/* Optimization tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-1 flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> Optimization Tips
             </div>
             <TipRow><strong>🧹 Cleanup regularly:</strong> Purane inactive products/customers delete karo. Space free ho jayega.</TipRow>

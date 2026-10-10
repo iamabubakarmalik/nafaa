@@ -93,13 +93,13 @@ export default function MembershipsPage() {
       <div className="flex gap-2">
         <button onClick={() => setTab('plans')} className={
           'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'plans' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+          (tab === 'plans' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
         }>
           Plans ({plans.length})
         </button>
         <button onClick={() => setTab('members')} className={
           'px-4 py-2 rounded-xl text-sm font-extrabold transition ' +
-          (tab === 'members' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 text-slate-700')
+          (tab === 'members' ? 'bg-amber-600 text-white shadow' : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 text-slate-700')
         }>
           Members
         </button>
@@ -128,10 +128,10 @@ export default function MembershipsPage() {
       {tab === 'plans' ? (
         plansLoading ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+            {[1, 2, 3].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : plans.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
             <Crown className="h-16 w-16 text-slate-400 mx-auto mb-3" />
             <p className="font-extrabold text-slate-700">No membership plans yet</p>
             <Button className="mt-4 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => { setEditingPlan(null); setShowPlanForm(true); }}>
@@ -157,17 +157,17 @@ export default function MembershipsPage() {
             {['ACTIVE', 'all', 'EXPIRED', 'CANCELLED', 'PAUSED'].map((s) => (
               <button key={s} onClick={() => setStatusFilter(s)} className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-                (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }>{s === 'all' ? 'All' : s}</button>
             ))}
           </div>
 
           {membersLoading ? (
             <div className="grid gap-3">
-              {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+              {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : memberships.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
               <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
               <p className="font-extrabold text-slate-700">No members yet</p>
             </div>
@@ -195,7 +195,7 @@ function PlanCard({ plan, onEdit, onDelete }: { plan: MembershipPlan; onEdit: ()
   const tier = TIERS.find((t) => t.value === plan.tier);
 
   return (
-    <div className="group rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-xl transition overflow-hidden">
+    <div className="group rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl transition overflow-hidden">
       <div className={'relative p-6 text-white bg-gradient-to-br ' + (tier?.gradient ?? 'from-slate-500 to-slate-700')}>
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
           <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center">
@@ -263,7 +263,7 @@ function PlanCard({ plan, onEdit, onDelete }: { plan: MembershipPlan; onEdit: ()
           ))}
         </div>
 
-        <div className="pt-3 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="pt-3 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
           <span className="inline-flex items-center gap-1 text-xs text-slate-500 font-extrabold">
             <Users className="h-3 w-3" />
             {plan.totalSubscribers} members
@@ -281,8 +281,8 @@ function MembershipCard({ membership, onCancel }: any) {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 ' +
-      (isExpiringSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 ' +
+      (isExpiringSoon ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -291,7 +291,7 @@ function MembershipCard({ membership, onCancel }: any) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{membership.membershipNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{membership.membershipNumber}</span>
               <span className={
                 'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                 (membership.status === 'ACTIVE' ? 'bg-emerald-600' :
@@ -309,7 +309,7 @@ function MembershipCard({ membership, onCancel }: any) {
                 <span className="px-2 py-0.5 rounded bg-blue-100 text-blue-700 text-[0.625rem] font-extrabold uppercase">Auto-renew</span>
               )}
             </div>
-            <div className="mt-1 text-sm font-bold text-slate-900 dark:text-white">{membership.plan?.name}</div>
+            <div className="mt-1 text-sm font-bold text-slate-900 dark:text-ink-white">{membership.plan?.name}</div>
             <div className="mt-1 text-xs text-slate-500 font-semibold">
               {format(new Date(membership.startDate), 'dd MMM')} → {format(new Date(membership.expiryDate), 'dd MMM yyyy')}
             </div>
@@ -369,22 +369,22 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Plan' : 'New Membership Plan'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Plan' : 'New Membership Plan'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Plan Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+          <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Plan Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <select value={form.tier} onChange={(e) => setForm({ ...form, tier: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
             {TIERS.map((t) => <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>)}
           </select>
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Plan description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Plan description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
@@ -393,7 +393,7 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Duration (days) *</label>
-            <input type="number" value={form.durationDays} onChange={(e) => setForm({ ...form, durationDays: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
+            <input type="number" value={form.durationDays} onChange={(e) => setForm({ ...form, durationDays: e.target.value })} className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-extrabold tabular-nums focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
@@ -420,7 +420,7 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
           <div className="grid grid-cols-2 gap-2">
             <label className={
               'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-              (form.priorityBooking ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white')
+              (form.priorityBooking ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40' : 'border-slate-200 dark:border-ink-700 bg-white')
             }>
               <input type="checkbox" checked={form.priorityBooking} onChange={(e) => setForm({ ...form, priorityBooking: e.target.checked })} className="h-4 w-4 rounded" />
               <Star className={'h-4 w-4 ' + (form.priorityBooking ? 'text-violet-600' : 'text-slate-400')} />
@@ -428,7 +428,7 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
             </label>
             <label className={
               'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' +
-              (form.freeConsultation ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white')
+              (form.freeConsultation ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700 bg-white')
             }>
               <input type="checkbox" checked={form.freeConsultation} onChange={(e) => setForm({ ...form, freeConsultation: e.target.checked })} className="h-4 w-4 rounded" />
               <Gift className={'h-4 w-4 ' + (form.freeConsultation ? 'text-blue-600' : 'text-slate-400')} />
@@ -442,7 +442,7 @@ function PlanForm({ editing, onClose, onSaved }: { editing: MembershipPlan | nul
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.price}>
             <Save className="h-4 w-4" />
@@ -488,9 +488,9 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">Subscribe Customer to Plan</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Subscribe Customer to Plan</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -508,7 +508,7 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
                   onClick={() => setForm({ ...form, planId: plan.id, amountPaid: plan.price })}
                   className={
                     'p-3 rounded-xl border-2 text-left transition ' +
-                    (form.planId === plan.id ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-amber-300')
+                    (form.planId === plan.id ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300')
                   }
                 >
                   <div className="flex items-center gap-2">
@@ -572,7 +572,7 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Payment Method</label>
-              <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
+              <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500">
                 <option>CASH</option><option>CARD</option><option>JAZZCASH</option><option>EASYPAISA</option><option>BANK</option>
               </select>
             </div>
@@ -587,9 +587,9 @@ function SubscribeForm({ plans, onClose, onSaved }: { plans: MembershipPlan[]; o
           </div>
         </label>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => subscribeMutation.mutate()} loading={subscribeMutation.isPending} disabled={!form.planId || !form.customerId}>
             <Crown className="h-4 w-4" />

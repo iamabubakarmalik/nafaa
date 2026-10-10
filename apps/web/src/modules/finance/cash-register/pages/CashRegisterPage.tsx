@@ -57,7 +57,7 @@ const txTypeConfig: Record<string, { label: string; tone: string; darkTone: stri
   CASH_IN:  { label: 'Cash In',         tone: 'bg-emerald-100 text-emerald-700', darkTone: 'dark:bg-emerald-500/20 dark:text-emerald-300', icon: ArrowDownToLine,  isIncome: true },
   CASH_OUT: { label: 'Cash Out',        tone: 'bg-rose-100 text-rose-700',       darkTone: 'dark:bg-rose-500/20 dark:text-rose-300',       icon: ArrowUpFromLine,  isIncome: false },
   EXPENSE:  { label: 'Expense',         tone: 'bg-amber-100 text-amber-700',     darkTone: 'dark:bg-amber-500/20 dark:text-amber-300',     icon: ArrowUpFromLine,  isIncome: false },
-  CLOSING:  { label: 'Closing',         tone: 'bg-slate-100 text-slate-700',     darkTone: 'dark:bg-slate-700 dark:text-slate-300',        icon: StopCircle,       isIncome: false },
+  CLOSING:  { label: 'Closing',         tone: 'bg-slate-100 text-slate-700',     darkTone: 'dark:bg-ink-700 dark:text-ink-300',        icon: StopCircle,       isIncome: false },
 };
 
 export default function CashRegisterPage() {
@@ -267,7 +267,7 @@ export default function CashRegisterPage() {
       )}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-emerald-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
 
@@ -335,24 +335,24 @@ export default function CashRegisterPage() {
       </section>
 
       {isLoading ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="inline-block h-10 w-10 rounded-full border-4 border-emerald-200 dark:border-emerald-800 border-t-emerald-600 dark:border-t-emerald-400 animate-spin" />
         </div>
       ) : !current ? (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-6 sm:p-8">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-6 sm:p-8">
           <div className="max-w-md mx-auto text-center">
             <div className="mx-auto h-20 w-20 sm:h-24 sm:w-24 rounded-3xl bg-gradient-to-br from-emerald-100 to-emerald-200 dark:from-emerald-500/20 dark:to-emerald-500/30 flex items-center justify-center shadow-inner">
               <PlayCircle className="h-10 w-10 sm:h-12 sm:w-12 text-emerald-700 dark:text-emerald-400" />
             </div>
-            <h3 className="mt-5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Register Open Karo</h3>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-semibold">
+            <h3 className="mt-5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white">Register Open Karo</h3>
+            <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold">
               Din shuru karne se pehle apna opening cash count enter karo.
             </p>
 
             <div className="mt-6 space-y-4 text-left">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300">Opening Cash Balance *</label>
+                  <label className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Opening Cash Balance *</label>
                   <button
                     onClick={() => setShowDenomCalc('opening')}
                     className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
@@ -366,9 +366,9 @@ export default function CashRegisterPage() {
                   value={openingBalance}
                   onChange={(e) => setOpeningBalance(e.target.value)}
                   placeholder="5000"
-                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-lg font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition tabular-nums"
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition tabular-nums"
                 />
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                   Drawer me jitna cash hai woh count karke likho
                 </div>
               </div>
@@ -445,14 +445,14 @@ export default function CashRegisterPage() {
           </section>
 
           {/* ── Poora hisab — har qadam ── */}
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center gap-2.5 mb-3">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow">
                 <Calculator className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-black text-slate-900 dark:text-white">Golak Ka Poora Hisab</h3>
-                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                <h3 className="font-black text-slate-900 dark:text-ink-white">Golak Ka Poora Hisab</h3>
+                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                   Register khulne se ab tak — har paisa
                 </p>
               </div>
@@ -489,13 +489,13 @@ export default function CashRegisterPage() {
 
             {/* Golak ke bahar ka paisa — taake ghalat-fehmi na ho */}
             {(current.live?.nonCashCollected ?? 0) > 0 || (current.live?.creditGiven ?? 0) > 0 ? (
-              <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
+              <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
                 <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
                   Ye golak me nahi aaya
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
                   {(current.live?.nonCashCollected ?? 0) > 0 && (
-                    <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5">
+                    <div className="rounded-xl bg-white dark:bg-ink-900 p-2.5">
                       <div className="text-[0.6875rem] font-bold text-slate-500">Card / wallet / bank</div>
                       <div className="text-base font-black text-blue-700 dark:text-blue-400 tabular-nums">
                         {formatPKR(current.live?.nonCashCollected ?? 0)}
@@ -503,7 +503,7 @@ export default function CashRegisterPage() {
                     </div>
                   )}
                   {(current.live?.creditGiven ?? 0) > 0 && (
-                    <div className="rounded-xl bg-white dark:bg-slate-900 p-2.5">
+                    <div className="rounded-xl bg-white dark:bg-ink-900 p-2.5">
                       <div className="text-[0.6875rem] font-bold text-slate-500">Udhaar par gaya</div>
                       <div className="text-base font-black text-amber-700 dark:text-amber-400 tabular-nums">
                         {formatPKR(current.live?.creditGiven ?? 0)}
@@ -525,12 +525,12 @@ export default function CashRegisterPage() {
                 <TrendingUp className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Today's Sales</div>
+                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-widest">Today's Sales</div>
                 <div className="text-xl sm:text-2xl font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">{formatPKR(current.totalSales)}</div>
               </div>
               <div className="h-8 w-px bg-blue-200 dark:bg-blue-500/30 hidden sm:block" />
               <div>
-                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-widest">Net Flow</div>
+                <div className="text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-widest">Net Flow</div>
                 <div className={`text-sm sm:text-base font-extrabold tabular-nums ${netCashFlow >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                   {netCashFlow >= 0 ? '+' : ''}{formatPKR(netCashFlow)}
                 </div>
@@ -538,13 +538,13 @@ export default function CashRegisterPage() {
             </div>
             <div className="flex items-center gap-4 text-xs">
               <div className="text-right">
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase">Started</div>
-                <div className="font-extrabold text-slate-900 dark:text-white">{formatDate(current.openedAt)}</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase">Started</div>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white">{formatDate(current.openedAt)}</div>
               </div>
               {current.openedBy && (
                 <div className="text-right">
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase">By</div>
-                  <div className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1">
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase">By</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-1">
                     <UserIcon className="h-3 w-3" />
                     {current.openedBy.fullName}
                   </div>
@@ -555,27 +555,27 @@ export default function CashRegisterPage() {
 
           <section className="grid lg:grid-cols-2 gap-4 sm:gap-5">
             {/* Transaction panel */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-5">
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0">
                   <Banknote className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Cash Transaction</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Cash add/remove (vendor payment, owner withdrawal)</p>
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Cash Transaction</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Cash add/remove (vendor payment, owner withdrawal)</p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Amount</label>
+                  <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Amount</label>
                   <input
                     ref={txAmountRef}
                     type="number"
                     value={txAmount}
                     onChange={(e) => setTxAmount(e.target.value)}
                     placeholder="1000"
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition tabular-nums"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition tabular-nums"
                   />
                 </div>
                 <Input
@@ -608,22 +608,22 @@ export default function CashRegisterPage() {
               </div>
 
               {/* Session Activity */}
-              <div className="mt-6 pt-6 border-t-2 border-slate-100 dark:border-slate-800">
+              <div className="mt-6 pt-6 border-t-2 border-slate-100 dark:border-ink-800">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                  <h4 className="text-sm font-extrabold text-slate-700 dark:text-ink-200 flex items-center gap-1.5">
                     <Activity className="h-4 w-4" />
                     Session Activity
                   </h4>
                   {current.transactions && current.transactions.length > 0 && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800">
+                    <span className="text-xs text-slate-500 dark:text-ink-400 font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800">
                       {current.transactions.length}
                     </span>
                   )}
                 </div>
                 {!current.transactions?.length ? (
-                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 p-6 text-center">
-                    <Activity className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-1" />
-                    <p className="text-sm font-extrabold text-slate-700 dark:text-slate-300">Abhi koi transaction nahi</p>
+                  <div className="rounded-xl border-2 border-dashed border-slate-200 dark:border-ink-700 p-6 text-center">
+                    <Activity className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-1" />
+                    <p className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Abhi koi transaction nahi</p>
                   </div>
                 ) : (
                   <div className="space-y-2 max-h-[300px] overflow-y-auto">
@@ -631,14 +631,14 @@ export default function CashRegisterPage() {
                       const cfg = txTypeConfig[tx.type] || txTypeConfig.CASH_IN;
                       const Icon = cfg.icon;
                       return (
-                        <div key={tx.id} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 p-3 flex items-center gap-3">
+                        <div key={tx.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/50 p-3 flex items-center gap-3">
                           <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${cfg.tone} ${cfg.darkTone}`}>
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-extrabold text-slate-900 dark:text-white text-sm">{cfg.label}</div>
-                            {tx.reason && <div className="text-xs text-slate-600 dark:text-slate-400 truncate font-semibold">{tx.reason}</div>}
-                            <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">{formatRelative(tx.createdAt)}</div>
+                            <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{cfg.label}</div>
+                            {tx.reason && <div className="text-xs text-slate-600 dark:text-ink-400 truncate font-semibold">{tx.reason}</div>}
+                            <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">{formatRelative(tx.createdAt)}</div>
                           </div>
                           <div className={`font-extrabold text-sm shrink-0 tabular-nums ${cfg.isIncome ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                             {cfg.isIncome ? '+' : '-'}{formatPKR(Math.abs(tx.amount))}
@@ -652,14 +652,14 @@ export default function CashRegisterPage() {
             </div>
 
             {/* Close panel */}
-            <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-rose-50 to-white dark:from-rose-500/10 dark:to-slate-900/60 border-2 border-rose-200 dark:border-rose-500/40 shadow-sm p-5 sm:p-6">
+            <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-rose-50 to-white dark:from-rose-500/10 dark:to-ink-900/60 border-2 border-rose-200 dark:border-rose-500/40 shadow-sm p-5 sm:p-6">
               <div className="flex items-center gap-3 mb-5">
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 shrink-0">
                   <StopCircle className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Close Register</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Din ke akhir me cash count karo</p>
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Close Register</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Din ke akhir me cash count karo</p>
                 </div>
               </div>
 
@@ -675,7 +675,7 @@ export default function CashRegisterPage() {
               <div className="space-y-3">
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-sm font-extrabold text-slate-700 dark:text-slate-300">Closing Cash Count (drawer me) *</label>
+                    <label className="text-sm font-extrabold text-slate-700 dark:text-ink-300">Closing Cash Count (drawer me) *</label>
                     <button
                       onClick={() => setShowDenomCalc('closing')}
                       className="text-xs font-extrabold text-rose-700 dark:text-rose-400 hover:underline inline-flex items-center gap-1"
@@ -689,7 +689,7 @@ export default function CashRegisterPage() {
                     value={closingBalance}
                     onChange={(e) => setClosingBalance(e.target.value)}
                     placeholder={String(current.expectedBalance)}
-                    className="h-12 w-full rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-white dark:bg-slate-800 px-4 text-lg font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition tabular-nums"
+                    className="h-12 w-full rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 transition tabular-nums"
                   />
                 </div>
                 <Input
@@ -733,7 +733,7 @@ export default function CashRegisterPage() {
                         {closingDiff > 0 ? '+' : ''}{formatPKR(closingDiff)}
                       </div>
                     </div>
-                    <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">
+                    <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold">
                       Expected: <strong>{formatPKR(current.expectedBalance)}</strong> • Actual: <strong>{formatPKR(Number(closingBalance) || 0)}</strong>
                     </div>
                   </div>
@@ -756,27 +756,27 @@ export default function CashRegisterPage() {
       )}
 
       {/* History */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <History className="h-5 w-5 text-slate-700 dark:text-slate-300" />
+            <History className="h-5 w-5 text-slate-700 dark:text-ink-300" />
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Register History</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">{history.length} sessions</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Register History</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">{history.length} sessions</p>
             </div>
           </div>
         </div>
 
         {history.length === 0 ? (
           <div className="p-12 text-center">
-            <History className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="font-extrabold text-slate-700 dark:text-slate-200">Abhi koi history nahi</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">Pehla register session close karo</p>
+            <History className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+            <p className="font-extrabold text-slate-700 dark:text-ink-200">Abhi koi history nahi</p>
+            <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">Pehla register session close karo</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 text-slate-600 dark:text-ink-300">
                 <tr>
                   <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Register #</th>
                   <th className="text-left px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Opened By</th>
@@ -788,15 +788,15 @@ export default function CashRegisterPage() {
                   <th className="text-center px-4 sm:px-6 py-3 font-extrabold text-[0.6875rem] uppercase tracking-widest">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {history.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td className="px-4 sm:px-6 py-3 font-mono text-xs font-extrabold text-slate-900 dark:text-white">{r.registerNumber}</td>
-                    <td className="px-4 sm:px-6 py-3 text-slate-700 dark:text-slate-300 font-semibold">{r.openedBy?.fullName || '—'}</td>
-                    <td className="px-4 sm:px-6 py-3 text-slate-600 dark:text-slate-400 text-xs font-semibold whitespace-nowrap">{formatDate(r.openedAt)}</td>
-                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(r.openingBalance)}</td>
+                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
+                    <td className="px-4 sm:px-6 py-3 font-mono text-xs font-extrabold text-slate-900 dark:text-ink-white">{r.registerNumber}</td>
+                    <td className="px-4 sm:px-6 py-3 text-slate-700 dark:text-ink-300 font-semibold">{r.openedBy?.fullName || '—'}</td>
+                    <td className="px-4 sm:px-6 py-3 text-slate-600 dark:text-ink-400 text-xs font-semibold whitespace-nowrap">{formatDate(r.openedAt)}</td>
+                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(r.openingBalance)}</td>
                     <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(r.totalSales)}</td>
-                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(r.closingBalance)}</td>
+                    <td className="px-4 sm:px-6 py-3 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(r.closingBalance)}</td>
                     <td className="px-4 sm:px-6 py-3 text-right">
                       <span className={`font-extrabold tabular-nums ${
                         r.difference === 0 ? 'text-emerald-700 dark:text-emerald-400' :
@@ -809,7 +809,7 @@ export default function CashRegisterPage() {
                       <span className={`inline-flex px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${
                         r.status === 'OPEN'
                           ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                          : 'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
                       }`}>
                         {r.status}
                       </span>
@@ -848,7 +848,7 @@ function DenominationCalculator({ mode, counts, setCounts, total, onApply, onClo
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`px-5 py-3 border-b-2 sticky top-0 z-10 flex items-center justify-between ${
@@ -861,13 +861,13 @@ function DenominationCalculator({ mode, counts, setCounts, total, onApply, onClo
           }`}>
             <Coins className="h-5 w-5" /> Note-wise Cash Ginti
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-3">
-          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+          <p className="text-xs font-semibold text-slate-600 dark:text-ink-400">
             Har note kitne hain woh likho. Total auto calculate hoga.
           </p>
 
@@ -876,23 +876,23 @@ function DenominationCalculator({ mode, counts, setCounts, total, onApply, onClo
               const count = Number(counts[d.value]) || 0;
               const subtotal = count * d.value;
               return (
-                <div key={d.value} className="flex items-center gap-2 sm:gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-2.5">
+                <div key={d.value} className="flex items-center gap-2 sm:gap-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-2.5">
                   <div className="w-16 sm:w-20 shrink-0">
                     <div className="rounded-lg bg-gradient-to-br from-amber-100 to-yellow-200 dark:from-amber-500/30 dark:to-yellow-500/30 border border-amber-300 dark:border-amber-500/40 py-1.5 text-center font-mono font-extrabold text-amber-900 dark:text-amber-200 text-sm">
                       Rs {d.label}
                     </div>
                   </div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold">×</span>
+                  <span className="text-slate-400 dark:text-ink-500 font-bold">×</span>
                   <input
                     type="number"
                     min="0"
                     value={counts[d.value] || ''}
                     onChange={(e) => setCounts({ ...counts, [d.value]: e.target.value })}
                     placeholder="0"
-                    className="h-10 w-16 sm:w-20 rounded-lg border-2 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 text-center font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition tabular-nums"
+                    className="h-10 w-16 sm:w-20 rounded-lg border-2 border-slate-300 dark:border-ink-600 bg-white dark:bg-ink-800 px-2 text-center font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition tabular-nums"
                   />
-                  <span className="text-slate-400 dark:text-slate-500 font-bold">=</span>
-                  <div className="flex-1 text-right font-extrabold text-slate-900 dark:text-white tabular-nums text-sm">
+                  <span className="text-slate-400 dark:text-ink-500 font-bold">=</span>
+                  <div className="flex-1 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums text-sm">
                     {formatPKR(subtotal)}
                   </div>
                 </div>
@@ -951,20 +951,20 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Cash Register — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Cash register = din ke cash ka accountability system.</strong> Subha kya tha, din bhar kya aya, kya gaya, aur shaam ko kya bacha —
             sab track. Chori/loss ka pata seedha lagta hai.
           </p>
@@ -974,14 +974,14 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300">
               📅 Daily Workflow — 3 Steps
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 <strong>🌅 Subah — Open:</strong> Drawer ka cash gino, "Open Register" karo. Ye tumhara starting point hai.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 <strong>☀️ Din bhar — Track:</strong> POS sales auto-add hoti hain. Vendor payment/owner withdrawal = Cash Out. Extra cash aya = Cash In.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 <strong>🌙 Shaam — Close:</strong> Drawer ka actual cash gino, "Close Register" karo. Expected vs Actual = difference dikhta hai.
               </div>
             </div>
@@ -992,12 +992,12 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-2 flex items-center gap-1">
               <Calculator className="h-3 w-3" /> Expected Balance Formula
             </div>
-            <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2.5 font-mono text-xs text-slate-800 dark:text-slate-200 space-y-0.5">
+            <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2.5 font-mono text-xs text-slate-800 dark:text-ink-200 space-y-0.5">
               <div>Expected = Opening</div>
               <div className="text-emerald-700 dark:text-emerald-400">+ Sales (cash)</div>
               <div className="text-emerald-700 dark:text-emerald-400">+ Cash In</div>
               <div className="text-rose-700 dark:text-rose-400">− Cash Out</div>
-              <div className="border-t border-slate-200 dark:border-slate-700 pt-1 mt-1 font-extrabold">= Drawer me hona chahiye</div>
+              <div className="border-t border-slate-200 dark:border-ink-700 pt-1 mt-1 font-extrabold">= Drawer me hona chahiye</div>
             </div>
           </div>
 
@@ -1006,7 +1006,7 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" /> Short/Surplus — Kya Karein?
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <div className="rounded-lg bg-rose-100 dark:bg-rose-500/20 border border-rose-300 dark:border-rose-500/40 p-2">
                 🔴 <strong>Short (missing):</strong> Cash kam nikla. Reasons: change ghalat diya, cash out record nahi hua, chori. Rs 50-100 chhota — normal. Rs 500+ = investigate.
               </div>
@@ -1019,7 +1019,7 @@ function CashRegisterTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>🧮 Note-wise ginti</strong> — Calculator button use karo, 5000/1000/500/100/50/20/10 alag alag count, mistake ka chance kam.</TipRow>
             <TipRow><strong>💵 Cash In examples</strong> — Owner ne extra paisa daala, refund reversal, previous shift bacha hua.</TipRow>
             <TipRow><strong>💸 Cash Out examples</strong> — Vendor payment, tea/chai kharcha, owner withdrawal, chotay expenses.</TipRow>
@@ -1065,7 +1065,7 @@ function Kbd({ children }: { children: React.ReactNode }) {
 /** Golak ke hisab ki ek line — jama, manhaa, ya kul */
 function LedgerRow({ label, value, sign, tone, note, big }: any) {
   const map: Record<string, string> = {
-    slate: 'text-slate-700 dark:text-slate-200',
+    slate: 'text-slate-700 dark:text-ink-200',
     emerald: 'text-emerald-700 dark:text-emerald-400',
     rose: 'text-rose-700 dark:text-rose-400',
     amber: 'text-amber-700 dark:text-amber-400',
@@ -1073,7 +1073,7 @@ function LedgerRow({ label, value, sign, tone, note, big }: any) {
   };
   return (
     <div className={`flex items-center justify-between gap-3 rounded-2xl px-3 py-2.5 ${
-      big ? 'bg-slate-900 dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-800/60'
+      big ? 'bg-slate-900 dark:bg-ink-800' : 'bg-slate-50 dark:bg-ink-800/60'
     }`}>
       <div className="min-w-0 flex items-center gap-2">
         <span className={`h-6 w-6 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
@@ -1082,7 +1082,7 @@ function LedgerRow({ label, value, sign, tone, note, big }: any) {
                              : 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-400'
         }`}>{sign}</span>
         <div>
-          <div className={`font-black ${big ? 'text-sm text-white' : 'text-sm text-slate-700 dark:text-slate-200'}`}>
+          <div className={`font-black ${big ? 'text-sm text-white' : 'text-sm text-slate-700 dark:text-ink-200'}`}>
             {label}
           </div>
           {note && <div className={`text-[0.6875rem] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
@@ -1105,12 +1105,12 @@ function StatCard({ label, value, sub, subIcon: SubIcon, icon: Icon, tone, tinte
   const tintBg: Record<string, string> = {
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30',
-    slate: 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800',
+    slate: 'bg-white dark:bg-ink-900/80 border-slate-200 dark:border-ink-800',
   };
   const textAccent: Record<string, string> = {
     emerald: 'text-emerald-900 dark:text-emerald-200',
     rose: 'text-rose-900 dark:text-rose-200',
-    slate: 'text-slate-900 dark:text-white',
+    slate: 'text-slate-900 dark:text-ink-white',
   };
   return (
     <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm transition-all ${
@@ -1118,19 +1118,19 @@ function StatCard({ label, value, sub, subIcon: SubIcon, icon: Icon, tone, tinte
         ? `bg-gradient-to-br ${tones[tone]} text-white border-transparent shadow-lg`
         : tinted
           ? `${tintBg[tone]}`
-          : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800'
+          : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800'
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${
-            highlight ? 'text-white/80' : tinted ? textAccent[tone] : 'text-slate-500 dark:text-slate-400'
+            highlight ? 'text-white/80' : tinted ? textAccent[tone] : 'text-slate-500 dark:text-ink-400'
           } opacity-90`}>{label}</div>
           <div className={`mt-1.5 text-lg sm:text-xl lg:text-2xl font-extrabold tabular-nums truncate ${
-            highlight ? 'text-white' : tinted ? textAccent[tone] : 'text-slate-900 dark:text-white'
+            highlight ? 'text-white' : tinted ? textAccent[tone] : 'text-slate-900 dark:text-ink-white'
           }`}>{value}</div>
           {sub && (
             <div className={`text-[0.6875rem] font-bold mt-0.5 truncate flex items-center gap-1 ${
-              highlight ? 'text-white/80' : tinted ? textAccent[tone] + ' opacity-80' : 'text-slate-500 dark:text-slate-400'
+              highlight ? 'text-white/80' : tinted ? textAccent[tone] + ' opacity-80' : 'text-slate-500 dark:text-ink-400'
             }`}>
               {SubIcon && <SubIcon className="h-2.5 w-2.5 shrink-0" />}
               {sub}

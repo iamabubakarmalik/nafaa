@@ -129,7 +129,7 @@ export function TaxSection({ settings }: { settings: TenantSettings }) {
           <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 mb-1 flex items-center gap-1">
             <TrendingUp className="h-3 w-3" /> Markup Example
           </div>
-          <div className="text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="text-xs font-semibold text-slate-700 dark:text-ink-200">
             Cost <strong>Rs 100</strong> → Selling price <strong className="text-emerald-700 dark:text-emerald-300">Rs {(100 * (1 + draft.defaultMarkup / 100)).toFixed(0)}</strong> ({draft.defaultMarkup}% profit)
           </div>
         </div>

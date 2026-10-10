@@ -438,7 +438,7 @@ export default function ReturnsPage() {
         </div>
 
         {/* ═══ HERO ═══ */}
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-orange-700 dark:from-slate-950 dark:via-orange-950 dark:to-orange-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-orange-900 to-orange-700 dark:from-ink-950 dark:via-orange-950 dark:to-orange-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
           <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-orange-400/25 blur-3xl pointer-events-none animate-pulse" />
           <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-rose-400/20 blur-3xl pointer-events-none" />
 
@@ -533,19 +533,19 @@ export default function ReturnsPage() {
         {/* ═══ MAIN 2-COLUMN ═══ */}
         <section className="grid xl:grid-cols-2 gap-5 print:hidden">
           {/* LEFT — SALE PICKER */}
-          <div className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
+          <div className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
                 <Search className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white">Sale Search</h3>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Sale number ya customer name search karo</p>
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white">Sale Search</h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400">Sale number ya customer name search karo</p>
               </div>
               {selectedSaleId && (
                 <button
                   onClick={() => { setSelectedSaleId(null); setReturnLines([]); }}
-                  className="h-9 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-600 text-xs font-extrabold inline-flex items-center gap-1 transition"
+                  className="h-9 px-2.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-600 dark:text-ink-300 hover:text-rose-600 text-xs font-extrabold inline-flex items-center gap-1 transition"
                   title="Clear selection"
                 >
                   <X className="h-3 w-3" /> Clear
@@ -557,7 +557,7 @@ export default function ReturnsPage() {
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 ref={searchRef}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20"
                 placeholder="NF-12345678 ya customer name... (/ shortcut)"
                 value={saleQuery}
                 onChange={(e) => setSaleQuery(e.target.value)}
@@ -566,21 +566,21 @@ export default function ReturnsPage() {
               {saleQuery && (
                 <button
                   onClick={() => setSaleQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
                 >
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
             </div>
 
-            <div className="mt-4 max-h-[320px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50/30 dark:bg-slate-800/30">
+            <div className="mt-4 max-h-[320px] overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800 border-2 border-slate-200 dark:border-ink-700 rounded-2xl bg-slate-50/30 dark:bg-ink-800/30">
               {filteredSales.length === 0 ? (
                 <div className="p-8 text-center">
-                  <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center mb-2">
+                  <div className="h-12 w-12 rounded-2xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center mb-2">
                     <Receipt className="h-5 w-5 text-slate-400" />
                   </div>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No sales found</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-sm font-bold text-slate-700 dark:text-ink-300">No sales found</p>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 mt-1">
                     {saleQuery ? 'Different search try karein' : 'POS se sales add karein'}
                   </p>
                 </div>
@@ -594,8 +594,8 @@ export default function ReturnsPage() {
                       selectedSaleId === s.id
                         ? 'bg-orange-50 dark:bg-orange-500/15 border-l-4 border-orange-500'
                         : idx === saleHighlight
-                          ? 'bg-slate-100 dark:bg-slate-800/60'
-                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                          ? 'bg-slate-100 dark:bg-ink-800/60'
+                          : 'hover:bg-slate-50 dark:hover:bg-ink-800/40'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -604,7 +604,7 @@ export default function ReturnsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-slate-900 dark:text-white text-sm font-mono">
+                          <span className="font-extrabold text-slate-900 dark:text-ink-white text-sm font-mono">
                             {s.saleNumber}
                           </span>
                           {s.status === 'PARTIALLY_RETURNED' && (
@@ -613,21 +613,21 @@ export default function ReturnsPage() {
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 truncate font-semibold">
+                        <div className="text-xs text-slate-600 dark:text-ink-400 truncate font-semibold">
                           {s.customer?.name || 'Walk-in'}
                         </div>
-                        <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+                        <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-0.5 font-bold">
                           {formatDate(s.soldAt)} • {s.items.length} items
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm tabular-nums">
                           {formatPKR(s.total)}
                         </div>
                         <ChevronRight className={`h-3 w-3 ml-auto mt-1 transition ${
                           selectedSaleId === s.id
                             ? 'text-orange-500'
-                            : 'text-slate-300 dark:text-slate-600 group-hover:text-orange-500'
+                            : 'text-slate-300 dark:text-ink-600 group-hover:text-orange-500'
                         }`} />
                       </div>
                     </div>
@@ -640,12 +640,12 @@ export default function ReturnsPage() {
             {selectedSale && (
               <div className="mt-5">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <h4 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-1.5">
                     <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                     Sale Items
                   </h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-[0.6875rem] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold">
+                    <span className="text-[0.6875rem] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 font-extrabold">
                       {selectedSale.items.length} items
                     </span>
                     {returnLines.length > 0 && (
@@ -680,7 +680,7 @@ export default function ReturnsPage() {
                       <div className="text-[0.6875rem] uppercase font-extrabold text-orange-700 dark:text-orange-300">
                         Return cart me
                       </div>
-                      <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                      <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">
                         {returnLines.length} item{returnLines.length !== 1 ? 's' : ''} · {formatPKR(cartTotal)}
                         {damagedCount > 0 && (
                           <span className="ml-2 text-[0.6875rem] px-1.5 py-0.5 rounded bg-rose-500 text-white font-extrabold inline-flex items-center gap-1">
@@ -779,19 +779,19 @@ function StatCard({ label, value, sub, color, icon: Icon }: StatCardProps) {
     },
     slate: {
       text: 'text-slate-900',
-      darkText: 'dark:text-white',
+      darkText: 'dark:text-ink-white',
       iconBg: 'from-slate-700 to-slate-900 shadow-slate-500/40',
       subText: 'text-slate-600',
-      darkSub: 'dark:text-slate-400',
+      darkSub: 'dark:text-ink-400',
     },
   };
   const c = colorMap[color];
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 sm:p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold truncate">{label}</div>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold truncate">{label}</div>
           <div className={`mt-1.5 text-xl sm:text-2xl font-extrabold ${c.text} ${c.darkText} tabular-nums truncate`}>{value}</div>
           <div className={`text-[0.6875rem] ${c.subText} ${c.darkSub} font-bold mt-0.5 truncate`}>{sub}</div>
         </div>
@@ -810,20 +810,20 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-orange-300 dark:border-orange-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-orange-200 dark:border-orange-500/30 bg-gradient-to-r from-orange-50 to-rose-50 dark:from-orange-500/15 dark:to-rose-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-orange-900 dark:text-orange-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Returns — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Return = customer maal wapas laya, aap paisa wapis dete ho.</strong> Yeh 3 step
             process hai: <strong>Sale dhoondo → Items add karo → Refund process karo</strong>.
           </p>
@@ -833,14 +833,14 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-orange-700 dark:text-orange-300">
               📱 Misal: Mobile shop
             </div>
-            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-orange-200 dark:border-orange-500/30 p-2">
+            <div className="space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-orange-200 dark:border-orange-500/30 p-2">
                 <strong>Sale NF-12345:</strong> iPhone 15 Rs 3,50,000 (kal ki sale)
               </div>
               <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2 font-extrabold text-emerald-800 dark:text-emerald-300">
                 ✅ Return process: Sale search → iPhone add karo → Reason likho → Refund method choose (usually same as sale) → Complete
               </div>
-              <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2 text-slate-600 dark:text-slate-400">
+              <div className="rounded-lg bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2 text-slate-600 dark:text-ink-400">
                 → IMEI wapis stock me • customer ka udhaar wapis • sale status = "PARTIALLY_RETURNED"
               </div>
             </div>
@@ -851,7 +851,7 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 mb-2">
               🧶 Carpet ki special handling
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <Tip><strong>Cut piece create hota hai</strong> — customer ne 5×8 ft laya, ab woh separate saleable piece ban ke inventory me</Tip>
               <Tip><strong>Damaged option</strong> — agar kata phata hai, damaged mark karo — badge red hoga, kam price</Tip>
               <Tip><strong>Custom width/length</strong> — dialog me actual size dalo, sqft auto-calculate</Tip>
@@ -859,11 +859,11 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Statuses */}
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40 p-4">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-2">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/60 dark:bg-ink-800/40 p-4">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-2">
               📊 Sale statuses returns me
             </div>
-            <div className="space-y-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-[0.6875rem] font-semibold text-slate-700 dark:text-ink-200">
               <div>✅ <strong>COMPLETED</strong> — full return possible</div>
               <div>🟡 <strong>PARTIAL</strong> — kuch items return ho gaye, baaki ho sakte hain</div>
               <div>❌ <strong>FULLY_RETURNED</strong> — sab wapis, list me nahi aayegi</div>
@@ -871,14 +871,14 @@ function ReturnsTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <Tip><strong>💰 Refund method auto-fill</strong> — jo method sale me use hua tha, wohi default</Tip>
             <Tip><strong>📈 Refund rate</strong> — total returns ÷ total sales × 100. 5% se zyada ho to product quality dekhein</Tip>
             <Tip><strong>📊 Week trend</strong> — is hafte last hafte se kitna zyada/kam</Tip>
             <Tip><strong>⌨️ / </strong>— search focus • <strong>↑↓ Enter</strong> — sale navigate</Tip>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💡 <strong>Pro tip:</strong> Reason field me hamesha customer ka kehna likho — "phone heat hota hai",
             "size fit nahi" — analytics me pattern dikhega ke kaunsi products zyada return hoti hain.
           </div>

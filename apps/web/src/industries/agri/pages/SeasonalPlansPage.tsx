@@ -424,7 +424,7 @@ export default function SeasonalPlansPage() {
             <div className="mt-2 flex flex-wrap gap-1.5">
               {stats.riskyCrops.map((r: any) => (
                 <span key={r.id}
-                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-rose-200 dark:border-rose-500/40 text-[0.6875rem] font-extrabold text-rose-900 dark:text-rose-200">
+                  className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-rose-200 dark:border-rose-500/40 text-[0.6875rem] font-extrabold text-rose-900 dark:text-rose-200">
                   🌾 {r.cropName}
                   <span className="text-rose-600 dark:text-rose-400">
                     {' '}({r.items.length === 0 ? 'koi maal nahi' : `${r.out.length} khatam`})
@@ -467,13 +467,13 @@ export default function SeasonalPlansPage() {
             className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             {count !== undefined && (
               <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
-                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
               }`}>{count}</span>
             )}
             <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
@@ -493,15 +493,15 @@ export default function SeasonalPlansPage() {
 
       {/* ═══ TOOLBAR ═══ */}
       {tab !== 'analytics' && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
           <div className="relative">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Fasal ka naam… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -510,7 +510,7 @@ export default function SeasonalPlansPage() {
             <button onClick={() => setSeasonFilter('all')}
               className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                 seasonFilter === 'all' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
               }`}>Har mausam ({rows.length})</button>
             {SEASONS.map((s) => {
               const n = rows.filter((r) => r.season === s.value).length;
@@ -518,7 +518,7 @@ export default function SeasonalPlansPage() {
                 <button key={s.value} onClick={() => setSeasonFilter(s.value)}
                   className={`h-10 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
                     seasonFilter === s.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
                   }`}>{s.emoji} {s.label} ({n})</button>
               );
             })}
@@ -528,7 +528,7 @@ export default function SeasonalPlansPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rows.length === 0 ? (
         <Empty onNew={() => setShowForm(true)} onGuide={() => setShowTeacher(true)} />
@@ -571,12 +571,12 @@ function NowTab({ sowingNow, sowingSoon, harvestNow, onRemove }: {
 }) {
   if (sowingNow.length === 0 && sowingSoon.length === 0 && harvestNow.length === 0) {
     return (
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-14 text-center">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-14 text-center">
         <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
           <CheckCircle2 className="h-8 w-8 text-white" />
         </div>
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Abhi koi bijai ya katai nahi</h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Abhi koi bijai ya katai nahi</h3>
+        <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
           Agle 45 din me kisi fasal ki bijai shuru nahi ho rahi. "Poora saal" wala tab kholein
           to saal bhar ki tasveer nazar aa jayegi.
         </p>
@@ -621,7 +621,7 @@ function Group({ icon: Icon, tone, title, desc, rows, onRemove }: any) {
     emerald: 'from-emerald-500 to-green-600', amber: 'from-amber-500 to-orange-600', lime: 'from-lime-500 to-green-600',
   };
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className={`px-4 py-3 border-b-2 flex items-center gap-2.5 ${head[tone]}`}>
         <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${icon[tone]} text-white flex items-center justify-center shadow shrink-0`}>
           <Icon className="h-4 w-4" />
@@ -657,12 +657,12 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
     emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     lime: 'bg-lime-100 dark:bg-lime-500/20 text-lime-700 dark:text-lime-300',
-    slate: 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300',
+    slate: 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300',
   };
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 shadow-sm overflow-hidden avoid-break transition hover:shadow-lg ${
-      r.risky ? 'border-rose-300 dark:border-rose-500/50' : 'border-slate-200 dark:border-slate-800'
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm overflow-hidden avoid-break transition hover:shadow-lg ${
+      r.risky ? 'border-rose-300 dark:border-rose-500/50' : 'border-slate-200 dark:border-ink-800'
     }`}>
       <div className={`p-4 text-white bg-gradient-to-br ${season?.color ?? 'from-slate-500 to-slate-700'}`}>
         <div className="flex items-start justify-between gap-2">
@@ -687,14 +687,14 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 p-2">
             <div className="text-[0.625rem] uppercase font-black tracking-widest text-emerald-700 dark:text-emerald-400">Bijai</div>
-            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white">
+            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white">
               {r.sowStart?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} –{' '}
               {r.sowEnd?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
             </div>
           </div>
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 p-2">
             <div className="text-[0.625rem] uppercase font-black tracking-widest text-amber-700 dark:text-amber-400">Katai</div>
-            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white">
+            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white">
               {r.harvStart?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })} –{' '}
               {r.harvEnd?.toLocaleDateString('en-PK', { day: '2-digit', month: 'short' })}
             </div>
@@ -705,12 +705,12 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
         <div className={`rounded-xl border-2 p-2.5 ${
           r.items.length === 0 ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30'
             : r.out.length > 0 ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
-            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+            : 'bg-slate-50 dark:bg-ink-800 border-slate-200 dark:border-ink-700'
         }`}>
           <div className="flex items-center justify-between gap-2">
             <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Is fasal ka maal</span>
             {r.stockValue > 0 && (
-              <span className="text-[0.6875rem] font-black tabular-nums text-slate-700 dark:text-slate-200">
+              <span className="text-[0.6875rem] font-black tabular-nums text-slate-700 dark:text-ink-200">
                 {formatPKR(r.stockValue)}
               </span>
             )}
@@ -724,7 +724,7 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
           ) : (
             <>
               <div className="mt-1 flex items-center gap-2 text-[0.6875rem] font-extrabold">
-                <span className="text-slate-700 dark:text-slate-200">{r.items.length} cheezein</span>
+                <span className="text-slate-700 dark:text-ink-200">{r.items.length} cheezein</span>
                 {r.out.length > 0 && <span className="text-rose-600 dark:text-rose-400">{r.out.length} khatam</span>}
                 {r.low.length > 0 && <span className="text-amber-600 dark:text-amber-400">{r.low.length} kam</span>}
                 {r.out.length === 0 && r.low.length === 0 && (
@@ -739,7 +739,7 @@ function PlanCard({ r, onRemove }: { r: any; onRemove: (p: any) => void }) {
                     className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[0.6875rem] font-extrabold transition hover:underline ${
                       i.isOut ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                         : i.isLow ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300'
+                        : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300'
                     }`}>
                     {AGRI_KIND_EMOJI[i.kind as AgriKind]} {String(i.productName).slice(0, 14)}
                   </Link>
@@ -767,19 +767,19 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
 
   if (rows.length === 0) {
     return (
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 text-center">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 text-center">
         <Calendar className="h-12 w-12 text-slate-400 mx-auto" />
-        <p className="mt-3 font-black text-slate-800 dark:text-slate-100">Is chaant par kuch nahi mila</p>
+        <p className="mt-3 font-black text-slate-800 dark:text-ink-100">Is chaant par kuch nahi mila</p>
       </section>
     );
   }
 
   return (
     <div className="space-y-4">
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 overflow-hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 overflow-hidden">
         <div className="flex items-center gap-2 mb-3">
           <Calendar className="h-4 w-4 text-emerald-600" />
-          <h3 className="font-black text-slate-900 dark:text-white">Saal bhar ki patti</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Saal bhar ki patti</h3>
           <div className="ml-auto flex items-center gap-3 text-[0.6875rem] font-black">
             <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
               <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" /> Bijai
@@ -811,7 +811,7 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
               {rows.map((r) => (
                 <div key={r.id} className="flex gap-2 items-center group">
                   <div className="w-32 shrink-0 min-w-0">
-                    <div className="text-[0.75rem] font-extrabold text-slate-900 dark:text-white truncate">
+                    <div className="text-[0.75rem] font-extrabold text-slate-900 dark:text-ink-white truncate">
                       {r.cropName}
                     </div>
                     <div className="text-[0.625rem] font-bold text-slate-400 truncate">
@@ -822,11 +822,11 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
                     </div>
                   </div>
 
-                  <div className="flex-1 relative h-9 rounded-lg bg-slate-50 dark:bg-slate-800/60 overflow-hidden">
+                  <div className="flex-1 relative h-9 rounded-lg bg-slate-50 dark:bg-ink-800/60 overflow-hidden">
                     {/* Mahine ki lakeerein */}
                     <div className="absolute inset-0 grid grid-cols-12">
                       {MONTHS.map((m, i) => (
-                        <div key={m} className={i > 0 ? 'border-l border-slate-200 dark:border-slate-700' : ''} />
+                        <div key={m} className={i > 0 ? 'border-l border-slate-200 dark:border-ink-700' : ''} />
                       ))}
                     </div>
 
@@ -839,7 +839,7 @@ function CalendarTab({ rows, onRemove }: { rows: any[]; onRemove: (p: any) => vo
                   </div>
 
                   <button onClick={() => onRemove(r)} title="Hatao"
-                    className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-slate-400 hover:text-rose-600 flex items-center justify-center shrink-0 transition opacity-0 group-hover:opacity-100 print:hidden">
+                    className="h-8 w-8 rounded-lg bg-slate-50 dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-slate-400 hover:text-rose-600 flex items-center justify-center shrink-0 transition opacity-0 group-hover:opacity-100 print:hidden">
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
@@ -972,23 +972,23 @@ function Analytics({ stats, seasonPie, monthChart, cropStockChart, rows }: any) 
         </ChartCard>
       </div>
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Sprout className="h-4 w-4 text-emerald-600" />
-          <h3 className="font-black text-slate-900 dark:text-white">Agli bijai — tarteeb se</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Agli bijai — tarteeb se</h3>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {[...rows]
             .filter((r: any) => r.toSow !== null && r.toSow >= 0)
             .sort((a: any, b: any) => (a.toSow ?? 0) - (b.toSow ?? 0))
             .slice(0, 8)
             .map((r: any) => (
               <div key={r.id} className="p-3 flex items-center gap-3">
-                <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-lg shrink-0">
+                <span className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-lg shrink-0">
                   {SEASONS.find((s) => s.value === r.season)?.emoji ?? '🌾'}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.cropName}</div>
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.cropName}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400">
                     {r.items.length > 0 ? `${r.items.length} cheezein juri hain` : 'koi maal juda nahi'}
                     {r.out.length > 0 && <span className="text-rose-500"> · {r.out.length} khatam</span>}
@@ -997,7 +997,7 @@ function Analytics({ stats, seasonPie, monthChart, cropStockChart, rows }: any) 
                 <span className={`text-[0.6875rem] font-black tabular-nums shrink-0 px-2 py-1 rounded-lg ${
                   r.toSow === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                     : r.toSow <= 45 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                 }`}>
                   {r.toSow === 0 ? 'aaj se' : `${r.toSow} din`}
                 </span>
@@ -1037,18 +1037,18 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-lg overflow-hidden print:hidden">
       <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between">
         <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
           <Calendar className="h-5 w-5" /> Nayi fasal ka plan
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-          <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+          <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
         </button>
       </div>
 
       <div className="p-5 space-y-4">
-        <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+        <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3 text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
           Fasal ka naam wohi likhein jo aap product ke andar "kis fasal par chalta hai" me
           likhte hain — tabhi dono aapas me jur payenge.
         </div>
@@ -1082,7 +1082,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
         </div>
 
         {SEASONS.find((s) => s.value === form.season) && (
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             {SEASONS.find((s) => s.value === form.season)!.hint}
           </p>
         )}
@@ -1146,7 +1146,7 @@ function SeasonalPlanForm({ onClose, onSaved }: any) {
           </div>
         )}
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Rehne do</Button>
           <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-lime-700"
             onClick={() => save.mutate()} loading={save.isPending} disabled={!valid}>
@@ -1166,7 +1166,7 @@ function RemoveModal({ plan, onClose, onConfirm, saving }: any) {
   }, []);
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-sm bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-sm bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-center gap-3">
           <div className="h-11 w-11 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
@@ -1178,7 +1178,7 @@ function RemoveModal({ plan, onClose, onConfirm, saving }: any) {
           </div>
         </div>
         <div className="p-5 space-y-4">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-bold text-slate-700 dark:text-ink-200 leading-relaxed">
             Is fasal ka calendar hat jayega. Aap ka maal aur stock waise ka waisa rahega —
             bas ye yaad-dehani band ho jayegi ke is fasal ki bijai kab hai.
           </p>
@@ -1197,7 +1197,7 @@ function RemoveModal({ plan, onClose, onConfirm, saving }: any) {
 /* ═════════════════════════════════════════════════════════════
    CHHOTE HISSE
    ═════════════════════════════════════════════════════════════ */
-const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
+const inp = 'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition';
 
 function Field({ label, req, children }: any) {
   return (
@@ -1221,15 +1221,15 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
-        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+        active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20' : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1245,12 +1245,12 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     amber: 'text-amber-600 dark:text-amber-400', rose: 'text-rose-600 dark:text-rose-400',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
         <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
-      <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
+      <div className="mt-1.5 text-xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words">{value}</div>
       {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5">{sub}</div>}
     </div>
   );
@@ -1258,8 +1258,8 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1273,12 +1273,12 @@ function EmptyBox({ text }: { text: string }) {
 
 function Empty({ onNew, onGuide }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Calendar className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Abhi koi fasal ka plan nahi</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Abhi koi fasal ka plan nahi</h3>
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto leading-relaxed">
         Gandum, kapas, chawal — jo fasalein aap ke ilaqe me hoti hain, un ki bijai aur katai
         ki tareekhein daal dein. Phir ye safha khud bata dega ke kab kya mangwana hai.
       </p>
@@ -1299,14 +1299,14 @@ function Empty({ onNew, onGuide }: any) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye safha kaise kaam aata hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
@@ -1339,13 +1339,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             Katai ke waqt farmer ke paas paisa aata hai. Purana udhaar maangne ka yehi sab se
             behtar waqt hai — is ke baad paisa kahin aur lag jata hai.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> nayi fasal</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1-3</kbd> tabs</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> nayi fasal</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1-3</kbd> tabs</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1362,8 +1362,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

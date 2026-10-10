@@ -47,7 +47,7 @@ const PRIORITY_OPTIONS: {
   border: string;
   desc: string;
 }[] = [
-  { val: 'NORMAL',    label: 'Normal',    urdu: 'Aam',              emoji: '🟢', icon: Flag,           color: 'slate',  bg: 'bg-slate-50 dark:bg-slate-800',   text: 'text-slate-700 dark:text-slate-300',   border: 'border-slate-300 dark:border-slate-600', desc: '2-5 din chalega' },
+  { val: 'NORMAL',    label: 'Normal',    urdu: 'Aam',              emoji: '🟢', icon: Flag,           color: 'slate',  bg: 'bg-slate-50 dark:bg-ink-800',   text: 'text-slate-700 dark:text-ink-300',   border: 'border-slate-300 dark:border-ink-600', desc: '2-5 din chalega' },
   { val: 'URGENT',    label: 'Urgent',    urdu: 'Jaldi',            emoji: '🟠', icon: AlertTriangle,  color: 'orange', bg: 'bg-orange-50 dark:bg-orange-500/15', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-300 dark:border-orange-500/40', desc: '24-48 hrs' },
   { val: 'EMERGENCY', label: 'Emergency', urdu: 'Bohat urgent',     emoji: '🔴', icon: Zap,            color: 'rose',   bg: 'bg-rose-50 dark:bg-rose-500/15',    text: 'text-rose-700 dark:text-rose-300',     border: 'border-rose-400 dark:border-rose-500/50',  desc: '2-6 hrs (extra charge)' },
 ];
@@ -261,9 +261,9 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="w-full sm:max-w-4xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+        <div className="w-full sm:max-w-4xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
           {/* ═══ HEADER ═══ */}
-          <div className="px-4 sm:px-5 py-4 border-b-2 border-slate-200 dark:border-slate-800 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between gap-3 shrink-0">
+          <div className="px-4 sm:px-5 py-4 border-b-2 border-slate-200 dark:border-ink-800 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-500/15 dark:to-amber-500/15 flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/40">
                 <Wrench className="h-5 w-5 text-white" />
@@ -272,7 +272,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                 <div className="text-[0.6875rem] uppercase tracking-widest text-orange-700 dark:text-orange-300 font-extrabold">
                   Repair Service
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base">
                   {deviceBrand && deviceModel ? `${deviceBrand} ${deviceModel}` : 'Naya Repair Ticket'}
                 </h3>
               </div>
@@ -288,22 +288,22 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
               </button>
               <button
                 onClick={resetForm}
-                className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
+                className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-600 dark:text-ink-300 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
                 title="Form clear"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={onClose}
-                className="h-9 w-9 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center transition"
+                className="h-9 w-9 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center transition"
               >
-                <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
           </div>
 
           {/* ═══ STEP INDICATOR ═══ */}
-          <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2 shrink-0">
+          <div className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex items-center gap-2 shrink-0">
             {[
               { num: 1, label: 'Device Info', icon: Smartphone },
               { num: 2, label: 'Issue Details', icon: AlertCircle },
@@ -321,7 +321,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                       ? 'bg-orange-600 text-white border-orange-700 shadow-md shadow-orange-500/30'
                       : done
                       ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40'
-                      : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      : 'bg-white dark:bg-ink-800 text-slate-500 dark:text-ink-400 border-slate-200 dark:border-ink-700'
                   }`}
                 >
                   <div className="flex items-center justify-center gap-2">
@@ -335,14 +335,14 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
           </div>
 
           {/* ═══ CONTENT ═══ */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-slate-50/30 dark:bg-slate-900/50">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-slate-50/30 dark:bg-ink-900/50">
             {/* ─── STEP 1: DEVICE INFO ─── */}
             {step === 1 && (
               <div className="space-y-4">
                 {/* Brand — quick chips */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                    Brand * <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">— chuno ya likho</span>
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-2">
+                    Brand * <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">— chuno ya likho</span>
                   </label>
                   <div className="flex gap-1.5 flex-wrap mb-2">
                     {COMMON_BRANDS.map((b) => (
@@ -353,7 +353,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                         className={`px-3 h-9 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 border-2 transition ${
                           deviceBrand === b.name
                             ? 'bg-orange-600 text-white border-orange-700 shadow-md'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-orange-400'
+                            : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-orange-400'
                         }`}
                       >
                         <span>{b.emoji}</span> {b.name}
@@ -366,7 +366,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     value={deviceBrand}
                     onChange={(e) => setDeviceBrand(e.target.value)}
                     placeholder="Ya custom brand likho..."
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition"
                   />
                   <datalist id="brands-list">
                     {ALL_BRANDS.map((b) => <option key={b} value={b} />)}
@@ -375,14 +375,14 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Model */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                     Model *
                   </label>
                   <input
                     value={deviceModel}
                     onChange={(e) => setDeviceModel(e.target.value)}
                     placeholder="iPhone 12, Galaxy A52, Redmi Note 12..."
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition"
                   />
                 </div>
 
@@ -394,14 +394,14 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                 </div>
 
                 {/* IMEI Row */}
-                <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-8 w-8 rounded-lg bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 flex items-center justify-center">
                       <ScanLine className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">IMEI Number</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">IMEI Number</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                         Phone dial pad me *#06# dabaao — ya scanner use karo
                       </div>
                     </div>
@@ -409,8 +409,8 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                        IMEI 1 <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(15 digits)</span>
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
+                        IMEI 1 <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">(15 digits)</span>
                       </label>
                       <div className="relative">
                         <input
@@ -420,8 +420,8 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                           maxLength={15}
                           className={`h-12 w-full rounded-xl border-2 pl-3 pr-11 text-sm font-mono font-bold focus:outline-none transition ${
                             imei1.length === 15
-                              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-slate-900 dark:text-white'
-                              : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-orange-500'
+                              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-slate-900 dark:text-ink-white'
+                              : 'border-slate-300 dark:border-ink-600 bg-white dark:bg-ink-900 text-slate-900 dark:text-ink-white focus:border-orange-500'
                           }`}
                         />
                         <button
@@ -448,8 +448,8 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     </div>
 
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                        IMEI 2 <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(Dual SIM)</span>
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
+                        IMEI 2 <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">(Dual SIM)</span>
                       </label>
                       <div className="relative">
                         <input
@@ -457,13 +457,13 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                           onChange={(e) => setImei2(e.target.value.replace(/\D/g, '').slice(0, 15))}
                           placeholder="Optional"
                           maxLength={15}
-                          className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 pl-3 pr-11 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
+                          className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 pl-3 pr-11 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition"
                         />
                         <button
                           type="button"
                           onClick={() => { setScannerTarget('imei2'); setShowScanner(true); }}
                           title="Scan IMEI 2"
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-orange-600 hover:text-white text-slate-600 dark:text-slate-300 flex items-center justify-center transition"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg bg-slate-200 dark:bg-ink-700 hover:bg-orange-600 hover:text-white text-slate-600 dark:text-ink-300 flex items-center justify-center transition"
                         >
                           <Camera className="h-4 w-4" />
                         </button>
@@ -489,7 +489,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     value={passcode}
                     onChange={(e) => setPasscode(e.target.value)}
                     placeholder="Passcode / pattern / face ID note"
-                    className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
                   />
                   <p className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-bold mt-1.5 flex items-start gap-1">
                     <Info className="h-3 w-3 shrink-0 mt-0.5" />
@@ -502,7 +502,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                   <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ${
                     hasSimCard
                       ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-400 dark:border-emerald-500/50'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-slate-400'
                   }`}>
                     <input
                       type="checkbox"
@@ -511,14 +511,14 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                       className="h-4 w-4 rounded accent-emerald-600"
                     />
                     <span className="text-lg">📶</span>
-                    <span className={`text-xs font-extrabold ${hasSimCard ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>
+                    <span className={`text-xs font-extrabold ${hasSimCard ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-ink-200'}`}>
                       SIM Card andar hai
                     </span>
                   </label>
                   <label className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ${
                     hasMemoryCard
                       ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-400 dark:border-emerald-500/50'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-slate-400'
                   }`}>
                     <input
                       type="checkbox"
@@ -527,7 +527,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                       className="h-4 w-4 rounded accent-emerald-600"
                     />
                     <span className="text-lg">💾</span>
-                    <span className={`text-xs font-extrabold ${hasMemoryCard ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>
+                    <span className={`text-xs font-extrabold ${hasMemoryCard ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-ink-200'}`}>
                       Memory Card andar hai
                     </span>
                   </label>
@@ -540,15 +540,15 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
               <div className="space-y-4">
                 {/* Issue */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                    Reported Issue * <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(kya kharab hai)</span>
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
+                    Reported Issue * <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">(kya kharab hai)</span>
                   </label>
                   <textarea
                     rows={3}
                     value={reportedIssue}
                     onChange={(e) => setReportedIssue(e.target.value)}
                     placeholder="Screen crack hai upar side pe, touch bhi kaam nahi kar raha..."
-                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 py-2 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition"
                   />
                   <div className={`text-[0.6875rem] font-bold mt-1 flex items-center gap-1 ${
                     reportedIssue.length >= 5
@@ -562,7 +562,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Quick-pick issues */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-2">
                     Common Issues — quick add
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -576,7 +576,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                           const newVal = current ? `${current}\n• ${line}` : `• ${line}`;
                           setReportedIssue(newVal);
                         }}
-                        className="px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:bg-orange-50 dark:hover:bg-orange-500/15 text-slate-700 dark:text-slate-200 hover:text-orange-800 dark:hover:text-orange-300 hover:border-orange-300 dark:hover:border-orange-500/40 transition inline-flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-extrabold bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:bg-orange-50 dark:hover:bg-orange-500/15 text-slate-700 dark:text-ink-200 hover:text-orange-800 dark:hover:text-orange-300 hover:border-orange-300 dark:hover:border-orange-500/40 transition inline-flex items-center gap-1"
                       >
                         <span>{issue.emoji}</span> {issue.text}
                       </button>
@@ -586,7 +586,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Priority */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-2">
                     Priority
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -601,7 +601,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                           className={`p-3 rounded-xl border-2 transition text-center ${
                             active
                               ? `${p.bg} ${p.text} ${p.border} shadow-md scale-105`
-                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-400'
+                              : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-500 dark:text-ink-400 hover:border-slate-400'
                           }`}
                         >
                           <div className="text-xl mb-1">{p.emoji}</div>
@@ -618,16 +618,16 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                 {/* Ready date + Technician + Warranty */}
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                       Est. Ready Date
                     </label>
                     <input
                       type="datetime-local"
                       value={estimatedReadyAt}
                       onChange={(e) => setEstimatedReadyAt(e.target.value)}
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
+                      className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition"
                     />
-                    <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1">
+                    <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-1">
                       Auto-set by priority
                     </p>
                   </div>
@@ -667,7 +667,7 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
                     </div>
                     <div>
                       <div className="font-extrabold text-emerald-900 dark:text-emerald-200 text-sm">
-                        Initial Estimate <span className="text-slate-400 dark:text-slate-500 font-semibold">(optional)</span>
+                        Initial Estimate <span className="text-slate-400 dark:text-ink-500 font-semibold">(optional)</span>
                       </div>
                       <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-semibold">
                         Advance ~20-30% recommended — customer serious hai
@@ -716,15 +716,15 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
 
                 {/* Notes */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                    Internal Notes <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(private, customer nahi dekhega)</span>
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
+                    Internal Notes <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">(private, customer nahi dekhega)</span>
                   </label>
                   <textarea
                     rows={2}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Additional info, deal terms, customer ne kya bola..."
-                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 py-2 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition"
                   />
                 </div>
               </div>
@@ -732,9 +732,9 @@ export function CreateRepairTicketModal({ onSuccess, onClose }: Props) {
           </div>
 
           {/* ═══ FOOTER ═══ */}
-          <div className="px-4 sm:px-5 py-3 border-t-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+          <div className="px-4 sm:px-5 py-3 border-t-2 border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 <span className="hidden md:inline-flex items-center gap-1">
                   <Kbd>Ctrl</Kbd>+<Kbd>↵</Kbd> next
                 </span>
@@ -844,7 +844,7 @@ function RepairFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () => 
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`px-5 py-4 bg-gradient-to-br ${c.color} text-white flex items-center justify-between sticky top-0 z-10`}>
@@ -865,12 +865,12 @@ function RepairFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () => 
 
         <div className="p-5 space-y-2.5">
           {c.tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
+            <div key={i} className="flex items-start gap-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3">
               <span className="text-xl shrink-0">{tip.emoji}</span>
               <div
-                className="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-relaxed"
+                className="text-xs font-semibold text-slate-700 dark:text-ink-200 leading-relaxed"
                 dangerouslySetInnerHTML={{
-                  __html: tip.text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 dark:text-white">$1</strong>').replace(/`(.+?)`/g, '<code class="px-1 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[0.6875rem]">$1</code>'),
+                  __html: tip.text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 dark:text-ink-white">$1</strong>').replace(/`(.+?)`/g, '<code class="px-1 rounded bg-slate-200 dark:bg-ink-700 font-mono text-[0.6875rem]">$1</code>'),
                 }}
               />
             </div>
@@ -904,7 +904,7 @@ function InputCompact({
 }) {
   return (
     <div>
-      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
         {label}
       </label>
       <input
@@ -912,7 +912,7 @@ function InputCompact({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={`h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition ${mono ? 'font-mono' : ''}`}
+        className={`h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition ${mono ? 'font-mono' : ''}`}
       />
     </div>
   );
@@ -963,7 +963,7 @@ function ProfitStat({
   big?: boolean;
 }) {
   const tones = {
-    slate: 'text-slate-700 dark:text-slate-300',
+    slate: 'text-slate-700 dark:text-ink-300',
     blue: 'text-blue-700 dark:text-blue-400',
     emerald: 'text-emerald-700 dark:text-emerald-400',
     rose: 'text-rose-700 dark:text-rose-400',
@@ -971,7 +971,7 @@ function ProfitStat({
   };
   return (
     <div>
-      <div className="text-[0.625rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]} ${big ? 'text-base' : 'text-sm'} mt-0.5`}>
         {value}
       </div>
@@ -981,7 +981,7 @@ function ProfitStat({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.625rem]">
+    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-ink-700 border border-slate-300 dark:border-ink-600 text-slate-700 dark:text-ink-200 font-mono font-bold text-[0.625rem]">
       {children}
     </kbd>
   );

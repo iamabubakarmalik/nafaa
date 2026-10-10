@@ -84,12 +84,12 @@ export function BackupSection() {
         {statsLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : (
           <>
-            <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-slate-600 dark:text-slate-400">
+            <div className="mb-3 flex items-center gap-2 text-xs font-extrabold text-slate-600 dark:text-ink-400">
               <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
                 <Check className="h-3 w-3" /> Total {totalRecords.toLocaleString()} records
               </span>
@@ -102,15 +102,15 @@ export function BackupSection() {
                 return (
                   <div
                     key={e.key}
-                    className="rounded-2xl bg-white dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 hover:border-slate-300 dark:hover:border-slate-600 transition"
+                    className="rounded-2xl bg-white dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 hover:border-slate-300 dark:hover:border-ink-600 transition"
                   >
                     <div className={`h-9 w-9 rounded-xl bg-${e.color}-100 dark:bg-${e.color}-500/20 text-${e.color}-700 dark:text-${e.color}-300 flex items-center justify-center mb-2`}>
                       <Icon className="h-4 w-4" />
                     </div>
-                    <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none">
+                    <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums leading-none">
                       {typeof value === 'number' ? value.toLocaleString() : value}
                     </div>
-                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-1">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider mt-1">
                       {e.label}
                     </div>
                   </div>
@@ -130,7 +130,7 @@ export function BackupSection() {
       >
         {/* Format */}
         <div className="mb-4">
-          <div className="text-xs font-extrabold text-slate-700 dark:text-slate-200 mb-2 uppercase tracking-widest">
+          <div className="text-xs font-extrabold text-slate-700 dark:text-ink-200 mb-2 uppercase tracking-widest">
             File Format
           </div>
           <ChoiceGroup
@@ -149,7 +149,7 @@ export function BackupSection() {
 
         {/* Quick select */}
         <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
-          <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400">
+          <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400">
             <span className="text-emerald-700 dark:text-emerald-300">{selected.length}</span> / {ENTITIES.length} selected
           </div>
           <div className="flex gap-1.5">
@@ -161,7 +161,7 @@ export function BackupSection() {
             </button>
             <button
               onClick={selectNone}
-              className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold transition"
+              className="h-8 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-extrabold transition"
             >
               None
             </button>
@@ -181,7 +181,7 @@ export function BackupSection() {
                   'relative p-3 rounded-2xl border-2 text-left transition-all active:scale-95',
                   active
                     ? 'border-emerald-500 dark:border-emerald-500/60 bg-emerald-50 dark:bg-emerald-500/15 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600',
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 dark:hover:border-ink-600',
                 ].join(' ')}
               >
                 {active && (
@@ -190,14 +190,14 @@ export function BackupSection() {
                   </div>
                 )}
                 <div className={`h-9 w-9 rounded-xl flex items-center justify-center mb-2 ${
-                  active ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                  active ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                 }`}>
                   <Icon className="h-4 w-4" />
                 </div>
-                <div className={`text-sm font-extrabold ${active ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-white'}`}>
+                <div className={`text-sm font-extrabold ${active ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-ink-white'}`}>
                   {e.label}
                 </div>
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">{e.desc}</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold mt-0.5">{e.desc}</div>
               </button>
             );
           })}

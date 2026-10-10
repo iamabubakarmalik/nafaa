@@ -75,7 +75,7 @@ export default function OnlineReportsPage() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />)}</div>
+        <div className="grid gap-3 sm:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />)}</div>
       ) : error || !data || !t ? (
         <Card><EmptyState title="Report nahi bani">{apiErrorMessage(error)}</EmptyState></Card>
       ) : t.orders === 0 ? (
@@ -135,9 +135,9 @@ export default function OnlineReportsPage() {
             actions={<Link to="/online-orders/cod"><Btn size="sm">COD safha</Btn></Link>}>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {data.codAging.map((a, i) => (
-                <div key={a.label} className={cn('rounded-lg border p-3', i === 3 && a.count ? 'border-rose-200 bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/5' : 'border-slate-200 dark:border-slate-800')}>
+                <div key={a.label} className={cn('rounded-lg border p-3', i === 3 && a.count ? 'border-rose-200 bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/5' : 'border-slate-200 dark:border-ink-800')}>
                   <div className="text-[0.75rem] text-slate-500">{a.label}</div>
-                  <div className="text-lg font-semibold tabular-nums text-slate-900 dark:text-white">{rs(a.value)}</div>
+                  <div className="text-lg font-semibold tabular-nums text-slate-900 dark:text-ink-white">{rs(a.value)}</div>
                   <div className="text-[0.75rem] text-slate-500">{a.count} parcel</div>
                 </div>
               ))}
@@ -159,12 +159,12 @@ function Table({ head, rows }: { head: string[]; rows: React.ReactNode[][] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[0.8125rem]">
-        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+        <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
           <tr>{head.map((h, i) => <th key={h} className={cn('px-4 py-2 sm:px-5', i > 0 && 'text-right')}>{h}</th>)}</tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+        <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((r, i) => (
-            <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-4 py-2 sm:px-5', j > 0 ? 'text-right tabular-nums' : 'max-w-[240px] font-medium text-slate-900 dark:text-white')}>{c}</td>)}</tr>
+            <tr key={i}>{r.map((c, j) => <td key={j} className={cn('px-4 py-2 sm:px-5', j > 0 ? 'text-right tabular-nums' : 'max-w-[240px] font-medium text-slate-900 dark:text-ink-white')}>{c}</td>)}</tr>
           ))}
         </tbody>
       </table>

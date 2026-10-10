@@ -6,10 +6,10 @@ import { cn } from '@core/lib/cn';
 const TONE: Record<CustomerRisk['level'], string> = {
   NEW: 'bg-sky-100 text-sky-800 dark:bg-sky-500/15 dark:text-sky-300',
   TRUSTED: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300',
-  OK: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+  OK: 'bg-slate-100 text-slate-700 dark:bg-ink-800 dark:text-ink-300',
   WATCH: 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300',
   HIGH: 'bg-rose-600 text-white',
-  BLOCKED: 'bg-slate-900 text-white dark:bg-white dark:text-slate-900',
+  BLOCKED: 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900',
 };
 
 /** List ki chhoti badge — sirf jahan kuch batane layak ho */
@@ -37,11 +37,11 @@ export function RiskCard({ risk }: { risk?: CustomerRisk | null }) {
   const Icon = risk.level === 'HIGH' || risk.level === 'WATCH' || risk.level === 'BLOCKED' ? ShieldAlert : risk.level === 'NEW' ? ShieldQuestion : ShieldCheck;
   return (
     <div className={cn('mt-3 rounded-xl px-3 py-2.5 text-sm',
-      risk.level === 'BLOCKED' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+      risk.level === 'BLOCKED' ? 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900'
         : risk.level === 'HIGH' ? 'bg-rose-50 text-rose-900 dark:bg-rose-500/10 dark:text-rose-200'
         : risk.level === 'WATCH' ? 'bg-amber-50 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200'
           : risk.level === 'TRUSTED' ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald-500/10 dark:text-emerald-200'
-            : 'bg-slate-50 text-slate-700 dark:bg-neutral-800/60 dark:text-slate-200')}>
+            : 'bg-slate-50 text-slate-700 dark:bg-ink-800/60 dark:text-ink-200')}>
       <div className="flex items-center gap-2 font-black"><Icon className="h-4 w-4" /> {risk.label}</div>
       <div className="mt-0.5 text-xs font-semibold opacity-90">{risk.reason}</div>
       {(risk.duplicateOpen ?? 0) > 0 && (

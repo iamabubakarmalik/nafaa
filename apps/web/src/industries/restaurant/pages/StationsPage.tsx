@@ -92,14 +92,14 @@ export default function StationsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : stations.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-orange-100 dark:bg-orange-950/40 mx-auto flex items-center justify-center">
             <Flame className="h-10 w-10 text-orange-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No stations</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No stations</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Setup grill, tandoor, bar sections to route KOTs</p>
           <Button
             className="mt-4 bg-gradient-to-r from-orange-600 to-red-700"
@@ -131,7 +131,7 @@ function StationCard({ station, onEdit, onDelete }: any) {
   const preset = STATION_PRESETS.find((p) => p.name.toLowerCase() === station.name.toLowerCase());
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 ' +
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 ' +
       (!station.isActive ? 'opacity-60' : '')
     }>
       <div className="flex items-start justify-between mb-3">
@@ -139,7 +139,7 @@ function StationCard({ station, onEdit, onDelete }: any) {
           {preset?.emoji || '🔥'}
         </div>
         <div className="flex gap-1">
-          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
+          <button onClick={onEdit} className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center">
             <Edit3 className="h-3.5 w-3.5" />
           </button>
           <button onClick={onDelete} className="h-8 w-8 rounded-lg bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
@@ -148,12 +148,12 @@ function StationCard({ station, onEdit, onDelete }: any) {
         </div>
       </div>
 
-      <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{station.name}</h3>
+      <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{station.name}</h3>
       {station.code && (
         <div className="mt-0.5 text-xs font-mono font-extrabold text-orange-600">Code: {station.code}</div>
       )}
       {station.printerName && (
-        <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 font-semibold">
+        <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-600 dark:text-ink-400 font-semibold">
           <Printer className="h-3 w-3" />
           {station.printerName}
         </div>
@@ -200,12 +200,12 @@ function StationForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-orange-300 dark:border-orange-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-orange-300 dark:border-orange-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-orange-50 dark:bg-orange-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Station' : 'New Kitchen Station'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -220,10 +220,10 @@ function StationForm({ editing, onClose, onSaved }: any) {
                 <button
                   key={p.name}
                   onClick={() => setForm({ ...form, name: p.name, code: p.code })}
-                  className="p-2 rounded-lg border-2 border-slate-200 dark:border-neutral-700 hover:border-orange-400 text-center transition"
+                  className="p-2 rounded-lg border-2 border-slate-200 dark:border-ink-700 hover:border-orange-400 text-center transition"
                 >
                   <div className="text-2xl">{p.emoji}</div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 mt-1">{p.name}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300 mt-1">{p.name}</div>
                 </button>
               ))}
             </div>
@@ -237,7 +237,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Grill / Tandoor / Bar"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500"
             />
           </div>
           <div>
@@ -247,7 +247,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
               onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
               placeholder="GRL"
               maxLength={5}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold uppercase focus:outline-none focus:border-orange-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold uppercase focus:outline-none focus:border-orange-500"
             />
           </div>
         </div>
@@ -258,7 +258,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
             value={form.printerName}
             onChange={(e) => setForm({ ...form, printerName: e.target.value })}
             placeholder="Epson-Grill-01 / Kitchen-Printer-Main"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-orange-500"
           />
           <p className="mt-1 text-[0.6875rem] text-slate-500 font-semibold">KOTs for this station will print to this printer</p>
         </div>
@@ -279,7 +279,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
                       'p-2 rounded-lg border-2 text-xs font-extrabold transition inline-flex items-center gap-1 ' +
                       (active
                         ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-800 shadow'
-                        : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-orange-300')
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-orange-300')
                     }
                   >
                     <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color || '#94a3b8' }} />
@@ -304,7 +304,7 @@ function StationForm({ editing, onClose, onSaved }: any) {
           </div>
         </label>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-orange-600 to-red-700"

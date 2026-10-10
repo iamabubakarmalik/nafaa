@@ -46,10 +46,10 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
   const msg = last ? encodeURIComponent(`Assalam o Alaikum ${o.customerName.split(' ')[0]}! Order #${o.externalOrderNumber ?? o.externalOrderId} ke ${last.kind === 'ADVANCE' ? 'advance' : ''} Rs ${last.amount.toLocaleString('en-PK')} yahan se pay karein (card / wallet): ${last.url}`) : '';
 
   return (
-    <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+    <section className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
       <div className="flex items-center gap-2">
         <CreditCard className="h-5 w-5 text-slate-400" />
-        <div className="flex-1 text-sm font-black text-slate-900 dark:text-white">Online payment</div>
+        <div className="flex-1 text-sm font-black text-slate-900 dark:text-ink-white">Online payment</div>
         {advance > 0 && <span className="text-xs font-bold text-emerald-700">{rs(advance)} mil chuka</span>}
       </div>
 
@@ -58,7 +58,7 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
           {links.slice().reverse().map((l) => (
             <li key={l.ref} className="flex items-center gap-2">
               <span className={cn('rounded px-1.5 py-0.5 font-bold', STATUS[l.status].tone)}>{STATUS[l.status].label}</span>
-              <span className="font-semibold text-slate-700 dark:text-slate-200">{rs(l.amount)} {l.kind === 'ADVANCE' ? 'advance' : ''}</span>
+              <span className="font-semibold text-slate-700 dark:text-ink-200">{rs(l.amount)} {l.kind === 'ADVANCE' ? 'advance' : ''}</span>
               <span className="text-slate-400">· {whenText(l.paidAt ?? l.createdAt)}</span>
             </li>
           ))}
@@ -76,7 +76,7 @@ export function PaymentLinkSection({ order: o, onChanged }: { order: OnlineOrder
             <div className="flex flex-wrap gap-1.5">
               {([['full', `Poori · ${rs(due)}`], ...(o.deliveryFee > 0 ? [['delivery', `Delivery · ${rs(Math.min(due, o.deliveryFee))}`]] : []), ['custom', 'Apni raqam']] as [typeof mode, string][]).map(([k, label]) => (
                 <button key={k} onClick={() => setMode(k)}
-                  className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', mode === k ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900' : 'border-slate-200 text-slate-700 dark:border-neutral-700 dark:text-slate-200')}>
+                  className={cn('rounded-lg border px-2.5 py-1 text-xs font-bold', mode === k ? 'border-slate-900 bg-slate-900 text-white dark:border-ink-white dark:bg-ink-white dark:text-ink-900' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}>
                   {label}
                 </button>
               ))}

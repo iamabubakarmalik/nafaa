@@ -311,14 +311,14 @@ export default function MoneyPage() {
 
       {/* ═══════════ DAIRA ═══════════ */}
       <div className="flex items-center gap-2 flex-wrap print:hidden">
-        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 inline-flex items-center gap-1">
+        <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 inline-flex items-center gap-1">
           <CalendarRange className="h-3 w-3" /> Muddat
         </span>
         {RANGES.map((r) => (
           <button key={r.v} onClick={() => setRange(r.v)}
             className={`h-10 px-4 rounded-xl text-xs font-black transition ${
               range === r.v ? 'bg-emerald-600 text-white shadow'
-                            : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                            : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
             }`}>{r.l}</button>
         ))}
         <button onClick={() => setCalcOpen(true)}
@@ -347,7 +347,7 @@ export default function MoneyPage() {
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <div className="text-[0.625rem] font-black uppercase tracking-widest text-slate-400">Kul</div>
-                  <div className="text-base font-black text-slate-900 dark:text-white tabular-nums">
+                  <div className="text-base font-black text-slate-900 dark:text-ink-white tabular-nums">
                     {m(whereMoney.reduce((s, r) => s + r.value, 0))}
                   </div>
                 </div>
@@ -358,13 +358,13 @@ export default function MoneyPage() {
                   const total = whereMoney.reduce((s, x) => s + x.value, 0);
                   const pct = total > 0 ? (r.value / total) * 100 : 0;
                   return (
-                    <div key={r.name} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+                    <div key={r.name} className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
                       <div className="flex items-center gap-2 mb-1.5">
                         <span className="h-3 w-3 rounded-full shrink-0" style={{ background: r.hex }} />
-                        <span className="font-black text-sm text-slate-900 dark:text-white flex-1 truncate">{r.name}</span>
+                        <span className="font-black text-sm text-slate-900 dark:text-ink-white flex-1 truncate">{r.name}</span>
                         <span className="text-sm font-black tabular-nums" style={{ color: r.hex }}>{m(r.value)}</span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                         <div className="h-full rounded-full transition-all duration-700"
                           style={{ width: `${Math.min(pct, 100)}%`, background: r.hex }} />
                       </div>
@@ -497,7 +497,7 @@ export default function MoneyPage() {
             </ResponsiveContainer>
           </div>
         )}
-        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2">
+        <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-2">
           Column = paisa jo kharch hua (maal + kharch). Neeli lakeer = bikri. Sabz lakeer = jo waqai bacha.
           Sabz lakeer neeli se jitni door, utna acha.
         </p>
@@ -588,7 +588,7 @@ export default function MoneyPage() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => setCalcOpen(false)}>
           <div onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-violet-200 dark:border-violet-500/40">
+            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-violet-200 dark:border-violet-500/40">
             <div className="bg-gradient-to-br from-violet-600 to-purple-700 text-white p-5">
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center mb-2">
                 <Calculator className="h-6 w-6" />
@@ -601,12 +601,12 @@ export default function MoneyPage() {
 
             <div className="p-5 space-y-3">
               <div>
-                <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                   Kitne ka maal / kharch
                 </label>
                 <input type="number" min={0} autoFocus value={calcAmount}
                   onChange={(e) => setCalcAmount(e.target.value)} placeholder="0"
-                  className="h-14 w-full rounded-2xl border-2 border-violet-300 dark:border-violet-500/40 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 text-2xl font-black tabular-nums focus:outline-none focus:border-violet-500 transition" />
+                  className="h-14 w-full rounded-2xl border-2 border-violet-300 dark:border-violet-500/40 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-4 text-2xl font-black tabular-nums focus:outline-none focus:border-violet-500 transition" />
               </div>
 
               <div className="space-y-1.5">
@@ -674,8 +674,8 @@ const TONES: Record<string, string> = {
 
 function Stat({ icon: Icon, label, value, exact, sub, tone = 'sky', link, alert }: any) {
   const body = (
-    <div className={`group relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border-2 p-4 shadow-sm transition h-full ${
-      alert ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800'
+    <div className={`group relative overflow-hidden rounded-3xl bg-white dark:bg-ink-900 border-2 p-4 shadow-sm transition h-full ${
+      alert ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800'
     } ${link ? 'hover:shadow-lg hover:-translate-y-0.5' : ''}`}>
       <div className={`absolute -top-8 -right-8 h-24 w-24 rounded-full bg-gradient-to-br ${TONES[tone]} opacity-10 group-hover:opacity-20 transition`} />
       <div className="relative flex items-start gap-3">
@@ -683,10 +683,10 @@ function Stat({ icon: Icon, label, value, exact, sub, tone = 'sky', link, alert 
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight">{label}</div>
-          <div className="mt-1 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words"
+          <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 leading-tight">{label}</div>
+          <div className="mt-1 text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-tight break-words"
             title={exact}>{value}</div>
-          {sub && <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 leading-snug">{sub}</div>}
+          {sub && <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 leading-snug">{sub}</div>}
         </div>
       </div>
     </div>
@@ -696,15 +696,15 @@ function Stat({ icon: Icon, label, value, exact, sub, tone = 'sky', link, alert 
 
 function Panel({ icon: Icon, title, hint, tone = 'sky', right, children }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
         <div className="flex items-center gap-3 min-w-0">
           <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
             <Icon className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-            {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+            <h3 className="font-black text-slate-900 dark:text-ink-white text-base leading-tight">{title}</h3>
+            {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{hint}</p>}
           </div>
         </div>
         {right}
@@ -729,7 +729,7 @@ function HealthRow({ ok, label, detail }: { ok: boolean; label: string; detail: 
         <div className={`text-xs font-black ${ok ? 'text-emerald-900 dark:text-emerald-200' : 'text-amber-900 dark:text-amber-200'}`}>
           {label}
         </div>
-        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{detail}</div>
+        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{detail}</div>
       </div>
     </div>
   );
@@ -762,12 +762,12 @@ function LadderRow({ label, value, tone, m, exact, note, bold, big }: any) {
   };
   return (
     <div className={`flex items-center justify-between gap-3 rounded-2xl p-3 ${
-      big ? 'bg-slate-900 dark:bg-slate-800 text-white'
-          : bold ? 'bg-slate-100 dark:bg-slate-800'
-                 : 'bg-slate-50 dark:bg-slate-800/60'
+      big ? 'bg-slate-900 dark:bg-ink-800 text-white'
+          : bold ? 'bg-slate-100 dark:bg-ink-800'
+                 : 'bg-slate-50 dark:bg-ink-800/60'
     }`}>
       <div className="min-w-0">
-        <div className={`font-black ${big ? 'text-base text-white' : bold ? 'text-sm text-slate-900 dark:text-white' : 'text-sm text-slate-700 dark:text-slate-200'}`}>
+        <div className={`font-black ${big ? 'text-base text-white' : bold ? 'text-sm text-slate-900 dark:text-ink-white' : 'text-sm text-slate-700 dark:text-ink-200'}`}>
           {label}
         </div>
         {note && <div className={`text-[0.6875rem] font-bold ${big ? 'text-white/60' : 'text-slate-400'}`}>{note}</div>}
@@ -787,7 +787,7 @@ function MiniStat({ label, value, tone, hint }: any) {
     emerald: 'text-emerald-700 dark:text-emerald-400',
   };
   return (
-    <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+    <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
       <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500">{label}</div>
       <div className={`text-lg font-black tabular-nums ${map[tone]}`}>{value}</div>
       <div className="text-[0.6875rem] font-bold text-slate-400">{hint}</div>
@@ -803,11 +803,11 @@ function CalcRow({ label, value, tone, bold, big }: any) {
   };
   return (
     <div className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2 ${
-      big ? 'bg-slate-900 dark:bg-slate-800 text-white' : bold ? 'bg-slate-100 dark:bg-slate-800' : ''
+      big ? 'bg-slate-900 dark:bg-ink-800 text-white' : bold ? 'bg-slate-100 dark:bg-ink-800' : ''
     }`}>
-      <span className={`font-bold ${big ? 'text-sm text-white' : 'text-xs text-slate-600 dark:text-slate-300'}`}>{label}</span>
+      <span className={`font-bold ${big ? 'text-sm text-white' : 'text-xs text-slate-600 dark:text-ink-300'}`}>{label}</span>
       <span className={`font-black tabular-nums ${
-        big ? 'text-xl text-white' : bold ? 'text-base text-slate-900 dark:text-white' : `text-sm ${map[tone] ?? 'text-slate-700 dark:text-slate-200'}`
+        big ? 'text-xl text-white' : bold ? 'text-base text-slate-900 dark:text-ink-white' : `text-sm ${map[tone] ?? 'text-slate-700 dark:text-ink-200'}`
       }`}>{value}</span>
     </div>
   );
@@ -819,18 +819,18 @@ function MoneyGuide({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3"
       onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl">
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl">
         <div className="px-5 py-3.5 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-black text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye Safha Kya Batata Hai
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-bold text-slate-700 dark:text-ink-200 leading-relaxed">
             Nafaa har cheez alag safhe par batata hai — bikri Sales me, kharidari Purchases me,
             kharch Expenses me. Ye wohi ek jagah hai jahan sab jama ho kar poori tasveer banti hai.
           </p>
@@ -857,11 +857,11 @@ function MoneyGuide({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-4">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">
               Sab se ahem number
             </div>
-            <div className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-relaxed space-y-2">
+            <div className="text-xs font-bold text-slate-700 dark:text-ink-200 leading-relaxed space-y-2">
               <p>
                 <strong>"Kharch karne layak"</strong> = golak me jo hai, manhaa supplier ka baqi.
               </p>
@@ -873,7 +873,7 @@ function MoneyGuide({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-bold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2 text-xs font-bold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">
               Har chart kya poochta hai
             </div>

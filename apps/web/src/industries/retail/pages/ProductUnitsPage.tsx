@@ -169,7 +169,7 @@ export default function ProductUnitsPage() {
   return (
     <div className="space-y-4 sm:space-y-5 pb-8">
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 dark:from-ink-950 dark:via-emerald-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
@@ -266,16 +266,16 @@ export default function ProductUnitsPage() {
             onClick={() => setShowPickerMobile(false)}
           >
             <div
-              className="w-full max-w-md h-[80vh] bg-white dark:bg-slate-950 rounded-3xl overflow-hidden flex flex-col shadow-2xl"
+              className="w-full max-w-md h-[80vh] bg-white dark:bg-ink-950 rounded-3xl overflow-hidden flex flex-col shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between p-3 border-b-2 border-slate-100 dark:border-slate-800">
-                <h3 className="font-extrabold text-slate-900 dark:text-white">① Product Chuno</h3>
+              <div className="flex items-center justify-between p-3 border-b-2 border-slate-100 dark:border-ink-800">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">① Product Chuno</h3>
                 <button
                   onClick={() => setShowPickerMobile(false)}
-                  className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center"
+                  className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center"
                 >
-                  <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                  <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
                 </button>
               </div>
               <ProductPicker
@@ -353,7 +353,7 @@ export default function ProductUnitsPage() {
               {isLoading ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                    <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
                   ))}
                 </div>
               ) : units.length === 0 ? (
@@ -407,21 +407,21 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Units Kya Hain?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
           {/* Simple explanation */}
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Dukaan par koi <strong>ek piece</strong> maangta hai, koi <strong>poora dozen</strong>, koi
             <strong> carton</strong>. Yahan aap ek hi cheez ke saray naap bana lete hain — stock ek hi jagah
             rehta hai aur counter khud hisab kar leta hai.
@@ -442,7 +442,7 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
               <ChainBox emoji="📮" name="Carton" detail="240 anday" price="Rs 5,800" />
             </div>
 
-            <div className="rounded-xl bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200 space-y-1.5">
+            <div className="rounded-xl bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200 space-y-1.5">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
                 <span>Customer dozen le → POS stock se <strong>12 piece</strong> khud minus karega</span>
@@ -468,8 +468,8 @@ function UnitsTeacher({ onClose, onStart }: { onClose: () => void; onStart: () =
             <TermCard emoji="💰" term="Rate" desc="Poore package ka rate — thora chhoot dein to bara package zyada bikta hai" />
           </div>
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3.5 text-xs font-bold text-slate-700 dark:text-slate-200 space-y-2">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3.5 text-xs font-bold text-slate-700 dark:text-ink-200 space-y-2">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-ink-400">
               Banane ke baad
             </div>
             <div className="flex items-start gap-2">
@@ -503,12 +503,12 @@ function ChainBox({ emoji, name, detail, price, highlight }: {
     <div className={[
       'rounded-xl border-2 px-3 py-2 text-center min-w-[90px]',
       highlight
-        ? 'border-emerald-500 bg-white dark:bg-slate-800 shadow-md'
-        : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60',
+        ? 'border-emerald-500 bg-white dark:bg-ink-800 shadow-md'
+        : 'border-slate-200 dark:border-ink-700 bg-white/70 dark:bg-ink-800/60',
     ].join(' ')}>
       <div className="text-2xl">{emoji}</div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{name}</div>
-      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{detail}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{name}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">{detail}</div>
       <div className="text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums mt-0.5">{price}</div>
     </div>
   );
@@ -516,10 +516,10 @@ function ChainBox({ emoji, name, detail, price, highlight }: {
 
 function TermCard({ emoji, term, desc }: { emoji: string; term: string; desc: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{term}</div>
-      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white mt-1">{term}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -592,22 +592,22 @@ function ProductPicker({
 
   return (
     <section className={[
-      'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex-col',
+      'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden flex-col',
       embedded ? '' : 'max-h-[calc(100vh-220px)] xl:sticky xl:top-4 xl:self-start',
       className,
     ].join(' ')}>
       {!embedded && (
-        <div className="shrink-0 px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
+        <div className="shrink-0 px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm flex items-center gap-1.5">
             <Boxes className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             ① Product Chuno
           </h3>
-          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <span className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {products.length}
           </span>
         </div>
       )}
-      <div className="shrink-0 p-3 border-b border-slate-100 dark:border-slate-800">
+      <div className="shrink-0 p-3 border-b border-slate-100 dark:border-ink-800">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
@@ -617,12 +617,12 @@ function ProductPicker({
             onChange={(e) => onSearch(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Product dhundo... ↑↓ Enter"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
           />
           {search && (
             <button
               onClick={() => onSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center"
             >
               <X className="h-4 w-4 text-slate-400" />
             </button>
@@ -633,14 +633,14 @@ function ProductPicker({
         {loading ? (
           <div className="p-4 space-y-2">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : products.length === 0 ? (
           <div className="p-8 text-center">
-            <Package className="h-12 w-12 text-slate-300 dark:text-slate-700 mx-auto mb-2" />
-            <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Koi product nahi mila</p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+            <Package className="h-12 w-12 text-slate-300 dark:text-ink-700 mx-auto mb-2" />
+            <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Koi product nahi mila</p>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">
               {search ? 'Doosra keyword try karo' : 'Pehle products create karo'}
             </p>
           </div>
@@ -654,26 +654,26 @@ function ProductPicker({
                 onClick={() => onSelect(p.id)}
                 onMouseEnter={() => setActiveIdx(idx)}
                 className={[
-                  'w-full px-4 py-3 flex items-center gap-3 transition text-left border-b border-slate-50 dark:border-slate-800/60',
+                  'w-full px-4 py-3 flex items-center gap-3 transition text-left border-b border-slate-50 dark:border-ink-800/60',
                   active
                     ? 'bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-l-emerald-500'
                     : highlighted
-                    ? 'bg-slate-100 dark:bg-slate-800'
-                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/60',
+                    ? 'bg-slate-100 dark:bg-ink-800'
+                    : 'hover:bg-slate-50 dark:hover:bg-ink-800/60',
                 ].join(' ')}
               >
-                <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                   {p.images?.[0]?.url ? (
                     <img src={p.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                   ) : (
-                    <Package className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    <Package className="h-5 w-5 text-slate-400 dark:text-ink-500" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className={`font-extrabold text-sm truncate ${active ? 'text-emerald-800 dark:text-emerald-200' : 'text-slate-900 dark:text-white'}`}>
+                  <div className={`font-extrabold text-sm truncate ${active ? 'text-emerald-800 dark:text-emerald-200' : 'text-slate-900 dark:text-ink-white'}`}>
                     {p.name}
                   </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                  <div className="text-xs text-slate-500 dark:text-ink-400 font-bold tabular-nums">
                     1 {p.unit} = {formatPKR(p.price)}
                     <span className="opacity-40 mx-1">•</span>
                     Stock: {p.stock}
@@ -695,13 +695,13 @@ function ProductPicker({
 
 function ProductHeader({ product, basePrice, baseStock, stats, onNewUnit, onChangeProduct }: any) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-emerald-300 dark:border-emerald-500/40 shadow-sm p-4 flex items-center justify-between gap-3 flex-wrap">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-emerald-300 dark:border-emerald-500/40 shadow-sm p-4 flex items-center justify-between gap-3 flex-wrap">
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border-2 border-emerald-200 dark:border-emerald-500/30">
+        <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border-2 border-emerald-200 dark:border-emerald-500/30">
           {product.images?.[0]?.url ? (
             <img src={product.images[0].url} alt="" className="h-full w-full object-cover" />
           ) : (
-            <Package className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+            <Package className="h-6 w-6 text-slate-400 dark:text-ink-500" />
           )}
         </div>
         <div className="min-w-0 flex-1">
@@ -709,14 +709,14 @@ function ProductHeader({ product, basePrice, baseStock, stats, onNewUnit, onChan
             <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">
               ✓ Selected
             </span>
-            <h2 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white truncate">
+            <h2 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-ink-white truncate">
               {product.name}
             </h2>
           </div>
           {/* Pehle yahan sirf "Base: 1 pcs" likha tha — log poochte thay
               "base kya hota hai". Ab poori baat likhi hai. */}
-          <div className="text-[0.6875rem] sm:text-xs text-slate-600 dark:text-slate-300 font-bold mt-1">
-            Is cheez ka <strong className="text-slate-900 dark:text-white">asal naap {product.unit}</strong> hai —
+          <div className="text-[0.6875rem] sm:text-xs text-slate-600 dark:text-ink-300 font-bold mt-1">
+            Is cheez ka <strong className="text-slate-900 dark:text-ink-white">asal naap {product.unit}</strong> hai —
             stock isi me ginta hai.
             <span className="mx-1 opacity-40">•</span>
             1 {product.unit} = <strong className="text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(basePrice)}</strong>
@@ -734,7 +734,7 @@ function ProductHeader({ product, basePrice, baseStock, stats, onNewUnit, onChan
       <div className="flex gap-2 shrink-0">
         <button
           onClick={onChangeProduct}
-          className="xl:hidden h-11 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5"
+          className="xl:hidden h-11 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5"
         >
           <ArrowRightLeft className="h-4 w-4" /> Change
         </button>
@@ -761,16 +761,16 @@ function QuickPresets({ units, basePrice, baseUnit, onAdd, pending }: {
   pending: boolean;
 }) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900/60 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 p-4 sm:p-5 space-y-3">
+    <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900/60 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 p-4 sm:p-5 space-y-3">
       <div className="flex items-start justify-between gap-2 flex-wrap">
         <div>
           <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
             <Zap className="h-3 w-3 text-amber-500" /> ② Ek Click Se Unit Banao
           </div>
-          <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
+          <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm mt-0.5">
             Common packages — price khud calculate ho jayegi
           </h4>
-          <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold mt-0.5">
+          <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold mt-0.5">
             Jaise "Dozen" dabao → 1 Dozen = 12 {baseUnit} = {formatPKRFull(basePrice * 12)} ban jayega
           </p>
         </div>
@@ -789,13 +789,13 @@ function QuickPresets({ units, basePrice, baseUnit, onAdd, pending }: {
                 exists
                   ? 'border-emerald-400 dark:border-emerald-500/50 bg-emerald-100 dark:bg-emerald-500/20 opacity-70'
                   : disabled
-                  ? 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 opacity-40'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-emerald-500 dark:hover:border-emerald-400 hover:shadow-lg hover:-translate-y-0.5',
+                  ? 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 opacity-40'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 hover:border-emerald-500 dark:hover:border-emerald-400 hover:shadow-lg hover:-translate-y-0.5',
               ].join(' ')}
             >
               <div className="text-2xl leading-none">{p.e}</div>
-              <div className="font-extrabold text-xs text-slate-900 dark:text-white mt-1">{p.n}</div>
-              <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold">
+              <div className="font-extrabold text-xs text-slate-900 dark:text-ink-white mt-1">{p.n}</div>
+              <div className="text-[0.625rem] text-slate-500 dark:text-ink-400 font-bold">
                 = {p.r} {baseUnit}
               </div>
               <div className="text-[0.625rem] text-emerald-700 dark:text-emerald-400 font-extrabold mt-0.5 tabular-nums">
@@ -841,12 +841,12 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
 
   return (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm dark:shadow-black/20 p-4 hover:shadow-lg transition-all hover:-translate-y-0.5',
+      'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm dark:shadow-black/20 p-4 hover:shadow-lg transition-all hover:-translate-y-0.5',
       unit.isBase
         ? 'border-emerald-400 dark:border-emerald-500/50 ring-2 ring-emerald-100 dark:ring-emerald-500/20'
         : !unit.isActive
-        ? 'border-slate-200 dark:border-slate-800 opacity-60'
-        : 'border-slate-200 dark:border-slate-800',
+        ? 'border-slate-200 dark:border-ink-800 opacity-60'
+        : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
@@ -860,7 +860,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
               {unit.isBase ? <Star className="h-5 w-5 fill-white" /> : <Layers className="h-5 w-5" />}
             </div>
             <div>
-              <h4 className="font-extrabold text-slate-900 dark:text-white capitalize text-base">
+              <h4 className="font-extrabold text-slate-900 dark:text-ink-white capitalize text-base">
                 {unit.unitName}
               </h4>
               <div className="flex items-center gap-1 flex-wrap mt-0.5">
@@ -886,23 +886,23 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
             </div>
           </div>
 
-          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-xs text-slate-600 dark:text-slate-300 font-bold">
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap text-xs text-slate-600 dark:text-ink-300 font-bold">
             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30">
               <ArrowRightLeft className="h-3 w-3 text-emerald-500" />
-              1 <span className="capitalize">{unit.unitName}</span> = <strong className="text-slate-900 dark:text-white tabular-nums">{unit.conversionRate}</strong> {baseUnit}
+              1 <span className="capitalize">{unit.unitName}</span> = <strong className="text-slate-900 dark:text-ink-white tabular-nums">{unit.conversionRate}</strong> {baseUnit}
             </span>
             {!unit.isBase && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 tabular-nums">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-ink-800 border border-slate-200 dark:border-ink-700 tabular-nums">
                 📦 Mojooda stock se {unitsFromStock} {unit.unitName} bantay hain
               </span>
             )}
             {unit.barcode && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem]">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-ink-800 border border-slate-200 dark:border-ink-700 font-mono text-[0.6875rem]">
                 <Barcode className="h-3 w-3" /> {unit.barcode}
               </span>
             )}
             {unit.sku && (
-              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem]">
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-ink-800 border border-slate-200 dark:border-ink-700 font-mono text-[0.6875rem]">
                 SKU: {unit.sku}
               </span>
             )}
@@ -926,7 +926,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
             {formatPKR(unit.price)}
           </div>
           {!hideCost && (
-            <div className="flex items-center gap-2 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 justify-end mt-1">
+            <div className="flex items-center gap-2 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 justify-end mt-1">
               {unit.costPrice > 0 && <span>Cost: {formatPKR(unit.costPrice)}</span>}
               {unit.wholesalePrice && <span className="text-violet-700 dark:text-violet-400">W/S: {formatPKR(unit.wholesalePrice)}</span>}
             </div>
@@ -961,7 +961,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
                 title={unit.isActive ? 'Counter par dikhna band karein' : 'Counter par dobara dikhayein'}
                 className={`h-8 px-2.5 rounded-lg text-[0.6875rem] font-extrabold inline-flex items-center gap-1 disabled:opacity-50 transition ${
                   unit.isActive
-                    ? 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    ? 'bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300'
                     : 'bg-emerald-50 dark:bg-emerald-500/15 hover:bg-emerald-100 text-emerald-700 dark:text-emerald-400'
                 }`}
               >
@@ -971,7 +971,7 @@ function UnitCard({ unit, baseUnit, basePrice, baseStock, hideCost, onEdit, onDe
             <button
               onClick={onEdit}
               title="Badlein"
-              className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition"
+              className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center transition"
             >
               <Edit3 className="h-3.5 w-3.5" />
             </button>
@@ -1088,7 +1088,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
           onClose={() => setScanOpen(false)}
         />
       )}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/90 dark:backdrop-blur-sm border-2 border-emerald-300 dark:border-emerald-500/40 shadow-xl overflow-hidden">
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/90 dark:backdrop-blur-sm border-2 border-emerald-300 dark:border-emerald-500/40 shadow-xl overflow-hidden">
         <div className="px-4 sm:px-5 py-3 border-b-2 border-emerald-100 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/15 flex items-center justify-between">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             {editing ? <Edit3 className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
@@ -1096,9 +1096,9 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
           </h3>
           <button
             onClick={onClose}
-            className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition"
+            className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition"
           >
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -1110,11 +1110,11 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 <Lightbulb className="h-3 w-3" /> Live Preview — Aisa Dikhega
               </div>
               <div className="flex items-center gap-2 flex-wrap text-sm font-extrabold">
-                <span className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-emerald-400 dark:border-emerald-500/50 text-slate-900 dark:text-white capitalize shadow-sm">
+                <span className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-emerald-400 dark:border-emerald-500/50 text-slate-900 dark:text-ink-white capitalize shadow-sm">
                   1 {form.unitName}
                 </span>
                 <span className="text-emerald-600 dark:text-emerald-400">=</span>
-                <span className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white tabular-nums">
+                <span className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white tabular-nums">
                   {form.conversionRate} {baseUnit}
                 </span>
                 {form.price > 0 && (
@@ -1127,8 +1127,8 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 )}
               </div>
               {basePrice > 0 && form.conversionRate > 0 && form.price > 0 && (
-                <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-                  Per {baseUnit}: <span className="text-slate-900 dark:text-white tabular-nums">{formatPKR(form.price / form.conversionRate)}</span>
+                <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+                  Per {baseUnit}: <span className="text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(form.price / form.conversionRate)}</span>
                   {form.price / form.conversionRate < basePrice && (
                     <span className="text-emerald-700 dark:text-emerald-400">
                       {' '}— base se {formatPKR(basePrice - form.price / form.conversionRate)} sasta/{baseUnit} (customer ko faida 👍)
@@ -1222,7 +1222,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
               Pehle ye sab hamesha samne rehte thay aur form itna lamba
               lagta tha ke log dozen banana hi chhor dete thay. */}
           <button onClick={() => setShowMore((v) => !v)}
-            className="w-full h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
+            className="w-full h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1.5 transition">
             <Sparkles className="h-4 w-4" />
             {showMore ? 'Aur tafseel chhupayein' : 'Aur tafseel — wholesale, MRP, barcode, SKU'}
           </button>
@@ -1237,7 +1237,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 value={form.wholesalePrice}
                 onChange={(e) => setForm({ ...form, wholesalePrice: e.target.value as any })}
                 placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-violet-200 dark:border-violet-500/30 bg-white dark:bg-slate-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
+                className="h-11 w-full rounded-xl border-2 border-violet-200 dark:border-violet-500/30 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
               />
             </FormField>
             <FormField label="MRP" hint="optional" tone="blue">
@@ -1247,7 +1247,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 value={form.mrpPrice}
                 onChange={(e) => setForm({ ...form, mrpPrice: e.target.value as any })}
                 placeholder="Optional"
-                className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/30 bg-white dark:bg-slate-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30"
+                className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/30 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30"
               />
             </FormField>
           </div>
@@ -1264,7 +1264,7 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
                 <button
                   onClick={() => setScanOpen(true)}
                   title="Barcode scan"
-                  className="h-11 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white text-xs font-extrabold inline-flex items-center gap-1 shrink-0 transition"
+                  className="h-11 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 hover:bg-slate-800 dark:hover:bg-ink-600 text-white text-xs font-extrabold inline-flex items-center gap-1 shrink-0 transition"
                 >
                   <Camera className="h-4 w-4" />
                 </button>
@@ -1332,20 +1332,20 @@ function UnitForm({ productId, baseUnit, basePrice, baseCost, editing, onClose, 
 
 function EmptyPickProduct({ onOpenPicker, onLearn }: { onOpenPicker: () => void; onLearn: () => void }) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 sm:p-12 text-center">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-dashed border-slate-300 dark:border-ink-700 p-8 sm:p-12 text-center">
       <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-teal-700 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Layers className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
         Step ① — Product Chuno
       </h3>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+      <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
         Jis product ko piece, dozen, carton mein bechna hai — use select karo.
         Phir step ② mein uske packages banao ge.
       </p>
 
       {/* Mini visual hint */}
-      <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-xs font-extrabold text-slate-600 dark:text-slate-300">
+      <div className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 px-4 py-2.5 text-xs font-extrabold text-slate-600 dark:text-ink-300">
         <span>🥚 Piece</span>
         <ArrowRight className="h-3.5 w-3.5 text-emerald-500" />
         <span>🗳️ Dozen</span>
@@ -1367,7 +1367,7 @@ function EmptyPickProduct({ onOpenPicker, onLearn }: { onOpenPicker: () => void;
           <GraduationCap className="h-4 w-4" /> Pehle Samjho — Units Kya Hain?
         </button>
       </div>
-      <p className="hidden xl:block mt-3 text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">
+      <p className="hidden xl:block mt-3 text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">
         👈 Baayein list se product click karo
       </p>
     </div>
@@ -1376,14 +1376,14 @@ function EmptyPickProduct({ onOpenPicker, onLearn }: { onOpenPicker: () => void;
 
 function EmptyNoUnits({ onAddCustom }: { onAddCustom: () => void }) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-dashed border-emerald-300 dark:border-emerald-500/40 p-8 sm:p-12 text-center">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-dashed border-emerald-300 dark:border-emerald-500/40 p-8 sm:p-12 text-center">
       <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/30">
         <Layers className="h-8 w-8 text-white" />
       </div>
-      <h3 className="mt-3 font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-3 font-extrabold text-slate-900 dark:text-ink-white">
         Step ② — Ab Unit Banao
       </h3>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-sm mx-auto">
+      <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-sm mx-auto">
         Sab se aasan tareeqa: <strong>upar presets</strong> mein se koi dabao (Dozen, Box, Carton) —
         price khud ban jayegi. Ya custom unit banao:
       </p>
@@ -1417,13 +1417,13 @@ function FormField({ label, required, hint, tone, children }: {
     violet:  'text-violet-700 dark:text-violet-300',
     blue:    'text-blue-700 dark:text-blue-300',
   };
-  const color = tone ? tones[tone] : 'text-slate-700 dark:text-slate-300';
+  const color = tone ? tones[tone] : 'text-slate-700 dark:text-ink-300';
   return (
     <div>
       <label className={`block text-xs font-extrabold uppercase tracking-wider mb-1.5 ${color}`}>
         {label}
         {required && <span className="text-rose-500 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 dark:text-slate-500 normal-case font-bold ml-1">({hint})</span>}
+        {hint && <span className="text-slate-400 dark:text-ink-500 normal-case font-bold ml-1">({hint})</span>}
       </label>
       {children}
     </div>
@@ -1441,7 +1441,7 @@ function ToggleTile({ checked, onChange, label, hint, tone }: {
       'flex flex-col gap-0.5 p-3 rounded-xl border-2 cursor-pointer transition',
       checked
         ? active
-        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600',
+        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 text-slate-700 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600',
     ].join(' ')}>
       <span className="flex items-center gap-2">
         <input
@@ -1460,10 +1460,10 @@ function ToggleTile({ checked, onChange, label, hint, tone }: {
 function inputCls(extra = '') {
   return [
     'w-full rounded-xl border-2 px-3',
-    'bg-white dark:bg-slate-800',
-    'text-slate-900 dark:text-white',
-    'placeholder:text-slate-400 dark:placeholder:text-slate-500',
-    'border-slate-200 dark:border-slate-700',
+    'bg-white dark:bg-ink-800',
+    'text-slate-900 dark:text-ink-white',
+    'placeholder:text-slate-400 dark:placeholder:text-ink-500',
+    'border-slate-200 dark:border-ink-700',
     'focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400',
     'focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition',
     extra,

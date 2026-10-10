@@ -106,7 +106,7 @@ export const CONDITION_META: Record<ConditionType, {
   },
   FOR_PARTS: {
     label: 'For Parts', emoji: '🧩', hint: 'Sirf parts ke liye',
-    chip: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+    chip: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300',
   },
 };
 

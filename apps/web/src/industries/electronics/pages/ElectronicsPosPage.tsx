@@ -788,7 +788,7 @@ export default function ElectronicsPosPage() {
       {/* ✅ SUCCESS MODAL — compact, auto-close */}
       {lastSale && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={closeSuccessModal}>
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150" onClick={(e) => e.stopPropagation()}>
             <div className="relative px-6 py-6 bg-gradient-to-br from-emerald-500 to-green-600 text-white text-center">
               <button onClick={closeSuccessModal} className="absolute top-3 right-3 h-10 w-10 rounded-2xl bg-white/20 hover:bg-white/30 active:scale-90 flex items-center justify-center transition">
                 <X className="h-5 w-5" />
@@ -824,7 +824,7 @@ export default function ElectronicsPosPage() {
             <div className="p-3 grid grid-cols-2 gap-2">
               <button
                 onClick={() => printReceiptDirect(lastSale.printPayload, printerWidth)}
-                className="h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 active:scale-95 font-extrabold text-slate-700 dark:text-slate-200 transition inline-flex items-center justify-center gap-2">
+                className="h-14 rounded-2xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 active:scale-95 font-extrabold text-slate-700 dark:text-ink-200 transition inline-flex items-center justify-center gap-2">
                 <Printer className="h-5 w-5" /> Print Again
               </button>
               <button onClick={closeSuccessModal} className="h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 active:scale-95 font-extrabold text-white text-lg shadow-lg transition inline-flex items-center justify-center gap-2">
@@ -832,7 +832,7 @@ export default function ElectronicsPosPage() {
               </button>
             </div>
             {autoClose && (
-              <div className="px-4 pb-2.5 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+              <div className="px-4 pb-2.5 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
                 ⏱️ 3 sec me khud band — click karo foran band karne ke liye
               </div>
             )}
@@ -843,7 +843,7 @@ export default function ElectronicsPosPage() {
       {/* 👤 CUSTOMER ADD */}
       {showCustomerAdd && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden">
+          <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
             <div className="px-5 py-4 bg-gradient-to-br from-violet-600 to-purple-700 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <UserPlus className="h-6 w-6" />
@@ -856,10 +856,10 @@ export default function ElectronicsPosPage() {
             <div className="p-5 space-y-3">
               <input autoFocus value={newCustomer.name} onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
                 placeholder="Customer ka naam"
-                className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+                className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-xl font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
               <input value={newCustomer.phone} onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
                 placeholder="03XX XXXXXXX"
-                className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+                className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-xl font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
               <button onClick={() => {
                 if (!newCustomer.name.trim()) return toast.error('Naam likhein');
                 addCustomerMutation.mutate({ name: newCustomer.name.trim(), phone: newCustomer.phone.trim() || undefined });
@@ -875,7 +875,7 @@ export default function ElectronicsPosPage() {
       {/* ⏸️ HELD CARTS */}
       {showHeldCarts && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
+          <div className="w-full max-w-lg bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[85vh] flex flex-col">
             <div className="px-5 py-4 bg-gradient-to-br from-amber-600 to-orange-700 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Pause className="h-6 w-6" />
@@ -888,17 +888,17 @@ export default function ElectronicsPosPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {heldCarts.length === 0 ? (
                 <div className="text-center py-12">
-                  <Pause className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="font-extrabold text-slate-700 dark:text-slate-200">Koi hold cart nahi</p>
+                  <Pause className="h-12 w-12 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <p className="font-extrabold text-slate-700 dark:text-ink-200">Koi hold cart nahi</p>
                 </div>
               ) : heldCarts.map((h) => (
-                <div key={h.id} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 flex items-center gap-3">
+                <div key={h.id} className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-3 flex items-center gap-3">
                   <div className="h-12 w-12 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
                     <Cpu className="h-6 w-6" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm">{h.lines.length} items • {formatPKR(h.total)}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{h.lines.length} items • {formatPKR(h.total)}</div>
+                    <div className="text-xs text-slate-500 dark:text-ink-400 font-bold">
                       {new Date(h.heldAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
@@ -919,10 +919,10 @@ export default function ElectronicsPosPage() {
       <div className="min-h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-7rem)] flex flex-col lg:grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-2 lg:gap-3">
 
         {/* LEFT PANEL */}
-        <section className="lg:flex-1 rounded-2xl lg:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 lg:overflow-hidden flex flex-col lg:min-h-0">
+        <section className="lg:flex-1 rounded-2xl lg:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 lg:overflow-hidden flex flex-col lg:min-h-0">
 
           {/* HEADER */}
-          <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white">
+          <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white">
             <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-blue-400/20 blur-2xl" />
             <div className="relative px-3 sm:px-4 py-2.5 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -989,8 +989,8 @@ export default function ElectronicsPosPage() {
           </div>
 
           {/* VIEW TABS */}
-          <div className="shrink-0 px-3 sm:px-4 pt-3 bg-slate-50 dark:bg-slate-900/60 border-b-2 border-slate-100 dark:border-slate-800">
-            <div className="flex gap-1.5 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-1">
+          <div className="shrink-0 px-3 sm:px-4 pt-3 bg-slate-50 dark:bg-ink-900/60 border-b-2 border-slate-100 dark:border-ink-800">
+            <div className="flex gap-1.5 bg-white dark:bg-ink-800 rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-1">
               <ViewTab active={viewMode === 'products'} onClick={() => setViewMode('products')}
                 icon={Package} label="Products" count={products.length} color="blue" shortcut="F7" />
               <ViewTab active={viewMode === 'bundles'} onClick={() => setViewMode('bundles')}
@@ -999,24 +999,24 @@ export default function ElectronicsPosPage() {
           </div>
 
           {/* SEARCH + BARCODE */}
-          <div className="shrink-0 px-3 sm:px-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border-b-2 border-slate-100 dark:border-slate-800 space-y-2">
+          <div className="shrink-0 px-3 sm:px-4 py-2.5 bg-slate-50 dark:bg-ink-900/60 border-b-2 border-slate-100 dark:border-ink-800 space-y-2">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="h-5 w-5 sm:h-6 sm:w-6 text-slate-400 absolute left-3 sm:left-4 top-1/2 -translate-y-1/2" />
                 <input
-                  className="h-14 sm:h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 sm:pl-14 pr-10 sm:pr-12 text-lg sm:text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-500/20 transition"
+                  className="h-14 sm:h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 sm:pl-14 pr-10 sm:pr-12 text-lg sm:text-xl font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-500/20 transition"
                   placeholder={viewMode === 'products' ? 'Product / model / SKU...' : 'Bundle naam...'}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 flex items-center justify-center transition">
-                    <X className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                  <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-700 active:scale-95 flex items-center justify-center transition">
+                    <X className="h-5 w-5 text-slate-500 dark:text-ink-400" />
                   </button>
                 )}
               </div>
               <button onClick={() => setScannerOpen(true)}
-                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
+                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-ink-700 dark:to-ink-800 hover:from-slate-800 hover:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" />
                 <span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
@@ -1041,12 +1041,12 @@ export default function ElectronicsPosPage() {
           </div>
 
           {/* GRID */}
-          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-slate-950/40 lg:min-h-0">
+          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-ink-950/40 lg:min-h-0">
             {!currentShopId ? (
               <EmptyState icon={Store} title="Pehle shop select karein" hint="Upar se apni shop chunein — stock aur rate usi shop ke dikhenge" />
             ) : loadingProducts && !catalog ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
-                {Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
+                {Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />)}
               </div>
             ) : viewMode === 'products' ? (
               filteredProducts.length === 0 ? (
@@ -1060,7 +1060,7 @@ export default function ElectronicsPosPage() {
                   </div>
                   {hasMore && (
                     <button onClick={() => setVisibleCount((c) => c + 60)}
-                      className="mt-3 w-full h-12 rounded-2xl bg-white dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-700 hover:border-blue-400 active:scale-[0.98] text-slate-700 dark:text-slate-200 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
+                      className="mt-3 w-full h-12 rounded-2xl bg-white dark:bg-ink-800 border-4 border-slate-200 dark:border-ink-700 hover:border-blue-400 active:scale-[0.98] text-slate-700 dark:text-ink-200 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
                       <Package className="h-4 w-4" /> Aur dikhaein ({filteredProducts.length - visibleCount} baqi)
                     </button>
                   )}
@@ -1135,7 +1135,7 @@ export default function ElectronicsPosPage() {
 function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, printerWidth, setPrinterWidth, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-slate-900 to-slate-700 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Settings2 className="h-6 w-6" />
@@ -1153,12 +1153,12 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
                   <Printer className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm">🖨️ Auto-Print Receipt</div>
-                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">Sale hote hi print dialog — S/N + warranty receipt pe khud</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">🖨️ Auto-Print Receipt</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold">Sale hote hi print dialog — S/N + warranty receipt pe khud</div>
                 </div>
               </div>
               <button onClick={() => setAutoPrint(!autoPrint)}
-                className={['shrink-0 w-14 h-8 rounded-full transition relative', autoPrint ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'].join(' ')}>
+                className={['shrink-0 w-14 h-8 rounded-full transition relative', autoPrint ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-ink-700'].join(' ')}>
                 <span className={['absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all', autoPrint ? 'left-7' : 'left-1'].join(' ')} />
               </button>
             </div>
@@ -1170,7 +1170,7 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
                     <button key={w} onClick={() => setPrinterWidth(w)}
                       className={['h-10 rounded-xl text-sm font-extrabold transition border-2',
                         printerWidth === w ? 'bg-cyan-600 border-cyan-600 text-white shadow-md'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'].join(' ')}>
+                        : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200'].join(' ')}>
                       {w}mm {w === '80' ? '(standard)' : '(chhota)'}
                     </button>
                   ))}
@@ -1179,25 +1179,25 @@ function PosSettingsModal({ autoPrint, setAutoPrint, autoClose, setAutoClose, pr
             )}
           </div>
 
-          <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-4">
+          <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-4">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-md shrink-0">
                   <CheckCircle2 className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm">✅ Success Auto-Close</div>
-                  <div className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold">Sale ke baad modal 3 sec me khud band</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">✅ Success Auto-Close</div>
+                  <div className="text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold">Sale ke baad modal 3 sec me khud band</div>
                 </div>
               </div>
               <button onClick={() => setAutoClose(!autoClose)}
-                className={['shrink-0 w-14 h-8 rounded-full transition relative', autoClose ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'].join(' ')}>
+                className={['shrink-0 w-14 h-8 rounded-full transition relative', autoClose ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-ink-700'].join(' ')}>
                 <span className={['absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all', autoClose ? 'left-7' : 'left-1'].join(' ')} />
               </button>
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300">
             💡 <strong>Popup blocked?</strong> Browser ke address bar me 🔒 icon pe click → "Pop-ups and redirects" → Allow. Tabhi auto-print chalega.
           </div>
         </div>
@@ -1269,7 +1269,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
         <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 text-white px-5 py-4">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-cyan-400/20 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
@@ -1300,23 +1300,23 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => setMode('full')}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
-                  mode === 'full' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-lg ring-2 ring-emerald-200 dark:ring-emerald-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300'].join(' ')}>
+                  mode === 'full' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-lg ring-2 ring-emerald-200 dark:ring-emerald-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300'].join(' ')}>
                 <Wallet className={`h-6 w-6 mx-auto ${mode === 'full' ? 'text-emerald-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>Pura Paisa</div>
+                <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-ink-200'}`}>Pura Paisa</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">100% payment</div>
               </button>
               <button onClick={() => { setMode('partial'); setPaidStr(''); }}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
-                  mode === 'partial' ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-lg ring-2 ring-amber-200 dark:ring-amber-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-300'].join(' ')}>
+                  mode === 'partial' ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-lg ring-2 ring-amber-200 dark:ring-amber-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300'].join(' ')}>
                 <Calculator className={`h-6 w-6 mx-auto ${mode === 'partial' ? 'text-amber-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-slate-200'}`}>Kuch Cash</div>
+                <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-ink-200'}`}>Kuch Cash</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Baqi udhaar</div>
               </button>
               <button onClick={() => setMode('credit')} disabled={!hasCustomer}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed',
-                  mode === 'credit' ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-lg ring-2 ring-rose-200 dark:ring-rose-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-rose-300'].join(' ')}>
+                  mode === 'credit' ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-lg ring-2 ring-rose-200 dark:ring-rose-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300'].join(' ')}>
                 <BookOpen className={`h-6 w-6 mx-auto ${mode === 'credit' ? 'text-rose-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-700 dark:text-slate-200'}`}>Pura Udhaar</div>
+                <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-700 dark:text-ink-200'}`}>Pura Udhaar</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{hasCustomer ? 'Khaate mein' : 'Customer chunein'}</div>
               </button>
             </div>
@@ -1324,7 +1324,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
 
           {mode !== 'credit' && (
             <div className="px-4 sm:px-5 pt-4">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2">Payment Method</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider mb-2">Payment Method</div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {PAYMENT_METHODS.map((m) => {
                   const active = paymentMethod === m.id;
@@ -1332,7 +1332,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                   return (
                     <button key={m.id} onClick={() => setPaymentMethod(m.id)}
                       className={['p-2.5 rounded-2xl border-4 transition active:scale-95 flex flex-col items-center gap-1',
-                        active ? `border-transparent shadow-lg text-white bg-gradient-to-br ${m.bg}` : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-200'].join(' ')}>
+                        active ? `border-transparent shadow-lg text-white bg-gradient-to-br ${m.bg}` : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 text-slate-700 dark:text-ink-200'].join(' ')}>
                       <Icon className="h-5 w-5" />
                       <span className="text-[0.6875rem] font-extrabold">{m.label}</span>
                     </button>
@@ -1351,7 +1351,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                   placeholder="Kitna paisa diya?"
                   className="h-16 sm:h-20 w-full rounded-2xl border-4 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 px-4 pr-14 text-3xl sm:text-4xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20" />
                 {paidStr && (
-                  <button onClick={() => setPaidStr('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 flex items-center justify-center transition">
+                  <button onClick={() => setPaidStr('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 active:scale-95 flex items-center justify-center transition">
                     <X className="h-5 w-5 text-slate-500" />
                   </button>
                 )}
@@ -1359,7 +1359,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                 {QUICK_AMOUNTS.map((amt) => (
                   <button key={amt} onClick={() => addAmount(amt)}
-                    className="h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-sm font-extrabold text-slate-800 dark:text-slate-200 transition tabular-nums">
+                    className="h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-sm font-extrabold text-slate-800 dark:text-ink-200 transition tabular-nums">
                     +{amt >= 1000 ? `${amt / 1000}k` : amt}
                   </button>
                 ))}
@@ -1380,7 +1380,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
                     className={['h-12 rounded-xl font-extrabold text-lg transition active:scale-95 tabular-nums',
                       k === 'C' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                       : k === '⌫' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300'
-                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-emerald-400'].join(' ')}>
+                      : 'bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white hover:border-emerald-400'].join(' ')}>
                     {k === '⌫' ? <Delete className="h-5 w-5 mx-auto" /> : k}
                   </button>
                 ))}
@@ -1389,14 +1389,14 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
           )}
 
           <div className="px-4 sm:px-5 py-4">
-            <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 border-4 border-slate-200 dark:border-slate-700 p-4 space-y-2">
+            <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-900 border-4 border-slate-200 dark:border-ink-700 p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Total Bill</span>
-                <span className="text-lg font-extrabold tabular-nums text-slate-800 dark:text-white">{formatPKR(total)}</span>
+                <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Total Bill</span>
+                <span className="text-lg font-extrabold tabular-nums text-slate-800 dark:text-ink-white">{formatPKR(total)}</span>
               </div>
               {mode !== 'credit' && paid > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Diya</span>
+                  <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Diya</span>
                   <span className="text-lg font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{formatPKR(paid)}</span>
                 </div>
               )}
@@ -1442,7 +1442,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
           </div>
         </div>
 
-        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900">
           <button onClick={submit} disabled={loading || (isCredit && !hasCustomer)}
             className={['w-full h-16 sm:h-20 rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98]',
               isCredit ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
@@ -1463,7 +1463,7 @@ function CheckoutModal({ total, itemCount, loading, customerName, customerBalanc
               <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </div>
           </button>
-          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
             Enter = confirm • Esc = cancel • F1/F3/F4/F5 = payment • F6 = udhaar
           </div>
         </div>
@@ -1511,7 +1511,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[96vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[96vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 relative px-5 py-4 bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500 text-white overflow-hidden">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
           <div className="relative flex items-start justify-between">
@@ -1529,15 +1529,15 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
         </div>
 
         <div className="shrink-0 px-5 pt-4">
-          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+          <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-ink-800 rounded-2xl">
             <button onClick={() => setMode('pct')}
               className={['h-12 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition',
-                mode === 'pct' ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-md' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+                mode === 'pct' ? 'bg-white dark:bg-ink-900 text-amber-700 dark:text-amber-300 shadow-md' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
               <Percent className="h-4 w-4" /> Percent (%)
             </button>
             <button onClick={() => setMode('rs')}
               className={['h-12 rounded-xl text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition',
-                mode === 'rs' ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-md' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+                mode === 'rs' ? 'bg-white dark:bg-ink-900 text-emerald-700 dark:text-emerald-300 shadow-md' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
               <Banknote className="h-4 w-4" /> Rupees (Rs)
             </button>
           </div>
@@ -1547,7 +1547,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
           <div className={['rounded-2xl border-2 p-4 text-center',
             mode === 'pct' ? 'border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10'
             : 'border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10'].join(' ')}>
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-1">
               {mode === 'pct' ? 'Kitne % Discount' : 'Kitne Rs Discount'}
             </div>
             <div className="flex items-baseline justify-center gap-1">
@@ -1566,7 +1566,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
                   <button key={v} onClick={() => setPct(String(v))}
                     className={['h-11 rounded-xl text-sm font-extrabold tabular-nums transition active:scale-95 border-2',
                       Number(pct) === v ? 'bg-amber-600 text-white border-amber-600 shadow-md'
-                      : 'bg-white dark:bg-slate-800 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 hover:border-amber-400'].join(' ')}>
+                      : 'bg-white dark:bg-ink-800 border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 hover:border-amber-400'].join(' ')}>
                     {v}%
                   </button>
                 ))
@@ -1574,7 +1574,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
                   <button key={v} onClick={() => setRs(String(v))}
                     className={['h-11 rounded-xl text-xs font-extrabold tabular-nums transition active:scale-95 border-2',
                       Number(rs) === v ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                      : 'bg-white dark:bg-slate-800 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:border-emerald-400'].join(' ')}>
+                      : 'bg-white dark:bg-ink-800 border-emerald-200 dark:border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:border-emerald-400'].join(' ')}>
                     {v}
                   </button>
                 ))}
@@ -1585,7 +1585,7 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
               <button key={k} onClick={() => numpadPress(k)}
                 className={['h-12 rounded-xl text-lg font-extrabold transition active:scale-95 border-2 tabular-nums',
                   k === '⌫' ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-400'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-slate-400'].join(' ')}>
+                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white hover:border-slate-400'].join(' ')}>
                 {k}
               </button>
             ))}
@@ -1613,13 +1613,13 @@ function DiscountModal({ subtotal, mode: initMode, pct: initPct, rs: initRs, onA
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-3 grid grid-cols-3 gap-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-3 grid grid-cols-3 gap-2">
           <button onClick={() => onApply(mode, 0, 0)}
-            className="h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center justify-center gap-1">
+            className="h-14 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center justify-center gap-1">
             <RotateCcw className="h-4 w-4" /> Clear
           </button>
           <button onClick={onClose}
-            className="h-14 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 transition">
+            className="h-14 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 transition">
             Cancel
           </button>
           <button onClick={apply}
@@ -1643,14 +1643,14 @@ function ViewTab({ active, onClick, icon: Icon, label, count, color, shortcut, h
   return (
     <button onClick={onClick}
       className={['flex-1 h-12 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition active:scale-95 relative',
-        active ? colors[color] : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'].join(' ')}>
+        active ? colors[color] : 'bg-transparent text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-700'].join(' ')}>
       {highlight && !active && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-violet-500 animate-pulse" />}
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count > 0 && (
-        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>{count}</span>
+        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300'].join(' ')}>{count}</span>
       )}
-      <span className={['hidden lg:inline text-[0.625rem] font-mono px-1 rounded', active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>{shortcut}</span>
+      <span className={['hidden lg:inline text-[0.625rem] font-mono px-1 rounded', active ? 'bg-white/20' : 'bg-slate-200 dark:bg-ink-700 text-slate-500 dark:text-ink-400'].join(' ')}>{shortcut}</span>
     </button>
   );
 }
@@ -1659,11 +1659,11 @@ function CatChip({ active, onClick, label, emoji, count }: any) {
   return (
     <button onClick={onClick}
       className={['shrink-0 h-9 sm:h-10 px-3 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center gap-1.5 border-2 transition active:scale-95',
-        active ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-blue-300'].join(' ')}>
+        active ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 border-slate-200 dark:border-ink-700 hover:border-blue-300'].join(' ')}>
       <span>{emoji}</span>
       {label}
       {count !== undefined && (
-        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'].join(' ')}>{count}</span>
+        <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums', active ? 'bg-white/20' : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'].join(' ')}>{count}</span>
       )}
     </button>
   );
@@ -1683,11 +1683,11 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
   return (
     <button onClick={onClick} disabled={out}
       className={['group relative text-left rounded-2xl border-4 overflow-hidden transition-all active:scale-95',
-        out ? 'border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800/60 opacity-50 cursor-not-allowed'
+        out ? 'border-slate-200 dark:border-ink-700 bg-slate-100 dark:bg-ink-800/60 opacity-50 cursor-not-allowed'
         : cartQty > 0 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-xl ring-4 ring-emerald-200 dark:ring-emerald-500/30'
-        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-blue-400 dark:hover:border-blue-500/60 hover:shadow-xl hover:-translate-y-1'].join(' ')}>
+        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-blue-400 dark:hover:border-blue-500/60 hover:shadow-xl hover:-translate-y-1'].join(' ')}>
       {cartQty > 0 && (
-        <div className="absolute -top-2 -right-2 min-w-[32px] h-8 sm:min-w-[36px] sm:h-9 px-2 rounded-full bg-emerald-600 text-white text-sm sm:text-base font-extrabold flex items-center justify-center shadow-xl ring-4 ring-white dark:ring-slate-900 z-10 tabular-nums">
+        <div className="absolute -top-2 -right-2 min-w-[32px] h-8 sm:min-w-[36px] sm:h-9 px-2 rounded-full bg-emerald-600 text-white text-sm sm:text-base font-extrabold flex items-center justify-center shadow-xl ring-4 ring-white dark:ring-ink-900 z-10 tabular-nums">
           {cartQty}
         </div>
       )}
@@ -1696,7 +1696,7 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
           Shop me nahi
         </div>
       )}
-      <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+      <div className="aspect-square bg-slate-100 dark:bg-ink-800 overflow-hidden relative">
         {img ? (
           <img src={img} alt={p.name} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
         ) : (
@@ -1714,9 +1714,9 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
         )}
       </div>
       <div className="p-2 sm:p-3">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{p.name}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{p.name}</div>
         {profile?.modelNumber && (
-          <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 truncate mt-0.5">{profile.modelNumber}</div>
+          <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-ink-400 truncate mt-0.5">{profile.modelNumber}</div>
         )}
         <div className="mt-1.5 sm:mt-2 flex items-end justify-between gap-1">
           <div>
@@ -1728,7 +1728,7 @@ function ProductTile({ product: p, profile, cart, hidePrices, onClick }: any) {
             ) : null}
           </div>
           <div className={['text-xs sm:text-sm font-extrabold tabular-nums shrink-0',
-            out ? 'text-rose-700 dark:text-rose-400' : low ? 'text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-300'].join(' ')}>
+            out ? 'text-rose-700 dark:text-rose-400' : low ? 'text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-ink-300'].join(' ')}>
             {available}
             {hasSerial && <span className="ml-0.5 text-[0.625rem] font-bold opacity-60">S/N</span>}
           </div>
@@ -1749,9 +1749,9 @@ function BundleTile({ bundle, cart, hidePrices, onClick }: any) {
     <button onClick={onClick}
       className={['group relative text-left rounded-2xl border-4 overflow-hidden transition-all active:scale-95',
         cartQty > 0 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-xl ring-4 ring-emerald-200 dark:ring-emerald-500/30'
-        : 'border-violet-200 dark:border-violet-500/40 bg-gradient-to-br from-white via-violet-50 to-white dark:from-slate-900 dark:via-violet-500/10 dark:to-slate-900 hover:border-violet-400 dark:hover:border-violet-500/60 hover:shadow-xl hover:-translate-y-1'].join(' ')}>
+        : 'border-violet-200 dark:border-violet-500/40 bg-gradient-to-br from-white via-violet-50 to-white dark:from-ink-900 dark:via-violet-500/10 dark:to-ink-900 hover:border-violet-400 dark:hover:border-violet-500/60 hover:shadow-xl hover:-translate-y-1'].join(' ')}>
       {cartQty > 0 && (
-        <div className="absolute -top-2 -right-2 min-w-[32px] h-8 px-2 rounded-full bg-emerald-600 text-white text-sm font-extrabold flex items-center justify-center shadow-xl ring-4 ring-white dark:ring-slate-900 z-10 tabular-nums">{cartQty}</div>
+        <div className="absolute -top-2 -right-2 min-w-[32px] h-8 px-2 rounded-full bg-emerald-600 text-white text-sm font-extrabold flex items-center justify-center shadow-xl ring-4 ring-white dark:ring-ink-900 z-10 tabular-nums">{cartQty}</div>
       )}
       <div className="aspect-square bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/20 dark:to-fuchsia-500/20 overflow-hidden relative">
         {bundle.imageUrl ? (
@@ -1765,11 +1765,11 @@ function BundleTile({ bundle, cart, hidePrices, onClick }: any) {
         )}
       </div>
       <div className="p-2 sm:p-3">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{bundle.name}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base line-clamp-2 leading-tight min-h-[2.25rem] sm:min-h-[2.5rem]">{bundle.name}</div>
         <div className="mt-1.5 flex items-end justify-between gap-1">
           <div>
             <div className="text-lg sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 leading-none tabular-nums">{hidePrices ? '•••' : formatPKR(bundle.bundlePrice)}</div>
-            {savings > 0 && !hidePrices && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 line-through font-bold mt-0.5 tabular-nums">{formatPKR(bundle.originalPrice)}</div>}
+            {savings > 0 && !hidePrices && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 line-through font-bold mt-0.5 tabular-nums">{formatPKR(bundle.originalPrice)}</div>}
           </div>
           <div className="text-[0.6875rem] font-extrabold text-violet-700 dark:text-violet-400 shrink-0">{bundle.items.length} items</div>
         </div>
@@ -1782,11 +1782,11 @@ function BundleTile({ bundle, cart, hidePrices, onClick }: any) {
 function EmptyState({ icon: Icon, title, hint, onClear }: any) {
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6">
-      <div className="h-20 w-20 rounded-3xl bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-        <Icon className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+      <div className="h-20 w-20 rounded-3xl bg-slate-200 dark:bg-ink-800 flex items-center justify-center">
+        <Icon className="h-10 w-10 text-slate-400 dark:text-ink-500" />
       </div>
-      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-white text-xl">{title}</h3>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 text-center font-semibold">{hint}</p>
+      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-ink-white text-xl">{title}</h3>
+      <p className="mt-2 text-sm text-slate-500 dark:text-ink-400 text-center font-semibold">{hint}</p>
       {onClear && (
         <button onClick={onClear} className="mt-4 h-12 px-5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-extrabold transition inline-flex items-center gap-2">
           <RotateCcw className="h-4 w-4" /> Clear
@@ -1808,14 +1808,14 @@ function CartPanel({
   onSetPrice, onCheckout, onInstantCash, canCheckout, checkoutPending,
 }: any) {
   const containerClass = isMobile
-    ? 'fixed inset-0 z-40 bg-white dark:bg-slate-950 flex flex-col lg:hidden'
-    : 'hidden lg:flex rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden flex-col min-h-0';
+    ? 'fixed inset-0 z-40 bg-white dark:bg-ink-950 flex flex-col lg:hidden'
+    : 'hidden lg:flex rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden flex-col min-h-0';
   const hasDiscount = discountAmount > 0;
 
   return (
     <aside className={containerClass}>
       {/* Header */}
-      <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
+      <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-emerald-900 text-white px-3 sm:px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="text-[0.6875rem] sm:text-[0.6875rem] uppercase font-extrabold text-white/70 tracking-wider">
@@ -1864,12 +1864,12 @@ function CartPanel({
       </div>
 
       {/* Customer */}
-      <div className="shrink-0 px-3 py-2.5 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60">
+      <div className="shrink-0 px-3 py-2.5 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <User className="h-4 w-4 sm:h-5 sm:w-5 text-violet-600 dark:text-violet-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select value={customerId} onChange={(e) => setCustomerId(e.target.value)}
-              className="h-12 sm:h-14 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 sm:pl-11 pr-9 text-sm sm:text-base font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 appearance-none">
+              className="h-12 sm:h-14 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 sm:pl-11 pr-9 text-sm sm:text-base font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 appearance-none">
               <option value="">Walk-in Customer</option>
               {customers.map((c: any) => (
                 <option key={c.id} value={c.id}>
@@ -1892,15 +1892,15 @@ function CartPanel({
       </div>
 
       {/* Items */}
-      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 bg-slate-50/50 dark:bg-slate-950/40 min-h-0">
+      <div className="flex-1 overflow-y-auto p-2.5 sm:p-3 space-y-2 bg-slate-50/50 dark:bg-ink-950/40 min-h-0">
         {cart.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-4 border-dashed border-slate-200 dark:border-slate-700 p-8 sm:p-10 text-center">
-            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
-              <ShoppingCart className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400 dark:text-slate-500" />
+          <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-4 border-dashed border-slate-200 dark:border-ink-700 p-8 sm:p-10 text-center">
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
+              <ShoppingCart className="h-8 w-8 sm:h-10 sm:w-10 text-slate-400 dark:text-ink-500" />
             </div>
-            <p className="mt-4 font-extrabold text-slate-700 dark:text-slate-200 text-lg sm:text-xl">Cart khaali hai</p>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold mt-1">Serial/IMEI scan karo ya product chuno</p>
-            <p className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-2 inline-flex items-center gap-1">
+            <p className="mt-4 font-extrabold text-slate-700 dark:text-ink-200 text-lg sm:text-xl">Cart khaali hai</p>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-semibold mt-1">Serial/IMEI scan karo ya product chuno</p>
+            <p className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold mt-2 inline-flex items-center gap-1">
               <Zap className="h-3 w-3 text-amber-500" /> F12 = instant cash + print!
             </p>
           </div>
@@ -1924,12 +1924,12 @@ function CartPanel({
 
       {/* Footer */}
       {cart.length > 0 && (
-        <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/80 space-y-2">
+        <div className="shrink-0 p-2.5 sm:p-3 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900/80 space-y-2">
           {/* 💎 Discount button — modal kholta hai (%/Rs) */}
           <button onClick={onOpenDiscount}
             className={['w-full h-12 rounded-2xl font-extrabold text-sm inline-flex items-center justify-between px-4 border-2 transition active:scale-[0.98]',
               hasDiscount ? 'bg-gradient-to-r from-amber-500 to-orange-500 border-amber-500 text-white shadow-md shadow-amber-500/30'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-amber-400'].join(' ')}>
+              : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-amber-400'].join(' ')}>
             <span className="inline-flex items-center gap-2">
               <Tag className="h-4 w-4" />
               {hasDiscount ? <span>Discount: {discountMode === 'pct' ? `${discountPct}%` : formatPKR(discountRs)}</span> : <span>Discount lagayein?</span>}
@@ -1946,7 +1946,7 @@ function CartPanel({
           </button>
 
           {hasDiscount && !hidePrices && (
-            <div className="text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums flex justify-between px-1">
+            <div className="text-xs font-bold text-slate-500 dark:text-ink-400 tabular-nums flex justify-between px-1">
               <span>Subtotal</span>
               <span className="line-through">{formatPKR(subtotal)}</span>
             </div>
@@ -2008,15 +2008,15 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
   };
 
   return (
-    <div className={['rounded-2xl bg-white dark:bg-slate-900 border-4 p-2.5 sm:p-3 shadow-sm dark:shadow-black/20',
+    <div className={['rounded-2xl bg-white dark:bg-ink-900 border-4 p-2.5 sm:p-3 shadow-sm dark:shadow-black/20',
       l.type === 'bundle' ? 'border-violet-300 dark:border-violet-500/40'
       : l.serialTrackingId ? 'border-amber-300 dark:border-amber-500/40'
       : customPriced ? 'border-amber-300 dark:border-amber-500/40'
-      : 'border-slate-200 dark:border-slate-700'].join(' ')}>
+      : 'border-slate-200 dark:border-ink-700'].join(' ')}>
       <div className="flex items-start gap-2.5 sm:gap-3">
-        <div className={['h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center relative bg-slate-100 dark:bg-slate-800',
+        <div className={['h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center relative bg-slate-100 dark:bg-ink-800',
           l.type === 'bundle' ? 'bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/20 dark:to-fuchsia-500/20' : ''].join(' ')}>
-          {l.image ? <img src={l.image} alt="" className="w-full h-full object-cover" /> : <Cpu className="h-6 w-6 text-slate-400 dark:text-slate-500" />}
+          {l.image ? <img src={l.image} alt="" className="w-full h-full object-cover" /> : <Cpu className="h-6 w-6 text-slate-400 dark:text-ink-500" />}
           {l.type === 'bundle' && (
             <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-violet-600 text-white flex items-center justify-center">
               <Sparkles className="h-3 w-3" />
@@ -2030,17 +2030,17 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white leading-tight line-clamp-2">{l.name}</div>
+            <div className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-ink-white leading-tight line-clamp-2">{l.name}</div>
             {l.type === 'bundle' && <span className="px-1.5 py-0.5 rounded bg-violet-600 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Bundle</span>}
             {customPriced && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[0.625rem] font-extrabold uppercase tracking-wider shrink-0">Custom Rs</span>}
           </div>
           {l.brandName && (
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{l.brandName}{l.modelNumber && ` • ${l.modelNumber}`}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{l.brandName}{l.modelNumber && ` • ${l.modelNumber}`}</div>
           )}
 
           {editing ? (
             <div className="mt-1 flex items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Rs</span>
+              <span className="text-xs font-bold text-slate-500 dark:text-ink-400">Rs</span>
               <input autoFocus type="number" inputMode="decimal" step="any" min={0} value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') onCancelPriceEdit(); }}
@@ -2048,7 +2048,7 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
                 className="h-9 w-28 rounded-lg border-2 border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 px-2 text-base font-extrabold tabular-nums text-amber-900 dark:text-amber-200 focus:outline-none" />
               <button onClick={commit} className="h-9 w-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center"><Check className="h-4 w-4" /></button>
               <button onClick={() => onSetPrice(l.basePrice)} title="Wapas original rate"
-                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">Reset</button>
+                className="h-9 px-2 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold">Reset</button>
             </div>
           ) : (
             <button onClick={onStartPriceEdit} title="Rate badlo"
@@ -2065,7 +2065,7 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
             </div>
           )}
           {customPriced && !editing && (
-            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
+            <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 tabular-nums">(original {formatPKR(l.basePrice)})</div>
           )}
         </div>
         <button onClick={onRemove}
@@ -2074,15 +2074,15 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
         </button>
       </div>
       <div className="mt-2.5 sm:mt-3 flex items-center justify-between gap-2">
-        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
-          <button onClick={() => onChangeQty(-1)} className="h-12 sm:h-14 w-12 sm:w-14 hover:bg-slate-200 dark:hover:bg-slate-700 active:bg-slate-300 flex items-center justify-center transition">
-            <Minus className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700 dark:text-slate-200" />
+        <div className="inline-flex items-center bg-slate-100 dark:bg-ink-800 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
+          <button onClick={() => onChangeQty(-1)} className="h-12 sm:h-14 w-12 sm:w-14 hover:bg-slate-200 dark:hover:bg-ink-700 active:bg-slate-300 flex items-center justify-center transition">
+            <Minus className="h-5 w-5 sm:h-6 sm:w-6 text-slate-700 dark:text-ink-200" />
           </button>
           <input type="number" value={l.quantity}
             onChange={(e) => onSetQty(Number(e.target.value))}
             onFocus={(e) => e.target.select()}
             disabled={!!l.serialTrackingId}
-            className="h-12 sm:h-14 min-w-[70px] w-[70px] sm:min-w-[80px] sm:w-[80px] text-center bg-white dark:bg-slate-900 border-0 text-lg sm:text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none disabled:opacity-70" />
+            className="h-12 sm:h-14 min-w-[70px] w-[70px] sm:min-w-[80px] sm:w-[80px] text-center bg-white dark:bg-ink-900 border-0 text-lg sm:text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none disabled:opacity-70" />
           <button onClick={() => onChangeQty(1)}
             disabled={!!l.serialTrackingId}
             className={['h-12 sm:h-14 w-12 sm:w-14 text-white flex items-center justify-center transition disabled:opacity-40',
@@ -2102,13 +2102,13 @@ function CartRow({ line: l, hidePrices, editing, onStartPriceEdit, onSetPrice, o
 function PosTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Electronics POS — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-4">
@@ -2117,7 +2117,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-cyan-700 dark:text-cyan-300 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ 2-Second Billing Flow
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>Serial/IMEI scan karo → F12 → done!</strong> Receipt seedha print dialog me aa jayegi — receipt page pe jaana hi nahi</TipRow>
               <TipRow>Receipt pe <strong>S/N, IMEI aur warranty</strong> khud print hota hai — warranty claim me kaam aayega</TipRow>
               <TipRow>Settings ⚙️ me <strong>Auto-Print</strong> ON rakho + printer width chuno (80mm standard / 58mm chhota)</TipRow>
@@ -2130,7 +2130,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Barcode className="h-3 w-3" /> 🔢 Serial / IMEI Wale Items
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow>Tile pe <strong>S/N badge</strong> = serial wala item — click karne par <strong>kaunsa unit</strong> chunna ka modal khulega</TipRow>
               <TipRow>Barcode gun se <strong>serial ya IMEI scan</strong> karo — wo unit seedha cart mein, sale ke saath SOLD mark</TipRow>
               <TipRow>Serial items ki <strong>qty hamesha 1</strong> — doosra unit chahiye to dobara scan karo</TipRow>
@@ -2141,7 +2141,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Zap className="h-3 w-3" /> ⚡ Speed Shortcuts
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>F12</strong> — INSTANT CASH: scan → F12 → print. Bas!</TipRow>
               <TipRow><strong>F9</strong> — checkout (cash/udhaar/card) • <strong>Enter</strong> — confirm</TipRow>
               <TipRow><strong>F2</strong> scanner • <strong>F7</strong> Products • <strong>F8</strong> Bundles • <strong>F1</strong> ye guide</TipRow>
@@ -2154,7 +2154,7 @@ function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Truck className="h-3 w-3" /> 💱 Delivery / Udhaar / Extra Paisa
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>Delivery panel</strong> — customer charge + rider cost alag; rider ka paisa munafe me nahi gina jata</TipRow>
               <TipRow>Customer ne zyada diya? → bada green <strong>"wapis dein"</strong> dikhta hai</TipRow>
               <TipRow>Ya tick karo <strong>"khaate mein jama"</strong> — advance balance ban jayega</TipRow>

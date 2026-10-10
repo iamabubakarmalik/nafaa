@@ -96,7 +96,7 @@ export default function CustomerVehiclesPage() {
       <div className="flex gap-1.5 overflow-x-auto pb-1">
         <Link to="/autoparts/vehicles" className={
           'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-          (!filter ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+          (!filter ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
         }>All Vehicles ({stats.total})</Link>
         <Link to="?filter=insurance-expiring" className={
           'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
@@ -112,10 +112,10 @@ export default function CustomerVehiclesPage() {
         }>✅ Fitness Expiring ({stats.fitnessExpiring})</Link>
       </div>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by registration, name, phone, chassis..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by registration, name, phone, chassis..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
         </div>
       </section>
 
@@ -125,10 +125,10 @@ export default function CustomerVehiclesPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Car className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No vehicles found</p>
         </div>
@@ -151,8 +151,8 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl transition p-4 space-y-3 ' +
-      (hasAlerts ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition p-4 space-y-3 ' +
+      (hasAlerts ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -161,7 +161,7 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white text-lg">{vehicle.registrationNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{vehicle.registrationNumber}</span>
               {hasAlerts && <AlertCircle className="h-4 w-4 text-amber-600" />}
             </div>
             <div className="text-xs font-extrabold text-blue-600">{vehicle.makeName} {vehicle.modelName}</div>
@@ -182,15 +182,15 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 text-xs">
-        <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
           <Fuel className="h-3 w-3 mx-auto text-slate-500" />
           <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{fuel?.emoji} {vehicle.fuelType}</div>
         </div>
-        <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
           <Settings className="h-3 w-3 mx-auto text-slate-500" />
           <div className="text-[0.625rem] font-bold text-slate-500 mt-0.5">{vehicle.transmission}</div>
         </div>
-        <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+        <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
           <div className="text-[0.625rem] font-bold text-slate-500">{vehicle.odometerKm || 0} km</div>
         </div>
       </div>
@@ -210,7 +210,7 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
 
       {/* Document alerts */}
       {(insDaysLeft !== null || tokenDaysLeft !== null || fitDaysLeft !== null) && (
-        <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-ink-800">
           {insDaysLeft !== null && (
             <DocAlert icon={Shield} label="Insurance" days={insDaysLeft} date={vehicle.insuranceExpiry} />
           )}
@@ -223,10 +223,10 @@ function VehicleCard({ vehicle, onEdit, onDelete }: any) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+      <div className="grid grid-cols-2 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
         <div>
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Services</div>
-          <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{vehicle.totalServices}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{vehicle.totalServices}</div>
         </div>
         <div>
           <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Total Spent</div>
@@ -307,9 +307,9 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Vehicle' : 'Register New Vehicle'}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Vehicle' : 'Register New Vehicle'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
@@ -318,37 +318,37 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
           <div className="text-sm font-extrabold text-blue-900 dark:text-blue-300">🚗 Vehicle Registration</div>
           <input autoFocus value={form.registrationNumber} onChange={(e) => setForm({ ...form, registrationNumber: e.target.value.toUpperCase() })} placeholder="Registration # * (e.g. LEA-1234)" className="h-11 w-full rounded-xl border-2 border-blue-300 bg-white dark:bg-blue-950/40 px-3 text-sm font-extrabold uppercase focus:outline-none focus:border-blue-500" />
           <div className="grid sm:grid-cols-2 gap-2">
-            <input value={form.chassisNumber} onChange={(e) => setForm({ ...form, chassisNumber: e.target.value })} placeholder="Chassis Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
-            <input value={form.engineNumber} onChange={(e) => setForm({ ...form, engineNumber: e.target.value })} placeholder="Engine Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
+            <input value={form.chassisNumber} onChange={(e) => setForm({ ...form, chassisNumber: e.target.value })} placeholder="Chassis Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
+            <input value={form.engineNumber} onChange={(e) => setForm({ ...form, engineNumber: e.target.value })} placeholder="Engine Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500" />
           </div>
         </div>
 
         {/* Make/Model */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <select value={form.makeId} onChange={(e) => setForm({ ...form, makeId: e.target.value, modelId: '' })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+          <select value={form.makeId} onChange={(e) => setForm({ ...form, makeId: e.target.value, modelId: '' })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             <option value="">Select Make</option>
             {makes.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
-          <select value={form.modelId} onChange={(e) => setForm({ ...form, modelId: e.target.value })} disabled={!form.makeId} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500 disabled:opacity-50">
+          <select value={form.modelId} onChange={(e) => setForm({ ...form, modelId: e.target.value })} disabled={!form.makeId} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500 disabled:opacity-50">
             <option value="">Select Model</option>
             {models.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
-          <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input type="number" value={form.engineCC} onChange={(e) => setForm({ ...form, engineCC: e.target.value })} placeholder="Engine CC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Year" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="Color" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.engineCC} onChange={(e) => setForm({ ...form, engineCC: e.target.value })} placeholder="Engine CC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+          <select value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             {FUEL_TYPES.map((f) => <option key={f.value} value={f.value}>{f.emoji} {f.label}</option>)}
           </select>
-          <select value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+          <select value={form.transmission} onChange={(e) => setForm({ ...form, transmission: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             {TRANSMISSION_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
           </select>
-          <input type="number" value={form.odometerKm} onChange={(e) => setForm({ ...form, odometerKm: e.target.value })} placeholder="Odometer (km)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.odometerKm} onChange={(e) => setForm({ ...form, odometerKm: e.target.value })} placeholder="Odometer (km)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
         </div>
 
         {/* Owner */}
@@ -359,9 +359,9 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
             {(customersData?.items ?? []).map((c) => <option key={c.id} value={c.id}>{c.name} • {c.phone}</option>)}
           </select>
           <div className="grid sm:grid-cols-3 gap-2">
-            <input value={form.ownerName} onChange={(e) => setForm({ ...form, ownerName: e.target.value })} placeholder="Owner Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.ownerPhone} onChange={(e) => setForm({ ...form, ownerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-            <input value={form.ownerCnic} onChange={(e) => setForm({ ...form, ownerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
+            <input value={form.ownerName} onChange={(e) => setForm({ ...form, ownerName: e.target.value })} placeholder="Owner Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+            <input value={form.ownerPhone} onChange={(e) => setForm({ ...form, ownerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+            <input value={form.ownerCnic} onChange={(e) => setForm({ ...form, ownerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
@@ -369,8 +369,8 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
         <div className="rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
           <div className="text-sm font-extrabold text-amber-900 dark:text-amber-300">📋 Documents & Insurance</div>
           <div className="grid sm:grid-cols-2 gap-2">
-            <input value={form.insuranceProvider} onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })} placeholder="Insurance Provider (e.g. EFU, Jubilee)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-            <input value={form.insurancePolicyNumber} onChange={(e) => setForm({ ...form, insurancePolicyNumber: e.target.value })} placeholder="Policy Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
+            <input value={form.insuranceProvider} onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })} placeholder="Insurance Provider (e.g. EFU, Jubilee)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+            <input value={form.insurancePolicyNumber} onChange={(e) => setForm({ ...form, insurancePolicyNumber: e.target.value })} placeholder="Policy Number" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-amber-500" />
           </div>
           <div className="grid sm:grid-cols-3 gap-2">
             <div>
@@ -409,9 +409,9 @@ function VehicleForm({ editing, onClose, onSaved }: any) {
           }} />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.registrationNumber.trim()}>
             <Save className="h-4 w-4" />

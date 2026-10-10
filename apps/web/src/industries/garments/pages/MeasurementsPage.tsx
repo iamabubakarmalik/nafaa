@@ -111,14 +111,14 @@ export default function MeasurementsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by profile name..."
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500"
           />
         </div>
 
@@ -127,7 +127,7 @@ export default function MeasurementsPage() {
             onClick={() => setGenderFilter('all')}
             className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-              (genderFilter === 'all' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (genderFilter === 'all' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }
           >
             All
@@ -138,7 +138,7 @@ export default function MeasurementsPage() {
               onClick={() => setGenderFilter(g.value)}
               className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold transition ' +
-                (genderFilter === g.value ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (genderFilter === g.value ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }
             >
               {g.emoji} {g.label}
@@ -161,10 +161,10 @@ export default function MeasurementsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Ruler className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No measurements yet</p>
           <Button className="mt-4 bg-gradient-to-r from-rose-600 to-pink-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -212,8 +212,8 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
 
   return (
     <div className={
-      'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
-      (measurement.isDefault ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 space-y-3 ' +
+      (measurement.isDefault ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start gap-3">
         <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shadow shrink-0 text-lg">
@@ -221,7 +221,7 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <h3 className="font-extrabold text-slate-900 dark:text-white">{measurement.profileName}</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{measurement.profileName}</h3>
             {measurement.isDefault && (
               <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/40 text-amber-700 text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <Award className="h-2 w-2" />
@@ -248,9 +248,9 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
       {filled.length > 0 && (
         <div className="grid grid-cols-4 gap-1.5">
           {filled.slice(0, 8).map((f) => (
-            <div key={f.key} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+            <div key={f.key} className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
               <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">{f.label}</div>
-              <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">
+              <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                 {measurement[f.key] as number}
               </div>
             </div>
@@ -266,7 +266,7 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
             </a>
           ))}
           {measurement.imageUrls.length > 4 && (
-            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-neutral-800 flex items-center justify-center text-[0.6875rem] font-extrabold text-slate-600">
+            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-[0.6875rem] font-extrabold text-slate-600">
               +{measurement.imageUrls.length - 4}
             </div>
           )}
@@ -279,8 +279,8 @@ function MeasurementCard({ measurement, onEdit, onDelete }: {
         </div>
       )}
 
-      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
-        <button onClick={onEdit} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
+      <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
+        <button onClick={onEdit} className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
           <Edit3 className="h-3 w-3" />
           Edit
         </button>
@@ -368,9 +368,9 @@ function MeasurementForm({ editing, onClose, onSaved }: {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-rose-50 dark:bg-rose-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Measurement' : 'New Measurement'}
         </h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -390,15 +390,15 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                 value={customerSearch}
                 onChange={(e) => setCustomerSearch(e.target.value)}
                 placeholder="Search customers..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-rose-500"
               />
             </div>
-            <div className="max-h-56 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-neutral-700">
+            <div className="max-h-56 overflow-y-auto space-y-1 rounded-xl border border-slate-200 dark:border-ink-700">
               {(customersData?.items ?? []).map((c) => (
                 <button
                   key={c.id}
                   onClick={() => { setForm({ ...form, customerId: c.id }); setShowCustomerPicker(false); }}
-                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800 transition text-left"
+                  className="w-full px-3 py-2 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800 transition text-left"
                 >
                   <User className="h-4 w-4 text-slate-400" />
                   <div className="flex-1 min-w-0">
@@ -413,7 +413,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
           <div className="rounded-xl bg-rose-50 dark:bg-rose-950/30 border-2 border-rose-200 dark:border-rose-800 p-3 flex items-center gap-3">
             <UserCheck className="h-5 w-5 text-rose-600" />
             <div className="flex-1">
-              <div className="font-extrabold text-slate-900 dark:text-white">{selectedCustomer?.name || 'Customer'}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedCustomer?.name || 'Customer'}</div>
               {selectedCustomer?.phone && <div className="text-xs text-slate-600 font-bold">{selectedCustomer.phone}</div>}
             </div>
             {!editing && (
@@ -434,7 +434,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                   value={form.profileName}
                   onChange={(e) => setForm({ ...form, profileName: e.target.value })}
                   placeholder="Default / Formal / Loose"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
                 />
               </div>
               <div>
@@ -442,7 +442,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                 <select
                   value={form.gender}
                   onChange={(e) => setForm({ ...form, gender: e.target.value })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500"
                 >
                   <option value="">Select</option>
                   {GENDERS.map((g) => <option key={g.value} value={g.value}>{g.emoji} {g.label}</option>)}
@@ -456,7 +456,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                     onClick={() => setForm({ ...form, unit: 'INCH' })}
                     className={
                       'h-11 rounded-xl text-sm font-extrabold border-2 ' +
-                      (form.unit === 'INCH' ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')
+                      (form.unit === 'INCH' ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
                     }
                   >
                     Inches
@@ -466,7 +466,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                     onClick={() => setForm({ ...form, unit: 'CM' })}
                     className={
                       'h-11 rounded-xl text-sm font-extrabold border-2 ' +
-                      (form.unit === 'CM' ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')
+                      (form.unit === 'CM' ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
                     }
                   >
                     Cm
@@ -477,13 +477,13 @@ function MeasurementForm({ editing, onClose, onSaved }: {
 
             {/* Measurement groups */}
             {Object.entries(MEASUREMENT_GROUPS).map(([groupKey, group]) => (
-              <div key={groupKey} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 overflow-hidden">
+              <div key={groupKey} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setExpanded({ ...expanded, [groupKey]: !expanded[groupKey] })}
-                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-neutral-800/50 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-neutral-800 transition"
+                  className="w-full px-4 py-2.5 bg-slate-50 dark:bg-ink-800/50 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-ink-800 transition"
                 >
-                  <span className="font-extrabold text-slate-900 dark:text-white">{group.label}</span>
+                  <span className="font-extrabold text-slate-900 dark:text-ink-white">{group.label}</span>
                   {expanded[groupKey] ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </button>
                 {expanded[groupKey] && (
@@ -498,7 +498,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                             value={form[f.key]}
                             onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                             placeholder="0"
-                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-3 pr-8 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-3 pr-8 text-sm font-extrabold tabular-nums focus:outline-none focus:border-rose-500"
                           />
                           <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[0.625rem] font-extrabold text-slate-400 uppercase">{form.unit === 'INCH' ? 'in' : 'cm'}</span>
                         </div>
@@ -518,7 +518,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                   value={form.postureNotes}
                   onChange={(e) => setForm({ ...form, postureNotes: e.target.value })}
                   placeholder="Round shoulders, high hip..."
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none"
+                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none"
                 />
               </div>
               <div>
@@ -528,7 +528,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
                   value={form.fittingNotes}
                   onChange={(e) => setForm({ ...form, fittingNotes: e.target.value })}
                   placeholder="Loose fit preferred, tight sleeve..."
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none"
+                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none"
                 />
               </div>
             </div>
@@ -575,7 +575,7 @@ function MeasurementForm({ editing, onClose, onSaved }: {
               </div>
             </label>
 
-            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
               <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
               <Button
                 className="flex-1 bg-gradient-to-r from-rose-600 to-pink-700"

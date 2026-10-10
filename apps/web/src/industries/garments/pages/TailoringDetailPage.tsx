@@ -58,7 +58,7 @@ export default function TailoringDetailPage() {
   });
 
   if (isLoading || !order) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   const statusCfg = STATUS_CONFIG[order.orderStatus];
@@ -116,9 +116,9 @@ export default function TailoringDetailPage() {
       </section>
 
       {/* Status flow */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Order Workflow</h3>
+          <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Order Workflow</h3>
           {nextStatus && order.orderStatus !== 'CANCELLED' && (
             <div className="flex gap-2">
               <Button
@@ -159,7 +159,7 @@ export default function TailoringDetailPage() {
                   <div className={
                     'h-8 w-8 rounded-full flex items-center justify-center text-xs font-extrabold transition ' +
                     (isCurrent ? cfg.color + ' text-white ring-4 ring-purple-200 dark:ring-purple-900 shadow' :
-                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-neutral-700 text-slate-500')
+                     isActive ? cfg.color + ' text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-500')
                   }>
                     {isActive && !isCurrent ? '✓' : i + 1}
                   </div>
@@ -171,7 +171,7 @@ export default function TailoringDetailPage() {
                   </span>
                 </div>
                 {i < STATUS_FLOW.length - 1 && (
-                  <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-purple-500' : 'bg-slate-200 dark:bg-neutral-700')} />
+                  <div className={'h-0.5 w-6 mx-1 ' + (i < currentIdx ? 'bg-purple-500' : 'bg-slate-200 dark:bg-ink-700')} />
                 )}
               </div>
             );
@@ -182,13 +182,13 @@ export default function TailoringDetailPage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <section className="space-y-4">
           {/* Customer info */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-purple-600" />
               Customer
             </h3>
             <div className="space-y-1 text-sm">
-              <div className="font-extrabold text-slate-900 dark:text-white">{order.customerName || '—'}</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white">{order.customerName || '—'}</div>
               {order.customerPhone && (
                 <a href={'tel:' + order.customerPhone} className="flex items-center gap-1 text-blue-700 font-bold hover:underline">
                   <Phone className="h-3 w-3" />
@@ -205,8 +205,8 @@ export default function TailoringDetailPage() {
 
           {/* Measurement */}
           {measurement && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
                 <Ruler className="h-4 w-4 text-rose-600" />
                 Measurements ({measurement.unit})
               </h3>
@@ -215,9 +215,9 @@ export default function TailoringDetailPage() {
                   const val = (measurement as any)[f];
                   if (val === null || val === undefined) return null;
                   return (
-                    <div key={f} className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+                    <div key={f} className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
                       <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 truncate">{f}</div>
-                      <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{val}</div>
+                      <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{val}</div>
                     </div>
                   );
                 })}
@@ -227,8 +227,8 @@ export default function TailoringDetailPage() {
 
           {/* Design instructions */}
           {(order.designInstructions || order.designReferenceUrls?.length > 0) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-fuchsia-600" />
                 Design References
               </h3>
@@ -242,7 +242,7 @@ export default function TailoringDetailPage() {
                 </div>
               )}
               {order.designInstructions && (
-                <div className="rounded-lg bg-fuchsia-50 dark:bg-fuchsia-950/30 border border-fuchsia-200 p-3 text-sm text-slate-800 dark:text-slate-200">
+                <div className="rounded-lg bg-fuchsia-50 dark:bg-fuchsia-950/30 border border-fuchsia-200 p-3 text-sm text-slate-800 dark:text-ink-200">
                   {order.designInstructions}
                 </div>
               )}
@@ -250,31 +250,31 @@ export default function TailoringDetailPage() {
           )}
 
           {/* Items */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Scissors className="h-5 w-5 text-purple-600" />
                 Garments
               </h3>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold text-slate-700">
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-xs font-extrabold text-slate-700">
                 {order.items.length} items
               </span>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {order.items.map((item: any) => (
                 <div key={item.id} className="p-4">
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-lg font-extrabold text-purple-700 tabular-nums">{item.quantity}×</span>
-                        <span className="font-extrabold text-slate-900 dark:text-white">{item.garmentName}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{item.garmentName}</span>
                         {item.categoryType && (
                           <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-[0.625rem] font-extrabold uppercase">
                             {item.categoryType.replace('_', ' ')}
                           </span>
                         )}
                         {item.size && (
-                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
+                          <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">
                             Size: {item.size}
                           </span>
                         )}
@@ -380,16 +380,16 @@ export default function TailoringDetailPage() {
             {/* Payment history */}
             {(order.payments?.length ?? 0) > 0 && (
 
-              <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-                <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Payment History</h3>
+              <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+                <div className="px-4 py-3 border-b border-slate-100 dark:border-ink-800">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white">Payment History</h3>
                 </div>
-                <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800">
                   {(order.payments ?? []).map((p: any) => (
 
                     <div key={p.id} className="p-3 text-xs">
                       <div className="flex justify-between font-bold">
-                        <span className="text-slate-700 dark:text-slate-300">{p.paymentMethod}</span>
+                        <span className="text-slate-700 dark:text-ink-300">{p.paymentMethod}</span>
                         <span className="text-emerald-700 tabular-nums">{formatPKR(p.amount)}</span>
                       </div>
                       <div className="text-slate-500 mt-0.5">
@@ -430,9 +430,9 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-purple-50 dark:bg-purple-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Add Payment</h3>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-purple-50 dark:bg-purple-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -451,7 +451,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
                 <button
                   key={f}
                   onClick={() => setAmount(Number((remaining * f).toFixed(2)))}
-                  className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold hover:bg-slate-200"
+                  className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200"
                 >
                   {(f * 100).toFixed(0)}%
                 </button>
@@ -464,12 +464,12 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
               {['CASH', 'CARD', 'JAZZCASH', 'EASYPAISA', 'BANK', 'OTHER'].map((m) => (
                 <button key={m} onClick={() => setMethod(m)} className={
                   'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                  (method === m ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')
+                  (method === m ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
                 }>{m}</button>
               ))}
             </div>
           </div>
-          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
+          <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference (optional)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-purple-600 to-violet-700" onClick={() => payMutation.mutate()} loading={payMutation.isPending} disabled={amount <= 0}>

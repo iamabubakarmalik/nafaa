@@ -29,7 +29,7 @@ export default function AutoPartsDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -155,10 +155,10 @@ export default function AutoPartsDashboardPage() {
       {/* TWO COLUMNS */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* UPCOMING JOBS */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Clock className="h-5 w-5 text-orange-600" />
                 Upcoming Jobs
               </h3>
@@ -168,7 +168,7 @@ export default function AutoPartsDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {upcomingJobs.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
@@ -178,13 +178,13 @@ export default function AutoPartsDashboardPage() {
               upcomingJobs.map((job: any) => {
                 const daysLeft = job.promisedAt ? differenceInDays(new Date(job.promisedAt), new Date()) : null;
                 return (
-                  <Link key={job.id} to={'/autoparts/jobs/' + job.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                  <Link key={job.id} to={'/autoparts/jobs/' + job.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 text-white flex items-center justify-center shrink-0">
                       <Wrench className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">{job.jobNumber}</span>
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{job.jobNumber}</span>
                         <span className={
                           'px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +
                           (job.priority === 'EMERGENCY' || job.priority === 'URGENT' ? 'bg-red-600 animate-pulse' :
@@ -216,10 +216,10 @@ export default function AutoPartsDashboardPage() {
         </div>
 
         {/* OVERDUE JOBS */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <AlertCircle className="h-5 w-5 text-rose-600" />
                 Overdue Jobs
               </h3>
@@ -231,7 +231,7 @@ export default function AutoPartsDashboardPage() {
               </span>
             )}
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {overdueJobs.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
@@ -246,7 +246,7 @@ export default function AutoPartsDashboardPage() {
                       <AlertCircle className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white">{job.jobNumber}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{job.jobNumber}</div>
                       <div className="text-xs text-slate-600 font-bold">
                         {job.registrationNumber} • {job.customerName || 'Walk-in'}
                       </div>
@@ -265,14 +265,14 @@ export default function AutoPartsDashboardPage() {
 
       {/* TOP MECHANICS + JOBS BY TYPE */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Award className="h-5 w-5 text-amber-600" />
               Top Mechanics (30 days)
             </h3>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topMechanics.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Users className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -304,8 +304,8 @@ export default function AutoPartsDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
             <Settings className="h-5 w-5 text-orange-600" />
             Jobs by Type (30 days)
           </h3>
@@ -314,8 +314,8 @@ export default function AutoPartsDashboardPage() {
           ) : (
             <div className="space-y-2">
               {jobsByType.slice(0, 8).map((j: any) => (
-                <div key={j.jobType} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-neutral-800/50">
-                  <span className="text-sm font-extrabold text-slate-700 dark:text-slate-300">{j.jobType.replace(/_/g, ' ')}</span>
+                <div key={j.jobType} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-ink-800/50">
+                  <span className="text-sm font-extrabold text-slate-700 dark:text-ink-300">{j.jobType.replace(/_/g, ' ')}</span>
                   <span className="text-lg font-extrabold text-orange-700 tabular-nums">{j._count._all}</span>
                 </div>
               ))}
@@ -336,11 +336,11 @@ function KpiCard({ label, value, icon: Icon, color }: any) {
     violet: 'from-violet-500 to-purple-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm hover:shadow-md transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -358,11 +358,11 @@ function AlertCard({ label, value, sub, icon: Icon, to, color }: any) {
     red: 'from-red-500 to-rose-700',
   };
   return (
-    <Link to={to} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition">
+    <Link to={to} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
           {sub && <div className="text-xs text-slate-500 font-semibold">{sub}</div>}
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow group-hover:scale-110 transition-transform'}>
@@ -385,11 +385,11 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
     emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <Link to={to} className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition">
+    <Link to={to} className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition">
       <div className={'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform mb-2'}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

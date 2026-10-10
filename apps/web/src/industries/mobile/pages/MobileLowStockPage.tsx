@@ -104,13 +104,13 @@ export default function MobileLowStockPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-40 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="h-40 rounded-3xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-24 rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
-        <div className="h-64 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="h-64 rounded-3xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -122,7 +122,7 @@ export default function MobileLowStockPage() {
       <PrintStyles orientation="portrait" title="Low Stock Report" subtitle="Kya khatam ho raha hai" />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 dark:from-slate-950 dark:via-amber-950 dark:to-orange-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-amber-900 to-orange-700 dark:from-ink-950 dark:via-amber-950 dark:to-orange-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-amber-400/25 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-orange-400/20 blur-3xl pointer-events-none" />
 
@@ -195,12 +195,12 @@ export default function MobileLowStockPage() {
       </div>
 
       {nothingLow ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-emerald-200 dark:border-emerald-500/30 p-14 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-emerald-200 dark:border-emerald-500/30 p-14 text-center">
           <div className="mx-auto h-16 w-16 rounded-3xl bg-emerald-100 dark:bg-emerald-500/15 flex items-center justify-center mb-3">
             <Boxes className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Sab kuch stock me hai 🎉</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Sab kuch stock me hai 🎉</h3>
+          <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
             Koi model ya accessory alert level se neeche nahi
           </p>
         </div>
@@ -208,7 +208,7 @@ export default function MobileLowStockPage() {
         <>
           {/* ═══ FILTERS ═══ */}
           <div className="flex items-center gap-2 flex-wrap print:hidden">
-            <div className="flex gap-1.5 bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-700 p-1">
+            <div className="flex gap-1.5 bg-white dark:bg-ink-900 rounded-xl border-2 border-slate-200 dark:border-ink-700 p-1">
               {([
                 { v: 'all', label: 'Sab', icon: Boxes },
                 { v: 'phones', label: 'Phones', icon: Smartphone },
@@ -220,7 +220,7 @@ export default function MobileLowStockPage() {
                   className={`h-9 px-3 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                     tab === t.v
                       ? 'bg-gradient-to-r from-amber-600 to-orange-700 text-white shadow'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      : 'text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-800'
                   }`}
                 >
                   <t.icon className="h-3.5 w-3.5" /> {t.label}
@@ -234,7 +234,7 @@ export default function MobileLowStockPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Model, brand ya SKU..."
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition"
               />
             </div>
 
@@ -243,7 +243,7 @@ export default function MobileLowStockPage() {
               className={`h-11 px-3.5 rounded-xl text-xs font-extrabold border-2 inline-flex items-center gap-1.5 transition ${
                 onlyOut
                   ? 'bg-rose-600 text-white border-transparent shadow-lg shadow-rose-500/30'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-rose-300'
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-rose-300'
               }`}
             >
               <XCircle className="h-3.5 w-3.5" /> Sirf khatam wale
@@ -251,9 +251,9 @@ export default function MobileLowStockPage() {
           </div>
 
           {totalShown === 0 && (
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-10 text-center">
-              <PackageSearch className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+            <div className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-10 text-center">
+              <PackageSearch className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+              <p className="text-sm font-semibold text-slate-500 dark:text-ink-400">
                 In filters se kuch nahi mila
               </p>
             </div>
@@ -261,22 +261,22 @@ export default function MobileLowStockPage() {
 
           {/* ═══ PHONE MODELS ═══ */}
           {tab !== 'accessories' && phones.length > 0 && (
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
                 <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
                   <Smartphone className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
                   Phone Models{' '}
-                  <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({phones.length})</span>
+                  <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({phones.length})</span>
                 </h3>
               </div>
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {phones.map((p) => (
                   <div
                     key={`${p.productId}-${p.variantId ?? 'base'}`}
-                    className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
+                    className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition"
                   >
                     <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
                       p.isOut
@@ -287,7 +287,7 @@ export default function MobileLowStockPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
                         {p.name}
                         {p.variantName && (
                           <span className="ml-1.5 text-violet-700 dark:text-violet-400 font-bold">
@@ -295,9 +295,9 @@ export default function MobileLowStockPage() {
                           </span>
                         )}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         {p.brand && <span>{p.brand}</span>}
-                        {p.color && <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800">{p.color}</span>}
+                        {p.color && <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800">{p.color}</span>}
                         {p.sku && <span className="font-mono">{p.sku}</span>}
                         <span className="tabular-nums">{formatPKR(p.price)}</span>
                       </div>
@@ -309,7 +309,7 @@ export default function MobileLowStockPage() {
                       }`}>
                         {p.inStock}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         {p.isOut ? 'khatam' : `alert: ${p.lowStockAlert}`}
                       </div>
                     </div>
@@ -329,22 +329,22 @@ export default function MobileLowStockPage() {
 
           {/* ═══ ACCESSORIES ═══ */}
           {tab !== 'phones' && accessories.length > 0 && (
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
                 <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                   <Cable className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
                   Accessories{' '}
-                  <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({accessories.length})</span>
+                  <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({accessories.length})</span>
                 </h3>
               </div>
 
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {accessories.map((a) => (
                   <div
                     key={a.productId}
-                    className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition"
+                    className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition"
                   >
                     <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${
                       a.isOut
@@ -355,8 +355,8 @@ export default function MobileLowStockPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{a.name}</div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{a.name}</div>
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         {a.brand && <span>{a.brand}</span>}
                         {a.sku && <span className="font-mono">{a.sku}</span>}
                         <span className="tabular-nums">{formatPKR(a.price)}</span>
@@ -375,7 +375,7 @@ export default function MobileLowStockPage() {
                         {a.stock}
                         <span className="text-[0.6875rem] font-bold text-slate-400 ml-0.5">{a.unit}</span>
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         {a.isOut ? 'khatam' : `alert: ${a.lowStockAlert}`}
                       </div>
                     </div>
@@ -409,16 +409,16 @@ const SUMMARY_TONES: Record<string, string> = {
 
 function SummaryCard({ label, value, icon: Icon, tone, hint }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 flex items-center gap-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 flex items-center gap-3">
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${SUMMARY_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider truncate">
+        <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider truncate">
           {label}
         </div>
-        <div className="font-extrabold text-slate-900 dark:text-white text-xl tabular-nums">{value}</div>
-        {hint && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{hint}</div>}
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-xl tabular-nums">{value}</div>
+        {hint && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">{hint}</div>}
       </div>
     </div>
   );

@@ -217,14 +217,14 @@ export default function CatalogPage() {
 
   return (
     <div className={cleanMode
-      ? 'fixed inset-0 z-50 bg-slate-50 dark:bg-slate-950 overflow-auto print:static print:bg-white'
+      ? 'fixed inset-0 z-50 bg-slate-50 dark:bg-ink-950 overflow-auto print:static print:bg-white'
       : 'space-y-4 sm:space-y-5 pb-10 print:space-y-3'
     }>
       {showGuide && <CatalogGuide onClose={() => setShowGuide(false)} />}
 
       {/* ═══ HERO (admin mode) ═══ */}
       {!cleanMode && (
-        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-emerald-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-emerald-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
           <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
           <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/15 blur-3xl pointer-events-none" />
 
@@ -292,15 +292,15 @@ export default function CatalogPage() {
 
       {/* ═══ CLEAN MODE HEADER ═══ */}
       {cleanMode && (
-        <div className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b-2 border-slate-200 dark:border-slate-800 shadow-sm print:hidden">
+        <div className="sticky top-0 z-40 bg-white/95 dark:bg-ink-900/95 backdrop-blur-md border-b-2 border-slate-200 dark:border-ink-800 shadow-sm print:hidden">
           <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shadow-md shrink-0">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white truncate">{shopName}</h1>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tabular-nums">{products.length} items</p>
+                <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white truncate">{shopName}</h1>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold tabular-nums">{products.length} items</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -312,7 +312,7 @@ export default function CatalogPage() {
               </button>
               <button
                 onClick={() => setCleanMode(false)}
-                className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
+                className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
               >
                 <X className="h-4 w-4" /> Exit
               </button>
@@ -323,19 +323,19 @@ export default function CatalogPage() {
 
       <div className={cleanMode ? 'max-w-7xl mx-auto p-4 space-y-4' : 'space-y-4'}>
         {/* ═══ SEARCH + CONTROLS ═══ */}
-        <section className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3.5 space-y-3 print:hidden">
+        <section className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3.5 space-y-3 print:hidden">
           <div className="flex gap-2 flex-wrap">
             <div className="flex-1 min-w-[220px] relative">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 ref={searchRef}
-                className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
+                className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
                 placeholder="Naam, SKU ya brand se dhundo... (/ dabao)"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-3.5 w-3.5 text-slate-400" />
                 </button>
               )}
@@ -344,7 +344,7 @@ export default function CatalogPage() {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
-              className="h-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+              className="h-12 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
             >
               {SORT_OPTIONS.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
             </select>
@@ -353,7 +353,7 @@ export default function CatalogPage() {
               <select
                 value={density}
                 onChange={(e) => setDensity(e.target.value as Density)}
-                className="h-12 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                className="h-12 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
                 title="Card size"
               >
                 <option value="cozy">🖼️ Bare</option>
@@ -362,17 +362,17 @@ export default function CatalogPage() {
               </select>
             )}
 
-            <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+            <div className="inline-flex rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`px-3.5 h-12 transition ${viewMode === 'grid' ? 'bg-emerald-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                className={`px-3.5 h-12 transition ${viewMode === 'grid' ? 'bg-emerald-600 text-white' : 'text-slate-700 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
                 title="Grid view"
               >
                 <Grid3x3 className="h-4 w-4" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3.5 h-12 transition border-l-2 border-slate-200 dark:border-slate-700 ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                className={`px-3.5 h-12 transition border-l-2 border-slate-200 dark:border-ink-700 ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'text-slate-700 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
                 title="List view"
               >
                 <ListIcon className="h-4 w-4" />
@@ -384,7 +384,7 @@ export default function CatalogPage() {
               className={`h-12 px-4 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
                 hasFilters || showFilters
                   ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
-                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+                  : 'border-slate-200 dark:border-ink-700 hover:bg-slate-50 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200'
               }`}
             >
               <Filter className="h-4 w-4" /> Filters
@@ -402,8 +402,8 @@ export default function CatalogPage() {
               onClick={() => setFeaturedOnly(false)}
               className={`px-3 py-1.5 rounded-lg text-xs font-extrabold inline-flex items-center gap-1 transition ${
                 !featuredOnly
-                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm'
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
               }`}
             >
               <Sparkles className="h-3 w-3" /> Sab Products
@@ -430,13 +430,13 @@ export default function CatalogPage() {
 
           {/* Filters panel */}
           {showFilters && (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t-2 border-slate-100 dark:border-slate-800">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-3 border-t-2 border-slate-100 dark:border-ink-800">
               <div>
-                <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Category</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">Category</label>
                 <select
                   value={categoryId}
                   onChange={(e) => setCategoryId(e.target.value)}
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
                 >
                   <option value="">Sab categories</option>
                   {categories.map((c: any) => (
@@ -445,11 +445,11 @@ export default function CatalogPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Brand</label>
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">Brand</label>
                 <select
                   value={brandId}
                   onChange={(e) => setBrandId(e.target.value)}
-                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                  className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
                 >
                   <option value="">Sab brands</option>
                   {brands.map((b) => (
@@ -458,7 +458,7 @@ export default function CatalogPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">
+                <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">
                   Price Range {stats.priceMax > 0 && <span className="normal-case text-slate-400">(max {formatPKR(stats.priceMax)})</span>}
                 </label>
                 <div className="flex gap-1.5">
@@ -468,7 +468,7 @@ export default function CatalogPage() {
                     placeholder="Min"
                     value={minPrice}
                     onChange={(e) => setMinPrice(e.target.value)}
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-emerald-500 transition"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white tabular-nums focus:outline-none focus:border-emerald-500 transition"
                   />
                   <input
                     type="number"
@@ -476,7 +476,7 @@ export default function CatalogPage() {
                     placeholder="Max"
                     value={maxPrice}
                     onChange={(e) => setMaxPrice(e.target.value)}
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white tabular-nums focus:outline-none focus:border-emerald-500 transition"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white tabular-nums focus:outline-none focus:border-emerald-500 transition"
                   />
                 </div>
               </div>
@@ -495,11 +495,11 @@ export default function CatalogPage() {
 
         {/* ═══ RESULT COUNT ═══ */}
         <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
-          <div className="text-sm text-slate-600 dark:text-slate-300 font-bold tabular-nums">
-            <strong className="text-slate-900 dark:text-white">{products.length}</strong> products
-            {hasFilters && <span className="text-slate-500 dark:text-slate-400"> (filtered)</span>}
+          <div className="text-sm text-slate-600 dark:text-ink-300 font-bold tabular-nums">
+            <strong className="text-slate-900 dark:text-ink-white">{products.length}</strong> products
+            {hasFilters && <span className="text-slate-500 dark:text-ink-400"> (filtered)</span>}
           </div>
-          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
             🔒 Cost aur purchase price customer ko kabhi nahi dikhti
           </div>
         </div>
@@ -516,18 +516,18 @@ export default function CatalogPage() {
         {isLoading ? (
           <div className={`grid ${GRID_COLS[density]} gap-3 sm:gap-4`}>
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="aspect-square rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="aspect-square rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-14 text-center shadow-sm">
-            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 mx-auto flex items-center justify-center shadow-inner mb-4">
+          <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-14 text-center shadow-sm">
+            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-ink-800 dark:to-ink-700 mx-auto flex items-center justify-center shadow-inner mb-4">
               <Package className="h-10 w-10 text-slate-400" />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Kuch nahi mila' : 'Abhi koi product nahi'}
             </h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto font-semibold">
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1 max-w-md mx-auto font-semibold">
               {hasFilters
                 ? 'Search ya filters change karo'
                 : 'Active products catalog me yahan dikhenge'}
@@ -619,7 +619,7 @@ function CatalogCard({ product, onClick, density }: { product: Product; onClick:
   return (
     <button
       onClick={onClick}
-      className="group relative rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all text-left print:border-slate-300 print:shadow-none print:hover:translate-y-0"
+      className="group relative rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 overflow-hidden hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all text-left print:border-slate-300 print:shadow-none print:hover:translate-y-0"
     >
       {product.isFeatured && (
         <div className="absolute top-2 right-2 z-10 px-2 py-1 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white text-[0.625rem] font-extrabold shadow-lg flex items-center gap-1">
@@ -627,7 +627,7 @@ function CatalogCard({ product, onClick, density }: { product: Product; onClick:
         </div>
       )}
 
-      <div className="aspect-square bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+      <div className="aspect-square bg-slate-100 dark:bg-ink-800 overflow-hidden relative">
         {primaryImage ? (
           <img
             src={primaryImage}
@@ -636,8 +636,8 @@ function CatalogCard({ product, onClick, density }: { product: Product; onClick:
             className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${isOut ? 'grayscale opacity-60' : ''}`}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
-            <Package className="h-12 w-12 text-slate-400 dark:text-slate-600" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-ink-800 dark:to-ink-700">
+            <Package className="h-12 w-12 text-slate-400 dark:text-ink-600" />
           </div>
         )}
 
@@ -675,7 +675,7 @@ function CatalogCard({ product, onClick, density }: { product: Product; onClick:
             {product.brand.name}
           </div>
         )}
-        <h3 className={`font-extrabold text-slate-900 dark:text-white line-clamp-2 leading-tight group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors ${
+        <h3 className={`font-extrabold text-slate-900 dark:text-ink-white line-clamp-2 leading-tight group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors ${
           density === 'compact' ? 'text-xs' : density === 'cozy' ? 'text-base' : 'text-sm'
         }`}>
           {product.name}
@@ -687,7 +687,7 @@ function CatalogCard({ product, onClick, density }: { product: Product; onClick:
             {formatPKRFull(product.price)}
           </div>
           {density !== 'compact' && (
-            <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold">/ {product.unit}</div>
+            <div className="text-[0.625rem] text-slate-500 dark:text-ink-400 font-bold">/ {product.unit}</div>
           )}
         </div>
       </div>
@@ -706,14 +706,14 @@ function CatalogListItem({ product, onClick }: { product: Product; onClick: () =
   return (
     <button
       onClick={onClick}
-      className="group w-full rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:shadow-lg transition-all text-left flex items-center gap-4 p-3"
+      className="group w-full rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 overflow-hidden hover:border-emerald-400 dark:hover:border-emerald-500/50 hover:shadow-lg transition-all text-left flex items-center gap-4 p-3"
     >
-      <div className="h-20 w-20 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 relative">
+      <div className="h-20 w-20 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden shrink-0 relative">
         {primaryImage ? (
           <img src={primaryImage} alt={product.name} loading="lazy" className={`w-full h-full object-cover group-hover:scale-110 transition-transform ${isOut ? 'grayscale opacity-60' : ''}`} />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Package className="h-8 w-8 text-slate-400 dark:text-slate-600" />
+            <Package className="h-8 w-8 text-slate-400 dark:text-ink-600" />
           </div>
         )}
         {isOut && (
@@ -734,11 +734,11 @@ function CatalogListItem({ product, onClick }: { product: Product; onClick: () =
             </span>
           )}
         </div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-base mt-0.5 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base mt-0.5 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
           {product.name}
         </h3>
         {product.shortDescription && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5 font-semibold">{product.shortDescription}</p>
+          <p className="text-xs text-slate-500 dark:text-ink-400 line-clamp-1 mt-0.5 font-semibold">{product.shortDescription}</p>
         )}
         <div className="flex items-center gap-2 mt-1 flex-wrap">
           {variantCount > 0 && (
@@ -747,14 +747,14 @@ function CatalogListItem({ product, onClick }: { product: Product; onClick: () =
             </span>
           )}
           {product.category && (
-            <span className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">{(product.category as any).name}</span>
+            <span className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400">{(product.category as any).name}</span>
           )}
         </div>
       </div>
 
       <div className="text-right shrink-0">
         <div className="text-xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKRFull(product.price)}</div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">/ {product.unit}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">/ {product.unit}</div>
         <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden">
           <ArrowRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400 ml-auto" />
         </div>
@@ -847,16 +847,16 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-slate-900 w-full sm:max-w-5xl sm:rounded-3xl rounded-t-3xl shadow-2xl max-h-[95vh] overflow-auto border-2 border-slate-200 dark:border-slate-800"
+        className="bg-white dark:bg-ink-900 w-full sm:max-w-5xl sm:rounded-3xl rounded-t-3xl shadow-2xl max-h-[95vh] overflow-auto border-2 border-slate-200 dark:border-ink-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Sticky header */}
-        <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b-2 border-slate-100 dark:border-slate-800 px-4 sm:px-5 py-3 flex items-center justify-between gap-2">
+        <div className="sticky top-0 z-10 bg-white/95 dark:bg-ink-900/95 backdrop-blur-md border-b-2 border-slate-100 dark:border-ink-800 px-4 sm:px-5 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm">
               <Package className="h-4 w-4" />
             </div>
-            <div className="font-extrabold text-slate-900 dark:text-white truncate">{product?.name || 'Loading...'}</div>
+            <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{product?.name || 'Loading...'}</div>
           </div>
           <div className="flex items-center gap-1.5 shrink-0">
             <button
@@ -868,10 +868,10 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
             </button>
             <button
               onClick={onClose}
-              className="h-9 w-9 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
+              className="h-9 w-9 rounded-full bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition"
               title="Band karo (Esc)"
             >
-              <X className="h-4 w-4 text-slate-700 dark:text-slate-300" />
+              <X className="h-4 w-4 text-slate-700 dark:text-ink-300" />
             </button>
           </div>
         </div>
@@ -879,12 +879,12 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
         {isLoading || !product ? (
           <div className="p-16 text-center">
             <div className="inline-block h-12 w-12 rounded-full border-4 border-emerald-200 dark:border-emerald-500/30 border-t-emerald-600 dark:border-t-emerald-400 animate-spin" />
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-bold mt-3">Product load ho raha hai...</p>
+            <p className="text-sm text-slate-500 dark:text-ink-400 font-bold mt-3">Product load ho raha hai...</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-0">
             {/* ─── IMAGE SIDE ─── */}
-            <div className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 relative">
+            <div className="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-ink-800 dark:to-ink-900 relative">
               <div className="aspect-square md:aspect-auto md:min-h-[500px] relative group">
                 {displayImage ? (
                   <>
@@ -896,7 +896,7 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
                     />
                     <button
                       onClick={() => setZoomed(true)}
-                      className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-md transition"
+                      className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 dark:bg-ink-800/90 backdrop-blur hover:bg-white dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 flex items-center justify-center shadow-md transition"
                       title="Zoom"
                     >
                       <Maximize2 className="h-4 w-4" />
@@ -904,7 +904,7 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
                   </>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center min-h-[300px]">
-                    <Package className="h-24 w-24 text-slate-400 dark:text-slate-600" />
+                    <Package className="h-24 w-24 text-slate-400 dark:text-ink-600" />
                   </div>
                 )}
 
@@ -912,13 +912,13 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
                   <>
                     <button
                       onClick={prevImage}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-lg transition opacity-0 group-hover:opacity-100"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 dark:bg-ink-800/90 backdrop-blur hover:bg-white dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 flex items-center justify-center shadow-lg transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       onClick={nextImage}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shadow-lg transition opacity-0 group-hover:opacity-100"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-white/90 dark:bg-ink-800/90 backdrop-blur hover:bg-white dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 flex items-center justify-center shadow-lg transition opacity-0 group-hover:opacity-100"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
@@ -942,7 +942,7 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
               </div>
 
               {allImages.length > 1 && (
-                <div className="bg-white dark:bg-slate-900 border-t-2 border-slate-100 dark:border-slate-800 p-3 flex gap-2 overflow-x-auto">
+                <div className="bg-white dark:bg-ink-900 border-t-2 border-slate-100 dark:border-ink-800 p-3 flex gap-2 overflow-x-auto">
                   {allImages.map((img, i) => (
                     <button
                       key={img.id || i}
@@ -950,7 +950,7 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
                       className={`h-14 w-14 rounded-lg overflow-hidden shrink-0 border-2 transition ${
                         activeImageIndex === i
                           ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/30 shadow-md'
-                          : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50'
+                          : 'border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50'
                       }`}
                     >
                       <img src={img.url} alt="" className="w-full h-full object-cover" />
@@ -972,9 +972,9 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
               )}
 
               <div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white leading-tight">{product.name}</h2>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink-white leading-tight">{product.name}</h2>
                 {product.shortDescription && (
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 font-semibold">{product.shortDescription}</p>
+                  <p className="text-sm text-slate-600 dark:text-ink-300 mt-2 font-semibold">{product.shortDescription}</p>
                 )}
               </div>
 
@@ -994,9 +994,9 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
               </div>
 
               {product.description && (
-                <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-4">
-                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2">Details</div>
-                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-line">{product.description}</p>
+                <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-4">
+                  <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-2">Details</div>
+                  <p className="text-sm text-slate-700 dark:text-ink-200 leading-relaxed whitespace-pre-line">{product.description}</p>
                 </div>
               )}
 
@@ -1004,7 +1004,7 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
               {activeVariants.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className="text-sm font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                    <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-1.5">
                       <Layers className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                       Options ({activeVariants.length})
                     </div>
@@ -1028,10 +1028,10 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
                           className={`relative rounded-xl border-2 overflow-hidden transition-all hover:-translate-y-0.5 ${
                             isSelected
                               ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/30 shadow-lg'
-                              : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-md'
+                              : 'border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-md'
                           }`}
                         >
-                          <div className="aspect-square bg-slate-100 dark:bg-slate-800">
+                          <div className="aspect-square bg-slate-100 dark:bg-ink-800">
                             {v.imageUrl ? (
                               <img src={v.imageUrl} alt={v.name} loading="lazy" className="w-full h-full object-cover" />
                             ) : v.colorHex ? (
@@ -1041,13 +1041,13 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
                                 </div>
                               </div>
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
-                                <Package className="h-6 w-6 text-slate-400 dark:text-slate-600" />
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-ink-800 dark:to-ink-700">
+                                <Package className="h-6 w-6 text-slate-400 dark:text-ink-600" />
                               </div>
                             )}
                           </div>
-                          <div className="px-2 py-1.5 bg-white dark:bg-slate-900">
-                            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">
+                          <div className="px-2 py-1.5 bg-white dark:bg-ink-900">
+                            <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">
                               {v.size || v.color || v.name}
                             </div>
                             <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-extrabold tabular-nums">
@@ -1081,10 +1081,10 @@ function ProductDetailModal({ productId, shopName, onClose }: { productId: strin
               )}
 
               {/* Actions */}
-              <div className="flex gap-2 pt-3 border-t-2 border-slate-100 dark:border-slate-800">
+              <div className="flex gap-2 pt-3 border-t-2 border-slate-100 dark:border-ink-800">
                 <button
                   onClick={handleCopyDetails}
-                  className="flex-1 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-extrabold text-sm inline-flex items-center justify-center gap-2 transition active:scale-95"
+                  className="flex-1 h-12 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-900 dark:text-ink-white font-extrabold text-sm inline-flex items-center justify-center gap-2 transition active:scale-95"
                 >
                   <Copy className="h-4 w-4" /> Copy
                 </button>
@@ -1150,27 +1150,27 @@ function CatalogGuide({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/15 dark:to-green-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Catalog Kaise Use Karein?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye tumhara <strong>digital showroom</strong> hai. Customer aaye to <strong>Customer View</strong> kholo
             aur phone uske haath me de do — woh khud products dekhega, rate dekhega.
             <strong> Cost ya purchase price kabhi nahi dikhti.</strong>
           </p>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3.5">
-            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">3 Tareeqe</div>
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3.5">
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-2">3 Tareeqe</div>
             <div className="space-y-2">
               <FlowRow num="👀" title="Customer View" desc="Dukan par — phone/tablet customer ko do, clean screen" />
               <FlowRow num="💬" title="WhatsApp Share" desc="Ghar baithe customer ko link bhejo — products + rate" />
@@ -1178,7 +1178,7 @@ function CatalogGuide({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>⭐ Featured</strong> — products page se ⭐ mark karo, catalog me sab se upar aayenge</TipRow>
             <TipRow><strong>⌨️ Shortcuts</strong> — <span className="font-mono">/</span> search, <span className="font-mono">C</span> customer view, <span className="font-mono">Esc</span> band</TipRow>
             <TipRow><strong>🖼️ Arrows</strong> — photo khol ke <span className="font-mono">← →</span> keys se agli photo</TipRow>
@@ -1222,8 +1222,8 @@ function FlowRow({ num, title, desc }: { num: string; title: string; desc: strin
         {num}
       </div>
       <div className="min-w-0">
-        <div className="text-xs font-extrabold text-slate-900 dark:text-white">{title}</div>
-        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">{desc}</div>
+        <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+        <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">{desc}</div>
       </div>
     </div>
   );

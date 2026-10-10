@@ -217,11 +217,11 @@ export default function AppliancesStockReportPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-40 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-40 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
-        <div className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -271,7 +271,7 @@ export default function AppliancesStockReportPage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm overflow-x-auto">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm overflow-x-auto">
           <TabBtn active={tab === 'value'} onClick={() => setTab('value')} icon={Layers} label="Paisa Kahan" />
           <TabBtn active={tab === 'serials'} onClick={() => setTab('serials')} icon={Barcode} label="Serial Units" badge={t?.serialUnits} />
           <TabBtn active={tab === 'warranty'} onClick={() => setTab('warranty')} icon={ShieldAlert} label="Warranty" badge={data?.expiringWarranty?.count} />
@@ -319,10 +319,10 @@ export default function AppliancesStockReportPage() {
                   <button key={b.key} onClick={() => { setBucket(bucket === b.key ? null : b.key); setTab('serials'); }}
                     className={`rounded-xl border-2 px-2 py-1.5 text-center transition ${
                       bucket === b.key ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/15'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-cyan-300'
+                        : 'border-slate-200 dark:border-ink-700 hover:border-cyan-300'
                     }`}>
-                    <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{b.label}</div>
-                    <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{b.units}</div>
+                    <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">{b.label}</div>
+                    <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{b.units}</div>
                   </button>
                 ))}
               </div>
@@ -337,7 +337,7 @@ export default function AppliancesStockReportPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[680px]">
                   <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+                    <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
                       <Th className="text-left">Cheez</Th>
                       <Th className="text-left">Brand</Th>
                       <Th className="text-center">Stock</Th>
@@ -348,26 +348,26 @@ export default function AppliancesStockReportPage() {
                   </thead>
                   <tbody>
                     {products.map((r) => (
-                      <tr key={r.productId} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      <tr key={r.productId} className="border-b border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                         <td className="px-3 py-2.5">
                           <Link to={`/appliance-products/${r.productId}`} className="flex items-center gap-2 group">
                             <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                             <div className="min-w-0">
-                              <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
+                              <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
                               <div className="text-[0.6875rem] font-bold text-slate-400">{catLabel(r.categoryType)}{r.sku ? ` • ${r.sku}` : ''}</div>
                             </div>
                           </Link>
                         </td>
-                        <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">{r.brand || '—'}</td>
-                        <td className="px-3 py-2.5 text-center text-sm font-extrabold text-slate-800 dark:text-slate-100 tabular-nums">{r.stock} <span className="text-[0.6875rem] font-bold text-slate-400">{r.unit}</span></td>
-                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{formatPKR(r.unitCost)}</td>
-                        <td className="px-3 py-2.5 text-right text-xs font-extrabold text-slate-800 dark:text-slate-100 tabular-nums whitespace-nowrap">{formatPKR(r.value)}</td>
+                        <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">{r.brand || '—'}</td>
+                        <td className="px-3 py-2.5 text-center text-sm font-extrabold text-slate-800 dark:text-ink-100 tabular-nums">{r.stock} <span className="text-[0.6875rem] font-bold text-slate-400">{r.unit}</span></td>
+                        <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums whitespace-nowrap">{formatPKR(r.unitCost)}</td>
+                        <td className="px-3 py-2.5 text-right text-xs font-extrabold text-slate-800 dark:text-ink-100 tabular-nums whitespace-nowrap">{formatPKR(r.value)}</td>
                         <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums whitespace-nowrap">{formatPKR(r.retailValue)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+                    <tr className="bg-slate-900 dark:bg-ink-950 text-white">
                       <td colSpan={4} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Kul</td>
                       <td className="px-3 py-3 text-right text-xs font-extrabold text-cyan-300 tabular-nums whitespace-nowrap">
                         {formatPKR(products.reduce((s, r) => s + r.value, 0))}
@@ -393,7 +393,7 @@ export default function AppliancesStockReportPage() {
               <input ref={searchRef} className={inputCls('h-12 pl-10 pr-10 text-sm font-semibold')}
                 placeholder="Serial, naam, brand, model... (/)" value={search} onChange={(e) => setSearch(e.target.value)} />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -426,7 +426,7 @@ export default function AppliancesStockReportPage() {
               <div key={r.id} className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-2">
                 <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{r.name}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{r.name}</div>
                   <div className="font-mono text-[0.6875rem] font-bold text-slate-400">{r.serialNumber}</div>
                 </div>
                 <StatusBadge meta={instStatusMeta(r.installationStatus)} size="xs" />
@@ -462,11 +462,11 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
   }
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[900px]">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+            <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
               <Th className="text-left">Cheez / Serial</Th>
               <Th className="text-left">Brand / Model</Th>
               <Th className="text-center">Umar</Th>
@@ -481,17 +481,17 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
               const wDays = mode === 'warranty' ? r.expiringDays : r.warrantyDaysLeft;
               const wKind = r.expiringKind === 'COMPRESSOR' ? 'Compressor' : r.expiringKind === 'MOTOR' ? 'Motor' : 'Main';
               return (
-                <tr key={r.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                <tr key={r.id} className="border-b border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <td className="px-3 py-2.5">
                     <Link to={`/appliance-products/${r.productId}`} className="flex items-center gap-2 group">
                       <span className="text-base shrink-0">{catEmoji(r.categoryType)}</span>
                       <div className="min-w-0">
-                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{r.name}</div>
                         <div className="font-mono text-[0.6875rem] font-bold text-slate-400">{r.serialNumber}</div>
                       </div>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                     {r.brand || '—'}
                     {r.modelNumber && <div className="font-mono text-[0.6875rem] text-slate-400">{r.modelNumber}</div>}
                     {r.capacity && <div className="text-[0.6875rem] text-slate-400">{r.capacity}</div>}
@@ -500,7 +500,7 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
                     <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${
                       r.ageDays > 90 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                         : r.ageDays > 60 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                     }`}>{r.ageDays} din</span>
                   </td>
                   <td className="px-3 py-2.5 text-center">
@@ -520,14 +520,14 @@ function SerialTable({ rows, mode }: { rows: StockSerialRow[]; mode: Tab }) {
                       </div>
                     )}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{formatPKR(r.cost)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums whitespace-nowrap">{formatPKR(r.cost)}</td>
                   <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums whitespace-nowrap">{formatPKR(r.price)}</td>
                 </tr>
               );
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+            <tr className="bg-slate-900 dark:bg-ink-950 text-white">
               <td colSpan={5} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">
                 {rows.length} units ka total
               </td>
@@ -549,17 +549,17 @@ function TabBtn({ active, onClick, icon: Icon, label, badge }: any) {
   return (
     <button onClick={onClick}
       className={`px-3 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap transition ${
-        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
-      {badge ? <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700'}`}>{badge}</span> : null}
+      {badge ? <span className={`px-1.5 rounded-full text-[0.625rem] tabular-nums ${active ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700'}`}>{badge}</span> : null}
     </button>
   );
 }
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );

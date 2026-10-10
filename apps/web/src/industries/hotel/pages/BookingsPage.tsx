@@ -79,10 +79,10 @@ export default function BookingsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search booking #, guest name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search booking #, guest name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
         </div>
 
         <div className="flex gap-1.5">
@@ -94,7 +94,7 @@ export default function BookingsPage() {
           ].map((t) => (
             <button key={t.v} onClick={() => setTabFilter(t.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tabFilter === t.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tabFilter === t.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.label}</button>
           ))}
         </div>
@@ -108,7 +108,7 @@ export default function BookingsPage() {
             ].map((s) => (
               <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-                (statusFilter === s.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (statusFilter === s.v ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }>{s.label}</button>
             ))}
           </div>
@@ -116,9 +116,9 @@ export default function BookingsPage() {
       </section>
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Calendar className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No bookings found</p>
           <Link to="/hotel/bookings/new">
@@ -144,14 +144,14 @@ function BookingCard({ booking }: any) {
   const isUpcoming = daysUntilCheckIn > 0 && daysUntilCheckIn <= 3;
 
   return (
-    <Link to={'/hotel/bookings/' + booking.id} className="block rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg hover:border-blue-300 transition p-4">
+    <Link to={'/hotel/bookings/' + booking.id} className="block rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg hover:border-blue-300 transition p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className={
             'shrink-0 rounded-2xl px-3 py-2 text-center min-w-[80px] ' +
             (booking.status === 'CHECKED_IN' ? 'bg-emerald-100 dark:bg-emerald-950/40' :
              isToday ? 'bg-amber-100 dark:bg-amber-950/40' :
-             'bg-slate-100 dark:bg-neutral-800')
+             'bg-slate-100 dark:bg-ink-800')
           }>
             <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600">
               {booking.status === 'CHECKED_IN' ? 'In-House' : 'Check-in'}
@@ -162,7 +162,7 @@ function BookingCard({ booking }: any) {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{booking.guestName}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{booking.guestName}</span>
               <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>
                 {cfg.label}
               </span>

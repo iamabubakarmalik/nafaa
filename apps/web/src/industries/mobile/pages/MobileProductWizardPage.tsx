@@ -207,17 +207,17 @@ export default function MobileProductWizardPage() {
   if (isEdit && !editLoaded && !existingProduct) {
     return (
       <div className="max-w-4xl mx-auto py-10 space-y-4">
-        <div className="h-40 rounded-3xl bg-gradient-to-r from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-800/60 animate-pulse" />
+        <div className="h-40 rounded-3xl bg-gradient-to-r from-slate-200 to-slate-100 dark:from-ink-800 dark:to-ink-800/60 animate-pulse" />
         <div className="grid xl:grid-cols-[1fr_360px] gap-5">
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
-          <div className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse hidden xl:block" />
+          <div className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse hidden xl:block" />
         </div>
         <div className="flex justify-center pt-4">
-          <div className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+          <div className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 dark:text-ink-400">
             <div className="h-5 w-5 rounded-full border-2 border-blue-200 dark:border-blue-500/30 border-t-blue-600 dark:border-t-blue-400 animate-spin" />
             Product load ho raha hai...
           </div>
@@ -238,7 +238,7 @@ export default function MobileProductWizardPage() {
             <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-blue-700 text-white flex items-center justify-center shadow-xl shadow-blue-500/30 mx-auto mb-4">
               <CheckCircle2 className="h-10 w-10" />
             </div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-slate-800 border border-blue-200 dark:border-blue-500/40 px-3 py-1 text-[0.6875rem] font-extrabold text-blue-800 dark:text-blue-300 mb-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-white/80 dark:bg-ink-800 border border-blue-200 dark:border-blue-500/40 px-3 py-1 text-[0.6875rem] font-extrabold text-blue-800 dark:text-blue-300 mb-2">
               {isAccessory ? <Headphones className="h-3.5 w-3.5" /> : <Smartphone className="h-3.5 w-3.5" />}
               {isAccessory ? 'ACCESSORY' : 'PHONE'}
             </div>
@@ -285,25 +285,25 @@ export default function MobileProductWizardPage() {
           </button>
           <button
             onClick={() => navigate(`/mobile-products/${savedResult.productId}`)}
-            className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] p-5 flex flex-col items-center gap-2 transition"
+            className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] p-5 flex flex-col items-center gap-2 transition"
           >
             <Eye className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            <div className="font-extrabold text-slate-900 dark:text-white">View Product</div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Full detail page</div>
+            <div className="font-extrabold text-slate-900 dark:text-ink-white">View Product</div>
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Full detail page</div>
           </button>
           <button
             onClick={() => navigate(isAccessory ? '/mobile-products' : '/imei-inventory')}
-            className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] p-5 flex flex-col items-center gap-2 transition"
+            className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md active:scale-[0.98] p-5 flex flex-col items-center gap-2 transition"
           >
             {isAccessory ? (
               <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             ) : (
               <Smartphone className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             )}
-            <div className="font-extrabold text-slate-900 dark:text-white">
+            <div className="font-extrabold text-slate-900 dark:text-ink-white">
               {isAccessory ? 'All Products' : 'All IMEIs'}
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+            <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
               {isAccessory ? 'Catalog dekho' : 'IMEI inventory'}
             </div>
           </button>
@@ -341,7 +341,7 @@ export default function MobileProductWizardPage() {
           </div>
           <button
             onClick={() => { if (confirm('Draft delete kar ke naya start karein?')) reset(); }}
-            className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200 dark:border-rose-500/40 transition"
+            className="px-3 py-1.5 rounded-lg bg-white dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-700 dark:text-rose-400 text-xs font-extrabold inline-flex items-center gap-1 border-2 border-rose-200 dark:border-rose-500/40 transition"
           >
             <Trash2 className="h-3 w-3" /> Fresh Start
           </button>
@@ -367,7 +367,7 @@ export default function MobileProductWizardPage() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <button
           onClick={() => navigate(isEdit ? `/mobile-products/${id}` : '/mobile-products')}
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition min-h-[44px]"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold transition min-h-[44px]"
         >
           <ArrowLeft className="h-4 w-4" /> {isEdit ? 'Back to Product' : 'Back to Products'}
         </button>
@@ -406,8 +406,8 @@ export default function MobileProductWizardPage() {
       {/* ═══ HERO (type-aware) ═══ */}
       <section className={`relative overflow-hidden rounded-2xl sm:rounded-3xl text-white p-4 sm:p-6 shadow-2xl ${
         isAccessory
-          ? 'bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-slate-950 dark:via-violet-950 dark:to-fuchsia-900'
-          : 'bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900'
+          ? 'bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900'
+          : 'bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900'
       }`}>
         <div className={`absolute -top-20 -right-20 h-64 w-64 rounded-full blur-3xl pointer-events-none ${isAccessory ? 'bg-fuchsia-400/20' : 'bg-blue-400/20'}`} />
         <div className={`absolute -bottom-20 -left-20 h-64 w-64 rounded-full blur-3xl pointer-events-none ${isAccessory ? 'bg-violet-400/15' : 'bg-indigo-400/15'}`} />
@@ -530,21 +530,21 @@ export default function MobileProductWizardPage() {
 
       {/* ═══ BOTTOM BAR ═══ */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg px-3 sm:px-4 pt-3 lg:pl-[300px] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
+        className="fixed bottom-0 left-0 right-0 z-30 border-t-2 border-slate-200 dark:border-ink-800 bg-white/95 dark:bg-ink-950/95 backdrop-blur-lg px-3 sm:px-4 pt-3 lg:pl-[300px] shadow-[0_-4px_24px_rgba(0,0,0,0.08)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
         style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
           <button
             onClick={prevStep}
             disabled={draft.step === 1}
-            className="inline-flex items-center gap-2 px-3 sm:px-4 min-h-[44px] rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition disabled:opacity-40 active:scale-[0.97]"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 min-h-[44px] rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition disabled:opacity-40 active:scale-[0.97]"
             title="Ctrl+←"
           >
             <ArrowLeft className="h-4 w-4" /> <span className="hidden xs:inline">Back</span>
           </button>
 
           <div className="flex-1 text-center min-w-0 px-1">
-            <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400">
+            <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400">
               Step {draft.step} of 3 {isAccessory && draft.step === 3 ? '• Stock qty' : ''}
             </div>
             {!currentValidation.valid && (
@@ -603,7 +603,7 @@ function TypeCard({ active, onClick, icon: Icon, emoji, title, desc, tone }: {
           ? tone === 'blue'
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10 shadow-xl shadow-blue-500/20 ring-4 ring-blue-200 dark:ring-blue-500/30'
             : 'border-violet-500 bg-violet-50 dark:bg-violet-500/10 shadow-xl shadow-violet-500/20 ring-4 ring-violet-200 dark:ring-violet-500/30'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-600'
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-slate-300 dark:hover:border-ink-600'
       }`}
     >
       {active && (
@@ -615,15 +615,15 @@ function TypeCard({ active, onClick, icon: Icon, emoji, title, desc, tone }: {
         <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 ${
           active
             ? tone === 'blue' ? 'bg-blue-600 text-white' : 'bg-violet-600 text-white'
-            : 'bg-slate-100 dark:bg-slate-800'
+            : 'bg-slate-100 dark:bg-ink-800'
         }`}>
           {emoji}
         </div>
         <div className="min-w-0">
-          <div className={`font-extrabold text-base sm:text-lg ${active ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-200'}`}>
+          <div className={`font-extrabold text-base sm:text-lg ${active ? 'text-slate-900 dark:text-ink-white' : 'text-slate-700 dark:text-ink-200'}`}>
             {title}
           </div>
-          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 leading-tight">{desc}</div>
+          <div className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 leading-tight">{desc}</div>
         </div>
       </div>
     </button>
@@ -640,20 +640,20 @@ function WizardTeacher({ isAccessory, onClose }: { isAccessory: boolean; onClose
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> {isAccessory ? 'Accessory Guide' : 'Phone Wizard Guide'}
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             {isAccessory ? (
               <>Accessory ka matlab: <strong>charger, cover, handsfree, glass</strong> — in ka koi IMEI nahi hota,
               sirf <strong>quantity stock</strong> hota hai. 3 easy steps, draft auto-save.</>
@@ -706,8 +706,8 @@ function WizardTeacher({ isAccessory, onClose }: { isAccessory: boolean; onClose
             </div>
           )}
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400 mb-1">
               ⌨️ Shortcuts (desktop)
             </div>
             <KbdRow keys="Ctrl + →" desc="Next step" />
@@ -740,8 +740,8 @@ function StepCard({ num, title, desc, tip }: { num: number; title: string; desc:
         {num}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</div>
-        <div className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">{desc}</div>
+        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+        <div className="text-xs text-slate-600 dark:text-ink-300 font-semibold mt-0.5">{desc}</div>
         <div className="text-[0.6875rem] text-blue-700 dark:text-blue-300 font-extrabold mt-1 inline-flex items-center gap-1">
           <Sparkles className="h-3 w-3" /> {tip}
         </div>
@@ -753,10 +753,10 @@ function StepCard({ num, title, desc, tip }: { num: number; title: string; desc:
 function KbdRow({ keys, desc }: { keys: string; desc: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <kbd className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.6875rem] shadow-sm">
+      <kbd className="px-2 py-0.5 rounded-md bg-white dark:bg-ink-700 border border-slate-300 dark:border-ink-600 text-slate-700 dark:text-ink-200 font-mono font-bold text-[0.6875rem] shadow-sm">
         {keys}
       </kbd>
-      <span className="text-slate-600 dark:text-slate-300">{desc}</span>
+      <span className="text-slate-600 dark:text-ink-300">{desc}</span>
     </div>
   );
 }
@@ -772,7 +772,7 @@ function HeroStat({ label, value }: { label: string; value: number | string }) {
 
 function SuccessStat({ icon: Icon, label, value }: { icon: any; label: string; value: number | string }) {
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-blue-500/30 p-3">
+    <div className="rounded-xl bg-white dark:bg-ink-900 border-2 border-blue-200 dark:border-blue-500/30 p-3">
       <Icon className="h-4 w-4 text-blue-500 dark:text-blue-400 mx-auto mb-1" />
       <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-300">{label}</div>
       <div className="text-2xl font-extrabold text-blue-900 dark:text-blue-100 tabular-nums mt-0.5">{value}</div>

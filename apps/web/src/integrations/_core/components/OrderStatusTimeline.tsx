@@ -72,7 +72,7 @@ export function OrderStatusTimeline({
                   'h-6 w-6 rounded-full flex items-center justify-center transition',
                   isDone
                     ? COLOR_CLASSES[s.color]
-                    : 'bg-slate-100 dark:bg-neutral-800 text-slate-400',
+                    : 'bg-slate-100 dark:bg-ink-800 text-slate-400',
                   isCurrent && 'ring-2 ring-offset-1 ring-' + s.color + '-500 animate-pulse',
                 )}
                 title={s.label}
@@ -83,7 +83,7 @@ export function OrderStatusTimeline({
                 <div
                   className={cn(
                     'h-0.5 w-3 transition',
-                    i < currentIdx ? COLOR_CLASSES[s.color] : 'bg-slate-200 dark:bg-neutral-700',
+                    i < currentIdx ? COLOR_CLASSES[s.color] : 'bg-slate-200 dark:bg-ink-700',
                   )}
                 />
               )}
@@ -110,7 +110,7 @@ export function OrderStatusTimeline({
                     'h-10 w-10 rounded-full flex items-center justify-center transition-all',
                     isDone
                       ? COLOR_CLASSES[s.color] + ' shadow-lg'
-                      : 'bg-slate-100 dark:bg-neutral-800 text-slate-400',
+                      : 'bg-slate-100 dark:bg-ink-800 text-slate-400',
                     isCurrent && 'ring-4 ring-offset-2 ring-' + s.color + '-200 dark:ring-' + s.color + '-900/50 animate-pulse',
                   )}
                 >
@@ -118,7 +118,7 @@ export function OrderStatusTimeline({
                 </div>
                 <div className={cn(
                   'text-[0.625rem] font-black uppercase tracking-wider text-center',
-                  isDone ? 'text-slate-800 dark:text-white' : 'text-slate-400',
+                  isDone ? 'text-slate-800 dark:text-ink-white' : 'text-slate-400',
                 )}>
                   {s.label}
                 </div>
@@ -127,7 +127,7 @@ export function OrderStatusTimeline({
                 <div
                   className={cn(
                     'flex-1 h-1 mx-1 rounded-full transition',
-                    i < currentIdx ? COLOR_CLASSES[s.color] : 'bg-slate-200 dark:bg-neutral-700',
+                    i < currentIdx ? COLOR_CLASSES[s.color] : 'bg-slate-200 dark:bg-ink-700',
                   )}
                 />
               )}

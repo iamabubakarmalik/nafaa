@@ -217,11 +217,11 @@ export default function MobileStockReportPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-44 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="h-44 rounded-3xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />)}
         </div>
-        <div className="h-72 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="h-72 rounded-3xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -234,7 +234,7 @@ export default function MobileStockReportPage() {
       {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-indigo-400/20 blur-3xl pointer-events-none" />
 
@@ -341,20 +341,20 @@ export default function MobileStockReportPage() {
       {/* ═══ CHARTS ═══ */}
       <div className="grid lg:grid-cols-[1.5fr_1fr] gap-3 items-start print:hidden">
         {/* Aging */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
           <div className="flex items-center justify-between gap-2 mb-4 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center">
                 <Hourglass className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">Maal Ki Umar</h3>
-                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">Sirf phone — accessories ki umar track nahi hoti</p>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Maal Ki Umar</h3>
+                <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">Sirf phone — accessories ki umar track nahi hoti</p>
               </div>
             </div>
             {bucket && (
               <button onClick={() => setBucket(null)}
-                className="h-8 px-2.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-extrabold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                className="h-8 px-2.5 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold text-slate-600 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700 transition">
                 Filter hatao
               </button>
             )}
@@ -362,9 +362,9 @@ export default function MobileStockReportPage() {
 
           {(t?.phones ?? 0) + (t?.usedPhones ?? 0) === 0 ? (
             <div className="h-56 flex flex-col items-center justify-center gap-2 text-center">
-              <Smartphone className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-              <p className="text-sm font-bold text-slate-600 dark:text-slate-300">Koi phone stock me nahi</p>
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 max-w-xs">
+              <Smartphone className="h-10 w-10 text-slate-300 dark:text-ink-600" />
+              <p className="text-sm font-bold text-slate-600 dark:text-ink-300">Koi phone stock me nahi</p>
+              <p className="text-xs font-semibold text-slate-500 dark:text-ink-400 max-w-xs">
                 IMEI Inventory se naya phone add karo ya trade-in se used phone
               </p>
             </div>
@@ -373,7 +373,7 @@ export default function MobileStockReportPage() {
               <div className="h-56 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-800" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-800" vertical={false} />
                     <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 700 }} className="fill-slate-500" tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 11, fontWeight: 700 }} className="fill-slate-500" tickLine={false} axisLine={false} width={36} allowDecimals={false} />
                     <Tooltip
@@ -393,14 +393,14 @@ export default function MobileStockReportPage() {
                 {(data?.buckets ?? []).map((b) => (
                   <button key={b.key} onClick={() => { setBucket(bucket === b.key ? null : b.key); setKind('all'); }}
                     className={`rounded-xl border-2 p-2.5 text-left transition ${
-                      bucket === b.key ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/40'
+                      bucket === b.key ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' : 'border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/40'
                     }`}>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ background: BUCKET_COLORS[b.key] }} />
-                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 truncate">{b.label}</span>
+                      <span className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 truncate">{b.label}</span>
                     </div>
-                    <div className="mt-0.5 font-extrabold text-slate-900 dark:text-white tabular-nums">{b.phones + b.usedPhones}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums truncate">
+                    <div className="mt-0.5 font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{b.phones + b.usedPhones}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums truncate">
                       {hideCost ? '•••' : formatPKR(b.phoneValue + b.usedValue)}
                     </div>
                   </button>
@@ -412,15 +412,15 @@ export default function MobileStockReportPage() {
 
         {/* Value split + PTA */}
         <div className="space-y-3">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
                 <Layers className="h-5 w-5" />
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Paisa Kahan Phansa Hai</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Paisa Kahan Phansa Hai</h3>
             </div>
             {valueSplit.length === 0 ? (
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 py-6 text-center">Stock khaali hai</p>
+              <p className="text-sm font-semibold text-slate-500 dark:text-ink-400 py-6 text-center">Stock khaali hai</p>
             ) : (
               <div className="h-48 w-full">
                 <ResponsiveContainer width="100%" height="100%">
@@ -437,32 +437,32 @@ export default function MobileStockReportPage() {
             )}
           </div>
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">PTA Status</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">PTA Status</h3>
             </div>
             {pta.length === 0 ? (
-              <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 py-4 text-center">Koi IMEI stock me nahi</p>
+              <p className="text-sm font-semibold text-slate-500 dark:text-ink-400 py-4 text-center">Koi IMEI stock me nahi</p>
             ) : (
               <div className="space-y-2">
                 {pta.map((row) => {
                   const cfg = PTA_STATUS_COLORS[row.ptaStatus as PtaStatus];
                   return (
-                    <div key={row.ptaStatus} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 p-2.5 flex items-center justify-between gap-2">
+                    <div key={row.ptaStatus} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2.5 flex items-center justify-between gap-2">
                       <div className="min-w-0">
                         <span className={`inline-flex px-1.5 py-0.5 rounded border text-[0.6875rem] font-extrabold uppercase ${cfg?.bg} ${cfg?.text} ${cfg?.border}`}>
                           {PTA_STATUS_LABELS[row.ptaStatus as PtaStatus]}
                         </span>
-                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                           Tax: {hideCost ? '•••' : formatPKR(row.taxPaid)}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{row.count}</div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{row.count}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                           {hideCost ? '•••' : formatPKR(row.stockValue)}
                         </div>
                       </div>
@@ -476,22 +476,22 @@ export default function MobileStockReportPage() {
       </div>
 
       {/* ═══ STOCK LIST ═══ */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="p-4 sm:p-5 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center">
                 <Boxes className="h-5 w-5" />
               </div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">
-                Stock Me Mojood <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({rows.length})</span>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
+                Stock Me Mojood <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({rows.length})</span>
               </h3>
             </div>
             <div className="relative print:hidden">
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="IMEI, model, brand, SKU... (/)"
-                className="h-10 w-full sm:w-72 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition" />
+                className="h-10 w-full sm:w-72 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition" />
             </div>
           </div>
 
@@ -506,10 +506,10 @@ export default function MobileStockReportPage() {
                 className={`h-9 px-3 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 transition border-2 ${
                   kind === k.v
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-transparent shadow'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-300'
+                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-blue-300'
                 }`}>
                 <k.icon className="h-3.5 w-3.5" /> {k.label}
-                <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${kind === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${kind === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-ink-700'}`}>
                   {counts[k.v]}
                 </span>
               </button>
@@ -519,18 +519,18 @@ export default function MobileStockReportPage() {
 
         {rows.length === 0 ? (
           <div className="p-12 text-center">
-            <PackageSearch className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+            <PackageSearch className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-700 dark:text-ink-300">
               {search || kind !== 'all' || bucket ? 'In filters se kuch nahi mila' : 'Stock bilkul khaali hai'}
             </p>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs font-semibold text-slate-500 dark:text-ink-400 mt-1">
               {search || kind !== 'all' || bucket
                 ? 'Filter badlo ya search saaf karo'
                 : 'Purchase ya IMEI Inventory se maal andar lao'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {rows.slice(0, 300).map((r: any) => {
               const meta = KIND_META[r.kind as keyof typeof KIND_META];
               const Icon = meta.icon;
@@ -540,17 +540,17 @@ export default function MobileStockReportPage() {
               return (
                 <div key={id}>
                   <button onClick={() => toggle(id)}
-                    className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                    className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${meta.grad} text-white flex items-center justify-center shrink-0 shadow`}>
                       <Icon className="h-4.5 w-4.5 h-5 w-5" />
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
                         {r.name}
                         {r.variantName && <span className="ml-1.5 text-violet-700 dark:text-violet-400">{r.variantName}</span>}
                       </div>
-                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <div className="mt-0.5 flex items-center gap-2 flex-wrap text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         <span className={`px-1.5 py-0.5 rounded text-[0.625rem] uppercase ${meta.chip}`}>{meta.label}</span>
                         {(r.ref || r.sku) && <span className="font-mono">{r.ref ?? r.sku}</span>}
                         {r.brand && <span>{r.brand}</span>}
@@ -575,13 +575,13 @@ export default function MobileStockReportPage() {
 
                     {r.kind === 'ACCESSORY' && (
                       <div className="text-right shrink-0 hidden sm:block">
-                        <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{r.stock}</div>
+                        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{r.stock}</div>
                         <div className="text-[0.6875rem] font-bold text-slate-400">{r.unit}</div>
                       </div>
                     )}
 
                     <div className="text-right shrink-0">
-                      <div className="text-base font-extrabold text-slate-900 dark:text-white tabular-nums">
+                      <div className="text-base font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                         {hideCost ? '•••' : formatPKR(rowValue)}
                       </div>
                       <div className="text-[0.6875rem] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
@@ -596,8 +596,8 @@ export default function MobileStockReportPage() {
 
                   {/* ─── Dropdown: poori tafseel ─── */}
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 bg-slate-50 dark:bg-slate-800/40">
-                      <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
+                    <div className="px-4 pb-4 pt-1 bg-slate-50 dark:bg-ink-800/40">
+                      <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-1">
                         {r.kind === 'ACCESSORY' ? (
                           <>
                             <Detail label="Stock" value={`${r.stock} ${r.unit}`} icon={Boxes} />
@@ -660,7 +660,7 @@ export default function MobileStockReportPage() {
         )}
 
         {rows.length > 300 && (
-          <div className="p-3 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 border-t-2 border-slate-100 dark:border-slate-800">
+          <div className="p-3 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 border-t-2 border-slate-100 dark:border-ink-800">
             Pehle 300 dikhaye — poori list CSV me download karo
           </div>
         )}
@@ -687,7 +687,7 @@ function HeroSplit({ label, count, sub, value, icon: Icon }: any) {
 }
 
 const DETAIL_TONES: Record<string, string> = {
-  slate: 'text-slate-900 dark:text-white',
+  slate: 'text-slate-900 dark:text-ink-white',
   emerald: 'text-emerald-700 dark:text-emerald-400',
   amber: 'text-amber-700 dark:text-amber-400',
   rose: 'text-rose-600 dark:text-rose-400',
@@ -696,8 +696,8 @@ const DETAIL_TONES: Record<string, string> = {
 function Detail({ label, value, icon: Icon, mono, strong, tone = 'slate' }: any) {
   if (value === null || value === undefined || value === '') return null;
   return (
-    <div className="flex items-baseline justify-between gap-3 py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
-      <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 shrink-0">
+    <div className="flex items-baseline justify-between gap-3 py-1 border-b border-slate-100 dark:border-ink-800 last:border-0">
+      <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 inline-flex items-center gap-1.5 shrink-0">
         {Icon && <Icon className="h-3 w-3" />} {label}
       </span>
       <span className={`text-[0.75rem] tabular-nums truncate ${mono ? 'font-mono' : ''} ${strong ? 'font-extrabold' : 'font-bold'} ${DETAIL_TONES[tone]}`}>
@@ -711,7 +711,7 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-slate-800">
+        className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-ink-800">
         <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 border-b-2 border-amber-200 dark:border-amber-500/30 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
@@ -719,11 +719,11 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Stock Report Kaise Parhein?</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Stock Report Kaise Parhein?</h3>
             </div>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -742,7 +742,7 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
             tips={['CSV me kul value aur mumkin munafa bhi aata hai']} />
         </div>
 
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-right shrink-0">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 text-right shrink-0">
           <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg shadow-amber-500/30">
             <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
           </Button>
@@ -754,18 +754,18 @@ function StockTeacher({ onClose }: { onClose: () => void }) {
 
 function GuideStep({ n, title, body, tips }: any) {
   return (
-    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+    <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-3.5">
       <div className="flex items-start gap-3">
         <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0 shadow-md">
           {n}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white">{title}</div>
-          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{body}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-ink-300 mt-1 leading-relaxed">{body}</div>
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((tp: string, i: number) => (
-                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {tp}
                 </li>
               ))}
@@ -782,23 +782,23 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
               <Keyboard className="h-4 w-4" />
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Keyboard Shortcuts</h3>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-2">
           {sc.map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700 dark:text-slate-300">{desc}</span>
-              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-xs font-extrabold text-slate-700 dark:text-slate-200">
+              <span className="font-semibold text-slate-700 dark:text-ink-300">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 font-mono text-xs font-extrabold text-slate-700 dark:text-ink-200">
                 {key}
               </kbd>
             </div>

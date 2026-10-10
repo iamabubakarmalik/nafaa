@@ -87,20 +87,20 @@ export default function RoomTypesPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search room types..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search room types..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-indigo-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setTypeFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (typeFilter === 'all' ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (typeFilter === 'all' ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All</button>
           {ROOM_TYPES.map((t) => (
             <button key={t.value} onClick={() => setTypeFilter(t.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (typeFilter === t.value ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (typeFilter === t.value ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.emoji} {t.label}</button>
           ))}
         </div>
@@ -116,10 +116,10 @@ export default function RoomTypesPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-80 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : roomTypes.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Bed className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No room types yet</p>
           <Button className="mt-4 bg-gradient-to-r from-indigo-600 to-purple-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -149,7 +149,7 @@ function RoomTypeCard({ rt, onEdit, onDelete }: any) {
   const availableCount = rt.rooms?.filter((r: any) => r.status === 'AVAILABLE').length || 0;
 
   return (
-    <div className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden">
+    <div className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden">
       <div className="relative aspect-video bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-600 overflow-hidden">
         {rt.imageUrls?.[0] ? (
           <img src={rt.imageUrls[0]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
@@ -187,7 +187,7 @@ function RoomTypeCard({ rt, onEdit, onDelete }: any) {
       </div>
 
       <div className="p-4 space-y-2">
-        <h3 className="font-extrabold text-slate-900 dark:text-white line-clamp-1">{rt.name}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white line-clamp-1">{rt.name}</h3>
         {rt.description && <p className="text-xs text-slate-500 font-semibold line-clamp-2">{rt.description}</p>}
 
         <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
@@ -204,7 +204,7 @@ function RoomTypeCard({ rt, onEdit, onDelete }: any) {
           {rt.hasKitchen && <span className="px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-950/40 text-orange-700 text-[0.625rem] font-extrabold uppercase">Kitchen</span>}
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             <div className="text-[0.6875rem] font-extrabold text-slate-500 uppercase">Base Rate</div>
             <div className="text-2xl font-extrabold text-emerald-700 tabular-nums leading-none">{formatPKR(rt.basePrice)}<span className="text-xs font-bold text-slate-500">/night</span></div>
@@ -271,7 +271,7 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-indigo-300 dark:border-indigo-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-indigo-300 dark:border-indigo-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit Room Type' : 'New Room Type'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -280,14 +280,14 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (e.g. DLX)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-indigo-500" />
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
-          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
+          <input autoFocus value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (e.g. DLX)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-indigo-500" />
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+          <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
             {ROOM_TYPES.map((t) => <option key={t.value} value={t.value}>{t.emoji} {t.label}</option>)}
           </select>
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500 resize-none" />
 
         {/* Capacity */}
         <div className="rounded-xl border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 p-4 space-y-3">
@@ -310,11 +310,11 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
 
         {/* Bed */}
         <div className="grid sm:grid-cols-3 gap-3">
-          <select value={form.bedType} onChange={(e) => setForm({ ...form, bedType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
+          <select value={form.bedType} onChange={(e) => setForm({ ...form, bedType: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500">
             {BED_TYPES.map((b) => <option key={b.value} value={b.value}>{b.label}</option>)}
           </select>
-          <input type="number" value={form.bedCount} onChange={(e) => setForm({ ...form, bedCount: e.target.value })} placeholder="Bed count" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
-          <input type="number" value={form.sizeSqft} onChange={(e) => setForm({ ...form, sizeSqft: e.target.value })} placeholder="Size (sqft)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
+          <input type="number" value={form.bedCount} onChange={(e) => setForm({ ...form, bedCount: e.target.value })} placeholder="Bed count" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
+          <input type="number" value={form.sizeSqft} onChange={(e) => setForm({ ...form, sizeSqft: e.target.value })} placeholder="Size (sqft)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-indigo-500" />
         </div>
 
         {/* Pricing */}
@@ -327,15 +327,15 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Weekend</label>
-              <input type="number" value={form.weekendPrice} onChange={(e) => setForm({ ...form, weekendPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+              <input type="number" value={form.weekendPrice} onChange={(e) => setForm({ ...form, weekendPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Peak</label>
-              <input type="number" value={form.peakPrice} onChange={(e) => setForm({ ...form, peakPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+              <input type="number" value={form.peakPrice} onChange={(e) => setForm({ ...form, peakPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Hourly</label>
-              <input type="number" value={form.hourlyPrice} onChange={(e) => setForm({ ...form, hourlyPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
+              <input type="number" value={form.hourlyPrice} onChange={(e) => setForm({ ...form, hourlyPrice: e.target.value })} placeholder="Optional" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-emerald-500" />
             </div>
           </div>
         </div>
@@ -361,7 +361,7 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
               return (
                 <label key={a.key} className={
                   'flex items-center gap-2 p-2 rounded-lg border-2 cursor-pointer transition ' +
-                  ((form as any)[a.key] ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-indigo-300')
+                  ((form as any)[a.key] ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-indigo-300')
                 }>
                   <input type="checkbox" checked={(form as any)[a.key]} onChange={(e) => setForm({ ...form, [a.key]: e.target.checked })} className="h-4 w-4 rounded" />
                   <Icon className={'h-3.5 w-3.5 ' + ((form as any)[a.key] ? 'text-indigo-600' : 'text-slate-400')} />
@@ -372,7 +372,7 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
           </div>
         </div>
 
-        <input value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} placeholder="More amenities (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
+        <input value={form.amenities} onChange={(e) => setForm({ ...form, amenities: e.target.value })} placeholder="More amenities (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-indigo-500" />
 
         {/* Images */}
         <div>
@@ -395,7 +395,7 @@ function RoomTypeForm({ editing, onClose, onSaved }: any) {
           }} />
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.code || !form.name || !form.basePrice}>
             <Save className="h-4 w-4" />

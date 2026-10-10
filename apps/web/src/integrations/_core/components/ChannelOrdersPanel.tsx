@@ -58,9 +58,9 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
 
   if (integrations.length === 0) {
     return (
-      <div className="rounded-2xl bg-slate-50 dark:bg-neutral-900 p-12 text-center">
+      <div className="rounded-2xl bg-slate-50 dark:bg-ink-900 p-12 text-center">
         <ShoppingCart className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-        <div className="font-black text-slate-900 dark:text-white">Koi integration connected nahi</div>
+        <div className="font-black text-slate-900 dark:text-ink-white">Koi integration connected nahi</div>
         <p className="text-sm text-slate-500 mt-1">Pehle ek sales channel connect karein</p>
       </div>
     );
@@ -81,7 +81,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
               'px-3 py-1.5 rounded-xl text-xs font-extrabold transition flex items-center gap-1.5',
               (integrationId === i.id)
                 ? 'bg-brand-600 text-white shadow-brand'
-                : 'bg-white dark:bg-neutral-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100',
+                : 'bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-400 hover:bg-slate-100',
             )}
           >
             {getIntegrationEmoji(i.type)} {i.displayName}
@@ -95,7 +95,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
           onClick={() => setFilterStatus(null)}
           className={cn(
             'px-2.5 py-1 rounded-full text-[0.6875rem] font-bold transition',
-            !filterStatus ? 'bg-slate-700 text-white' : 'bg-slate-100 dark:bg-neutral-800 text-slate-500',
+            !filterStatus ? 'bg-slate-700 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500',
           )}
         >
           All ({Object.values(counts).reduce((a, b) => a + b, 0)})
@@ -110,7 +110,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                 'px-2.5 py-1 rounded-full text-[0.6875rem] font-bold transition flex items-center gap-1',
                 filterStatus === status
                   ? 'bg-slate-700 text-white'
-                  : 'bg-slate-100 dark:bg-neutral-800 text-slate-500 hover:bg-slate-200',
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-500 hover:bg-slate-200',
               )}
             >
               {cfg.label} ({count as number})
@@ -130,9 +130,9 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
           <SkeletonCard />
         </div>
       ) : orders.length === 0 ? (
-        <div className="rounded-2xl bg-slate-50 dark:bg-neutral-900 p-12 text-center">
+        <div className="rounded-2xl bg-slate-50 dark:bg-ink-900 p-12 text-center">
           <Package className="h-12 w-12 text-slate-400 mx-auto mb-3" />
-          <div className="font-black text-slate-900 dark:text-white">Koi orders nahi</div>
+          <div className="font-black text-slate-900 dark:text-ink-white">Koi orders nahi</div>
           <p className="text-sm text-slate-500 mt-1">
             {filterStatus ? `${filterStatus} status mein koi order nahi` : 'Jab platform se orders aayeinge yahan dikhenge'}
           </p>
@@ -145,7 +145,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
             return (
               <div
                 key={order.id}
-                className="p-4 rounded-2xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-soft hover:shadow-soft-lg transition"
+                className="p-4 rounded-2xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-soft hover:shadow-soft-lg transition"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
@@ -154,7 +154,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                       {getIntegrationEmoji(order.integration?.type)}
                     </div>
                     <div>
-                      <div className="font-black text-sm text-slate-900 dark:text-white">
+                      <div className="font-black text-sm text-slate-900 dark:text-ink-white">
                         Order #{order.externalOrderNumber ?? order.externalOrderId}
                       </div>
                       <div className="text-[0.6875rem] text-slate-500 font-bold">
@@ -172,19 +172,19 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
 
                 {/* Customer info */}
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-neutral-800/50">
+                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-ink-800/50">
                     <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Customer</div>
-                    <div className="text-xs font-bold text-slate-900 dark:text-white">{order.customerName}</div>
+                    <div className="text-xs font-bold text-slate-900 dark:text-ink-white">{order.customerName}</div>
                     {order.customerPhone && (
                       <div className="text-[0.6875rem] text-slate-500 flex items-center gap-1 mt-0.5">
                         <Phone className="h-2.5 w-2.5" /> {order.customerPhone}
                       </div>
                     )}
                   </div>
-                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-neutral-800/50">
+                  <div className="p-2 rounded-lg bg-slate-50 dark:bg-ink-800/50">
                     <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 mb-0.5">Delivery</div>
                     {order.customerAddress && (
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 flex items-start gap-1">
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 flex items-start gap-1">
                         <MapPin className="h-2.5 w-2.5 shrink-0 mt-0.5" />
                         <span className="line-clamp-2">{order.customerAddress}, {order.customerCity}</span>
                       </div>
@@ -198,7 +198,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                   <div className="space-y-1">
                     {(order.items as any[]).slice(0, 4).map((item, i) => (
                       <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="text-slate-700 dark:text-slate-300 font-bold">
+                        <span className="text-slate-700 dark:text-ink-300 font-bold">
                           {item.quantity}× {item.name}
                         </span>
                         <span className="text-slate-500 font-bold">Rs {Number(item.price * item.quantity).toFixed(0)}</span>
@@ -213,9 +213,9 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                 </div>
 
                 {/* Total + payment */}
-                <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-neutral-800">
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-ink-800">
                   <div className="text-xs font-bold text-slate-500">
-                    Payment: <span className="text-slate-900 dark:text-white">{order.paymentMethod ?? 'COD'}</span>
+                    Payment: <span className="text-slate-900 dark:text-ink-white">{order.paymentMethod ?? 'COD'}</span>
                     <span className={cn(
                       'ml-2 px-1.5 py-0.5 rounded text-[0.625rem] font-black',
                       order.paymentStatus === 'PAID' ? 'bg-success-100 text-success-700' : 'bg-amber-100 text-amber-700',
@@ -223,7 +223,7 @@ export function ChannelOrdersPanel({ integrations }: { integrations: any[] }) {
                       {order.paymentStatus}
                     </span>
                   </div>
-                  <div className="text-lg font-black text-slate-900 dark:text-white">
+                  <div className="text-lg font-black text-slate-900 dark:text-ink-white">
                     Rs {Number(order.total).toFixed(0)}
                   </div>
                 </div>

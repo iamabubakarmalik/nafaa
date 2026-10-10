@@ -94,29 +94,29 @@ export default function DairyDeliveriesPage() {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-3 flex-wrap items-center">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Date</label>
-            <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+            <input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slot</label>
-            <select value={slotFilter} onChange={(e) => setSlotFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+            <select value={slotFilter} onChange={(e) => setSlotFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="all">All Slots</option>
               {SLOTS.map((s) => <option key={s.value} value={s.value}>{s.emoji} {s.label}</option>)}
             </select>
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Route</label>
-            <select value={routeFilter} onChange={(e) => setRouteFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+            <select value={routeFilter} onChange={(e) => setRouteFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="all">All Routes</option>
               {routes.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Status</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="all">All Status</option>
               {Object.entries(STATUS_CONFIG).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
@@ -150,10 +150,10 @@ export default function DairyDeliveriesPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : deliveries.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Truck className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No deliveries for selected filters</p>
           <Button className="mt-4 bg-gradient-to-r from-cyan-600 to-teal-700" onClick={() => setShowBulk(true)}>
@@ -183,11 +183,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     fuchsia: 'from-fuchsia-500 to-pink-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-1 text-lg font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-10 w-10 rounded-xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow shrink-0'}>
           <Icon className="h-5 w-5" />
@@ -203,7 +203,7 @@ function DeliveryRow({ delivery, onConfirm, onSkip }: any) {
   const c = delivery.customer;
 
   return (
-    <div className="rounded-xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition p-3">
+    <div className="rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-md transition p-3">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className={
@@ -276,7 +276,7 @@ function BulkGenerateModal({ routes, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 bg-cyan-50 flex items-center justify-between">
           <h3 className="font-extrabold">Bulk Generate Deliveries</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -304,7 +304,7 @@ function BulkGenerateModal({ routes, onClose, onDone }: any) {
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Route (optional)</label>
-            <select value={routeId} onChange={(e) => setRouteId(e.target.value)} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+            <select value={routeId} onChange={(e) => setRouteId(e.target.value)} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
               <option value="">All routes</option>
               {routes.map((r: any) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
@@ -337,7 +337,7 @@ function ConfirmDeliveryModal({ delivery, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 bg-emerald-50 flex items-center justify-between">
           <div>
             <h3 className="font-extrabold">Confirm Delivery</h3>
@@ -364,11 +364,11 @@ function ConfirmDeliveryModal({ delivery, onClose, onDone }: any) {
               </div>
             </div>
           </div>
-          <div className="rounded-lg bg-slate-50 dark:bg-neutral-800 p-3 text-center">
+          <div className="rounded-lg bg-slate-50 dark:bg-ink-800 p-3 text-center">
             <div className="text-xs font-bold text-slate-500">Total Amount</div>
             <div className="text-2xl font-extrabold text-emerald-700 tabular-nums">{formatPKR(delivery.ratePerLiter * qty)}</div>
           </div>
-          <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+          <textarea rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Notes (optional)" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
           <div className="flex gap-2">
             <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
             <Button className="flex-1 bg-gradient-to-r from-emerald-600 to-green-700" onClick={() => confirmMutation.mutate()} loading={confirmMutation.isPending} disabled={qty <= 0}>
@@ -390,7 +390,7 @@ function SkipDeliveryModal({ delivery, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-200 bg-amber-50 flex items-center justify-between">
           <h3 className="font-extrabold">Skip Delivery</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">

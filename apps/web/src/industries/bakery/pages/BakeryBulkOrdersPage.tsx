@@ -47,7 +47,7 @@ type Tab = 'list' | 'kitchen' | 'analytics';
 type Filter = 'active' | 'week' | 'late' | 'unpaid' | 'all';
 
 const STATUS: Record<string, { label: string; chip: string; hex: string }> = {
-  ENQUIRY:     { label: 'Poocha hai', chip: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300', hex: '#94a3b8' },
+  ENQUIRY:     { label: 'Poocha hai', chip: 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300', hex: '#94a3b8' },
   QUOTED:      { label: 'Rate bataya', chip: 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300', hex: '#0ea5e9' },
   CONFIRMED:   { label: 'Pakka hua', chip: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300', hex: '#3b82f6' },
   IN_PROGRESS: { label: 'Ban raha hai', chip: 'bg-orange-100 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300', hex: '#f97316' },
@@ -393,25 +393,25 @@ export default function BakeryBulkOrdersPage() {
             <button key={v} onClick={() => setTab(v as Tab)}
               className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 sm:gap-2 transition ${
                 tab === v ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white border-transparent shadow-lg'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-amber-400'
+                  : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-amber-400'
               }`}>
               <Icon className="h-4 w-4 shrink-0" /> <span className="truncate">{label}</span>
-              {n !== undefined && <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'}`}>{n}</span>}
+              {n !== undefined && <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${tab === v ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'}`}>{n}</span>}
             </button>
           ))}
       </div>
 
       {tab === 'list' && (
         <>
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
             <div className="flex gap-2 flex-wrap items-center">
               <div className="relative flex-1 min-w-[220px]">
                 <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                   placeholder="Idara, order #, phone, jagah… (/ dabao)"
-                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                     <X className="h-4 w-4 text-slate-400" />
                   </button>
                 )}
@@ -422,7 +422,7 @@ export default function BakeryBulkOrdersPage() {
                   <button key={v} onClick={() => setFilter(v as Filter)}
                     className={`h-12 px-3 rounded-2xl border-2 text-xs font-black inline-flex items-center gap-1.5 transition ${
                       filter === v ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400'
+                        : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-amber-400'
                     }`}>{l} <span className="text-[0.6875rem] opacity-60 tabular-nums">{n}</span></button>
                 ))}
               </div>
@@ -430,14 +430,14 @@ export default function BakeryBulkOrdersPage() {
           </section>
 
           {listQ.isLoading ? (
-            <div className="space-y-2.5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}</div>
+            <div className="space-y-2.5">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
           ) : shown.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 sm:p-14 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 sm:p-14 text-center">
               <div className="h-16 w-16 rounded-3xl bg-amber-100 dark:bg-amber-500/20 mx-auto flex items-center justify-center"><ShoppingBag className="h-8 w-8 text-amber-600 dark:text-amber-400" /></div>
-              <p className="mt-4 font-black text-slate-800 dark:text-slate-100 text-lg sm:text-xl">
+              <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg sm:text-xl">
                 {search ? 'Kuch nahi mila' : filter === 'late' ? 'Koi order late nahi — shabash' : 'Koi bara order nahi'}
               </p>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold mt-1.5 max-w-md mx-auto">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5 max-w-md mx-auto">
                 Shadi, daftar ki party ya school ka function — bare order yahan aate hain. Ek cake ho to Cake orders istemal karein.
               </p>
               <Link to={ROUTES.create} className="mt-4 h-11 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-black inline-flex items-center gap-2 transition">
@@ -464,15 +464,15 @@ export default function BakeryBulkOrdersPage() {
       {/* ═══ 🍳 KYA BANANA HAI ═══ */}
       {tab === 'kitchen' && (
         <div className="space-y-4">
-          <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3 flex-wrap print:hidden">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 flex items-center gap-3 flex-wrap print:hidden">
             <ChefHat className="h-5 w-5 text-amber-600 shrink-0" />
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 flex-1 min-w-[200px]">
+            <p className="text-sm font-bold text-slate-700 dark:text-ink-200 flex-1 min-w-[200px]">
               Pakke orders (<strong>{kitchen.orders.length}</strong>) ki saari cheezein jama — stock minus kar ke <strong>kitna banana baqi</strong>.
             </p>
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
               {([1, 3, 7] as const).map((d) => (
                 <button key={d} onClick={() => setKitchenDays(d)}
-                  className={`px-3 py-2 rounded-lg text-xs font-black transition ${kitchenDays === d ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300'}`}>
+                  className={`px-3 py-2 rounded-lg text-xs font-black transition ${kitchenDays === d ? 'bg-amber-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-300'}`}>
                   {d === 1 ? 'Kal tak' : `${d} din`}
                 </button>
               ))}
@@ -483,26 +483,26 @@ export default function BakeryBulkOrdersPage() {
           </section>
 
           {kitchen.items.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
               <ChefHat className="h-10 w-10 text-slate-300 mx-auto" />
-              <p className="mt-3 font-black text-slate-700 dark:text-slate-200">Agle {kitchenDays} din me koi pakka order nahi</p>
+              <p className="mt-3 font-black text-slate-700 dark:text-ink-200">Agle {kitchenDays} din me koi pakka order nahi</p>
               <p className="text-xs font-bold text-slate-400 mt-1">Sirf "Pakka hua", "Ban raha hai" aur "Tayyar" wale order ginte hain.</p>
             </div>
           ) : (
-            <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+                  <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                     <tr>
                       {['Cheez', 'Chahiye', 'Stock me', 'Banana hai', 'Orders'].map((h, i) => (
                         <th key={h} className={`px-3 py-2.5 text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 ${i === 0 || i === 4 ? 'text-left' : 'text-right'}`}>{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                     {kitchen.items.map((i) => (
                       <tr key={i.key} className={i.make > 0 ? '' : 'opacity-60'}>
-                        <td className="px-3 py-2.5 font-extrabold text-slate-900 dark:text-white">
+                        <td className="px-3 py-2.5 font-extrabold text-slate-900 dark:text-ink-white">
                           {i.name}
                           {!i.productId && <span className="ml-1.5 text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">Maal se nahi juri</span>}
                         </td>
@@ -519,9 +519,9 @@ export default function BakeryBulkOrdersPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="border-t-2 border-slate-100 dark:border-slate-800 p-3 space-y-1">
+              <div className="border-t-2 border-slate-100 dark:border-ink-800 p-3 space-y-1">
                 {kitchen.orders.map((o) => (
-                  <div key={o.id} className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2 flex-wrap">
+                  <div key={o.id} className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 flex items-center gap-2 flex-wrap">
                     <span className="font-black">{o.orderNumber}</span> · {o.organizationName} ·
                     <span className={o.isLate ? 'text-rose-600' : 'text-amber-600'}>
                       {o.eventDate && new Date(o.eventDate).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })} ({o.left !== null ? phrase(o.left) : ''})
@@ -628,24 +628,24 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
   const next = NEXT[o.status];
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 shadow-sm p-3 sm:p-4 avoid-break ${
-      o.isDone ? 'border-slate-200 dark:border-slate-800 opacity-75'
-        : o.isLate ? 'border-rose-300 dark:border-rose-500/40' : o.isSoon ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800'
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-3 sm:p-4 avoid-break ${
+      o.isDone ? 'border-slate-200 dark:border-ink-800 opacity-75'
+        : o.isLate ? 'border-rose-300 dark:border-rose-500/40' : o.isSoon ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800'
     }`}>
       <div className="flex items-start gap-3 flex-wrap">
         <span className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
-          o.isLate ? 'bg-rose-100 dark:bg-rose-500/20' : o.isSoon ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-slate-100 dark:bg-slate-800'
+          o.isLate ? 'bg-rose-100 dark:bg-rose-500/20' : o.isSoon ? 'bg-amber-100 dark:bg-amber-500/20' : 'bg-slate-100 dark:bg-ink-800'
         }`}>
           <Building2 className={`h-5 w-5 ${o.isLate ? 'text-rose-600' : o.isSoon ? 'text-amber-600' : 'text-slate-500'}`} />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Link to={ROUTES.edit(o.id)} className="font-extrabold text-sm text-slate-900 dark:text-white hover:text-amber-600 truncate">{o.organizationName}</Link>
+            <Link to={ROUTES.edit(o.id)} className="font-extrabold text-sm text-slate-900 dark:text-ink-white hover:text-amber-600 truncate">{o.organizationName}</Link>
             <span className={`text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md ${s.chip}`}>{s.label}</span>
             <span className="text-[0.6875rem] font-black text-slate-400">{o.orderNumber}</span>
             {o.billId && <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-600 text-white">Bill bana</span>}
           </div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5 truncate">
             {[o.contactPerson, String(o.orderType || '').replace(/_/g, ' ').toLowerCase(),
               o.totalGuests ? `${o.totalGuests} mehmaan` : '', o.itemCount ? `${o.itemCount} cheezein` : ''].filter(Boolean).join(' · ')}
           </div>
@@ -662,16 +662,16 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
           {o.lines.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {o.lines.slice(0, 4).map((l: any, i: number) => (
-                <span key={i} className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate">
+                <span key={i} className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 max-w-[180px] truncate">
                   {l.name} × {Number(l.qty.toFixed(2))}
                 </span>
               ))}
-              {o.lines.length > 4 && <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">+{o.lines.length - 4} aur</span>}
+              {o.lines.length > 4 && <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-500">+{o.lines.length - 4} aur</span>}
             </div>
           )}
         </div>
         <div className="text-right shrink-0">
-          <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(o.price)}</div>
+          <div className="text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(o.price)}</div>
           {o.due > 0 ? <div className="text-[0.6875rem] font-black text-amber-600 tabular-nums">{formatPKR(o.due)} baqi</div>
             : <div className="text-[0.6875rem] font-black text-emerald-600">Poora mil gaya</div>}
         </div>
@@ -698,7 +698,7 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
         )}
         {onBack && !o.isDone && (
           <button onClick={onBack} disabled={busy} title="Ek qadam peeche"
-            className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-500 inline-flex items-center justify-center disabled:opacity-50 transition">
+            className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-500 inline-flex items-center justify-center disabled:opacity-50 transition">
             <Undo2 className="h-3.5 w-3.5" />
           </button>
         )}
@@ -714,7 +714,7 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
           </button>
         )}
         <button onClick={onSlip} title="Order / advance ki parchi"
-          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
+          className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
           <Printer className="h-3.5 w-3.5" /> Parchi
         </button>
         {waHref && (
@@ -724,7 +724,7 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
           </a>
         )}
         {o.contactPhone && (
-          <a href={`tel:${o.contactPhone}`} className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 inline-flex items-center justify-center transition">
+          <a href={`tel:${o.contactPhone}`} className="h-9 w-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 inline-flex items-center justify-center transition">
             <Phone className="h-3.5 w-3.5" />
           </a>
         )}
@@ -737,7 +737,7 @@ function OrderCard({ o, onNext, onBack, onPay, onCancel, onSlip, onBill, waHref,
           )}
           {!o.isDone && (
             <Link to={ROUTES.edit(o.id)}
-              className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
+              className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
               <Edit3 className="h-3.5 w-3.5" /> Edit
             </Link>
           )}
@@ -764,21 +764,21 @@ function PayModal({ order, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2.5">
           <span className="h-10 w-10 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center"><Wallet className="h-5 w-5 text-emerald-600" /></span>
           <div className="min-w-0">
-            <h3 className="font-black text-slate-900 dark:text-white">Paisa mila</h3>
+            <h3 className="font-black text-slate-900 dark:text-ink-white">Paisa mila</h3>
             <p className="text-[0.6875rem] font-bold text-slate-500 truncate">{order.organizationName} · {formatPKR(due)} baqi</p>
           </div>
         </div>
         <input type="number" min={0} max={due} step="any" autoFocus value={amount}
           onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
           onKeyDown={(e) => { if (e.key === 'Enter' && !bad && !mut.isPending) mut.mutate(); }}
-          className="mt-4 h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+          className="mt-4 h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-2xl font-black text-center tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
         <div className="mt-2 grid grid-cols-3 gap-1.5">
           {chips.map((c) => (
-            <button key={c.l} onClick={() => setAmount(c.v)} className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-[0.6875rem] font-black text-slate-700 dark:text-slate-200 tabular-nums transition">
+            <button key={c.l} onClick={() => setAmount(c.v)} className="h-10 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-[0.6875rem] font-black text-slate-700 dark:text-ink-200 tabular-nums transition">
               {c.l} <span className="opacity-60">{formatPKR(c.v)}</span>
             </button>
           ))}
@@ -799,9 +799,9 @@ function CancelModal({ order, pending, onClose, onConfirm }: any) {
   const paid = Number(order.paidAmount || 0);
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="h-12 w-12 rounded-2xl bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center mx-auto"><Ban className="h-6 w-6 text-rose-600" /></div>
-        <h3 className="mt-3 text-center font-black text-slate-900 dark:text-white text-lg">Order cancel karein?</h3>
+        <h3 className="mt-3 text-center font-black text-slate-900 dark:text-ink-white text-lg">Order cancel karein?</h3>
         <p className="mt-1 text-center text-sm font-bold text-slate-500">{order.organizationName} · {order.orderNumber} · {formatPKR(order.price)}</p>
         {paid > 0 && (
           <div className="mt-3 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex gap-2">
@@ -832,13 +832,13 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
   return (
     <Comp onClick={onClick}
       className={`rounded-2xl border-2 p-4 shadow-sm text-left w-full transition-all ${
-        active ? 'border-amber-500 ring-2 ring-amber-200 dark:ring-amber-500/20 bg-amber-50/60 dark:bg-amber-500/10' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
+        active ? 'border-amber-500 ring-2 ring-amber-200 dark:ring-amber-500/20 bg-amber-50/60 dark:bg-amber-500/10' : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800'
       } ${onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums break-words leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums break-words leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}><Icon className="h-5 w-5" /></div>
       </div>
@@ -848,8 +848,8 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2"><Icon className="h-4 w-4 text-amber-600" /> {title}</h3>
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2"><Icon className="h-4 w-4 text-amber-600" /> {title}</h3>
       <div className="h-64">{children}</div>
     </section>
   );
@@ -862,10 +862,10 @@ function EmptyBox({ text }: { text?: string }) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-500/15 dark:to-yellow-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Bare orders</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"><X className="h-4 w-4 text-slate-600 dark:text-slate-300" /></button>
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"><X className="h-4 w-4 text-slate-600 dark:text-ink-300" /></button>
         </div>
         <div className="p-5 space-y-3 text-sm">
           <Tip icon={Receipt} title="POS, cake order, bara order">
@@ -883,13 +883,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
           <Tip icon={Wallet} title="Advance">
             Pakke order par advance na aaya ho to laal warning. "Paisa mila" me 50% ka button saamne hai.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">N</kbd> naya order</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">K</kbd> kya banana hai</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">N</kbd> naya order</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">K</kbd> kya banana hai</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -904,8 +904,8 @@ function Tip({ icon: Icon, title, children }: any) {
     <div className="flex gap-2.5">
       <div className="h-8 w-8 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0"><Icon className="h-4 w-4 text-amber-600 dark:text-amber-400" /></div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

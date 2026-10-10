@@ -101,20 +101,20 @@ export default function DoctorsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search doctor name, PMC #..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search doctor name, PMC #..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-blue-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setSpecialtyFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (specialtyFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (specialtyFilter === 'all' ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Specialties</button>
           {SPECIALTIES.slice(0, 15).map((s) => (
             <button key={s.value} onClick={() => setSpecialtyFilter(s.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (specialtyFilter === s.value ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (specialtyFilter === s.value ? 'bg-blue-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s.emoji} {s.label}</button>
           ))}
         </div>
@@ -130,10 +130,10 @@ export default function DoctorsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : doctors.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <UserCog className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No doctors yet</p>
           <Button className="mt-4 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -162,8 +162,8 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl transition-all overflow-hidden ' +
-      (doctor.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl transition-all overflow-hidden ' +
+      (doctor.isFeatured ? 'border-amber-400 ring-2 ring-amber-100' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="relative p-4 bg-gradient-to-br from-blue-500 via-cyan-600 to-teal-600 text-white">
         <div className="flex items-start gap-3">
@@ -220,7 +220,7 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
         {doctor.languages?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {doctor.languages.slice(0, 3).map((l: string, i: number) => (
-              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.625rem] font-extrabold text-slate-700">
+              <span key={i} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.625rem] font-extrabold text-slate-700">
                 {l}
               </span>
             ))}
@@ -245,7 +245,7 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+        <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
           <div className="text-center">
             <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Patients</div>
             <div className="font-extrabold tabular-nums">{doctor.totalPatients}</div>
@@ -274,7 +274,7 @@ function DoctorCard({ doctor, onEdit, onDelete }: any) {
           </span>
         </div>
 
-        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
           <button onClick={onEdit} className="flex-1 h-9 rounded-lg bg-blue-100 dark:bg-blue-950/40 hover:bg-blue-200 text-blue-700 text-xs font-extrabold inline-flex items-center justify-center gap-1">
             <Edit3 className="h-3 w-3" />
             Edit
@@ -366,9 +366,9 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Doctor Profile' : 'New Doctor Profile'}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Doctor Profile' : 'New Doctor Profile'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -377,7 +377,7 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
         {!editing && (
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Select Staff *</label>
-            <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+            <select value={form.staffId} onChange={(e) => setForm({ ...form, staffId: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
               <option value="">-- Pick from HR/Staff --</option>
               {(staffList ?? []).map((s: any) => {
                 const nm = ((s.firstName || '') + ' ' + (s.lastName || '')).trim() || s.name || s.staffNumber;
@@ -406,23 +406,23 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
         </div>
 
         <div className="grid sm:grid-cols-4 gap-3">
-          <select value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+          <select value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
             <option>Dr.</option><option>Prof.</option><option>Prof. Dr.</option><option>Assoc. Prof.</option>
           </select>
-          <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full name *" className="sm:col-span-2 h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-          <input type="number" value={form.yearsOfExperience} onChange={(e) => setForm({ ...form, yearsOfExperience: e.target.value })} placeholder="Years exp." className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
+          <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full name *" className="sm:col-span-2 h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+          <input type="number" value={form.yearsOfExperience} onChange={(e) => setForm({ ...form, yearsOfExperience: e.target.value })} placeholder="Years exp." className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-blue-500" />
         </div>
 
-        <input value={form.qualifications} onChange={(e) => setForm({ ...form, qualifications: e.target.value })} placeholder="Qualifications (MBBS, FCPS, MD... comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input value={form.qualifications} onChange={(e) => setForm({ ...form, qualifications: e.target.value })} placeholder="Qualifications (MBBS, FCPS, MD... comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
 
         {/* Specialties */}
         <div>
           <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Specialties * ({form.specialties.length} selected)</label>
-          <div className="max-h-52 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1">
+          <div className="max-h-52 overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2 grid grid-cols-2 sm:grid-cols-3 gap-1">
             {SPECIALTIES.map((s) => (
               <button key={s.value} onClick={() => toggleSpecialty(s.value)} className={
                 'p-2 rounded-lg border-2 text-xs font-extrabold text-left transition ' +
-                (form.specialties.includes(s.value) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-blue-300')
+                (form.specialties.includes(s.value) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300')
               }>
                 {s.emoji} {s.label}
               </button>
@@ -430,9 +430,9 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
           </div>
         </div>
 
-        <input value={form.subSpecialty} onChange={(e) => setForm({ ...form, subSpecialty: e.target.value })} placeholder="Sub-specialty (e.g. Pediatric Cardiology)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input value={form.subSpecialty} onChange={(e) => setForm({ ...form, subSpecialty: e.target.value })} placeholder="Sub-specialty (e.g. Pediatric Cardiology)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
 
-        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio / About..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+        <textarea rows={2} value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Bio / About..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
 
         {/* License */}
         <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-2">
@@ -494,7 +494,7 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
               {DAYS.map((d, i) => (
                 <button key={d} onClick={() => toggleDay(i)} className={
                   'py-2 rounded-lg text-xs font-extrabold transition ' +
-                  (form.workingDays.includes(i) ? 'bg-cyan-600 text-white shadow' : 'bg-white dark:bg-neutral-800 border border-slate-200 text-slate-600 hover:border-cyan-300')
+                  (form.workingDays.includes(i) ? 'bg-cyan-600 text-white shadow' : 'bg-white dark:bg-ink-800 border border-slate-200 text-slate-600 hover:border-cyan-300')
                 }>{d}</button>
               ))}
             </div>
@@ -502,38 +502,38 @@ function DoctorForm({ editing, onClose, onSaved }: any) {
           <div className="grid sm:grid-cols-2 gap-2">
             <input type="time" value={form.workStartTime} onChange={(e) => setForm({ ...form, workStartTime: e.target.value })} className="h-11 rounded-xl border-2 border-cyan-300 bg-white dark:bg-cyan-950/40 px-3 text-sm font-extrabold focus:outline-none focus:border-cyan-500" />
             <input type="time" value={form.workEndTime} onChange={(e) => setForm({ ...form, workEndTime: e.target.value })} className="h-11 rounded-xl border-2 border-cyan-300 bg-white dark:bg-cyan-950/40 px-3 text-sm font-extrabold focus:outline-none focus:border-cyan-500" />
-            <input type="number" value={form.slotDurationMin} onChange={(e) => setForm({ ...form, slotDurationMin: e.target.value })} placeholder="Slot duration (min)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
-            <input type="number" value={form.maxDailyPatients} onChange={(e) => setForm({ ...form, maxDailyPatients: e.target.value })} placeholder="Max daily patients" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
+            <input type="number" value={form.slotDurationMin} onChange={(e) => setForm({ ...form, slotDurationMin: e.target.value })} placeholder="Slot duration (min)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
+            <input type="number" value={form.maxDailyPatients} onChange={(e) => setForm({ ...form, maxDailyPatients: e.target.value })} placeholder="Max daily patients" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500" />
           </div>
         </div>
 
-        <input value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} placeholder="Languages (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+        <input value={form.languages} onChange={(e) => setForm({ ...form, languages: e.target.value })} placeholder="Languages (comma separated)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
 
         {/* Services */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsTelemedicine ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsTelemedicine ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.acceptsTelemedicine} onChange={(e) => setForm({ ...form, acceptsTelemedicine: e.target.checked })} className="h-4 w-4 rounded" />
             <Video className={'h-4 w-4 ' + (form.acceptsTelemedicine ? 'text-purple-600' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Telemedicine</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsHomeVisit ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsHomeVisit ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.acceptsHomeVisit} onChange={(e) => setForm({ ...form, acceptsHomeVisit: e.target.checked })} className="h-4 w-4 rounded" />
             <Home className={'h-4 w-4 ' + (form.acceptsHomeVisit ? 'text-blue-600' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Home Visit</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsEmergency ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.acceptsEmergency ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.acceptsEmergency} onChange={(e) => setForm({ ...form, acceptsEmergency: e.target.checked })} className="h-4 w-4 rounded" />
             <Zap className={'h-4 w-4 ' + (form.acceptsEmergency ? 'text-red-600' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Emergency</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
             <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
             <span className="text-xs font-extrabold">Featured</span>
           </label>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-blue-600 to-cyan-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.staffId && !editing}>
             <Save className="h-4 w-4" />

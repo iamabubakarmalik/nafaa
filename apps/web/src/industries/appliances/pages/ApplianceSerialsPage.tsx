@@ -207,20 +207,20 @@ export default function ApplianceSerialsPage() {
             placeholder="Serial, model, batch, customer, invoice... (/)"
             value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
         </div>
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 h-12">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 h-12">
           {([['active', '🛡️ Warranty chal rahi'], ['expiring', '⏳ Khatam ho rahi'], ['expired', '❌ Khatam']] as const).map(([v, label]) => (
             <button key={v} onClick={() => { setWarranty(warranty === v ? null : (v as any)); setPage(1); }}
               className={`px-2.5 rounded-xl text-[0.6875rem] font-extrabold transition whitespace-nowrap ${
-                warranty === v ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                warranty === v ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
               }`}>{label}</button>
           ))}
         </div>
-        <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
+        <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">
           {data?.meta?.total ?? 0} serials
         </div>
       </div>
@@ -235,7 +235,7 @@ export default function ApplianceSerialsPage() {
       {/* List */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-20 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rows.length === 0 ? (
         <Empty
@@ -257,27 +257,27 @@ export default function ApplianceSerialsPage() {
           }
         />
       ) : (
-        <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {rows.map((r) => <SerialRow key={r.id} r={r} onOpen={() => setDetailId(r.id)} />)}
           </div>
         </div>
       )}
 
       {data && data.meta.totalPages > 1 && (
-        <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-slate-900/80 rounded-2xl border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4">
-          <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">
-            Page <strong className="text-slate-900 dark:text-white">{data.meta.page}</strong> / <strong className="text-slate-900 dark:text-white">{data.meta.totalPages}</strong>
+        <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-ink-900/80 rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4">
+          <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-400 font-bold">
+            Page <strong className="text-slate-900 dark:text-ink-white">{data.meta.page}</strong> / <strong className="text-slate-900 dark:text-ink-white">{data.meta.totalPages}</strong>
             <span className="opacity-50 mx-1">•</span>
-            <strong className="text-slate-900 dark:text-white tabular-nums">{data.meta.total}</strong> serials
+            <strong className="text-slate-900 dark:text-ink-white tabular-nums">{data.meta.total}</strong> serials
           </div>
           <div className="flex gap-2">
             <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
               <ChevronLeft className="h-4 w-4" /> Pehle
             </button>
             <button disabled={page >= data.meta.totalPages} onClick={() => setPage((p) => p + 1)}
-              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1">
+              className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1">
               Agla <ChevronRight className="h-4 w-4" />
             </button>
           </div>
@@ -297,9 +297,9 @@ function SerialRow({ r, onOpen }: { r: ApplianceSerial; onOpen: () => void }) {
     : 'text-emerald-600 dark:text-emerald-400';
 
   return (
-    <button onClick={onOpen} className="w-full text-left px-3 sm:px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition group">
+    <button onClick={onOpen} className="w-full text-left px-3 sm:px-4 py-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition group">
       <div className="flex items-center gap-3">
-        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">
+        <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xl shrink-0">
           {catEmoji(r.product?.categoryType)}
         </div>
         <div className="min-w-0 flex-1">
@@ -312,10 +312,10 @@ function SerialRow({ r, onOpen }: { r: ApplianceSerial; onOpen: () => void }) {
               </span>
             )}
           </div>
-          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+          <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
             {r.product?.name ?? 'Product'}
           </div>
-          <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">
             {r.product?.brand ? `${r.product.brand} • ` : ''}{catLabel(r.product?.categoryType)}
             {r.modelNumber ? ` • ${r.modelNumber}` : ''}
             {r.customerName ? ` • ${r.customerName}` : ''}
@@ -332,14 +332,14 @@ function SerialRow({ r, onOpen }: { r: ApplianceSerial; onOpen: () => void }) {
           )}
         </div>
         <div className="text-right shrink-0 w-20 sm:w-24">
-          <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100">
+          <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100">
             {r.soldPrice ? formatPKR(r.soldPrice) : r.purchasePrice ? formatPKR(r.purchasePrice) : '—'}
           </div>
           <div className="text-[0.625rem] font-bold text-slate-400">
             {r.soldAt ? fmtDate(r.soldAt) : r.purchaseDate ? fmtDate(r.purchaseDate) : ''}
           </div>
         </div>
-        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-slate-600 shrink-0 group-hover:translate-x-0.5 group-hover:text-cyan-500 transition" />
+        <ChevronRight className="h-4 w-4 text-slate-300 dark:text-ink-600 shrink-0 group-hover:translate-x-0.5 group-hover:text-cyan-500 transition" />
       </div>
     </button>
   );
@@ -424,10 +424,10 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
                 className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border-2 transition text-left ${
                   productId === p.id
                     ? 'bg-cyan-50 dark:bg-cyan-500/15 border-cyan-400 dark:border-cyan-500/50'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-cyan-300'
+                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 hover:border-cyan-300'
                 }`}>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{p.name}</div>
+                  <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{p.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {p.sku ? `${p.sku} • ` : ''}Stock {p.stock} • Lagat {formatPKR(p.costPrice ?? 0)}
                   </div>
@@ -462,7 +462,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
                 <span key={s} className="px-2 py-0.5 rounded-lg bg-cyan-100 dark:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 font-mono text-[0.6875rem] font-extrabold">{s}</span>
               ))}
               {serials.length > 30 && (
-                <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 text-[0.6875rem] font-extrabold">+{serials.length - 30}</span>
+                <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-500 text-[0.6875rem] font-extrabold">+{serials.length - 30}</span>
               )}
             </div>
           )}
@@ -491,7 +491,7 @@ function BulkSerialModal({ onClose, onDone }: { onClose: () => void; onDone: () 
             </Field>
           </div>
           {picked && serials.length > 0 && (
-            <div className="mt-3 rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3">
+            <div className="mt-3 rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3">
               <div className="flex items-center justify-between text-sm font-extrabold">
                 <span>Shipment ki kul lagat</span>
                 <span className="tabular-nums text-cyan-300">
@@ -613,7 +613,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
           </button>
           {s.productId && (
             <Link to={`/appliance-products/${s.productId}`}
-              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
               <Package className="h-4 w-4" /> Product
             </Link>
           )}
@@ -660,7 +660,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
             <Box label="Service ka kharcha" value={formatPKR(s.serviceCost)} tone={s.serviceCost > 0 ? 'rose' : 'slate'} />
           </div>
           {s.serviceCost > 0 && s.soldPrice && s.purchasePrice && (
-            <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+            <div className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
               Asal munafa is unit par: <strong className={s.soldPrice - s.purchasePrice - s.serviceCost >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                 {formatPKR(s.soldPrice - s.purchasePrice - s.serviceCost)}
               </strong> (service ka kharcha nikal kar)
@@ -693,9 +693,9 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
             <div className="space-y-2">
               {timeline.map((t, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
-                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">{t.label}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 shrink-0">{fmtDate(t.at)}</div>
+                  <div className="h-7 w-7 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-sm shrink-0">{t.emoji}</div>
+                  <div className="flex-1 min-w-0 text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">{t.label}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 shrink-0">{fmtDate(t.at)}</div>
                 </div>
               ))}
             </div>
@@ -708,16 +708,16 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
             <div className="space-y-1.5">
               {s.installations.map((i) => (
                 <Link key={i.id} to="/appliances/installations"
-                  className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
+                  className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 px-2.5 py-2 transition">
                   <span className="text-base shrink-0">{svcTypeMeta(i.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{i.installationNumber}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{i.installationNumber}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                       {fmtDate(i.completedAt || i.scheduledDate)}{i.technicianName ? ` • ${i.technicianName}` : ''}
                     </div>
                   </div>
                   <StatusBadge meta={instStatusMeta(i.status)} size="xs" />
-                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(i.totalCharge)}</div>
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">{formatPKR(i.totalCharge)}</div>
                 </Link>
               ))}
             </div>
@@ -731,10 +731,10 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
             <div className="space-y-1.5">
               {s.services.map((r) => (
                 <Link key={r.id} to="/appliances/service-requests"
-                  className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
+                  className="flex items-start gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 px-2.5 py-2 transition">
                   <span className="text-base shrink-0 mt-0.5">{svcTypeMeta(r.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">
                       {r.requestNumber} — {r.issueCategory || r.reportedIssue}
                     </div>
                     <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -745,7 +745,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
                   {r.coveredUnderWarranty && (
                     <span className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-black bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0">FREE</span>
                   )}
-                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0">{formatPKR(r.totalCharge)}</div>
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0">{formatPKR(r.totalCharge)}</div>
                 </Link>
               ))}
             </div>
@@ -754,7 +754,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
 
         {s.notes && (
           <Panel icon={Zap} title="Notes" tone="slate">
-            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{s.notes}</p>
+            <p className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 whitespace-pre-wrap">{s.notes}</p>
           </Panel>
         )}
       </div>
@@ -765,7 +765,7 @@ function SerialDetailSheet({ id, onClose, onChanged, shopName, shopPhone }: any)
 function WBox({ label, end, days }: { label: string; end?: string | null; days?: number | null }) {
   const tone = days == null ? 'slate' : days < 0 ? 'rose' : days <= 30 ? 'amber' : 'emerald';
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-500 dark:text-ink-400',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
     amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
@@ -782,15 +782,15 @@ function WBox({ label, end, days }: { label: string; end?: string | null; days?:
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</div>
-      <div className="text-xs font-semibold text-slate-800 dark:text-slate-100 break-words">{value}</div>
+      <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-400 dark:text-ink-500">{label}</div>
+      <div className="text-xs font-semibold text-slate-800 dark:text-ink-100 break-words">{value}</div>
     </div>
   );
 }
 
 function Box({ label, value, tone = 'slate' }: { label: string; value: string; tone?: 'slate' | 'cyan' | 'emerald' | 'rose' }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
     cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
     rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',

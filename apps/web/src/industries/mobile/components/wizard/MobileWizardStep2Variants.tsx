@@ -124,16 +124,16 @@ export function MobileWizardStep2Variants({
       )}
 
       {/* Has-variants toggle */}
-      <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+      <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5">
         <div className="flex items-start gap-3 flex-wrap">
           <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-700 text-white flex items-center justify-center shadow-md shrink-0">
             <Palette className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">
               {isAccessory ? 'Colors & Sizes' : 'Colors & Storage'}
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
+            <p className="text-sm text-slate-600 dark:text-ink-300 font-semibold mt-0.5">
               {isAccessory
                 ? 'Multiple colors ya sizes? (jaise Black/White cover)'
                 : 'Kya is phone ke multiple colors ya storage options hain?'}
@@ -146,7 +146,7 @@ export function MobileWizardStep2Variants({
               'inline-flex items-center gap-2 px-4 py-2 rounded-xl font-extrabold text-sm transition shrink-0 active:scale-95',
               hasVariants
                 ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-500/30'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700',
+                : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700',
             ].join(' ')}
           >
             {hasVariants ? (<><ToggleRight className="h-5 w-5" /> Yes, multiple</>)
@@ -171,14 +171,14 @@ export function MobileWizardStep2Variants({
       {hasVariants && (
         <>
           {/* MATRIX BUILDER */}
-          <section className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-indigo-500/10 dark:via-slate-900 dark:to-slate-900 p-5 space-y-4">
+          <section className="rounded-2xl border-2 border-indigo-200 dark:border-indigo-500/40 bg-gradient-to-br from-indigo-50 via-white to-blue-50 dark:from-indigo-500/10 dark:via-ink-900 dark:to-ink-900 p-5 space-y-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white flex items-center justify-center shadow-md">
                 <Wand2 className="h-5 w-5" />
               </div>
               <div>
-                <h4 className="font-extrabold text-slate-900 dark:text-white text-base">Matrix Builder</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold">
+                <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-base">Matrix Builder</h4>
+                <p className="text-xs text-slate-600 dark:text-ink-300 font-semibold">
                   Colors × {secondDimLabel} — sab combinations one click mein
                 </p>
               </div>
@@ -186,7 +186,7 @@ export function MobileWizardStep2Variants({
 
             {/* Colors */}
             <div>
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1.5 flex items-center gap-1">
                 <Palette className="h-3 w-3" /> Pick Colors ({matrixColors.length})
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -208,7 +208,7 @@ export function MobileWizardStep2Variants({
 
             {/* Storage (phone) / Size (accessory) */}
             <div>
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1.5 flex items-center gap-1">
                 <SecondDimIcon className="h-3 w-3" /> Pick {secondDimLabel} ({matrixStorages.length}) — optional
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -225,18 +225,18 @@ export function MobileWizardStep2Variants({
 
             {/* Generate */}
             <div className="pt-2 border-t-2 border-indigo-100 dark:border-indigo-500/20 flex items-center justify-between gap-3 flex-wrap">
-              <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+              <div className="text-xs font-bold text-slate-700 dark:text-ink-200">
                 {matrixCount > 0 ? (
                   <span>
                     Will create <strong className="text-indigo-700 dark:text-indigo-300">{matrixCount}</strong> variant{matrixCount !== 1 ? 's' : ''}
                     {matrixColors.length > 1 && matrixStorages.length > 0 && (
-                      <span className="text-slate-500 dark:text-slate-400 ml-1">
+                      <span className="text-slate-500 dark:text-ink-400 ml-1">
                         ({matrixColors.length} × {matrixStorages.length})
                       </span>
                     )}
                   </span>
                 ) : (
-                  <span className="text-slate-500 dark:text-slate-400">Colors pick karo — variants auto-banenge</span>
+                  <span className="text-slate-500 dark:text-ink-400">Colors pick karo — variants auto-banenge</span>
                 )}
               </div>
               <button
@@ -252,12 +252,12 @@ export function MobileWizardStep2Variants({
           </section>
 
           {/* Custom single variant */}
-          <section className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 space-y-3">
+          <section className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-5 space-y-3">
             <div>
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 flex items-center gap-1">
                 <Plus className="h-3 w-3" /> Add One at a Time
               </div>
-              <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
+              <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm mt-0.5">
                 Custom color + {secondDimLabel.toLowerCase()}, individually
               </h4>
             </div>
@@ -278,12 +278,12 @@ export function MobileWizardStep2Variants({
                 placeholder={isPhone ? '256GB' : 'XL'}
               />
               <div>
-                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Color</label>
+                <label className="block text-sm font-bold text-slate-700 dark:text-ink-300 mb-1.5">Color</label>
                 <input
                   type="color"
                   value={customHex}
                   onChange={(e) => setCustomHex(e.target.value)}
-                  className="h-11 w-14 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
+                  className="h-11 w-14 rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 cursor-pointer"
                 />
               </div>
               <button
@@ -299,17 +299,17 @@ export function MobileWizardStep2Variants({
 
           {/* Selected variants */}
           {variants.length > 0 ? (
-            <section className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/40 bg-white dark:bg-slate-900 p-5 space-y-3">
+            <section className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/40 bg-white dark:bg-ink-900 p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-blue-700 dark:text-blue-400">
                     Selected Variants
                   </div>
-                  <h4 className="font-extrabold text-slate-900 dark:text-white text-sm mt-0.5">
+                  <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm mt-0.5">
                     {variants.length} variant{variants.length !== 1 ? 's' : ''} to create
                   </h4>
                 </div>
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold text-right">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold text-right">
                   Click each to<br/>edit price, SKU, image
                 </div>
               </div>
@@ -317,18 +317,18 @@ export function MobileWizardStep2Variants({
               <div className="space-y-2">
                 {variants.map((v) => (
                   <div key={v.tempId}>
-                    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500/60 bg-white dark:bg-slate-800 p-3 flex items-center gap-3 transition">
+                    <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 hover:border-blue-400 dark:hover:border-blue-500/60 bg-white dark:bg-ink-800 p-3 flex items-center gap-3 transition">
                       <div
-                        className="h-11 w-11 rounded-lg border-2 border-slate-200 dark:border-slate-600 shrink-0 shadow-inner"
+                        className="h-11 w-11 rounded-lg border-2 border-slate-200 dark:border-ink-600 shrink-0 shadow-inner"
                         style={{ backgroundColor: v.colorHex }}
                       />
                       <div className="flex-1 min-w-0">
                         <input
                           value={v.name}
                           onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
-                          className="w-full text-sm font-extrabold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-700/60 rounded px-1"
+                          className="w-full text-sm font-extrabold text-slate-900 dark:text-ink-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-ink-700/60 rounded px-1"
                         />
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold px-1 mt-0.5 flex items-center gap-2 flex-wrap">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold px-1 mt-0.5 flex items-center gap-2 flex-wrap">
                           {v.storage && (
                             <span className="inline-flex items-center gap-0.5 text-indigo-700 dark:text-indigo-300">
                               <SecondDimIcon className="h-2 w-2" /> {v.storage}
@@ -336,7 +336,7 @@ export function MobileWizardStep2Variants({
                           )}
                           {v.ram && <span>RAM: {v.ram}</span>}
                           {v.sku && <span className="font-mono">SKU: {v.sku}</span>}
-                          <span className="text-slate-400 dark:text-slate-500">{v.colorHex}</span>
+                          <span className="text-slate-400 dark:text-ink-500">{v.colorHex}</span>
                         </div>
                       </div>
                       <button
@@ -358,10 +358,10 @@ export function MobileWizardStep2Variants({
               </div>
             </section>
           ) : (
-            <section className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/40 p-8 text-center">
-              <Palette className="h-10 w-10 text-slate-400 dark:text-slate-500 mx-auto mb-2" />
-              <div className="font-extrabold text-slate-700 dark:text-slate-200 text-sm">Abhi koi variant nahi</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">
+            <section className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/40 p-8 text-center">
+              <Palette className="h-10 w-10 text-slate-400 dark:text-ink-500 mx-auto mb-2" />
+              <div className="font-extrabold text-slate-700 dark:text-ink-200 text-sm">Abhi koi variant nahi</div>
+              <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">
                 Matrix builder use karein ya custom color add karein
               </div>
             </section>

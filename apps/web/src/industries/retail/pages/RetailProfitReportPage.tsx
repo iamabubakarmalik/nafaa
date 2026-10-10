@@ -206,7 +206,7 @@ export default function RetailProfitReportPage() {
       {/* ═══════════════════════════════════════════════════════
           HERO (screen only)
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-emerald-700 dark:from-ink-950 dark:via-emerald-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/30 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
 
@@ -291,20 +291,20 @@ export default function RetailProfitReportPage() {
           <div className="flex-1 relative min-w-[260px]">
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-emerald-500 transition"
               placeholder="Search: name, SKU, category, brand..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
                 <X className="h-3.5 w-3.5 text-slate-400" />
               </button>
             )}
           </div>
 
           <select
-            className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+            className="h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-sm font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
             value={filters.sortBy || 'profit'}
             onChange={(e) => setFilters({ ...filters, sortBy: e.target.value as ProfitSortBy })}
           >
@@ -319,7 +319,7 @@ export default function RetailProfitReportPage() {
               'h-11 px-4 rounded-xl border-2 font-extrabold text-sm inline-flex items-center gap-2 transition',
               showFilters || hasActiveFilters
                 ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:border-emerald-300',
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-slate-700 dark:text-ink-300 hover:border-emerald-300',
             ].join(' ')}
           >
             <Filter className="h-4 w-4" /> Filters
@@ -328,10 +328,10 @@ export default function RetailProfitReportPage() {
             )}
           </button>
 
-          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1">
             <button
               onClick={() => expandedRows.size > 0 ? collapseAll() : expandAll()}
-              className="px-3 h-9 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-900 text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1.5"
+              className="px-3 h-9 rounded-lg text-slate-700 dark:text-ink-300 hover:bg-white dark:hover:bg-ink-900 text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1.5"
             >
               {expandedRows.size > 0 ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
               {expandedRows.size > 0 ? 'Collapse' : 'Expand'} All
@@ -340,7 +340,7 @@ export default function RetailProfitReportPage() {
         </div>
 
         {showFilters && (
-          <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 space-y-3 shadow-sm">
+          <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 space-y-3 shadow-sm">
             <div className="grid sm:grid-cols-3 gap-3">
               <FilterField label="Category">
                 <select
@@ -394,13 +394,13 @@ export default function RetailProfitReportPage() {
       {summary && (summary.topProfitable.length > 0 || summary.highestMargin.length > 0) && (
         <section className="grid lg:grid-cols-2 gap-4 sm:gap-6 print:hidden">
           <Card noPad>
-            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10">
+            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
                 <Crown className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Top 5 Profitable 🏆</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Best profit contributors</p>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Top 5 Profitable 🏆</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Best profit contributors</p>
               </div>
             </div>
             <div className="p-3 space-y-1.5">
@@ -412,13 +412,13 @@ export default function RetailProfitReportPage() {
           </Card>
 
           <Card noPad>
-            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10">
+            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-500/10 dark:to-purple-500/10">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/40">
                 <Percent className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Highest Margin % 💎</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Best profitability ratio</p>
+                <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Highest Margin % 💎</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Best profitability ratio</p>
               </div>
             </div>
             <div className="p-3 space-y-1.5">
@@ -451,13 +451,13 @@ export default function RetailProfitReportPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
             {summary.losses.slice(0, 6).map((p) => (
-              <div key={p.productId} className="rounded-xl bg-white dark:bg-slate-900/60 border-2 border-rose-200 dark:border-rose-500/40 p-3 flex items-center gap-3 hover:shadow-md transition">
+              <div key={p.productId} className="rounded-xl bg-white dark:bg-ink-900/60 border-2 border-rose-200 dark:border-rose-500/40 p-3 flex items-center gap-3 hover:shadow-md transition">
                 <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white flex items-center justify-center shrink-0 shadow-md">
                   <TrendingDown className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{p.name}</div>
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{p.quantitySold} {p.unit} sold</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{p.name}</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{p.quantitySold} {p.unit} sold</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-rose-700 dark:text-rose-400 text-sm tabular-nums">{formatPKR(p.profit)}</div>
@@ -487,9 +487,9 @@ export default function RetailProfitReportPage() {
                   layout="vertical"
                   margin={{ left: 0, right: 16, top: 8, bottom: 8 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
-                  <XAxis type="number" className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
-                  <YAxis type="category" dataKey="name" className="fill-slate-500 dark:fill-slate-400" fontSize={10} width={100} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.4} />
+                  <XAxis type="number" className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                  <YAxis type="category" dataKey="name" className="fill-slate-500 dark:fill-ink-400" fontSize={10} width={100} tickLine={false} axisLine={false} />
                   <Tooltip
                     formatter={(value: any) => formatPKR(Number(value))}
                     contentStyle={{
@@ -541,7 +541,7 @@ export default function RetailProfitReportPage() {
                   {summary.categoryBreakdown.slice(0, 8).map((c, idx) => (
                     <div key={c.name} className="flex items-center gap-2 text-xs">
                       <span className="h-2.5 w-2.5 rounded-full shadow-sm shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                      <span className="font-extrabold text-slate-700 dark:text-slate-200 flex-1 truncate">{c.name}</span>
+                      <span className="font-extrabold text-slate-700 dark:text-ink-200 flex-1 truncate">{c.name}</span>
                       <span className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums shrink-0">
                         {hideCost ? '••••' : formatPKR(c.profit)}
                       </span>
@@ -550,7 +550,7 @@ export default function RetailProfitReportPage() {
                 </div>
               </>
             ) : (
-              <div className="h-[220px] flex items-center justify-center text-sm font-bold text-slate-400 dark:text-slate-600">
+              <div className="h-[220px] flex items-center justify-center text-sm font-bold text-slate-400 dark:text-ink-600">
                 No category data
               </div>
             )}
@@ -562,16 +562,16 @@ export default function RetailProfitReportPage() {
           MAIN TABLE
           ═══════════════════════════════════════════════════════ */}
       <Card noPad className="print:border-0 print:rounded-none print:shadow-none">
-        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
+        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between flex-wrap gap-2 print:hidden">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-md">
               <PiggyBank className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base">
                 Detailed Profit ({filteredProducts.length})
               </h3>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                 Period: {currentPeriod?.label}{hasActiveFilters && ' (filtered)'}
               </p>
             </div>
@@ -581,37 +581,37 @@ export default function RetailProfitReportPage() {
         {productsLoading ? (
           <div className="p-6 space-y-2">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="p-16 text-center">
-            <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto">
-              <Package className="h-8 w-8 text-slate-400 dark:text-slate-600" />
+            <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mx-auto">
+              <Package className="h-8 w-8 text-slate-400 dark:text-ink-600" />
             </div>
-            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No sales data yet</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-bold">
+            <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No sales data yet</h3>
+            <p className="text-sm text-slate-500 dark:text-ink-400 mt-1 font-bold">
               {search ? 'Filter change karo' : 'Sales karo — data yahan aa jayega'}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm print:text-[0.6875rem]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
                 <tr>
                   <th className="px-2 py-3 text-center w-10 print:hidden"></th>
-                  <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 w-12">#</th>
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Product</th>
-                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cat / Brand</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Sold</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Avg Price</th>
-                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Revenue</th>
-                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Cost</th>}
-                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Profit</th>}
-                  {!hideCost && <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300">Margin</th>}
+                  <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 w-12">#</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Product</th>
+                  <th className="px-3 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Cat / Brand</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Sold</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Avg Price</th>
+                  <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Revenue</th>
+                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Cost</th>}
+                  {!hideCost && <th className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Profit</th>}
+                  {!hideCost && <th className="px-3 py-3 text-center text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300">Margin</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {filteredProducts.map((p, idx) => {
                   const expanded = expandedRows.has(p.productId);
                   const isLoss = p.profit < 0;
@@ -622,7 +622,7 @@ export default function RetailProfitReportPage() {
                   return (
                     <Fragment key={p.productId}>
                       <tr className={[
-                        'hover:bg-slate-50 dark:hover:bg-slate-800/40 transition',
+                        'hover:bg-slate-50 dark:hover:bg-ink-800/40 transition',
                         isLoss ? 'bg-rose-50/40 dark:bg-rose-500/5' : '',
                         expanded ? 'bg-emerald-50/40 dark:bg-emerald-500/10 border-l-4 border-emerald-500' : '',
                       ].join(' ')}>
@@ -633,7 +633,7 @@ export default function RetailProfitReportPage() {
                               'h-7 w-7 rounded-lg inline-flex items-center justify-center transition',
                               expanded
                                 ? 'bg-emerald-600 text-white shadow-md'
-                                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300',
+                                : 'bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300',
                             ].join(' ')}
                           >
                             {expanded ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
@@ -642,14 +642,14 @@ export default function RetailProfitReportPage() {
                         <td className="px-3 py-3 text-center">
                           <span className={[
                             'inline-flex items-center justify-center h-6 w-6 rounded-md text-[0.6875rem] font-extrabold',
-                            idx < 3 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400',
+                            idx < 3 ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400',
                           ].join(' ')}>
                             {idx + 1}
                           </span>
                         </td>
                         <td className="px-3 py-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 print:hidden border border-slate-200 dark:border-slate-700">
+                            <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 print:hidden border border-slate-200 dark:border-ink-700">
                               {p.primaryImage ? (
                                 <img src={p.primaryImage} alt="" className="h-full w-full object-cover" />
                               ) : (
@@ -657,9 +657,9 @@ export default function RetailProfitReportPage() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1">{p.name}</div>
+                              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm line-clamp-1">{p.name}</div>
                               <div className="flex items-center gap-1.5 mt-0.5 text-[0.6875rem]">
-                                {p.sku && <span className="font-mono text-slate-500 dark:text-slate-400">{p.sku}</span>}
+                                {p.sku && <span className="font-mono text-slate-500 dark:text-ink-400">{p.sku}</span>}
                                 {p.variantCount > 0 && (
                                   <span className="px-1.5 py-0.5 rounded bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 font-extrabold">
                                     {p.variantCount}v
@@ -671,7 +671,7 @@ export default function RetailProfitReportPage() {
                         </td>
                         <td className="px-3 py-3 text-xs">
                           {p.categoryName && (
-                            <div className="font-extrabold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                            <div className="font-extrabold text-slate-700 dark:text-ink-200 flex items-center gap-1.5">
                               {p.categoryColor && (
                                 <span className="inline-block h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: p.categoryColor }} />
                               )}
@@ -683,12 +683,12 @@ export default function RetailProfitReportPage() {
                           )}
                         </td>
                         <td className="px-3 py-3 text-right">
-                          <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                             {p.quantitySold.toFixed(p.quantitySold % 1 === 0 ? 0 : 2)}
                           </div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase">{p.unit}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold uppercase">{p.unit}</div>
                         </td>
-                        <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 dark:text-slate-200 tabular-nums">
+                        <td className="px-3 py-3 text-right text-xs font-bold text-slate-700 dark:text-ink-200 tabular-nums">
                           {formatPKR(p.avgSellPrice)}
                         </td>
                         <td className="px-3 py-3 text-right text-xs font-extrabold text-blue-700 dark:text-blue-400 tabular-nums">
@@ -716,7 +716,7 @@ export default function RetailProfitReportPage() {
                               'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold',
                               isHigh ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               isMed ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300' :
-                              isLow ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' :
+                              isLow ? 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300' :
                               'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300',
                             ].join(' ')}>
                               {isHigh && <Star className="h-2.5 w-2.5" />}
@@ -737,10 +737,10 @@ export default function RetailProfitReportPage() {
                   );
                 })}
               </tbody>
-              <tfoot className="bg-slate-100 dark:bg-slate-800 border-t-2 border-slate-300 dark:border-slate-700 font-extrabold">
+              <tfoot className="bg-slate-100 dark:bg-ink-800 border-t-2 border-slate-300 dark:border-ink-700 font-extrabold">
                 <tr>
                   <td className="print:hidden"></td>
-                  <td colSpan={5} className="px-3 py-3 text-right text-xs uppercase text-slate-700 dark:text-slate-300">
+                  <td colSpan={5} className="px-3 py-3 text-right text-xs uppercase text-slate-700 dark:text-ink-300">
                     Totals ({filteredProducts.length}):
                   </td>
                   <td className="px-3 py-3 text-right text-blue-700 dark:text-blue-400 tabular-nums text-xs">
@@ -888,8 +888,8 @@ export default function RetailProfitReportPage() {
 function Card({ children, noPad = false, className = '' }: any) {
   return (
     <div className={[
-      'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm',
-      'border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden',
+      'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm',
+      'border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden',
       noPad ? '' : 'p-4 sm:p-5',
       className,
     ].join(' ')}>
@@ -911,8 +911,8 @@ function CardHeader({ icon: Icon, title, subtitle, tone }: any) {
         <Icon className="h-4 w-4" />
       </div>
       <div>
-        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-        <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{subtitle}</p>
+        <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-ink-white leading-tight">{title}</h3>
+        <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{subtitle}</p>
       </div>
     </div>
   );
@@ -944,7 +944,7 @@ function HeroTile({ icon: Icon, label, value, sub, tone, highlight }: any) {
 function FilterField({ label, children }: any) {
   return (
     <div>
-      <label className="block text-xs font-extrabold text-slate-600 dark:text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs font-extrabold text-slate-600 dark:text-ink-400 mb-1">{label}</label>
       {children}
     </div>
   );
@@ -960,11 +960,11 @@ function TopProductCard({ product, rank, variant, hideCost }: { product: Product
   ];
 
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 transition p-3 flex items-center gap-3">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 transition p-3 flex items-center gap-3">
       <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${rankGrads[rank - 1]} text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-md`}>
         {rank}
       </div>
-      <div className="h-10 w-10 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
+      <div className="h-10 w-10 rounded-lg bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 overflow-hidden flex items-center justify-center shrink-0">
         {product.primaryImage ? (
           <img src={product.primaryImage} alt="" className="h-full w-full object-cover" />
         ) : (
@@ -972,8 +972,8 @@ function TopProductCard({ product, rank, variant, hideCost }: { product: Product
         )}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{product.name}</div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{product.name}</div>
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
           {product.quantitySold} {product.unit} • {product.ordersCount} orders
         </div>
       </div>
@@ -1021,7 +1021,7 @@ function ExpandedProfitDetail({ product: p, hideCost }: { product: ProductProfit
 
 function DetailBox({ label, value, tone = 'slate', mono }: any) {
   const tones: Record<string, string> = {
-    slate: 'text-slate-900 dark:text-white',
+    slate: 'text-slate-900 dark:text-ink-white',
     emerald: 'text-emerald-700 dark:text-emerald-400',
     blue: 'text-blue-700 dark:text-blue-400',
     amber: 'text-amber-700 dark:text-amber-400',
@@ -1029,8 +1029,8 @@ function DetailBox({ label, value, tone = 'slate', mono }: any) {
     violet: 'text-violet-700 dark:text-violet-400',
   };
   return (
-    <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-2.5">
-      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">{label}</div>
+    <div className="rounded-xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-700 p-2.5">
+      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">{label}</div>
       <div className={`text-sm font-extrabold mt-0.5 truncate ${tones[tone]} ${mono ? 'font-mono' : ''}`}>{value}</div>
     </div>
   );
@@ -1038,6 +1038,6 @@ function DetailBox({ label, value, tone = 'slate', mono }: any) {
 
 function EmptyList({ message }: { message: string }) {
   return (
-    <div className="text-center py-8 text-sm font-bold text-slate-400 dark:text-slate-600">{message}</div>
+    <div className="text-center py-8 text-sm font-bold text-slate-400 dark:text-ink-600">{message}</div>
   );
 }

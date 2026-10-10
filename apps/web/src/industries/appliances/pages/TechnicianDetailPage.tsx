@@ -181,9 +181,9 @@ export default function TechnicianDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-40 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-40 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       </div>
     );
@@ -210,7 +210,7 @@ export default function TechnicianDetailPage() {
       {showTeacher && <DetailTeacher onClose={() => setShowTeacher(false)} />}
 
       <Link to="/appliances/technicians"
-        className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-cyan-600 dark:hover:text-cyan-400 font-extrabold transition">
+        className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-cyan-600 dark:hover:text-cyan-400 font-extrabold transition">
         <ArrowLeft className="h-4 w-4" /> Saare technicians
       </Link>
 
@@ -257,12 +257,12 @@ export default function TechnicianDetailPage() {
         </div>
         <div className="mt-3">
           <div className="flex items-center justify-between text-[0.6875rem] font-extrabold mb-1">
-            <span className="text-slate-600 dark:text-slate-300">Mukammal karne ki shirah</span>
+            <span className="text-slate-600 dark:text-ink-300">Mukammal karne ki shirah</span>
             <span className={(t.completionRate ?? 0) >= 80 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
               {(t.completionRate ?? 0).toFixed(0)}%
             </span>
           </div>
-          <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
             <div className={`h-full rounded-full transition-all ${
               (t.completionRate ?? 0) >= 80 ? 'bg-gradient-to-r from-emerald-400 to-teal-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'
             }`} style={{ width: `${Math.min(t.completionRate ?? 0, 100)}%` }} />
@@ -313,7 +313,7 @@ export default function TechnicianDetailPage() {
               <span key={d} className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold ${
                 (t.workingDays ?? []).includes(i)
                   ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-400 line-through'
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-400 line-through'
               }`}>{d}</span>
             ))}
           </div>
@@ -324,12 +324,12 @@ export default function TechnicianDetailPage() {
             <Box label="Ghanta Rate" value={formatPKR(t.hourlyRate)} />
           </div>
           {t.address && (
-            <div className="mt-3 flex items-start gap-1.5 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
+            <div className="mt-3 flex items-start gap-1.5 text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300">
               <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0 text-slate-400" /> {t.address}
             </div>
           )}
           {t.notes && (
-            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
+            <div className="mt-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300">
               {t.notes}
             </div>
           )}
@@ -338,12 +338,12 @@ export default function TechnicianDetailPage() {
 
       {/* Range */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Kaam ka arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">Kaam ka arsa</span>
         {[7, 30, 90].map((d) => (
           <button key={d} onClick={() => setDays(d)}
             className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
             }`}>{d === 7 ? '7 din' : d === 30 ? '1 mahina' : '3 mahine'}</button>
         ))}
       </div>
@@ -384,9 +384,9 @@ export default function TechnicianDetailPage() {
           <div className="space-y-1.5">
             {t.activeServiceRequests.map((s: any) => (
               <Link key={s.id} to="/appliances/service-requests"
-                className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 px-2.5 py-2 transition">
+                className="flex items-center gap-2.5 rounded-xl bg-slate-50 dark:bg-ink-800/60 hover:bg-slate-100 dark:hover:bg-ink-800 px-2.5 py-2 transition">
                 <div className="min-w-0 flex-1">
-                  <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName} — {s.productName}</div>
+                  <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{s.customerName} — {s.productName}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {s.requestNumber} • {s.reportedIssue}
                     {s.scheduledDate ? ` • ${fmtDate(s.scheduledDate)}` : ''}
@@ -407,14 +407,14 @@ export default function TechnicianDetailPage() {
           ) : (
             <div className="space-y-1.5 max-h-80 overflow-y-auto">
               {t.recentServices.map((s: any) => (
-                <div key={s.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                <div key={s.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-2.5 py-2">
                   <span className="text-base shrink-0">{svcTypeMeta(s.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{s.customerName}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{s.customerName}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{s.productName} • {fmtDate(s.requestedAt)}</div>
                   </div>
                   <StatusBadge meta={svcStatusMeta(s.status)} size="xs" />
-                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0 w-16 text-right">
                     {formatPKR(s.totalCharge)}
                   </div>
                 </div>
@@ -429,17 +429,17 @@ export default function TechnicianDetailPage() {
           ) : (
             <div className="space-y-1.5 max-h-80 overflow-y-auto">
               {t.recentJobs.map((j: any) => (
-                <div key={j.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                <div key={j.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-2.5 py-2">
                   <span className="text-base shrink-0">{svcTypeMeta(j.serviceType).emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate">{j.customerName}</div>
+                    <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{j.customerName}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                       {j.productName} • {fmtDate(j.scheduledDate || j.createdAt)}
                       {j.demoGiven ? ' • demo ✓' : ''}
                     </div>
                   </div>
                   <StatusBadge meta={instStatusMeta(j.status)} size="xs" />
-                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-slate-200 shrink-0 w-16 text-right">
+                  <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-700 dark:text-ink-200 shrink-0 w-16 text-right">
                     {formatPKR(j.totalCharge)}
                   </div>
                 </div>
@@ -454,7 +454,7 @@ export default function TechnicianDetailPage() {
 
 function Box({ label, value, sub, tone = 'slate' }: { label: string; value: string; sub?: string; tone?: 'slate' | 'cyan' | 'emerald' | 'violet' }) {
   const tones: Record<string, string> = {
-    slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+    slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
     cyan: 'bg-cyan-50 dark:bg-cyan-500/10 border-cyan-200 dark:border-cyan-500/30 text-cyan-700 dark:text-cyan-300',
     emerald: 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300',
     violet: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/30 text-violet-700 dark:text-violet-300',

@@ -73,9 +73,9 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-lg bg-white dark:bg-neutral-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between shrink-0">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-gradient-to-br from-slate-950 via-orange-900 to-red-700 text-white flex items-center justify-between shrink-0">
           <div className="min-w-0 flex-1">
             <div className="text-[0.6875rem] uppercase font-extrabold text-white/70">Customize</div>
             <h3 className="font-extrabold text-lg truncate">{menuItem?.product?.name || 'Item'}</h3>
@@ -104,9 +104,9 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
               </Button>
             </div>
           ) : groups.length === 0 ? (
-            <div className="rounded-xl bg-slate-50 dark:bg-neutral-800 p-4 text-center">
+            <div className="rounded-xl bg-slate-50 dark:bg-ink-800 p-4 text-center">
               <ChefHat className="h-8 w-8 text-slate-400 mx-auto mb-2" />
-              <div className="font-extrabold text-slate-700 dark:text-slate-300 text-sm">
+              <div className="font-extrabold text-slate-700 dark:text-ink-300 text-sm">
                 No modifiers available
               </div>
               <p className="text-xs text-slate-500 font-semibold mt-1">Just add to cart</p>
@@ -119,10 +119,10 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
             groups.map((g: any) => {
               const sel = selections[g.id] || [];
               return (
-                <div key={g.id} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-3">
+                <div key={g.id} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">{g.name}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{g.name}</div>
                       <div className="text-[0.6875rem] text-slate-500 font-bold">
                         {g.isRequired ? 'Required' : 'Optional'} • Choose {g.minSelections}–{g.maxSelections}
                       </div>
@@ -147,7 +147,7 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
                             'p-2 rounded-lg border-2 text-left text-xs font-extrabold transition ' +
                             (active
                               ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/40 text-orange-700 shadow'
-                              : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-orange-300')
+                              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-orange-300')
                           }
                         >
                           <div className="flex items-center justify-between gap-1">
@@ -173,10 +173,10 @@ export function RestaurantModifierPicker({ productId, onConfirm, onClose }: Prop
 
         {/* Footer with total */}
         {menuItem && groups.length > 0 && (
-          <div className="border-t-2 border-slate-200 dark:border-neutral-800 p-4 space-y-2">
+          <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4 space-y-2">
             {totalAdjustment !== 0 && (
               <div className="flex justify-between items-center text-sm font-extrabold">
-                <span className="text-slate-600 dark:text-slate-400">Modifier total:</span>
+                <span className="text-slate-600 dark:text-ink-400">Modifier total:</span>
                 <span className={totalAdjustment > 0 ? 'text-emerald-700 tabular-nums' : 'text-rose-700 tabular-nums'}>
                   {totalAdjustment > 0 ? '+' : ''}{formatPKR(totalAdjustment)}
                 </span>

@@ -65,7 +65,7 @@ export const REPAIR_STATUS_COLORS: Record<
   AWAITING_PARTS:    { bg: 'bg-orange-100',  text: 'text-orange-700',  border: 'border-orange-300',  darkBg: 'dark:bg-orange-900/30',  darkText: 'dark:text-orange-300'  },
   IN_PROGRESS:       { bg: 'bg-violet-100',  text: 'text-violet-700',  border: 'border-violet-300',  darkBg: 'dark:bg-violet-900/30',  darkText: 'dark:text-violet-300'  },
   READY:             { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-300', darkBg: 'dark:bg-emerald-900/30', darkText: 'dark:text-emerald-300' },
-  DELIVERED:         { bg: 'bg-slate-100',   text: 'text-slate-700',   border: 'border-slate-300',   darkBg: 'dark:bg-slate-800',      darkText: 'dark:text-slate-300'   },
+  DELIVERED:         { bg: 'bg-slate-100',   text: 'text-slate-700',   border: 'border-slate-300',   darkBg: 'dark:bg-ink-800',      darkText: 'dark:text-ink-300'   },
   CANCELLED:         { bg: 'bg-rose-100',    text: 'text-rose-700',    border: 'border-rose-300',    darkBg: 'dark:bg-rose-900/30',    darkText: 'dark:text-rose-300'    },
   UNREPAIRABLE:      { bg: 'bg-red-100',     text: 'text-red-700',     border: 'border-red-300',     darkBg: 'dark:bg-red-900/30',     darkText: 'dark:text-red-300'     },
 };

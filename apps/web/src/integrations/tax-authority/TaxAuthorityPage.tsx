@@ -44,7 +44,7 @@ const STEPS: Record<Authority, string[]> = {
 /** Tax → Settings tab */
 export function TaxSettingsTab() {
   const { data, isLoading, error } = useQuery({ queryKey: KEY, queryFn: taxAuthorityApi.overview });
-  return isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+  return isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
     : error || !data ? <Card><EmptyState title="Settings nahi khuli">{apiErrorMessage(error)}</EmptyState></Card>
     : <Editor data={data} />;
 }
@@ -107,7 +107,7 @@ function Editor({ data }: { data: TaxOverview }) {
       <Card title={<span className="flex items-center gap-2"><Landmark className="h-4 w-4" /> Authority</span>}>
         <div className="space-y-4">
           <Segmented value={authority} onChange={setAuthority} items={[{ value: 'PRA', label: 'PRA · Punjab' }, { value: 'SRB', label: 'SRB · Sindh' }, { value: 'KPRA', label: 'KPRA · KP' }, { value: 'FBR', label: 'FBR POS (retail)' }]} />
-          <ol className="space-y-1 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+          <ol className="space-y-1 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-ink-800/40 dark:text-ink-200">
             {STEPS[authority].map((s, i) => <li key={i}><b>{i + 1}.</b> {s}</li>)}
             <li className="flex flex-wrap gap-3 pt-1">
               <a href={meta.portal} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:underline">Registration portal <ExternalLink className="h-3.5 w-3.5" /></a>
@@ -139,7 +139,7 @@ function Editor({ data }: { data: TaxOverview }) {
       <Card title="POS ID (har branch ka)" description="Har branch / counter authority me alag POS ke taur par registered hota hai. 'Sab branches' = ek hi POS ID.">
         <div className="space-y-3">
           {terms.map((t, i) => (
-            <div key={i} className="grid gap-2 rounded-xl border border-slate-200 p-3 dark:border-slate-800 sm:grid-cols-2">
+            <div key={i} className="grid gap-2 rounded-xl border border-slate-200 p-3 dark:border-ink-800 sm:grid-cols-2">
               <Field label="Branch">
                 <select value={t.shopId ?? ''} onChange={(e) => setT(i, { shopId: e.target.value || null })} className={inputCls}>
                   <option value="">Sab branches</option>
@@ -160,7 +160,7 @@ function Editor({ data }: { data: TaxOverview }) {
             </div>
           ))}
           {data.shops.length > 1 && <Btn size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setTerms((v) => [...v, { shopId: data.shops[0]?.id ?? null, posId: '', ntn: '' }])}>Aur branch</Btn>}
-          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-100 pt-3 dark:border-ink-800">
             <Btn loading={save.isPending && save.variables === undefined} icon={<Save className="h-4 w-4" />} onClick={() => save.mutate(undefined)}>Mehfooz karein</Btn>
             {env === 'sandbox' && authority !== 'KPRA' && <Btn loading={test.isPending} icon={<Send className="h-4 w-4" />} onClick={() => test.mutate()}>Test bill (sandbox)</Btn>}
             {!c?.enabled && (

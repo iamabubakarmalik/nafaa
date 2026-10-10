@@ -928,7 +928,7 @@ function GlobalKhataContent() {
 
       <div className="space-y-4 sm:space-y-5 pb-10">
         {/* ═══ HERO ═══ */}
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-purple-900 to-fuchsia-800 dark:from-slate-950 dark:via-purple-950 dark:to-fuchsia-900 text-white p-5 sm:p-7 shadow-2xl">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-purple-900 to-fuchsia-800 dark:from-ink-950 dark:via-purple-950 dark:to-fuchsia-900 text-white p-5 sm:p-7 shadow-2xl">
           <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-fuchsia-500/30 blur-3xl pointer-events-none animate-pulse" />
           <div className="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
           <div className="absolute top-1/2 left-1/2 h-64 w-64 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" style={{ transform: 'translate(-50%, -50%)' }} />
@@ -1074,7 +1074,7 @@ function GlobalKhataContent() {
         </section>
 
         {/* ═══ KHATA / ANALYTICS ═══ */}
-        <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-2 flex gap-1.5">
+        <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-2 flex gap-1.5">
           {([
             { v: 'khata', label: 'Khata', icon: BookOpen },
             { v: 'analytics', label: 'Analytics', icon: BarChart3 },
@@ -1083,7 +1083,7 @@ function GlobalKhataContent() {
               className={`flex-1 h-11 rounded-2xl text-sm font-black inline-flex items-center justify-center gap-2 transition ${
                 view === k.v
                   ? 'bg-gradient-to-r from-purple-700 to-fuchsia-700 text-white shadow-lg shadow-purple-500/30'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-800'
               }`}>
               <k.icon className="h-4 w-4" /> {k.label}
             </button>
@@ -1095,14 +1095,14 @@ function GlobalKhataContent() {
         )}
 
         {view === 'khata' && stats.withDues > 0 && !hideCost && (
-          <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+          <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-fuchsia-500 via-purple-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-purple-500/40">
                 <Clock className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-black text-slate-900 dark:text-white text-sm">Udhaar Kitna Purana?</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Jitna purana, utna mushkil wasooli</p>
+                <h3 className="font-black text-slate-900 dark:text-ink-white text-sm">Udhaar Kitna Purana?</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">Jitna purana, utna mushkil wasooli</p>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -1116,9 +1116,9 @@ function GlobalKhataContent() {
         {/* Period */}
         {view === 'khata' && (
         <>
-        <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 space-y-3">
+        <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-3 space-y-3">
           <div className="flex gap-1.5 flex-wrap items-center">
-            <div className="text-[0.6875rem] font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider mr-1">Period:</div>
+            <div className="text-[0.6875rem] font-black uppercase text-slate-500 dark:text-ink-400 tracking-wider mr-1">Period:</div>
             {(['all', 'today', 'week', 'month', 'year'] as PeriodFilter[]).map((p) => (
               <button
                 key={p}
@@ -1126,7 +1126,7 @@ function GlobalKhataContent() {
                 className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition ${
                   period === p
                     ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-lg shadow-fuchsia-500/40'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                 }`}
               >
                 {p === 'all' ? 'Sab' : p === 'today' ? 'Aaj' : p === 'week' ? '7D' : p === 'month' ? '30D' : '1Y'}
@@ -1137,7 +1137,7 @@ function GlobalKhataContent() {
               className={`px-3.5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition inline-flex items-center gap-1.5 ${
                 period === 'custom'
                   ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/40'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
               }`}
             >
               <CalendarRange className="h-3.5 w-3.5" /> Custom
@@ -1159,12 +1159,12 @@ function GlobalKhataContent() {
                 <div>
                   <label className="block text-[0.6875rem] uppercase font-black text-cyan-700 dark:text-cyan-300 tracking-wider mb-1">📅 From</label>
                   <input type="date" value={customFrom} max={customTo} onChange={(e) => setCustomFrom(e.target.value)}
-                    className="h-11 w-full rounded-xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
+                    className="h-11 w-full rounded-xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-black text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition" />
                 </div>
                 <div>
                   <label className="block text-[0.6875rem] uppercase font-black text-cyan-700 dark:text-cyan-300 tracking-wider mb-1">📅 To</label>
                   <input type="date" value={customTo} min={customFrom} max={toDateInput(new Date())} onChange={(e) => setCustomTo(e.target.value)}
-                    className="h-11 w-full rounded-xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 transition" />
+                    className="h-11 w-full rounded-xl border-2 border-cyan-300 dark:border-cyan-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-black text-slate-900 dark:text-ink-white focus:outline-none focus:border-cyan-500 transition" />
                 </div>
               </div>
               <div className="flex gap-1.5 flex-wrap">
@@ -1175,7 +1175,7 @@ function GlobalKhataContent() {
                   { l: 'Is Saal', fn: () => { const n = new Date(); setCustomFrom(toDateInput(new Date(n.getFullYear(), 0, 1))); setCustomTo(toDateInput(n)); } },
                 ].map((p) => (
                   <button key={p.l} onClick={p.fn}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border-2 border-cyan-200 dark:border-cyan-500/40 text-[0.6875rem] font-black text-cyan-700 dark:text-cyan-300 hover:border-cyan-400 transition">
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-ink-800 border-2 border-cyan-200 dark:border-cyan-500/40 text-[0.6875rem] font-black text-cyan-700 dark:text-cyan-300 hover:border-cyan-400 transition">
                     {p.l}
                   </button>
                 ))}
@@ -1189,23 +1189,23 @@ function GlobalKhataContent() {
         </section>
 
         {/* Toolbar */}
-        <section className="rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 p-4 space-y-3">
+        <section className="rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 p-4 space-y-3">
           <div className="flex gap-2 flex-wrap">
             <div className="relative flex-1 min-w-[240px]">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Customer naam ya phone... (/)"
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-200 dark:focus:ring-fuchsia-500/30 transition"
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-fuchsia-500 focus:ring-2 focus:ring-fuchsia-200 dark:focus:ring-fuchsia-500/30 transition"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4" />
                 </button>
               )}
             </div>
             <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}
-              className="h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-black text-slate-900 dark:text-white focus:outline-none focus:border-fuchsia-500 transition">
+              className="h-12 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-black text-slate-900 dark:text-ink-white focus:outline-none focus:border-fuchsia-500 transition">
               <option value="balance-high">💰 Zyada udhaar</option>
               <option value="balance-low">Kam udhaar</option>
               <option value="oldest-due">🔥 Sab se purana</option>
@@ -1215,7 +1215,7 @@ function GlobalKhataContent() {
           </div>
 
           <div className="flex gap-1.5 flex-wrap items-center">
-            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 flex-wrap">
+            <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1 flex-wrap">
               {[
                 { v: 'pending', l: 'Baqi', c: stats.withDues },
                 { v: 'all', l: 'Sab', c: stats.totalCustomers },
@@ -1229,17 +1229,17 @@ function GlobalKhataContent() {
                   onClick={() => setFilter(o.v as FilterKey)}
                   className={[
                     'px-3 py-1.5 rounded-lg text-xs font-black transition inline-flex items-center gap-1.5',
-                    filter === o.v ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white',
+                    filter === o.v ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white',
                   ].join(' ')}
                 >
                   {o.l}
-                  <span className={['px-1.5 rounded text-[0.6875rem] tabular-nums', filter === o.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
+                  <span className={['px-1.5 rounded text-[0.6875rem] tabular-nums', filter === o.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300'].join(' ')}>
                     {o.c}
                   </span>
                 </button>
               ))}
             </div>
-            <div className="ml-auto text-xs font-black text-slate-500 dark:text-slate-400 tabular-nums">
+            <div className="ml-auto text-xs font-black text-slate-500 dark:text-ink-400 tabular-nums">
               {filtered.length} customers
             </div>
           </div>
@@ -1248,17 +1248,17 @@ function GlobalKhataContent() {
         {/* List */}
         {isLoading ? (
           <div className="space-y-2">
-            {[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {[1, 2, 3, 4, 5].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
+          <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
             <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-fuchsia-100 to-purple-200 dark:from-fuchsia-500/20 dark:to-purple-500/20 mx-auto flex items-center justify-center">
               {filter === 'pending' ? <CheckCircle2 className="h-10 w-10 text-emerald-600 dark:text-emerald-400" /> : <BookOpen className="h-10 w-10 text-fuchsia-600 dark:text-fuchsia-400" />}
             </div>
-            <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-white">
+            <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-ink-white">
               {filter === 'pending' && stats.withDues === 0 ? 'MashaAllah! Sab clear ✨' : search ? 'Koi nahi mila' : 'Khaate mein kuch nahi'}
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-bold max-w-md mx-auto">
+            <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-bold max-w-md mx-auto">
               {filter === 'pending' && stats.withDues === 0
                 ? 'Kisi ka udhaar nahi — zabardast!'
                 : search ? 'Doosra naam try karo'
@@ -1344,7 +1344,7 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
   return (
     <div className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col"
+        className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(); } }}
       >
@@ -1366,7 +1366,7 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Naam *
             </label>
             <input
@@ -1376,12 +1376,12 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}
               placeholder="Ali Raza, Faiza Baji..."
               maxLength={60}
-              className="h-13 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-base font-black text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
+              className="h-13 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-base font-black text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Phone <span className="text-slate-400 normal-case font-bold">(optional — WhatsApp reminders ke liye)</span>
             </label>
             <div className="relative">
@@ -1391,10 +1391,10 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="0300-1234567"
                 inputMode="tel"
-                className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-slate-800 pl-10 pr-3 text-sm font-bold font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition ${
+                className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-bold font-mono text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none transition ${
                   phone && !phoneOk
                     ? 'border-rose-400 dark:border-rose-500/50 focus:border-rose-500'
-                    : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+                    : 'border-slate-200 dark:border-ink-700 focus:border-blue-500'
                 }`}
               />
             </div>
@@ -1406,14 +1406,14 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Credit Limit <span className="text-slate-400 normal-case font-bold">(optional — 0 = unlimited udhaar)</span>
             </label>
             <input
               type="number" min={0} value={creditLimit}
               onChange={(e) => setCreditLimit(e.target.value)}
               placeholder="0"
-              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-black tabular-nums text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
+              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-black tabular-nums text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
             />
             {Number(creditLimit) > 0 && (
               <div className="mt-1.5 text-[0.6875rem] font-bold text-blue-700 dark:text-blue-300">
@@ -1428,7 +1428,7 @@ function QuickCustomerModal({ initialName, initialPhone, onClose, onCreated }: {
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1 h-12" onClick={onClose}>
             <X className="h-4 w-4" /> Cancel
           </Button>
@@ -1495,7 +1495,7 @@ function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onCha
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+        className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
 
         <div className={`px-5 py-4 bg-gradient-to-r ${A.grad} text-white flex items-center justify-between shrink-0`}>
           <div className="flex items-center gap-3 min-w-0">
@@ -1520,29 +1520,29 @@ function CustomerPickerModal({ title, subtitle, accent, onClose, onPicked, onCha
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Naam ya phone likho..."
-              className={`h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white pl-9 pr-3 text-sm font-black focus:outline-none ${A.ring} transition`}
+              className={`h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white pl-9 pr-3 text-sm font-black focus:outline-none ${A.ring} transition`}
             />
           </div>
 
-          <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
             {isLoading ? (
               <div className="p-6 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-400" /></div>
             ) : customers.length === 0 ? (
               <div className="p-6 text-center">
                 <User className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm font-black text-slate-700 dark:text-slate-300">
+                <p className="text-sm font-black text-slate-700 dark:text-ink-300">
                   {q ? `"${search}" nahi mila` : 'Koi customer nahi'}
                 </p>
                 <p className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Neeche se abhi bana lo</p>
               </div>
             ) : customers.map((c) => (
               <button key={c.id} onClick={() => onPicked(c)}
-                className="w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                className="w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                 <div className={`h-9 w-9 rounded-full bg-gradient-to-br ${A.grad} text-white flex items-center justify-center font-black text-sm shrink-0`}>
                   {(c.name || '?').charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
+                  <div className="font-black text-slate-900 dark:text-ink-white text-sm truncate">{c.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500 flex items-center gap-2">
                     <span>{c.phone ?? '—'}</span>
                     {Number(c.shopBalance ?? c.balance ?? 0) > 0 && (
@@ -1609,7 +1609,7 @@ function InlineCustomerCreate({ initialName, accent, onCancel, onCreated }: any)
 
   return (
     <div className={`rounded-2xl border-2 p-4 space-y-3 ${accent === 'violet' ? 'border-violet-300 dark:border-violet-500/40 bg-violet-50/60 dark:bg-violet-500/5' : 'border-orange-300 dark:border-orange-500/40 bg-orange-50/60 dark:bg-orange-500/5'}`}>
-      <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+      <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-ink-400 flex items-center gap-1.5">
         <Sparkles className="h-3 w-3" /> Naya Customer — yahin banao
       </div>
       <input
@@ -1618,15 +1618,15 @@ function InlineCustomerCreate({ initialName, accent, onCancel, onCreated }: any)
         onChange={(e) => setName(e.target.value)}
         placeholder="Naam *"
         maxLength={60}
-        className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-black text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+        className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-black text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
       />
       <input
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
         placeholder="Phone (optional) — 03XX-XXXXXXX"
         inputMode="tel"
-        className={`h-11 w-full rounded-xl border-2 bg-white dark:bg-slate-800 px-3 text-sm font-bold font-mono text-slate-900 dark:text-white focus:outline-none transition ${
-          phone && !phoneOk ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700 focus:border-blue-500'
+        className={`h-11 w-full rounded-xl border-2 bg-white dark:bg-ink-800 px-3 text-sm font-bold font-mono text-slate-900 dark:text-ink-white focus:outline-none transition ${
+          phone && !phoneOk ? 'border-rose-400' : 'border-slate-200 dark:border-ink-700 focus:border-blue-500'
         }`}
       />
       {phone && !phoneOk && (
@@ -1636,7 +1636,7 @@ function InlineCustomerCreate({ initialName, accent, onCancel, onCreated }: any)
       )}
       <div className="flex gap-2">
         <button onClick={onCancel}
-          className="h-10 px-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 transition">
+          className="h-10 px-4 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-xs font-black text-slate-600 dark:text-ink-300 transition">
           Wapas
         </button>
         <button
@@ -1694,7 +1694,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200"
+        className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 relative bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 text-white px-5 py-4 overflow-hidden">
@@ -1731,7 +1731,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Tone</div>
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider mb-1.5">Tone</div>
             <div className="grid grid-cols-3 gap-1.5">
               {REMINDER_TONES.map((t) => (
                 <button
@@ -1741,7 +1741,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
                     'p-2.5 rounded-xl border-2 text-center transition',
                     tone === t.v && !isCustom
                       ? `border-transparent bg-gradient-to-br ${t.grad} text-white shadow-lg`
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300',
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300',
                   ].join(' ')}
                 >
                   <div className="text-sm font-black">{t.l}</div>
@@ -1753,7 +1753,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">Salutation (kaise pukaro)</div>
+              <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider">Salutation (kaise pukaro)</div>
               {salutation === 'auto' && (
                 <div className="text-[0.625rem] font-black text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
                   <Sparkles className="h-2.5 w-2.5" /> AI ne pehchan liya
@@ -1769,7 +1769,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
                   className={`px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-black transition ${
                     salutation === s.v
                       ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 border-transparent text-white shadow-sm'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-fuchsia-300'
+                      : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 hover:border-fuchsia-300'
                   }`}
                 >
                   {s.l}
@@ -1780,7 +1780,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+              <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider">
                 Message {isCustom && <span className="text-amber-600 dark:text-amber-400 ml-1">✏️ Custom</span>}
               </div>
               <div className="flex gap-1">
@@ -1803,10 +1803,10 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
               value={finalMsg}
               onChange={(e) => { setCustomMsg(e.target.value); setIsCustom(true); }}
               rows={8}
-              className={`w-full rounded-2xl border-2 px-3 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed focus:outline-none transition ${
+              className={`w-full rounded-2xl border-2 px-3 py-3 text-sm font-semibold text-slate-800 dark:text-ink-100 whitespace-pre-wrap leading-relaxed focus:outline-none transition ${
                 isCustom
                   ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10 focus:border-amber-500'
-                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 focus:border-emerald-500'
+                  : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 focus:border-emerald-500'
               }`}
               placeholder="Message likho..."
             />
@@ -1828,7 +1828,7 @@ function SingleReminderModal({ customer, shopName, templates, onEditTemplates, o
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1 h-12" onClick={onClose}>
             <X className="h-4 w-4" /> Cancel
           </Button>
@@ -1873,7 +1873,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
+        className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 relative bg-gradient-to-br from-fuchsia-600 via-purple-600 to-indigo-700 text-white px-5 py-4 overflow-hidden">
@@ -1902,7 +1902,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
                   'p-2.5 rounded-xl border-2 text-center transition',
                   activeTone === t.v
                     ? `border-transparent bg-gradient-to-br ${t.grad} text-white shadow-lg`
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300',
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300',
                 ].join(' ')}
               >
                 <div className="text-sm font-black">{t.l}</div>
@@ -1914,7 +1914,7 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
-            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider mb-1.5">
               Placeholders (click to insert)
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -1932,35 +1932,35 @@ function TemplateEditorModal({ templates, onSave, onReset, onClose, shopName }: 
           </div>
 
           <div>
-            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider mb-1.5">
               Template ({activeTone})
             </div>
             <textarea
               value={drafts[activeTone]}
               onChange={(e) => setDrafts((prev) => ({ ...prev, [activeTone]: e.target.value }))}
               rows={8}
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-3 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:outline-none focus:border-fuchsia-500 transition font-mono"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-3 text-sm font-semibold text-slate-800 dark:text-ink-100 focus:outline-none focus:border-fuchsia-500 transition font-mono"
             />
           </div>
 
           <div>
-            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">
+            <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider mb-1.5">
               Live Preview (sample: Faiza, Rs 5,500, 12 din)
             </div>
-            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-sm font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-relaxed">
+            <div className="rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-3 text-sm font-semibold text-slate-800 dark:text-ink-100 whitespace-pre-wrap leading-relaxed">
               {preview}
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300">
-            💡 <strong>Smart:</strong> <code className="bg-slate-200 dark:bg-slate-700 px-1 rounded">{'{sal}'}</code> automatically bhai/baji/uncle/aunty lagata hai — agar naam mein pehle se hai to skip. Faiza ✓ Uncle Shuja ✓
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300">
+            💡 <strong>Smart:</strong> <code className="bg-slate-200 dark:bg-ink-700 px-1 rounded">{'{sal}'}</code> automatically bhai/baji/uncle/aunty lagata hai — agar naam mein pehle se hai to skip. Faiza ✓ Uncle Shuja ✓
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <button
             onClick={() => { if (confirm('Default templates restore karein?')) { onReset(); setDrafts({ ...DEFAULT_TEMPLATES }); } }}
-            className="h-12 px-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-xs font-black text-slate-700 dark:text-slate-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center gap-1.5"
+            className="h-12 px-4 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-xs font-black text-slate-700 dark:text-ink-200 hover:border-rose-300 hover:text-rose-600 transition inline-flex items-center gap-1.5"
           >
             <RefreshCw className="h-3.5 w-3.5" /> Reset
           </button>
@@ -2039,7 +2039,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
+        className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 text-white px-5 py-4 relative overflow-hidden">
@@ -2072,8 +2072,8 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 mx-auto flex items-center justify-center shadow-lg shadow-emerald-500/40">
                 <CheckCheck className="h-8 w-8 text-white" />
               </div>
-              <h4 className="mt-3 text-lg font-black text-slate-900 dark:text-white">Sab Done! 🎉</h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-1">
+              <h4 className="mt-3 text-lg font-black text-slate-900 dark:text-ink-white">Sab Done! 🎉</h4>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-bold mt-1">
                 {doneIds.size} bheje • {skippedIds.size} skip
               </p>
               <Button className="mt-4 bg-gradient-to-r from-emerald-600 to-teal-700 font-black" onClick={onClose}>
@@ -2087,8 +2087,8 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
                   {(current.name || '?').charAt(0).toUpperCase()}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-black text-slate-900 dark:text-white truncate">{genderIcon} {current.name}</div>
-                  <div className="text-xs text-slate-600 dark:text-slate-300 font-bold flex items-center gap-2 flex-wrap">
+                  <div className="font-black text-slate-900 dark:text-ink-white truncate">{genderIcon} {current.name}</div>
+                  <div className="text-xs text-slate-600 dark:text-ink-300 font-bold flex items-center gap-2 flex-wrap">
                     <span className="tabular-nums text-rose-700 dark:text-rose-400 font-black">{formatPKR(current.balance)}</span>
                     <span>•</span>
                     <span>{current.phone}</span>
@@ -2100,13 +2100,13 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
                     )}
                   </div>
                 </div>
-                <div className="text-right shrink-0 text-[0.6875rem] font-black text-slate-500 dark:text-slate-400">
+                <div className="text-right shrink-0 text-[0.6875rem] font-black text-slate-500 dark:text-ink-400">
                   {idx + 1} / {total}
                 </div>
               </div>
 
               <div>
-                <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Tone</div>
+                <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider mb-1.5">Tone</div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {REMINDER_TONES.map((t) => (
                     <button
@@ -2116,7 +2116,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
                         'p-2 rounded-xl border-2 text-center transition',
                         tone === t.v && !isCustom
                           ? `border-transparent bg-gradient-to-br ${t.grad} text-white shadow-md`
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800',
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
                       ].join(' ')}
                     >
                       <div className="text-xs font-black">{t.l}</div>
@@ -2126,7 +2126,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
               </div>
 
               <div>
-                <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider mb-1.5">Kaise pukaro</div>
+                <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider mb-1.5">Kaise pukaro</div>
                 <div className="flex flex-wrap gap-1">
                   {SALUTATIONS.map((s) => (
                     <button
@@ -2136,7 +2136,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
                       className={`px-2 py-1 rounded-lg border text-[0.6875rem] font-black transition ${
                         salutation === s.v
                           ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 border-transparent text-white'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                          : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                       }`}
                     >
                       {s.l}
@@ -2147,7 +2147,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
 
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+                  <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider">
                     Message {isCustom && <span className="text-amber-600 ml-1">✏️</span>}
                   </div>
                   <button onClick={copyMsg} className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1 hover:underline">
@@ -2159,10 +2159,10 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
                   value={finalMsg}
                   onChange={(e) => { setCustomMsg(e.target.value); setIsCustom(true); }}
                   rows={6}
-                  className={`w-full rounded-xl border-2 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-100 whitespace-pre-wrap focus:outline-none transition ${
+                  className={`w-full rounded-xl border-2 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-ink-100 whitespace-pre-wrap focus:outline-none transition ${
                     isCustom
                       ? 'border-amber-400 dark:border-amber-500/50 bg-amber-50 dark:bg-amber-500/10'
-                      : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60'
+                      : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60'
                   }`}
                 />
               </div>
@@ -2171,9 +2171,9 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
         </div>
 
         {!allDone && current && (
-          <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 space-y-2">
+          <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 space-y-2">
             <div className="flex gap-2">
-              <button onClick={prev} disabled={idx === 0} className="h-12 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-200 text-xs font-black disabled:opacity-40 transition">
+              <button onClick={prev} disabled={idx === 0} className="h-12 px-3 rounded-xl bg-slate-200 dark:bg-ink-800 hover:bg-slate-300 text-slate-700 dark:text-ink-200 text-xs font-black disabled:opacity-40 transition">
                 <ArrowLeft className="h-4 w-4" />
               </button>
               <button
@@ -2182,7 +2182,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
               >
                 <MessageCircle className="h-5 w-5" /> WhatsApp → Agla
               </button>
-              <button onClick={() => next(true)} title="Skip" className="h-12 px-3 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-200 text-xs font-black transition">
+              <button onClick={() => next(true)} title="Skip" className="h-12 px-3 rounded-xl bg-slate-200 dark:bg-ink-800 hover:bg-slate-300 text-slate-700 dark:text-ink-200 text-xs font-black transition">
                 <SkipForward className="h-4 w-4" />
               </button>
             </div>
@@ -2199,7 +2199,7 @@ function BulkReminderWizard({ customers, shopName, templates, onEditTemplates, o
 function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalList, onCSV, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 relative bg-gradient-to-br from-cyan-600 via-blue-600 to-indigo-700 text-white px-5 py-4 overflow-hidden">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-cyan-400/25 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
@@ -2224,10 +2224,10 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h4 className="text-base font-black text-slate-900 dark:text-white">A4 Full Report</h4>
+                  <h4 className="text-base font-black text-slate-900 dark:text-ink-white">A4 Full Report</h4>
                   <span className="px-2 py-0.5 rounded-full bg-emerald-500 text-white text-[0.625rem] font-black uppercase">PDF</span>
                 </div>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-xs font-semibold text-slate-600 dark:text-ink-300 leading-relaxed">
                   Colored PDF, KPIs, aging breakdown, complete table, signatures.
                 </p>
               </div>
@@ -2242,10 +2242,10 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <h4 className="text-base font-black text-slate-900 dark:text-white">Thermal List (80mm)</h4>
+                  <h4 className="text-base font-black text-slate-900 dark:text-ink-white">Thermal List (80mm)</h4>
                   <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-black uppercase">Sab Ek Print Me</span>
                 </div>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">
+                <p className="text-xs font-semibold text-slate-600 dark:text-ink-300 leading-relaxed">
                   Saare customers ka khata ek hi lambi thermal print pe — naam, phone, balance, aging. Aik aik nahi nikalna!
                 </p>
               </div>
@@ -2260,17 +2260,17 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h4 className="text-base font-black text-slate-900 dark:text-white">CSV Export</h4>
+                  <h4 className="text-base font-black text-slate-900 dark:text-ink-white">CSV Export</h4>
                   <span className="px-2 py-0.5 rounded-full bg-blue-500 text-white text-[0.625rem] font-black uppercase">Excel</span>
                 </div>
-                <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">Excel/Google Sheets ke liye raw data.</p>
+                <p className="text-xs font-semibold text-slate-600 dark:text-ink-300 leading-relaxed">Excel/Google Sheets ke liye raw data.</p>
               </div>
               <ChevronRight className="h-6 w-6 text-slate-400 shrink-0 self-center group-hover:translate-x-1 transition" />
             </div>
           </button>
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-ink-400 mb-1">💡 Tips</div>
             <TipRow><strong>PDF:</strong> A4 → print dialog me "Save as PDF"</TipRow>
             <TipRow><strong>Colored:</strong> "Background graphics" ON karo</TipRow>
             <TipRow><strong>Per customer:</strong> Row me 🖨️ dabao → 80mm thermal statement</TipRow>
@@ -2278,7 +2278,7 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4">
           <Button variant="secondary" className="w-full" onClick={onClose}><X className="h-4 w-4" /> Band</Button>
         </div>
       </div>
@@ -2292,12 +2292,12 @@ function PrintOptionsModal({ filtered, totalDue, periodLabel, onA4, onThermalLis
 function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-fuchsia-300 dark:border-fuchsia-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-fuchsia-200 dark:border-fuchsia-500/30 bg-gradient-to-r from-fuchsia-50 to-purple-50 dark:from-fuchsia-500/15 dark:to-purple-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-black text-fuchsia-900 dark:text-fuchsia-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Khata Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -2307,7 +2307,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-orange-800 dark:text-orange-200 flex items-center gap-1">
               <Plus className="h-3 w-3" /> 🟠 Naya Udhaar (Bina POS Ke)
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow>Hero me <strong>"Udhaar"</strong> dabao → customer chuno → amount → done</TipRow>
               <TipRow>Customer nahi hai? Naam likho → <strong>"Banao"</strong> — wahin ban jata hai, kahin aur jane ki zaroorat nahi</TipRow>
               <TipRow><strong>"Customer"</strong> button — seedha naya customer banao</TipRow>
@@ -2318,7 +2318,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-fuchsia-800 dark:text-fuchsia-200 flex items-center gap-1">
               <ShoppingCart className="h-3 w-3" /> 🛒 Udhaar Sale Kaise?
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow>POS pe jao → customer choose karo → "Udhaar" / partial payment select karo</TipRow>
               <TipRow>Sale complete karo — udhaar automatic khaate mein aa jayega</TipRow>
               <TipRow>Wapas milne pe "Paisay Wasool" dabao — khata clear</TipRow>
@@ -2329,7 +2329,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 flex items-center gap-1">
               <MessageCircle className="h-3 w-3" /> 💬 Smart Reminders
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>AI naam pehchan leta hai</strong> — Faiza baji ✓ (bhai nahi), Uncle Shuja ✓</TipRow>
               <TipRow>Message har baar <strong>edit</strong> kar sakte ho bhejne se pehle</TipRow>
               <TipRow>3 tones: 😊 Polite • 💼 Firm • ⚠️ Final (age ke hisab se auto)</TipRow>
@@ -2344,7 +2344,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-cyan-800 dark:text-cyan-200 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ Print & PDF
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow>📄 <strong>A4 colored PDF</strong> — KPIs, aging, table, signatures</TipRow>
               <TipRow>🧾 <strong>Thermal List (80mm)</strong> — saare customers EK print me</TipRow>
               <TipRow>🧾 Per-customer statement — row me 🖨️</TipRow>
@@ -2352,7 +2352,7 @@ function KhataTeacher({ onClose, onStartBulk, onEditTemplates, hasDues }: any) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
+          <div className="rounded-xl bg-slate-900 dark:bg-ink-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-fuchsia-300 mb-2">⌨️ Shortcuts</div>
             <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
               <div><kbd className="px-1.5 py-0.5 bg-slate-700 rounded font-mono">U</kbd> Naya udhaar</div>
@@ -2398,12 +2398,12 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
 
   return (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm dark:shadow-black/20 transition-all hover:shadow-lg',
+      'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm dark:shadow-black/20 transition-all hover:shadow-lg',
       isAged ? 'border-rose-300 dark:border-rose-500/50'
         : isHigh ? 'border-rose-300 dark:border-rose-500/40'
         : isAdvance ? 'border-emerald-300 dark:border-emerald-500/40'
         : hasBalance ? 'border-amber-300 dark:border-amber-500/40'
-        : 'border-slate-200 dark:border-slate-800',
+        : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       <div className="p-4 flex items-center gap-3 flex-wrap sm:flex-nowrap">
         <div className={[
@@ -2415,14 +2415,14 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
             : 'bg-gradient-to-br from-slate-500 to-slate-700',
         ].join(' ')}>
           {(customer.name || '?').charAt(0).toUpperCase()}
-          <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-900 flex items-center justify-center text-xs shadow-sm">
+          <span className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white dark:bg-ink-900 border-2 border-white dark:border-ink-900 flex items-center justify-center text-xs shadow-sm">
             {genderIcon}
           </span>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-black text-slate-900 dark:text-white text-base sm:text-lg truncate">{customer.name}</h3>
+            <h3 className="font-black text-slate-900 dark:text-ink-white text-base sm:text-lg truncate">{customer.name}</h3>
             {isAged && (
               <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[0.625rem] font-black uppercase inline-flex items-center gap-1 animate-pulse">
                 <Flame className="h-2.5 w-2.5" /> {customer.ageDays} din
@@ -2442,7 +2442,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
               <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[0.625rem] font-black uppercase">Clear ✓</span>
             )}
           </div>
-          <div className="mt-0.5 flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400 font-bold flex-wrap">
+          <div className="mt-0.5 flex items-center gap-3 text-xs text-slate-600 dark:text-ink-400 font-bold flex-wrap">
             {customer.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{customer.phone}</span>}
             {customer.salesCount > 0 && (<><span>•</span><span>{customer.salesCount} sales</span></>)}
             {customer.pendingCount > 0 && (
@@ -2452,7 +2452,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
         </div>
 
         <div className="text-right shrink-0">
-          <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-slate-400 tracking-wider">
+          <div className="text-[0.6875rem] uppercase font-black text-slate-500 dark:text-ink-400 tracking-wider">
             {isAdvance ? 'Advance' : 'Udhaar'}
           </div>
           <div className={[
@@ -2460,14 +2460,14 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
             isAdvance ? 'text-emerald-700 dark:text-emerald-400'
               : isAged || isHigh ? 'text-rose-700 dark:text-rose-400'
               : hasBalance ? 'text-amber-700 dark:text-amber-400'
-              : 'text-slate-600 dark:text-slate-300',
+              : 'text-slate-600 dark:text-ink-300',
           ].join(' ')}>
             {hideCost ? '••••' : (customer.balance === 0 ? formatPKR(0) : (isAdvance ? '+' : '−') + formatPKR(customer.absBalance))}
           </div>
         </div>
       </div>
 
-      <div className="px-4 pb-3 flex gap-2 flex-wrap border-t border-slate-100 dark:border-slate-800 pt-3">
+      <div className="px-4 pb-3 flex gap-2 flex-wrap border-t border-slate-100 dark:border-ink-800 pt-3">
         {hasBalance && (
           <button onClick={onPayment} className="flex-1 min-w-[120px] h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white text-sm font-black inline-flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/40 active:scale-95 transition">
             <Banknote className="h-4 w-4" /> Paisay Wasool
@@ -2491,36 +2491,36 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
           className="h-11 w-11 rounded-xl bg-cyan-100 dark:bg-cyan-500/20 hover:bg-cyan-200 dark:hover:bg-cyan-500/30 text-cyan-700 dark:text-cyan-300 flex items-center justify-center transition active:scale-95">
           <Printer className="h-4 w-4" />
         </button>
-        <button onClick={onToggle} className="h-11 px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-black inline-flex items-center gap-1 transition">
+        <button onClick={onToggle} className="h-11 px-4 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-sm font-black inline-flex items-center gap-1 transition">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           {expanded ? 'Chhupao' : 'Tafseel'}
         </button>
       </div>
 
       {expanded && (
-        <div className="border-t-2 border-slate-100 dark:border-slate-800 p-4 bg-slate-50 dark:bg-slate-800/40 space-y-2 max-h-96 overflow-y-auto">
-          <div className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider mb-2">
+        <div className="border-t-2 border-slate-100 dark:border-ink-800 p-4 bg-slate-50 dark:bg-ink-800/40 space-y-2 max-h-96 overflow-y-auto">
+          <div className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-ink-400 tracking-wider mb-2">
             Sales History ({customer.allSales.length})
           </div>
           {customer.allSales.length === 0 ? (
-            <div className="rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 text-center">
+            <div className="rounded-xl bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3 text-center">
               <BookOpen className="h-8 w-8 text-slate-400 mx-auto mb-1" />
-              <p className="text-sm text-slate-600 dark:text-slate-300 font-black">Koi Sale Nahi</p>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Is period me sales nahi hui</p>
+              <p className="text-sm text-slate-600 dark:text-ink-300 font-black">Koi Sale Nahi</p>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Is period me sales nahi hui</p>
             </div>
           ) : (
             [...customer.allSales].sort((a: any, b: any) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime()).slice(0, 20).map((sale: any) => {
               const credit = Number(sale.creditAmount || 0);
               return (
                 <Link key={sale.id} to={`/sales/${sale.id}/receipt`}
-                  className="block rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-fuchsia-300 hover:shadow-md transition p-3">
+                  className="block rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-fuchsia-300 hover:shadow-md transition p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-mono font-black text-slate-900 dark:text-white text-xs">{sale.saleNumber}</span>
+                        <span className="font-mono font-black text-slate-900 dark:text-ink-white text-xs">{sale.saleNumber}</span>
                         {credit > 0 && <span className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-black uppercase">Udhaar</span>}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 inline-flex items-center gap-1">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5 inline-flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
                         {new Date(sale.soldAt).toLocaleString('en-PK', { dateStyle: 'short', timeStyle: 'short' })}
                       </div>
@@ -2531,7 +2531,7 @@ function CustomerKhataRow({ customer, expanded, hideCost, onToggle, onPayment, o
                       )}
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-black text-slate-900 dark:text-white tabular-nums text-sm">
+                      <div className="font-black text-slate-900 dark:text-ink-white tabular-nums text-sm">
                         {hideCost ? '••••' : formatPKR(sale.total)}
                       </div>
                       {credit > 0 && <div className="text-[0.6875rem] font-black text-amber-700 dark:text-amber-400">Baqi {formatPKR(credit)}</div>}
@@ -2562,7 +2562,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col animate-in slide-in-from-bottom sm:zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-emerald-600 via-green-600 to-teal-700 text-white px-5 py-4">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
@@ -2580,7 +2580,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider">Kitna paisa mila?</label>
+              <label className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-ink-400 tracking-wider">Kitna paisa mila?</label>
               <button onClick={() => setShowCalc(!showCalc)} className="text-[0.6875rem] font-black text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
                 <Zap className="h-3 w-3" /> Calculator
               </button>
@@ -2592,7 +2592,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
             <div className="mt-2 grid grid-cols-3 sm:grid-cols-6 gap-1.5">
               {QUICK.map((amt) => (
                 <button key={amt} onClick={() => setAmount(String((Number(amount) || 0) + amt))}
-                  className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-xs font-black text-slate-800 dark:text-slate-200 transition">
+                  className="h-10 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-xs font-black text-slate-800 dark:text-ink-200 transition">
                   +{amt}
                 </button>
               ))}
@@ -2605,13 +2605,13 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
               <button onClick={() => setAmount(String(Math.floor(customer.balance / 2)))} className="h-11 rounded-xl bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 active:scale-95 text-sm font-black text-blue-800 dark:text-blue-200 transition">
                 Aadha
               </button>
-              <button onClick={() => setAmount('')} className="h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 active:scale-95 text-sm font-black text-slate-700 dark:text-slate-200 transition">
+              <button onClick={() => setAmount('')} className="h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 active:scale-95 text-sm font-black text-slate-700 dark:text-ink-200 transition">
                 Clear
               </button>
             </div>
 
             {showCalc && (
-              <div className="mt-3 grid grid-cols-4 gap-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 p-2">
+              <div className="mt-3 grid grid-cols-4 gap-1.5 rounded-2xl bg-slate-100 dark:bg-ink-800 p-2">
                 {[7, 8, 9, 'C', 4, 5, 6, '←', 1, 2, 3, '00', 0, '.', '000', '='].map((k) => (
                   <button key={String(k)} onClick={() => {
                     const key = String(k);
@@ -2620,29 +2620,29 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
                     if (key === '=') return;
                     setAmount(amount + key);
                   }} className={['h-11 rounded-xl font-black text-lg transition active:scale-95',
-                    k === 'C' ? 'bg-rose-500 text-white' : k === '←' ? 'bg-amber-500 text-white' : k === '=' ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 shadow-sm'].join(' ')}>{k}</button>
+                    k === 'C' ? 'bg-rose-500 text-white' : k === '←' ? 'bg-amber-500 text-white' : k === '=' ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-ink-700 text-slate-800 dark:text-ink-100 shadow-sm'].join(' ')}>{k}</button>
                 ))}
               </div>
             )}
           </div>
 
           <div>
-            <label className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-slate-400 tracking-wider mb-1 block">Note (optional)</label>
+            <label className="text-[0.6875rem] uppercase font-black text-slate-600 dark:text-ink-400 tracking-wider mb-1 block">Note (optional)</label>
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Cash, Bank transfer..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
           </div>
 
-          <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 border-4 border-slate-200 dark:border-slate-700 p-4 space-y-2">
+          <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-900 border-4 border-slate-200 dark:border-ink-700 p-4 space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-bold text-slate-600 dark:text-slate-300">Purana udhaar</span>
-              <span className="font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(customer.balance)}</span>
+              <span className="font-bold text-slate-600 dark:text-ink-300">Purana udhaar</span>
+              <span className="font-black text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(customer.balance)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="font-bold text-slate-600 dark:text-slate-300">Wasool</span>
+              <span className="font-bold text-slate-600 dark:text-ink-300">Wasool</span>
               <span className="font-black text-emerald-700 dark:text-emerald-400 tabular-nums">− {formatPKR(payAmount)}</span>
             </div>
-            <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
-              <span className="text-sm font-black text-slate-700 dark:text-slate-200">Baqi</span>
+            <div className="pt-2 border-t border-slate-200 dark:border-ink-700 flex items-center justify-between">
+              <span className="text-sm font-black text-slate-700 dark:text-ink-200">Baqi</span>
               <span className={['text-xl font-black tabular-nums', newBalance <= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-amber-700 dark:text-amber-400'].join(' ')}>
                 {formatPKR(Math.max(newBalance, 0))}
               </span>
@@ -2655,7 +2655,7 @@ function PaymentModal({ customer, loading, onClose, onConfirm }: any) {
           </div>
         </div>
 
-        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900">
           <button onClick={() => onConfirm(payAmount, note)} disabled={!isValid || loading}
             className="w-full h-14 sm:h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-600 text-white font-black shadow-2xl shadow-emerald-500/50 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between px-5">
             <div className="text-left">
@@ -2721,8 +2721,8 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
       className={[
         'group relative rounded-2xl border-2 p-3 sm:p-4 shadow-sm dark:shadow-black/20 text-left w-full transition overflow-hidden',
         highlight
-          ? 'bg-gradient-to-br from-rose-50 via-pink-50 to-white dark:from-rose-500/10 dark:via-pink-500/10 dark:to-slate-900/60 border-rose-300 dark:border-rose-500/40'
-          : 'bg-white dark:bg-slate-900/80 border-slate-200 dark:border-slate-800',
+          ? 'bg-gradient-to-br from-rose-50 via-pink-50 to-white dark:from-rose-500/10 dark:via-pink-500/10 dark:to-ink-900/60 border-rose-300 dark:border-rose-500/40'
+          : 'bg-white dark:bg-ink-900/80 border-slate-200 dark:border-ink-800',
         onClick ? 'hover:border-fuchsia-300 dark:hover:border-fuchsia-500/50 hover:shadow-lg hover:-translate-y-0.5' : '',
         active ? 'ring-2 ring-fuchsia-400 dark:ring-fuchsia-500/50' : '',
       ].join(' ')}
@@ -2732,9 +2732,9 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
       )}
       <div className="relative flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
           <Icon className="h-5 w-5" />
@@ -2761,7 +2761,7 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+        className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
         <div className="px-5 py-4 bg-gradient-to-r from-orange-600 to-red-700 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur shrink-0">
@@ -2780,9 +2780,9 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between">
-            <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Abhi baqi</span>
-            <span className="text-xl font-black text-slate-900 dark:text-white tabular-nums">{formatPKR(Math.max(current, 0))}</span>
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center justify-between">
+            <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Abhi baqi</span>
+            <span className="text-xl font-black text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(Math.max(current, 0))}</span>
           </div>
 
           <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-start gap-2">
@@ -2794,17 +2794,17 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Kitna Udhaar?
             </label>
             <input type="number" autoFocus min={0} value={amount}
               onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
               placeholder="0"
-              className="h-16 w-full rounded-2xl border-2 border-orange-400 bg-white dark:bg-slate-800 px-4 text-center text-3xl font-black tabular-nums text-orange-900 dark:text-orange-200 focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-200 dark:focus:ring-orange-500/30 transition" />
+              className="h-16 w-full rounded-2xl border-2 border-orange-400 bg-white dark:bg-ink-800 px-4 text-center text-3xl font-black tabular-nums text-orange-900 dark:text-orange-200 focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-200 dark:focus:ring-orange-500/30 transition" />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {QUICK.map((q) => (
                 <button key={q} onClick={() => setAmount(q)}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-orange-200 dark:border-orange-500/30 hover:border-orange-400 text-orange-800 dark:text-orange-300 text-xs font-black transition">
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-orange-200 dark:border-orange-500/30 hover:border-orange-400 text-orange-800 dark:text-orange-300 text-xs font-black transition">
                   {formatPKR(q)}
                 </button>
               ))}
@@ -2812,8 +2812,8 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
           </div>
 
           {amt > 0 && (
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Iske baad baqi</span>
+            <div className="rounded-xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Iske baad baqi</span>
               <span className="text-lg font-black text-rose-600 tabular-nums">{formatPKR(after)}</span>
             </div>
           )}
@@ -2826,18 +2826,18 @@ function UdhaarModal({ customer, loading, onClose, onConfirm }: any) {
           )}
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Kis cheez ka? <span className="text-slate-400 normal-case font-bold">(optional)</span>
             </label>
             <input value={note} onChange={(e) => setNote(e.target.value)}
               placeholder="jaise: charger bina bill ke diya"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500 transition" />
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white px-3 text-sm font-bold focus:outline-none focus:border-orange-500 transition" />
           </div>
         </div>
 
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex gap-2 justify-end shrink-0">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900 flex gap-2 justify-end shrink-0">
           <button onClick={onClose}
-            className="h-11 px-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-black hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            className="h-11 px-4 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 text-sm font-black hover:bg-slate-100 dark:hover:bg-ink-700 transition">
             Cancel
           </button>
           <button onClick={() => onConfirm(amt, note)} disabled={amt <= 0 || loading}
@@ -2888,7 +2888,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+        className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
         <div className="px-5 py-4 bg-gradient-to-r from-violet-600 to-purple-700 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur">
@@ -2915,7 +2915,7 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
           </div>
 
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Customer
             </label>
             {chosen ? (
@@ -2924,13 +2924,13 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                   {chosen.name.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-black text-slate-900 dark:text-white text-sm truncate">{chosen.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">
+                  <div className="font-black text-slate-900 dark:text-ink-white text-sm truncate">{chosen.name}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400">
                     {chosen.phone ?? 'phone nahi'} · abhi {formatPKR(chosen.balance ?? 0)} baqi
                   </div>
                 </div>
                 <button onClick={() => setChosen(null)}
-                  className="h-9 w-9 rounded-lg bg-white dark:bg-slate-800 hover:bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 transition">
+                  className="h-9 w-9 rounded-lg bg-white dark:bg-ink-800 hover:bg-slate-100 text-slate-500 flex items-center justify-center shrink-0 transition">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -2940,24 +2940,24 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
                   <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input value={search} onChange={(e) => setSearch(e.target.value)} autoFocus
                     placeholder="Naam ya phone se dhoondein..."
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white pl-9 pr-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
                 </div>
-                <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-ink-800">
                   {isLoading ? (
                     <div className="p-6 text-center"><Loader2 className="h-5 w-5 animate-spin mx-auto text-slate-400" /></div>
                   ) : customers.length === 0 && !canQuickCreate ? (
                     <div className="p-6 text-center">
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Koi customer nahi mila</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-ink-300">Koi customer nahi mila</p>
                       <p className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Naam likho — neeche bana sakte ho</p>
                     </div>
                   ) : customers.map((c) => (
                     <button key={c.id} onClick={() => { setChosen(c); setBalance(c.balance || ''); }}
                       className="w-full px-3 py-2.5 flex items-center gap-3 text-left hover:bg-violet-50 dark:hover:bg-violet-500/10 transition">
-                      <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-black text-sm shrink-0">
+                      <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center font-black text-sm shrink-0">
                         {c.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
+                        <div className="font-black text-slate-900 dark:text-ink-white text-sm truncate">{c.name}</div>
                         <div className="text-[0.6875rem] font-bold text-slate-500">{c.phone ?? '—'}</div>
                       </div>
                       {c.balance > 0 && (
@@ -3006,33 +3006,33 @@ function OpeningBalanceModal({ onClose, onDone }: any) {
           {chosen && (
             <>
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
                   Purana Baqi Kitna Hai?
                 </label>
                 <input type="number" min={0} value={balance}
                   onChange={(e) => setBalance(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="0"
-                  className="h-16 w-full rounded-2xl border-2 border-violet-400 bg-white dark:bg-slate-800 px-4 text-center text-3xl font-black tabular-nums text-violet-900 dark:text-violet-200 focus:outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition" />
-                <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
+                  className="h-16 w-full rounded-2xl border-2 border-violet-400 bg-white dark:bg-ink-800 px-4 text-center text-3xl font-black tabular-nums text-violet-900 dark:text-violet-200 focus:outline-none focus:border-violet-600 focus:ring-4 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition" />
+                <p className="mt-1.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">
                   Ye balance <b>set</b> hoga — jurta nahi. Copy me jo likha hai wohi likhein.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
                   Note <span className="text-slate-400 normal-case font-bold">(optional)</span>
                 </label>
                 <input value={note} onChange={(e) => setNote(e.target.value)}
                   placeholder="jaise: Sep 2026 tak ka purana hisab"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white px-3 text-sm font-bold focus:outline-none focus:border-violet-500 transition" />
               </div>
             </>
           )}
         </div>
 
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex gap-2 justify-end shrink-0">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900 flex gap-2 justify-end shrink-0">
           <button onClick={onClose}
-            className="h-11 px-4 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-black hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+            className="h-11 px-4 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 text-sm font-black hover:bg-slate-100 dark:hover:bg-ink-700 transition">
             Cancel
           </button>
           <button onClick={() => mutation.mutate()} disabled={!valid}
@@ -3094,7 +3094,7 @@ const KIND_META: Record<TimelineRow['kind'], {
   SALE_CREDIT:      { label: 'Udhaar par saman', chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',       icon: ShoppingCart,  dir: 'up' },
   ADJUSTMENT:       { label: 'Udhaar chadhaya', chip: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',    icon: Plus,          dir: 'up' },
   PAYMENT_RECEIVED: { label: 'Wasooli',         chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300', icon: Banknote,     dir: 'down' },
-  SALE_PAID:        { label: 'Naqad kharidari', chip: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',           icon: ShoppingCart,  dir: 'flat' },
+  SALE_PAID:        { label: 'Naqad kharidari', chip: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300',           icon: ShoppingCart,  dir: 'flat' },
 };
 
 function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder, hideCost, shopName, shopPhone, shopAddress }: any) {
@@ -3313,7 +3313,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
     <>
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-3xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+        className="w-full sm:max-w-3xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
 
         <div className={`px-5 py-4 text-white shrink-0 ${
           isAdvance ? 'bg-gradient-to-r from-emerald-600 to-teal-700' : 'bg-gradient-to-r from-purple-700 to-fuchsia-700'
@@ -3345,7 +3345,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
           </div>
         </div>
 
-        <div className="px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex gap-1.5 overflow-x-auto shrink-0">
+        <div className="px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex gap-1.5 overflow-x-auto shrink-0">
           {([
             { v: 'all', label: 'Sab', icon: History },
             { v: 'udhaar', label: 'Udhaar', icon: TrendingDown },
@@ -3356,23 +3356,23 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
               className={`h-9 px-3 rounded-lg text-xs font-black inline-flex items-center gap-1.5 shrink-0 transition border-2 ${
                 filter === k.v
                   ? 'bg-gradient-to-r from-purple-700 to-fuchsia-700 text-white border-transparent shadow'
-                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-purple-300'
+                  : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-purple-300'
               }`}>
               <k.icon className="h-3.5 w-3.5" /> {k.label}
-              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${filter === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-700'}`}>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${filter === k.v ? 'bg-black/20' : 'bg-slate-100 dark:bg-ink-700'}`}>
                 {COUNTS[k.v]}
               </span>
             </button>
           ))}
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 dark:bg-slate-950/40">
+        <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-slate-50 dark:bg-ink-950/40">
           {isLoading ? (
             <div className="py-16 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-slate-400" /></div>
           ) : visible.length === 0 ? (
             <div className="py-16 text-center">
               <BookOpen className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm font-black text-slate-700 dark:text-slate-300">
+              <p className="text-sm font-black text-slate-700 dark:text-ink-300">
                 {filter === 'all' ? 'Abhi koi hisab nahi' : 'Is filter me kuch nahi'}
               </p>
               <p className="text-xs font-semibold text-slate-500 mt-0.5">
@@ -3384,7 +3384,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
             const Icon = m?.icon ?? History;
             const isOpen = openSale === r.id;
             return (
-              <div key={r.id} className="rounded-xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div key={r.id} className="rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 overflow-hidden">
                 <div className="p-3 flex items-start gap-3">
                   <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${m?.chip}`}>
                     <Icon className="h-4 w-4" />
@@ -3392,12 +3392,12 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-black text-slate-900 dark:text-white text-sm">{r.title}</span>
+                      <span className="font-black text-slate-900 dark:text-ink-white text-sm">{r.title}</span>
                       {r.reference && (
-                        <span className="font-mono text-[0.6875rem] font-black text-slate-500 dark:text-slate-400">{r.reference}</span>
+                        <span className="font-mono text-[0.6875rem] font-black text-slate-500 dark:text-ink-400">{r.reference}</span>
                       )}
                     </div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5 flex items-center gap-2 flex-wrap">
                       <span className="inline-flex items-center gap-1">
                         <Calendar className="h-2.5 w-2.5" />
                         {new Date(r.at).toLocaleString('en-PK', { dateStyle: 'medium', timeStyle: 'short' })}
@@ -3417,7 +3417,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                       </div>
                     )}
                     {r.note && (
-                      <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 italic mt-0.5">{r.note}</div>
+                      <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 italic mt-0.5">{r.note}</div>
                     )}
                     {r.sub && !r.note && (
                       <div className="text-[0.6875rem] font-semibold text-slate-500 mt-0.5">{r.sub}</div>
@@ -3430,7 +3430,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                         {r.delta > 0 ? '+' : '−'}{formatPKR(Math.abs(r.delta))}
                       </div>
                     ) : r.sale ? (
-                      <div className="text-base font-black tabular-nums text-slate-700 dark:text-slate-200">
+                      <div className="text-base font-black tabular-nums text-slate-700 dark:text-ink-200">
                         {formatPKR(Number(r.sale.total || 0))}
                       </div>
                     ) : null}
@@ -3445,23 +3445,23 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                 {r.sale && (
                   <>
                     <button onClick={() => setOpenSale(isOpen ? null : r.id)}
-                      className="w-full px-3 py-2 border-t-2 border-slate-100 dark:border-slate-800 flex items-center justify-between text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                      className="w-full px-3 py-2 border-t-2 border-slate-100 dark:border-ink-800 flex items-center justify-between text-[0.6875rem] font-black text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                       <span className="inline-flex items-center gap-1.5">
                         <Package className="h-3 w-3" /> {(r.sale.items ?? []).length} cheezein
                       </span>
                       {isOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                     </button>
                     {isOpen && (
-                      <div className="px-3 pb-3 space-y-1 bg-slate-50 dark:bg-slate-800/40">
+                      <div className="px-3 pb-3 space-y-1 bg-slate-50 dark:bg-ink-800/40">
                         {(r.sale.items ?? []).map((it: any) => (
-                          <div key={it.id} className="flex items-center justify-between gap-2 text-[0.6875rem] py-1 border-b border-slate-100 dark:border-slate-800 last:border-0">
-                            <span className="font-bold text-slate-700 dark:text-slate-200 truncate">
+                          <div key={it.id} className="flex items-center justify-between gap-2 text-[0.6875rem] py-1 border-b border-slate-100 dark:border-ink-800 last:border-0">
+                            <span className="font-bold text-slate-700 dark:text-ink-200 truncate">
                               {it.product?.name ?? it.note ?? 'Item'}
                             </span>
                             <span className="font-bold text-slate-500 shrink-0 tabular-nums">
                               {it.quantity} × {formatPKR(it.price)}
                             </span>
-                            <span className="font-black text-slate-900 dark:text-white shrink-0 tabular-nums">
+                            <span className="font-black text-slate-900 dark:text-ink-white shrink-0 tabular-nums">
                               {formatPKR(it.total)}
                             </span>
                           </div>
@@ -3479,7 +3479,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
           })}
         </div>
 
-        <div className="px-4 py-3 border-t-2 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2 flex-wrap shrink-0">
+        <div className="px-4 py-3 border-t-2 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900 flex gap-2 flex-wrap shrink-0">
           <button onClick={() => setShowPrintOpts(true)}
             className="h-11 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-600 text-white text-sm font-black inline-flex items-center gap-1.5 shadow-lg transition">
             <Printer className="h-4 w-4" /> Statement Print
@@ -3509,7 +3509,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
       <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
         onClick={() => setShowPrintOpts(false)}>
         <div onClick={(e) => e.stopPropagation()}
-          className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+          className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
 
           <div className="px-5 py-4 bg-gradient-to-r from-cyan-600 to-blue-700 text-white flex items-center justify-between gap-3 shrink-0">
             <div className="min-w-0">
@@ -3524,7 +3524,7 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
 
           <div className="p-5 space-y-4 overflow-y-auto">
             <div>
-              <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Kaghaz</div>
+              <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-2">Kaghaz</div>
               <div className="grid grid-cols-2 gap-2">
                 {([
                   { v: 'a4' as const, label: 'A4 / PDF', sub: 'Poora safha' },
@@ -3534,9 +3534,9 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
                     className={`rounded-xl border-2 p-3 text-left transition ${
                       paper === p.v
                         ? 'border-blue-600 bg-blue-50 dark:bg-blue-500/10'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-blue-300'
+                        : 'border-slate-200 dark:border-ink-700 hover:border-blue-300'
                     }`}>
-                    <div className="text-sm font-black text-slate-900 dark:text-white">{p.label}</div>
+                    <div className="text-sm font-black text-slate-900 dark:text-ink-white">{p.label}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-500">{p.sub}</div>
                   </button>
                 ))}
@@ -3544,31 +3544,31 @@ function CustomerKhataModal({ customer, onClose, onPayment, onUdhaar, onReminder
             </div>
 
             <div>
-              <label className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-ink-400">
                 Adaigi ka wada (marzi se)
               </label>
               <input type="date" value={promiseDate} onChange={(e) => setPromiseDate(e.target.value)}
-                className="mt-1.5 w-full h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white" />
+                className="mt-1.5 w-full h-11 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-sm font-bold text-slate-900 dark:text-ink-white" />
             </div>
 
             <div>
-              <label className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500 dark:text-ink-400">
                 Note (parche par chhapega)
               </label>
               <textarea value={printNote} onChange={(e) => setPrintNote(e.target.value)} rows={3}
                 placeholder="Jaise: Agle hafte tak adaigi karein"
-                className="mt-1.5 w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-bold text-slate-900 dark:text-white resize-none" />
+                className="mt-1.5 w-full px-3 py-2 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-sm font-bold text-slate-900 dark:text-ink-white resize-none" />
             </div>
 
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+            <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
               {timeline.length} entries · Baqi {formatPKR(Math.abs(bal))} {isAdvance ? '(advance)' : ''}
               {isLoading && <span className="block mt-1 text-amber-600">Khata abhi load ho raha hai…</span>}
             </div>
           </div>
 
-          <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 flex gap-2 shrink-0">
+          <div className="px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 flex gap-2 shrink-0">
             <button onClick={() => setShowPrintOpts(false)}
-              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-sm font-black text-slate-600 dark:text-slate-300">
+              className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-sm font-black text-slate-600 dark:text-ink-300">
               Cancel
             </button>
             <button onClick={() => { printFull(); setShowPrintOpts(false); }}
@@ -3640,9 +3640,9 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
 
   if (due.length === 0 && rows.length === 0) {
     return (
-      <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-12 text-center">
+      <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-12 text-center">
         <BarChart3 className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-        <h3 className="font-black text-slate-900 dark:text-white text-lg">Abhi data nahi</h3>
+        <h3 className="font-black text-slate-900 dark:text-ink-white text-lg">Abhi data nahi</h3>
         <p className="text-sm font-semibold text-slate-500 mt-1">
           Kuch sales ya udhaar hone par yahan poori reports aayengi
         </p>
@@ -3675,13 +3675,13 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
       </section>
 
       <div className="grid lg:grid-cols-2 gap-3">
-        <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+        <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
           <div className="flex items-center gap-2 mb-4">
             <div className="h-9 w-9 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 flex items-center justify-center">
               <Clock className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white text-sm">Paisa Kitna Purana</h3>
+              <h3 className="font-black text-slate-900 dark:text-ink-white text-sm">Paisa Kitna Purana</h3>
               <p className="text-[0.6875rem] font-bold text-slate-500">Jitna purana, utni mushkil wasooli</p>
             </div>
           </div>
@@ -3703,13 +3703,13 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
           )}
         </section>
 
-        <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+        <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
           <div className="flex items-center gap-2 mb-4">
             <div className="h-9 w-9 rounded-xl bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 flex items-center justify-center">
               <BarChart3 className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white text-sm">Sab Se Bara Udhaar</h3>
+              <h3 className="font-black text-slate-900 dark:text-ink-white text-sm">Sab Se Bara Udhaar</h3>
               <p className="text-[0.6875rem] font-bold text-slate-500">Laal = credit limit se upar</p>
             </div>
           </div>
@@ -3757,24 +3757,24 @@ function KhataAnalytics({ khataData, stats, hideCost }: any) {
       </div>
 
       {oldest.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="p-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="p-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center">
               <Clock className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white text-sm">Sab Se Purana Udhaar</h3>
+              <h3 className="font-black text-slate-900 dark:text-ink-white text-sm">Sab Se Purana Udhaar</h3>
               <p className="text-[0.6875rem] font-bold text-slate-500">Inhe pehle yaad dilana chahiye</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {oldest.map((c) => (
               <div key={c.id} className="px-4 py-3 flex items-center gap-3">
                 <div className="h-9 w-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center font-black text-sm shrink-0">
                   {c.name?.charAt(0).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-black text-slate-900 dark:text-white text-sm truncate">{c.name}</div>
+                  <div className="font-black text-slate-900 dark:text-ink-white text-sm truncate">{c.name}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-500">
                     {c.ageDays} din se baqi{c.phone ? ` · ${c.phone}` : ''}
                   </div>
@@ -3816,13 +3816,13 @@ const INS_TONES: Record<string, string> = {
 
 function InsightCard({ icon: Icon, tone, title, main, sub }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 flex items-center gap-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 flex items-center gap-3">
       <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${INS_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
         <div className="text-[0.6875rem] uppercase font-black text-slate-500 tracking-wider">{title}</div>
-        <div className="font-black text-slate-900 dark:text-white truncate">{main}</div>
+        <div className="font-black text-slate-900 dark:text-ink-white truncate">{main}</div>
         {sub && <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{sub}</div>}
       </div>
     </div>

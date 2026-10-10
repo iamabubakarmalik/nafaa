@@ -83,7 +83,7 @@ export default function ConnectChannelPage() {
         <div className="flex flex-wrap items-center gap-2 text-[0.78125rem] text-slate-500">
           Pehle se jure:
           {channels.map((c) => (
-            <Link key={c.id} to={channelPath(c)} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 hover:border-slate-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+            <Link key={c.id} to={channelPath(c)} className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 font-medium text-slate-700 hover:border-slate-400 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200">
               {channelMeta(c.type).emoji} {c.displayName}
               <span className={cn('h-1.5 w-1.5 rounded-full', c.live ? 'bg-emerald-500' : 'bg-slate-300')} />
             </Link>
@@ -102,10 +102,10 @@ export default function ConnectChannelPage() {
                 return (
                   <button key={p.key} onClick={() => setPlatform(p.key)}
                     className={cn('flex items-start gap-3 rounded-lg border p-3 text-left transition',
-                      on ? 'border-slate-900 ring-1 ring-slate-900 dark:border-white dark:ring-white' : 'border-slate-200 hover:border-slate-400 dark:border-slate-700')}>
+                      on ? 'border-slate-900 ring-1 ring-slate-900 dark:border-ink-white dark:ring-ink-white' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
                     <span className="text-xl">{m.emoji}</span>
                     <span className="min-w-0">
-                      <span className="block text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{p.name}</span>
+                      <span className="block text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{p.name}</span>
                       <span className="block text-[0.75rem] text-slate-500">{p.desc}</span>
                     </span>
                   </button>
@@ -138,10 +138,10 @@ export default function ConnectChannelPage() {
             {conn.phase === 'connected' && conn.channelId ? (
               <Connected channelId={conn.channelId} name={shortName} />
             ) : conn.phase === 'waiting' ? (
-              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-4 dark:border-slate-700">
+              <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 p-4 dark:border-ink-700">
                 <Loader2 className="h-5 w-5 animate-spin text-slate-500" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{shortName} window me "{platform === 'shopify' ? 'Install' : 'Approve'}" dabayein</div>
+                  <div className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{shortName} window me "{platform === 'shopify' ? 'Install' : 'Approve'}" dabayein</div>
                   <div className="text-[0.78125rem] text-slate-500">Login nahi hain to pehle {shortName} login maangega. Window khud band hogi.</div>
                 </div>
                 <Btn size="sm" onClick={() => conn.reopen()} icon={<ExternalLink className="h-3.5 w-3.5" />}>Window dobara</Btn>
@@ -150,7 +150,7 @@ export default function ConnectChannelPage() {
             ) : conn.phase === 'denied' ? (
               <div className="rounded-lg border border-rose-200 bg-rose-50/60 p-4 text-center dark:border-rose-500/30 dark:bg-rose-500/5">
                 <XCircle className="mx-auto h-8 w-8 text-rose-500" />
-                <div className="mt-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-white">Ijazat nahi di gayi</div>
+                <div className="mt-2 text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">Ijazat nahi di gayi</div>
                 <Btn className="mt-3" onClick={() => conn.reset()}>Dobara koshish</Btn>
               </div>
             ) : conn.phase === 'manual' && conn.channelId ? (
@@ -189,7 +189,7 @@ export default function ConnectChannelPage() {
                   <HttpsNotice compact reason={conn.publicApi.reason} fix={conn.publicApi.fix} />
                 )}
                 {conn.error && <p className="text-[0.78125rem] text-rose-600">{conn.error}</p>}
-                <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4 dark:border-ink-800">
                   <Btn variant="primary" loading={busy} onClick={submit}
                     icon={effectiveMethod === 'auto' ? <span>{channelMeta(typeOf).emoji}</span> : undefined}>
                     {effectiveMethod === 'auto' ? `${shortName} se jorein` : 'Channel banao aur steps dekho'}
@@ -206,7 +206,7 @@ export default function ConnectChannelPage() {
 
         <aside className="space-y-4">
           <Card title={effectiveMethod === 'auto' ? 'Jorne ke baad khud' : 'Manual me'}>
-            <ul className="space-y-2.5 text-[0.8125rem] text-slate-600 dark:text-slate-300">
+            <ul className="space-y-2.5 text-[0.8125rem] text-slate-600 dark:text-ink-300">
               {(effectiveMethod === 'auto'
                 ? ['Webhooks khud lagte hain — har naya order Nafaa me', 'Naye order par ghanti aur sidebar me ginti', 'Accept → bill, receipt, stock kam', `Status wapas ${shortName} par${platform === 'shopify' ? ' (fulfillment + tracking)' : ''}`, 'Stock har 15 minute, accept/cancel par foran', 'Products tab me har variant jorna']
                 : ['Aap ko Key aur Secret milte hain', platform === 'custom' ? 'Developer ke liye PHP/Node/Python code' : platform === 'shopify' ? 'Shopify me webhook URL paste' : 'Plugin, REST keys ya webhook', 'Test order se poora flow check', 'Baad me Automatic par badal sakte hain']
@@ -216,7 +216,7 @@ export default function ConnectChannelPage() {
             </ul>
           </Card>
           <Card title="Kaun si ijazat">
-            <ul className="space-y-1.5 text-[0.78125rem] text-slate-600 dark:text-slate-300">
+            <ul className="space-y-1.5 text-[0.78125rem] text-slate-600 dark:text-ink-300">
               <li>✓ Orders dekhna aur status badalna</li>
               <li>✓ Products aur stock</li>
               <li className="text-slate-400">✗ Password ya payment details — kabhi nahi</li>
@@ -231,7 +231,7 @@ export default function ConnectChannelPage() {
 function Step({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.6875rem] font-bold text-white dark:bg-white dark:text-slate-900">{n}</span>
+      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[0.6875rem] font-bold text-white dark:bg-ink-white dark:text-ink-900">{n}</span>
       {children}
     </span>
   );
@@ -243,13 +243,13 @@ function MethodCard({ active, disabled, onClick, icon, title, badge, desc }: {
   return (
     <button onClick={onClick} disabled={disabled}
       className={cn('rounded-lg border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50',
-        active ? 'border-slate-900 ring-1 ring-slate-900 dark:border-white dark:ring-white' : 'border-slate-200 hover:border-slate-400 dark:border-slate-700')}>
+        active ? 'border-slate-900 ring-1 ring-slate-900 dark:border-ink-white dark:ring-ink-white' : 'border-slate-200 hover:border-slate-400 dark:border-ink-700')}>
       <div className="flex items-center gap-2">
-        <span className={cn('flex h-4 w-4 items-center justify-center rounded-full border', active ? 'border-slate-900 dark:border-white' : 'border-slate-300')}>
-          {active && <span className="h-2 w-2 rounded-full bg-slate-900 dark:bg-white" />}
+        <span className={cn('flex h-4 w-4 items-center justify-center rounded-full border', active ? 'border-slate-900 dark:border-ink-white' : 'border-slate-300')}>
+          {active && <span className="h-2 w-2 rounded-full bg-slate-900 dark:bg-ink-white" />}
         </span>
         {icon}
-        <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{title}</span>
+        <span className="text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{title}</span>
         {badge}
       </div>
       <p className="mt-1.5 pl-6 text-[0.78125rem] text-slate-500">{desc}</p>
@@ -267,8 +267,8 @@ function Connected({ channelId, name }: { channelId: string; name: string }) {
   return (
     <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-5 text-center dark:border-emerald-500/30 dark:bg-emerald-500/5">
       <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-600" />
-      <div className="mt-2 text-[1rem] font-semibold text-slate-900 dark:text-white">{name} jur gaya</div>
-      <p className="mt-1 text-[0.8125rem] text-slate-600 dark:text-slate-300">Webhooks lag gaye aur stock sync shuru. Ab products jorein — har variant ke saath.</p>
+      <div className="mt-2 text-[1rem] font-semibold text-slate-900 dark:text-ink-white">{name} jur gaya</div>
+      <p className="mt-1 text-[0.8125rem] text-slate-600 dark:text-ink-300">Webhooks lag gaye aur stock sync shuru. Ab products jorein — har variant ke saath.</p>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         <Btn variant="primary" onClick={() => navigate(`/online-store/channels/${channelId}?tab=products`)} icon={<Package className="h-4 w-4" />}>Products jorein</Btn>
         <Btn loading={test.isPending} onClick={() => test.mutate()} icon={<Send className="h-4 w-4" />}>Test order</Btn>

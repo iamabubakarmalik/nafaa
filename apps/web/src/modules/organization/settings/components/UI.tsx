@@ -28,7 +28,7 @@ export function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[0.8125rem] font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+      <label className="text-[0.8125rem] font-extrabold text-slate-800 dark:text-ink-100 flex items-center gap-1.5">
         <span>{label}</span>
         {required && <span className="text-rose-600 dark:text-rose-400">*</span>}
         {badge}
@@ -37,7 +37,7 @@ export function Field({
       {error ? (
         <p className="text-xs text-rose-600 dark:text-rose-400 font-bold">{error}</p>
       ) : hint ? (
-        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-snug">
+        <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold leading-snug">
           {hint}
         </p>
       ) : null}
@@ -71,10 +71,10 @@ export function Toggle({ checked, onChange, label, desc, disabled, icon: Icon }:
   return (
     <div
       className={[
-        'flex items-center justify-between gap-4 py-3.5 border-b border-slate-100 dark:border-slate-800 last:border-0 transition',
+        'flex items-center justify-between gap-4 py-3.5 border-b border-slate-100 dark:border-ink-800 last:border-0 transition',
         disabled
           ? 'opacity-50'
-          : 'hover:bg-slate-50/60 dark:hover:bg-slate-800/40 -mx-2 px-2 rounded-lg',
+          : 'hover:bg-slate-50/60 dark:hover:bg-ink-800/40 -mx-2 px-2 rounded-lg',
       ].join(' ')}
     >
       <div className="flex-1 min-w-0 flex items-start gap-2.5">
@@ -84,18 +84,18 @@ export function Toggle({ checked, onChange, label, desc, disabled, icon: Icon }:
               'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition',
               checked
                 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+                : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400',
             ].join(' ')}
           >
             <Icon className="h-4 w-4" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
+          <div className="text-sm font-extrabold text-slate-800 dark:text-ink-100">
             {label}
           </div>
           {desc && (
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold leading-snug">
+            <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-semibold leading-snug">
               {desc}
             </div>
           )}
@@ -108,10 +108,10 @@ export function Toggle({ checked, onChange, label, desc, disabled, icon: Icon }:
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={[
-          'relative h-7 w-12 rounded-full p-0.5 transition-all shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:ring-offset-2 dark:focus:ring-offset-slate-900',
+          'relative h-7 w-12 rounded-full p-0.5 transition-all shrink-0 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:ring-offset-2 dark:focus:ring-offset-ink-900',
           checked
             ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 shadow-md shadow-emerald-500/30'
-            : 'bg-slate-300 dark:bg-slate-700',
+            : 'bg-slate-300 dark:bg-ink-700',
         ].join(' ')}
       >
         <div
@@ -153,15 +153,15 @@ export function TextInput({
   return (
     <div
       className={[
-        'relative flex items-center rounded-xl border-2 bg-white dark:bg-slate-800 transition',
+        'relative flex items-center rounded-xl border-2 bg-white dark:bg-ink-800 transition',
         error
           ? 'border-rose-400 dark:border-rose-500/60 focus-within:border-rose-500 focus-within:ring-2 focus-within:ring-rose-500/20'
-          : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20',
-        disabled ? 'bg-slate-50 dark:bg-slate-900/50' : '',
+          : 'border-slate-200 dark:border-ink-700 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20',
+        disabled ? 'bg-slate-50 dark:bg-ink-900/50' : '',
       ].join(' ')}
     >
       {prefix && (
-        <span className="pl-3 text-sm font-extrabold text-slate-500 dark:text-slate-400 select-none">
+        <span className="pl-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
           {prefix}
         </span>
       )}
@@ -174,10 +174,10 @@ export function TextInput({
         disabled={disabled}
         maxLength={maxLength}
         autoFocus={autoFocus}
-        className="w-full h-11 px-3 bg-transparent text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none disabled:text-slate-400 dark:disabled:text-slate-500"
+        className="w-full h-11 px-3 bg-transparent text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 outline-none disabled:text-slate-400 dark:disabled:text-ink-500"
       />
       {suffix && (
-        <span className="pr-3 text-sm font-extrabold text-slate-500 dark:text-slate-400 select-none">
+        <span className="pr-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
           {suffix}
         </span>
       )}
@@ -209,13 +209,13 @@ export function NumberInput({
   return (
     <div
       className={[
-        'relative flex items-center rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800',
+        'relative flex items-center rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
         'focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition',
-        disabled ? 'bg-slate-50 dark:bg-slate-900/50 opacity-60' : '',
+        disabled ? 'bg-slate-50 dark:bg-ink-900/50 opacity-60' : '',
       ].join(' ')}
     >
       {prefix && (
-        <span className="pl-3 text-sm font-extrabold text-slate-500 dark:text-slate-400 select-none">
+        <span className="pl-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
           {prefix}
         </span>
       )}
@@ -227,10 +227,10 @@ export function NumberInput({
         max={max}
         step={step}
         disabled={disabled}
-        className="w-full h-11 px-3 bg-transparent text-sm font-extrabold tabular-nums text-slate-900 dark:text-white outline-none"
+        className="w-full h-11 px-3 bg-transparent text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white outline-none"
       />
       {suffix && (
-        <span className="pr-3 text-sm font-extrabold text-slate-500 dark:text-slate-400 select-none">
+        <span className="pr-3 text-sm font-extrabold text-slate-500 dark:text-ink-400 select-none">
           {suffix}
         </span>
       )}
@@ -258,10 +258,10 @@ export function Select({ value, onChange, options, disabled, placeholder }: Sele
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
         className={[
-          'w-full h-11 pl-3 pr-9 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800',
-          'text-sm font-semibold text-slate-900 dark:text-white outline-none appearance-none',
+          'w-full h-11 pl-3 pr-9 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
+          'text-sm font-semibold text-slate-900 dark:text-ink-white outline-none appearance-none',
           'focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition',
-          'disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:opacity-60',
+          'disabled:bg-slate-50 dark:disabled:bg-ink-900/50 disabled:opacity-60',
         ].join(' ')}
       >
         {placeholder && <option value="">{placeholder}</option>}
@@ -302,10 +302,10 @@ export function TextArea({
       maxLength={maxLength}
       disabled={disabled}
       className={[
-        'w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800',
-        'text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500',
+        'w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800',
+        'text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500',
         'outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition resize-y',
-        'disabled:bg-slate-50 dark:disabled:bg-slate-900/50 disabled:opacity-60',
+        'disabled:bg-slate-50 dark:disabled:bg-ink-900/50 disabled:opacity-60',
       ].join(' ')}
     />
   );
@@ -345,8 +345,8 @@ export function ChoiceGroup({ value, onChange, options, columns = 2 }: ChoiceGro
             className={[
               'text-left p-3 rounded-xl border-2 transition-all active:scale-[0.98]',
               active
-                ? 'border-emerald-500 dark:border-emerald-500/60 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/15 dark:to-slate-800/60 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-sm',
+                ? 'border-emerald-500 dark:border-emerald-500/60 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/15 dark:to-ink-800/60 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/20'
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 dark:hover:border-ink-600 hover:shadow-sm',
             ].join(' ')}
           >
             <div
@@ -354,7 +354,7 @@ export function ChoiceGroup({ value, onChange, options, columns = 2 }: ChoiceGro
                 'font-extrabold text-sm flex items-center gap-1.5',
                 active
                   ? 'text-emerald-700 dark:text-emerald-300'
-                  : 'text-slate-900 dark:text-white',
+                  : 'text-slate-900 dark:text-ink-white',
               ].join(' ')}
             >
               {o.emoji && <span className="text-base">{o.emoji}</span>}
@@ -362,7 +362,7 @@ export function ChoiceGroup({ value, onChange, options, columns = 2 }: ChoiceGro
               <span>{o.label}</span>
             </div>
             {o.desc && (
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold leading-snug">
+              <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-semibold leading-snug">
                 {o.desc}
               </div>
             )}
@@ -409,16 +409,16 @@ export function SectionCard({
     rose:    { text: 'text-rose-700 dark:text-rose-300',       bg: 'bg-rose-100 dark:bg-rose-500/20',       ring: 'ring-rose-200 dark:ring-rose-500/30',       grad: 'from-rose-500 to-red-600' },
     pink:    { text: 'text-pink-700 dark:text-pink-300',       bg: 'bg-pink-100 dark:bg-pink-500/20',       ring: 'ring-pink-200 dark:ring-pink-500/30',       grad: 'from-pink-500 to-fuchsia-600' },
     cyan:    { text: 'text-cyan-700 dark:text-cyan-300',       bg: 'bg-cyan-100 dark:bg-cyan-500/20',       ring: 'ring-cyan-200 dark:ring-cyan-500/30',       grad: 'from-cyan-500 to-teal-600' },
-    slate:   { text: 'text-slate-700 dark:text-slate-300',     bg: 'bg-slate-100 dark:bg-slate-800',        ring: 'ring-slate-200 dark:ring-slate-700',        grad: 'from-slate-500 to-slate-700' },
+    slate:   { text: 'text-slate-700 dark:text-ink-300',     bg: 'bg-slate-100 dark:bg-ink-800',        ring: 'ring-slate-200 dark:ring-ink-700',        grad: 'from-slate-500 to-slate-700' },
   };
   const c = colorMap[color] || colorMap.emerald;
 
   return (
     <section
       id={id}
-      className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden scroll-mt-24"
+      className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden scroll-mt-24"
     >
-      <header className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-br from-slate-50/60 to-white dark:from-slate-900/60 dark:to-slate-900/30 flex items-center gap-3 flex-wrap">
+      <header className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-br from-slate-50/60 to-white dark:from-ink-900/60 dark:to-ink-900/30 flex items-center gap-3 flex-wrap">
         {Icon && (
           <div
             className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${c.grad} text-white flex items-center justify-center shrink-0 shadow-md ring-4 ${c.ring}`}
@@ -428,13 +428,13 @@ export function SectionCard({
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg leading-tight">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base sm:text-lg leading-tight">
               {title}
             </h3>
             {badge}
           </div>
           {desc && (
-            <p className="text-xs sm:text-[0.8125rem] text-slate-500 dark:text-slate-400 mt-0.5 font-semibold leading-snug">
+            <p className="text-xs sm:text-[0.8125rem] text-slate-500 dark:text-ink-400 mt-0.5 font-semibold leading-snug">
               {desc}
             </p>
           )}
@@ -460,7 +460,7 @@ export function StatPill({ label, value, tone = 'emerald', icon: Icon }: StatPil
     blue: 'bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-500/40',
     amber: 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-500/40',
     rose: 'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-500/40',
-    slate: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+    slate: 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 border-slate-200 dark:border-ink-700',
   };
   return (
     <div
@@ -475,14 +475,14 @@ export function StatPill({ label, value, tone = 'emerald', icon: Icon }: StatPil
 
 /* ─── DIVIDER ─── */
 export function Divider({ label }: { label?: string }) {
-  if (!label) return <div className="h-px bg-slate-200 dark:bg-slate-800 my-4" />;
+  if (!label) return <div className="h-px bg-slate-200 dark:bg-ink-800 my-4" />;
   return (
     <div className="my-4 flex items-center gap-3">
-      <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
-      <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400">
+      <div className="flex-1 h-px bg-slate-200 dark:bg-ink-800" />
+      <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400">
         {label}
       </span>
-      <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
+      <div className="flex-1 h-px bg-slate-200 dark:bg-ink-800" />
     </div>
   );
 }

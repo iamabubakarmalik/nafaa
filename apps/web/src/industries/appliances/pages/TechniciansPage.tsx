@@ -243,23 +243,23 @@ export default function TechniciansPage() {
       </section>
 
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
           <TabBtn active={tab === 'team'} onClick={() => setTab('team')} icon={Users} label="Team" />
           <TabBtn active={tab === 'performance'} onClick={() => setTab('performance')} icon={BarChart3} label="Performance" />
         </div>
         {tab === 'team' && (
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1">
             <button onClick={() => setView('grid')}
               className={`px-3 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-                view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
               }`}><LayoutGrid className="h-4 w-4" /></button>
             <button onClick={() => setView('list')}
               className={`px-3 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-                view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
               }`}><ListIcon className="h-4 w-4" /></button>
           </div>
         )}
-        <div className="text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">{filtered.length} technicians</div>
+        <div className="text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">{filtered.length} technicians</div>
       </div>
 
       {tab === 'performance' ? (
@@ -272,16 +272,16 @@ export default function TechniciansPage() {
               <input ref={searchRef} className={inputCls('h-12 pl-10 pr-10 text-sm font-semibold')}
                 placeholder="Naam, phone, code, maharat... (/)" value={search} onChange={(e) => setSearch(e.target.value)} />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
             </div>
-            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 h-12">
+            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 h-12">
               {([['active', 'Active'], ['inactive', 'Band'], [null, 'Sab']] as const).map(([v, label]) => (
                 <button key={String(v)} onClick={() => setStatus(v as any)}
                   className={`px-3 rounded-xl text-xs font-extrabold transition ${
-                    status === v ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                    status === v ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
                   }`}>{label}</button>
               ))}
             </div>
@@ -293,7 +293,7 @@ export default function TechniciansPage() {
 
           {isLoading ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-52 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+              {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-52 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
             </div>
           ) : filtered.length === 0 ? (
             <Empty
@@ -335,7 +335,7 @@ function TabBtn({ active, onClick, icon: Icon, label }: any) {
   return (
     <button onClick={onClick}
       className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
     </button>
@@ -353,11 +353,11 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
   };
 
   return (
-    <div className={`group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
-      !t.isActive ? 'opacity-70 border-slate-200 dark:border-slate-800'
+    <div className={`group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
+      !t.isActive ? 'opacity-70 border-slate-200 dark:border-ink-800'
         : load === 'heavy' ? 'border-rose-300 dark:border-rose-500/40'
         : load === 'free' ? 'border-emerald-300 dark:border-emerald-500/40'
-        : 'border-slate-200 dark:border-slate-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
+        : 'border-slate-200 dark:border-ink-800 hover:border-cyan-300 dark:hover:border-cyan-500/50'
     }`}>
       <Link to={`/appliances/technicians/${t.id}`} className="block p-4">
         <div className="flex items-start gap-3">
@@ -376,15 +376,15 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</h3>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</h3>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {t.employeeCode}{t.experienceYears ? ` • ${t.experienceYears} saal tajurba` : ''}
             </div>
-            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+            <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5">
               <Phone className="h-3 w-3" /> {t.phone}
             </div>
             {t.currentZone && (
-              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">
+              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">
                 <MapPin className="h-3 w-3" /> {t.currentZone}
               </div>
             )}
@@ -413,10 +413,10 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
             }`}>
               {load === 'free' ? '🟢 Khali — kaam de sakte hain' : load === 'heavy' ? '🔴 Bojh ziyada hai' : '🟡 Kaam chal raha hai'}
             </span>
-            <span className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-white">{open}</span>
+            <span className="text-lg font-extrabold tabular-nums text-slate-900 dark:text-ink-white">{open}</span>
           </div>
           {open > 0 && (
-            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {t.openServices ?? 0} repair • {t.openInstallations ?? 0} installation
             </div>
           )}
@@ -425,10 +425,10 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
         {(t.specializations ?? []).length > 0 && (
           <div className="mt-2 flex gap-1 flex-wrap">
             {t.specializations.slice(0, 4).map((s) => (
-              <span key={s} className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">{s}</span>
+              <span key={s} className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold">{s}</span>
             ))}
             {t.specializations.length > 4 && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400 text-[0.6875rem] font-extrabold">+{t.specializations.length - 4}</span>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-slate-400 text-[0.6875rem] font-extrabold">+{t.specializations.length - 4}</span>
             )}
           </div>
         )}
@@ -440,7 +440,7 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
         </div>
       </Link>
 
-      <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between gap-1">
+      <div className="px-3 py-2 border-t border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between gap-1">
         <div className="flex items-center gap-1">
           <button onClick={(e) => { e.preventDefault(); wa(); }}
             className="h-8 w-8 rounded-lg bg-green-100 dark:bg-green-500/15 hover:bg-green-200 dark:hover:bg-green-500/25 text-green-700 dark:text-green-300 flex items-center justify-center transition" title="WhatsApp">
@@ -453,7 +453,7 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
         </div>
         <div className="flex items-center gap-1">
           <Link to={`/appliances/technicians/${t.id}`}
-            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
+            className="h-8 px-2.5 rounded-lg bg-slate-200/70 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
             Detail <ChevronRight className="h-3 w-3" />
           </Link>
           <button onClick={(e) => { e.preventDefault(); onEdit(); }}
@@ -474,9 +474,9 @@ function TechCard({ t, onEdit, onRemove }: { t: TechnicianRow; onEdit: () => voi
 
 function MiniStat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-2 py-1.5">
-      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-800 dark:text-slate-100 truncate">{value}</div>
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 px-2 py-1.5">
+      <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">{label}</div>
+      <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-800 dark:text-ink-100 truncate">{value}</div>
       {sub && <div className="text-[0.625rem] font-bold text-slate-400 truncate">{sub}</div>}
     </div>
   );
@@ -489,11 +489,11 @@ function TechTable({ rows, onEdit, onRemove }: {
   onRemove: (t: TechnicianRow) => void;
 }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[900px]">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+            <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
               <Th className="text-left">Technician</Th>
               <Th className="text-left">Rabta</Th>
               <Th className="text-left">Maharat</Th>
@@ -509,20 +509,20 @@ function TechTable({ rows, onEdit, onRemove }: {
             {rows.map((t) => {
               const open = t.openJobs ?? 0;
               return (
-                <tr key={t.id} className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${!t.isActive ? 'opacity-60' : ''}`}>
+                <tr key={t.id} className={`border-b border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition ${!t.isActive ? 'opacity-60' : ''}`}>
                   <td className="px-3 py-2.5">
                     <Link to={`/appliances/technicians/${t.id}`} className="flex items-center gap-2.5 group">
                       <div className={`h-9 w-9 rounded-xl flex items-center justify-center text-xs font-extrabold text-white shrink-0 ${
                         t.isActive ? 'bg-gradient-to-br from-cyan-500 to-teal-600' : 'bg-slate-400'
                       }`}>{t.name.charAt(0).toUpperCase()}</div>
                       <div className="min-w-0">
-                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</div>
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{t.name}</div>
                         <div className="text-[0.6875rem] font-bold text-slate-400">{t.employeeCode}{t.currentZone ? ` • ${t.currentZone}` : ''}</div>
                       </div>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">{t.phone}</td>
-                  <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 max-w-[180px] truncate">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">{t.phone}</td>
+                  <td className="px-3 py-2.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 max-w-[180px] truncate">
                     {(t.specializations ?? []).slice(0, 3).join(', ') || '—'}
                   </td>
                   <td className="px-3 py-2.5 text-center">
@@ -533,18 +533,18 @@ function TechTable({ rows, onEdit, onRemove }: {
                     }`}>{open}</span>
                   </td>
                   <td className="px-3 py-2.5 text-center">
-                    <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{t.completedJobs}</div>
+                    <div className="text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100">{t.completedJobs}</div>
                     <div className="text-[0.625rem] font-bold text-slate-400">{(t.completionRate ?? 0).toFixed(0)}%</div>
                   </td>
                   <td className="px-3 py-2.5 text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                     {t.avgRating ? `⭐ ${t.avgRating.toFixed(1)}` : '—'}
                   </td>
-                  <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">{formatPKR(t.totalRevenue)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100 whitespace-nowrap">{formatPKR(t.totalRevenue)}</td>
                   <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-violet-700 dark:text-violet-400 whitespace-nowrap">{formatPKR(t.totalCommission)}</td>
                   <td className="px-3 py-2.5 pr-4">
                     <div className="flex items-center justify-end gap-1">
                       <Link to={`/appliances/technicians/${t.id}`}
-                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center transition" title="Detail">
+                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-700 dark:text-ink-200 flex items-center justify-center transition" title="Detail">
                         <ChevronRight className="h-3.5 w-3.5" />
                       </Link>
                       <button onClick={() => onEdit(t)}
@@ -571,7 +571,7 @@ function TechTable({ rows, onEdit, onRemove }: {
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -580,7 +580,7 @@ function Th({ children, className = '' }: { children: React.ReactNode; className
 /* ═════════════ PERFORMANCE TAB ═════════════ */
 function TechPerformance({ summary, leaderChart }: any) {
   if (!summary) {
-    return <div className="h-64 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />;
+    return <div className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
   const rows = summary.leaderboard ?? [];
 
@@ -617,7 +617,7 @@ function TechPerformance({ summary, leaderChart }: any) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+                <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
                   <Th className="text-left">#</Th>
                   <Th className="text-left">Technician</Th>
                   <Th className="text-center">Khula</Th>
@@ -630,16 +630,16 @@ function TechPerformance({ summary, leaderChart }: any) {
               </thead>
               <tbody>
                 {rows.map((l: any, i: number) => (
-                  <tr key={l.id} className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${!l.isActive ? 'opacity-60' : ''}`}>
+                  <tr key={l.id} className={`border-b border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition ${!l.isActive ? 'opacity-60' : ''}`}>
                     <td className="px-3 py-2.5">
                       <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center ${
                         i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-500 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                          : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                       }`}>{i + 1}</span>
                     </td>
                     <td className="px-3 py-2.5">
                       <Link to={`/appliances/technicians/${l.id}`} className="group">
-                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{l.name}</div>
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">{l.name}</div>
                         {l.zone && <div className="text-[0.6875rem] font-bold text-slate-400">{l.zone}</div>}
                       </Link>
                     </td>
@@ -647,21 +647,21 @@ function TechPerformance({ summary, leaderChart }: any) {
                       <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold tabular-nums ${
                         l.openJobs === 0 ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
                           : l.openJobs > 5 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
-                          : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                          : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                       }`}>{l.openJobs}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{l.monthJobs}</td>
-                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{l.completionRate.toFixed(0)}%</td>
+                    <td className="px-3 py-2.5 text-center text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100">{l.monthJobs}</td>
+                    <td className="px-3 py-2.5 text-center text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{l.completionRate.toFixed(0)}%</td>
                     <td className="px-3 py-2.5 text-center text-[0.6875rem] font-extrabold text-amber-600 dark:text-amber-400">
                       {l.avgRating ? `⭐ ${l.avgRating.toFixed(1)}` : '—'}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-slate-100 whitespace-nowrap">{formatPKR(l.monthRevenue)}</td>
+                    <td className="px-3 py-2.5 text-right text-xs font-extrabold tabular-nums text-slate-800 dark:text-ink-100 whitespace-nowrap">{formatPKR(l.monthRevenue)}</td>
                     <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold tabular-nums text-violet-700 dark:text-violet-400 whitespace-nowrap">{formatPKR(l.monthCommission)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot>
-                <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+                <tr className="bg-slate-900 dark:bg-ink-950 text-white">
                   <td colSpan={6} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Kul</td>
                   <td className="px-3 py-3 text-right text-xs font-extrabold text-cyan-300 tabular-nums whitespace-nowrap">{formatPKR(summary.month.revenue)}</td>
                   <td className="px-3 py-3 pr-4 text-right text-xs font-extrabold text-violet-300 tabular-nums whitespace-nowrap">{formatPKR(summary.month.commission)}</td>
@@ -836,7 +836,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
             <div className="mt-2 flex gap-1.5 flex-wrap">
               {COMMON_SKILLS.filter((s) => !f.specializations.includes(s)).map((s) => (
                 <button key={s} type="button" onClick={() => addSkill(s)}
-                  className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400 transition">
+                  className="px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-amber-400 transition">
                   + {s}
                 </button>
               ))}
@@ -852,7 +852,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
                     <button key={c} type="button" onClick={() => toggleCat(c)}
                       className={`px-2.5 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition inline-flex items-center gap-1 ${
                         on ? 'bg-cyan-600 border-cyan-600 text-white'
-                          : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                          : 'bg-slate-100 dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
                       }`}>
                       <span>{catEmoji(c)}</span> {catLabel(c)}
                     </button>
@@ -870,7 +870,7 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
                 <button key={d} type="button" onClick={() => toggleDay(i)}
                   className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                     f.workingDays.includes(i) ? 'bg-violet-600 border-violet-600 text-white shadow'
-                      : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-violet-400'
+                      : 'bg-slate-100 dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-violet-400'
                   }`}>{d}</button>
               ))}
             </div>
@@ -917,16 +917,16 @@ function TechForm({ tech, onClose, onSaved }: { tech: Technician | null; onClose
           <button type="button" onClick={() => set('isActive', !f.isActive)}
             className={`mt-3 w-full flex items-center justify-between p-3 rounded-xl border-2 transition text-left ${
               f.isActive ? 'bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/15 dark:to-teal-500/10 border-emerald-300 dark:border-emerald-500/40'
-                : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'
             }`}>
             <div className="flex items-center gap-2.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               <div>
-                <div className="text-sm font-extrabold text-slate-900 dark:text-white">Active</div>
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Kaam dene ki list me nazar aayega</div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Active</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">Kaam dene ki list me nazar aayega</div>
               </div>
             </div>
-            <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${f.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${f.isActive ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-ink-600'}`}>
               <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${f.isActive ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
             </div>
           </button>

@@ -133,7 +133,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4 pb-8">
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-cyan-700 dark:from-slate-950 dark:via-emerald-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-cyan-700 dark:from-ink-950 dark:via-emerald-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
@@ -192,16 +192,16 @@ export default function SettingsPage() {
             onClick={() => setSidebarOpen(false)}
           >
             <div
-              className="absolute inset-y-0 left-0 w-[320px] max-w-[85vw] bg-white dark:bg-slate-900 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-200"
+              className="absolute inset-y-0 left-0 w-[320px] max-w-[85vw] bg-white dark:bg-ink-900 shadow-2xl overflow-y-auto animate-in slide-in-from-left duration-200"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="sticky top-0 z-10 px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur flex items-center justify-between">
-                <h2 className="font-extrabold text-slate-900 dark:text-white">Settings Sections</h2>
+              <div className="sticky top-0 z-10 px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 bg-white/95 dark:bg-ink-900/95 backdrop-blur flex items-center justify-between">
+                <h2 className="font-extrabold text-slate-900 dark:text-ink-white">Settings Sections</h2>
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                  className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition"
                 >
-                  <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                  <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
                 </button>
               </div>
               <div className="p-3">
@@ -224,20 +224,20 @@ export default function SettingsPage() {
         {/* Content */}
         <div ref={contentRef} className="min-w-0 space-y-4">
           {/* Section header bar */}
-          <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 px-4 py-3 flex items-center gap-3">
+          <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 px-4 py-3 flex items-center gap-3">
             <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${gradFor(currentTab.color)} text-white flex items-center justify-center shadow-md shrink-0`}>
               <currentTab.icon className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-widest flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-widest flex items-center gap-1">
                 <span>{GROUP_META[currentTab.group].label}</span>
                 <ChevronRight className="h-3 w-3" />
                 <span className="text-emerald-600 dark:text-emerald-400">Active</span>
               </div>
-              <h2 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">
+              <h2 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">
                 {currentTab.label}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                 {currentTab.desc}
               </p>
             </div>
@@ -254,7 +254,7 @@ export default function SettingsPage() {
               {Array.from({ length: 3 }).map((_, i) => (
                 <div
                   key={i}
-                  className="h-40 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse"
+                  className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse"
                 />
               ))}
             </div>
@@ -313,12 +313,12 @@ function SidebarNav({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search settings..."
-          className="h-11 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-9 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
+          className="h-11 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 pl-9 pr-9 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition"
         />
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition"
           >
             <X className="h-3.5 w-3.5 text-slate-500" />
           </button>
@@ -326,7 +326,7 @@ function SidebarNav({
       </div>
 
       {search && (
-        <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider px-1">
+        <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-wider px-1">
           {totalMatches} match{totalMatches !== 1 ? 'es' : ''}
         </div>
       )}
@@ -338,7 +338,7 @@ function SidebarNav({
           const meta = GROUP_META[groupKey];
           return (
             <div key={groupKey}>
-              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 px-2 flex items-center gap-1.5">
+              <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400 mb-1.5 px-2 flex items-center gap-1.5">
                 <meta.icon className="h-3 w-3" />
                 {meta.label}
               </div>
@@ -356,7 +356,7 @@ function SidebarNav({
                           ? `bg-gradient-to-r ${gradFor(tab.color)} text-white shadow-md`
                           : tab.danger
                             ? 'hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-700 dark:text-rose-400'
-                            : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200',
+                            : 'hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-700 dark:text-ink-200',
                       ].join(' ')}
                     >
                       <div
@@ -366,7 +366,7 @@ function SidebarNav({
                             ? 'bg-white/20 backdrop-blur'
                             : tab.danger
                               ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400'
-                              : 'bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700',
+                              : 'bg-slate-100 dark:bg-ink-800 group-hover:bg-white dark:group-hover:bg-ink-700',
                         ].join(' ')}
                       >
                         <Icon className="h-4 w-4" />
@@ -378,7 +378,7 @@ function SidebarNav({
                         <div
                           className={[
                             'text-[0.6875rem] font-semibold leading-tight mt-0.5 truncate',
-                            active ? 'text-white/80' : 'text-slate-500 dark:text-slate-400',
+                            active ? 'text-white/80' : 'text-slate-500 dark:text-ink-400',
                           ].join(' ')}
                         >
                           {tab.desc}
@@ -395,8 +395,8 @@ function SidebarNav({
 
         {totalMatches === 0 && (
           <div className="text-center py-8 px-4">
-            <Search className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-            <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400">
+            <Search className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+            <p className="text-xs font-extrabold text-slate-500 dark:text-ink-400">
               "{search}" ke liye kuch nahi mila
             </p>
             <button
@@ -425,14 +425,14 @@ function SidebarNav({
 /* ══════════ EMPTY STATE ══════════ */
 function EmptyState() {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-10 text-center">
-      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
-        <SettingsIcon className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-10 text-center">
+      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
+        <SettingsIcon className="h-8 w-8 text-slate-400 dark:text-ink-500" />
       </div>
-      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-ink-white">
         Settings load nahi ho rahi
       </h3>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold">
+      <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold">
         Page refresh karein ya support se rabta karein
       </p>
     </div>

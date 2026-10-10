@@ -106,10 +106,10 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
             {isCustomWebsite ? <Upload className="h-5 w-5 text-white" /> : <Download className="h-5 w-5 text-white" />}
           </div>
           <div className="flex-1">
-            <div className="font-black text-sm text-slate-900 dark:text-white">
+            <div className="font-black text-sm text-slate-900 dark:text-ink-white">
               {isCustomWebsite ? 'Website se Products Import Karo' : 'Channel se Products Pull Karo'}
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-ink-400 mt-1">
               {isCustomWebsite
                 ? 'Apni website ka code Nafaa webhook ko products bheje — sab automatically POS mein aa jayenge (name, price, stock, images, sab).'
                 : 'Foodpanda/Daraz ke saare products ek click mein Nafaa POS mein import karo. Mapping automatic ban jayegi.'}
@@ -162,11 +162,11 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
                   key={p.id}
                   onClick={() => pushMutation.mutate(p.id)}
                   disabled={pushMutation.isPending}
-                  className="w-full p-2.5 rounded-lg bg-white dark:bg-neutral-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-left text-xs transition flex items-center gap-2"
+                  className="w-full p-2.5 rounded-lg bg-white dark:bg-ink-800 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-left text-xs transition flex items-center gap-2"
                 >
                   <Package className="h-4 w-4 text-blue-600 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <div className="font-bold text-slate-900 dark:text-white truncate">{p.name}</div>
+                    <div className="font-bold text-slate-900 dark:text-ink-white truncate">{p.name}</div>
                     <div className="text-[0.6875rem] text-slate-500">
                       SKU: {p.sku} · Rs {Number(p.price).toFixed(0)} · Stock: {p.stock ?? 0}
                     </div>
@@ -185,7 +185,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
       {/* Mappings list */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-black text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+          <div className="text-xs font-black text-slate-600 dark:text-ink-400 uppercase tracking-wider">
             Mapped Products ({mappings?.length ?? 0})
           </div>
           <Button
@@ -201,7 +201,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
         {isLoading ? (
           <SkeletonCard />
         ) : (mappings ?? []).length === 0 ? (
-          <div className="text-center py-8 rounded-xl bg-slate-50 dark:bg-neutral-800/50">
+          <div className="text-center py-8 rounded-xl bg-slate-50 dark:bg-ink-800/50">
             <Package className="h-10 w-10 text-slate-300 mx-auto mb-2" />
             <div className="font-bold text-sm text-slate-500">Koi mapped product nahi</div>
             <div className="text-[0.6875rem] text-slate-400 mt-1">
@@ -213,7 +213,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
             {mappings!.map((m: any) => (
               <div
                 key={m.id}
-                className="p-3 rounded-xl bg-white dark:bg-neutral-800 border border-slate-200 dark:border-neutral-700 flex items-center gap-3"
+                className="p-3 rounded-xl bg-white dark:bg-ink-800 border border-slate-200 dark:border-ink-700 flex items-center gap-3"
               >
                 <div className={cn(
                   'h-9 w-9 rounded-lg flex items-center justify-center shrink-0',
@@ -224,7 +224,7 @@ export function ProductSyncPanel({ integrationId, integrationType }: { integrati
                     : <AlertCircle className="h-4 w-4 text-amber-600" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs font-black text-slate-900 dark:text-white truncate">
+                  <div className="text-xs font-black text-slate-900 dark:text-ink-white truncate">
                     {m.product?.name ?? 'Unknown Product'}
                   </div>
                   <div className="text-[0.6875rem] text-slate-500 font-mono">

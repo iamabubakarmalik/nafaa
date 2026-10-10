@@ -272,21 +272,21 @@ export default function AppliancesLowStockPage() {
           <input ref={searchRef} className={inputCls('h-12 pl-10 pr-10 text-sm font-semibold')}
             placeholder="Naam, brand, model, SKU... (/)" value={search} onChange={(e) => setSearch(e.target.value)} />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
         </div>
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 h-12">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 h-12">
           <button onClick={() => setView('grid')}
             className={`px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-              view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              view === 'grid' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
             }`}>
             <LayoutGrid className="h-4 w-4" /> <span className="hidden md:inline">Cards</span>
           </button>
           <button onClick={() => setView('list')}
             className={`px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-              view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              view === 'list' ? 'bg-cyan-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
             }`}>
             <ListIcon className="h-4 w-4" /> <span className="hidden md:inline">List</span>
           </button>
@@ -294,7 +294,7 @@ export default function AppliancesLowStockPage() {
         <button onClick={() => setOutOnly(!outOnly)}
           className={`h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
             outOnly ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-300'
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-rose-300'
           }`}>
           <AlertTriangle className="h-4 w-4" /> <span className="hidden sm:inline">Sirf khatam</span>
         </button>
@@ -311,7 +311,7 @@ export default function AppliancesLowStockPage() {
 
       {/* Bulk bar */}
       {picked.size > 0 && (
-        <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-900 dark:from-slate-950 dark:to-cyan-950 text-white border-2 border-cyan-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
+        <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-cyan-900 dark:from-ink-950 dark:to-cyan-950 text-white border-2 border-cyan-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 mr-1">
             <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center font-extrabold tabular-nums text-sm">{picked.size}</div>
             <div className="text-xs font-extrabold leading-tight">
@@ -340,7 +340,7 @@ export default function AppliancesLowStockPage() {
       {/* List */}
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-44 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-44 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : rows.length === 0 ? (
         <Empty
@@ -382,14 +382,14 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
   const pct = r.lowStockAlert > 0 ? Math.min((r.stock / r.lowStockAlert) * 100, 100) : 0;
 
   return (
-    <div className={`relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
+    <div className={`relative rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all overflow-hidden ${
       checked ? 'border-cyan-500 dark:border-cyan-400 ring-2 ring-cyan-200 dark:ring-cyan-500/25'
         : r.isOut ? 'border-rose-300 dark:border-rose-500/40' : 'border-amber-200 dark:border-amber-500/30'
     }`}>
       <button onClick={onToggle} title="Order list ke liye chunein"
         className={`absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition ${
           checked ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-            : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+            : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-cyan-400'
         }`}>
         <CheckCircle2 className="h-4 w-4" />
       </button>
@@ -402,13 +402,13 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
             {cm.emoji}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{r.name}</h3>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{r.name}</h3>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {r.brand ? `${r.brand} • ` : ''}{cm.label}
               {r.capacity ? ` • ${r.capacity}` : ''}
             </div>
             {r.modelNumber && (
-              <div className="font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500 truncate">{r.modelNumber}</div>
+              <div className="font-mono text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500 truncate">{r.modelNumber}</div>
             )}
           </div>
         </div>
@@ -419,9 +419,9 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
             <span className={r.isOut ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400'}>
               {r.isOut ? '🚫 Bilkul khatam' : `${r.stock} ${r.unit || 'pcs'} bachay`}
             </span>
-            <span className="text-slate-400 dark:text-slate-500">alert: {r.lowStockAlert}</span>
+            <span className="text-slate-400 dark:text-ink-500">alert: {r.lowStockAlert}</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
             <div className={`h-full rounded-full transition-all ${r.isOut ? 'bg-rose-500' : 'bg-gradient-to-r from-amber-400 to-orange-500'}`}
               style={{ width: `${Math.max(pct, r.isOut ? 0 : 6)}%` }} />
           </div>
@@ -432,9 +432,9 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
             <div className="text-[0.625rem] text-cyan-700 dark:text-cyan-400 font-extrabold uppercase tracking-wider">Mangwayein</div>
             <div className="text-sm font-extrabold text-cyan-700 dark:text-cyan-300 tabular-nums">{need} {r.unit || 'pcs'}</div>
           </div>
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-2.5 py-2">
-            <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Kharcha</div>
-            <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200 tabular-nums truncate">{formatPKR(r.reorderCost)}</div>
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 px-2.5 py-2">
+            <div className="text-[0.625rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase tracking-wider">Kharcha</div>
+            <div className="text-sm font-extrabold text-slate-700 dark:text-ink-200 tabular-nums truncate">{formatPKR(r.reorderCost)}</div>
           </div>
         </div>
 
@@ -455,13 +455,13 @@ function LowCard({ r, checked, onToggle }: { r: ApplianceLowStockRow; checked: b
             </span>
           )}
           {r.notInShop && (
-            <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+            <span className="px-2 py-0.5 rounded-full bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300">
               Is shop me nahi
             </span>
           )}
         </div>
 
-        <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+        <div className="mt-2 flex items-center justify-between text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
           <span>Lagat {formatPKR(r.costPrice)}</span>
           <span>Bechna {formatPKR(r.price)}</span>
         </div>
@@ -479,16 +479,16 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
   onToggleAll: () => void;
 }) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[860px]">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+            <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
               <th className="px-3 py-3 w-10">
                 <button onClick={onToggleAll}
                   className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
                     allPicked ? 'bg-cyan-600 border-cyan-600 text-white'
-                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+                      : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-cyan-400'
                   }`}>
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </button>
@@ -508,14 +508,14 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
               const on = picked.has(r.productId);
               return (
                 <tr key={r.productId}
-                  className={`border-b border-slate-100 dark:border-slate-800 transition ${
-                    on ? 'bg-cyan-50 dark:bg-cyan-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  className={`border-b border-slate-100 dark:border-ink-800 transition ${
+                    on ? 'bg-cyan-50 dark:bg-cyan-500/10' : 'hover:bg-slate-50 dark:hover:bg-ink-800/50'
                   }`}>
                   <td className="px-3 py-2.5">
                     <button onClick={() => onToggle(r.productId)}
                       className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
                         on ? 'bg-cyan-600 border-cyan-600 text-white'
-                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-cyan-400'
+                          : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-cyan-400'
                       }`}>
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </button>
@@ -524,7 +524,7 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
                     <Link to={`/appliance-products/${r.productId}`} className="flex items-center gap-2 group">
                       <span className="text-lg shrink-0">{catEmoji(r.categoryType)}</span>
                       <div className="min-w-0">
-                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+                        <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                           {r.name}
                         </div>
                         <div className="text-[0.6875rem] font-bold text-slate-400">
@@ -533,7 +533,7 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
                       </div>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                     {r.brand || '—'}
                     {r.modelNumber && <div className="font-mono text-[0.6875rem] text-slate-400">{r.modelNumber}</div>}
                   </td>
@@ -543,16 +543,16 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
                         : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
                     }`}>{r.stock}</span>
                   </td>
-                  <td className="px-3 py-2.5 text-center text-xs font-bold text-slate-500 dark:text-slate-400 tabular-nums">{r.lowStockAlert}</td>
+                  <td className="px-3 py-2.5 text-center text-xs font-bold text-slate-500 dark:text-ink-400 tabular-nums">{r.lowStockAlert}</td>
                   <td className="px-3 py-2.5 text-center text-sm font-extrabold text-cyan-700 dark:text-cyan-400 tabular-nums">{need}</td>
-                  <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-slate-300 tabular-nums whitespace-nowrap">{formatPKR(r.costPrice)}</td>
-                  <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold text-slate-800 dark:text-slate-100 tabular-nums whitespace-nowrap">{formatPKR(r.reorderCost)}</td>
+                  <td className="px-3 py-2.5 text-right text-xs font-bold text-slate-600 dark:text-ink-300 tabular-nums whitespace-nowrap">{formatPKR(r.costPrice)}</td>
+                  <td className="px-3 py-2.5 pr-4 text-right text-xs font-extrabold text-slate-800 dark:text-ink-100 tabular-nums whitespace-nowrap">{formatPKR(r.reorderCost)}</td>
                 </tr>
               );
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+            <tr className="bg-slate-900 dark:bg-ink-950 text-white">
               <td colSpan={5} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Kul</td>
               <td className="px-3 py-3 text-center text-xs font-extrabold text-cyan-300 tabular-nums">
                 {rows.reduce((s, r) => s + Math.max(r.lowStockAlert - r.stock, 1), 0)}
@@ -571,7 +571,7 @@ function LowTable({ rows, picked, allPicked, onToggle, onToggleAll }: {
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );

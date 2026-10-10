@@ -12,13 +12,13 @@ import { X, CheckCircle2, Printer, Zap, GraduationCap, Banknote, Mic, Receipt } 
 export function PosTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> POS — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-4">
@@ -27,7 +27,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-sky-700 dark:text-sky-300 flex items-center gap-1">
               <Printer className="h-3 w-3" /> 🖨️ 2-Second Billing Flow
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>Scan/click karo → F12 → done!</strong> Receipt seedha print dialog me aa jayegi — receipt page pe jaana hi nahi</TipRow>
               <TipRow>Settings ⚙️ me <strong>Auto-Print</strong> ON rakho + printer width chuno (80mm standard / 58mm chhota)</TipRow>
               <TipRow>Popup blocked aaye to browser me 🔒 icon → "Pop-ups" → <strong>Allow</strong></TipRow>
@@ -38,7 +38,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-rose-700 dark:text-rose-300 flex items-center gap-1">
               <Mic className="h-3 w-3" /> 🎤 Voice Sale (F6)
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>"2 kilo chini"</strong> — item cart mein</TipRow>
               <TipRow><strong>"sau ka doodh"</strong> — paise se wazan khud niklega</TipRow>
               <TipRow><strong>"dedh kilo aata"</strong> — 1.5 kg samajhta hai</TipRow>
@@ -51,7 +51,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Zap className="h-3 w-3" /> ⚡ Speed Shortcuts
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow><strong>F12</strong> — INSTANT CASH: scan → F12 → print. Bas!</TipRow>
               <TipRow><strong>F9</strong> — checkout (cash/udhaar/card) • <strong>Enter</strong> — confirm</TipRow>
               <TipRow><strong>F2</strong> scanner • <strong>F6</strong> voice • <strong>F7/F8/F10</strong> tabs</TipRow>
@@ -62,7 +62,7 @@ export function PosTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Banknote className="h-3 w-3" /> 💱 Zyada Paisa / Udhaar
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
               <TipRow>Customer ne zyada diya? → bada green <strong>"wapis dein"</strong> dikhta hai</TipRow>
               <TipRow>Ya tick karo <strong>"khaate mein jama"</strong> — advance balance ban jayega</TipRow>
               <TipRow><strong>Kuch Cash</strong> mode — jitna diya likho, baqi khud udhaar</TipRow>

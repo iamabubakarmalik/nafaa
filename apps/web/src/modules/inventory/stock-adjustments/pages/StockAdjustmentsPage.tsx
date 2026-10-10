@@ -296,7 +296,7 @@ export default function StockAdjustmentsPage() {
       {showTeacher && <AdjustmentsTeacher industryEmoji={industryStock.industryEmoji} onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-blue-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-blue-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-blue-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
@@ -365,11 +365,11 @@ export default function StockAdjustmentsPage() {
       {/* ═══ CHARTS ═══ */}
       {adjustments.length > 0 && (
         <section className="grid lg:grid-cols-2 gap-4 print:hidden">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Top Affected Products</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Sab se zyada adjust hone wale</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Top Affected Products</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Sab se zyada adjust hone wale</p>
               </div>
               <BarChart3 className="h-5 w-5 text-blue-500" />
             </div>
@@ -386,11 +386,11 @@ export default function StockAdjustmentsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">By Type</h3>
-                <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">In / Out / Damage / Loss split</p>
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">By Type</h3>
+                <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">In / Out / Damage / Loss split</p>
               </div>
               <TrendingUp className="h-5 w-5 text-emerald-500" />
             </div>
@@ -413,43 +413,43 @@ export default function StockAdjustmentsPage() {
       {/* ═══ FORM + HISTORY ═══ */}
       <section className="grid xl:grid-cols-[500px_1fr] gap-4 sm:gap-5 items-start">
         {/* ═══ FORM ═══ */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-blue-200 dark:border-blue-500/40 shadow-sm p-5 print:hidden">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-blue-200 dark:border-blue-500/40 shadow-sm p-5 print:hidden">
           <div className="flex items-center gap-3 mb-5">
             <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0">
               <Plus className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Nayi Adjustment</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Product, variant, roll ya IMEI — sab yahan se</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Nayi Adjustment</h3>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Product, variant, roll ya IMEI — sab yahan se</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Product picker */}
             <div>
-              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Product *</label>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Product *</label>
               <div className="relative">
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text" value={productSearch}
                   onChange={(e) => { setProductSearch(e.target.value); setProductId(''); }}
                   placeholder="Naam ya SKU se dhundo..."
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition"
                 />
                 {productSearch && (
-                  <button onClick={() => { setProductSearch(''); setProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <button onClick={() => { setProductSearch(''); setProductId(''); }} className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                     <X className="h-4 w-4 text-slate-400" />
                   </button>
                 )}
               </div>
               {productSearch && !productId && filteredProducts.length > 0 && (
-                <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700">
+                <div className="mt-2 max-h-[220px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 divide-y divide-slate-100 dark:divide-ink-700">
                   {filteredProducts.map((p) => (
                     <button key={p.id} type="button"
                       onClick={() => { setProductId(p.id); setProductSearch(p.name); }}
                       className="w-full px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-blue-500/10 transition">
-                      <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{p.name}</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
+                      <div className="font-bold text-sm text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">
                         {p.sku || 'No SKU'} • Stock: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatQty(p.stock)} {p.unit}</span>
                       </div>
                     </button>
@@ -458,7 +458,7 @@ export default function StockAdjustmentsPage() {
               )}
               {selectedProduct && options && (
                 <div className="mt-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/40 p-3">
-                  <div className="font-bold text-sm text-slate-900 dark:text-white">{selectedProduct.name}</div>
+                  <div className="font-bold text-sm text-slate-900 dark:text-ink-white">{selectedProduct.name}</div>
                   <div className="text-xs text-blue-700 dark:text-blue-300 font-bold mt-0.5 tabular-nums">
                     Total Stock: {formatQty(options.product.stock)} {options.product.unit}
                   </div>
@@ -486,7 +486,7 @@ export default function StockAdjustmentsPage() {
             {/* Target mode selector */}
             {options && (
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Kya Adjust Karna Hai? *</label>
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Kya Adjust Karna Hai? *</label>
                 <div className="grid grid-cols-2 gap-1.5">
                   <ModeButton icon={Package} label="Product" active={targetMode === 'PRODUCT'}
                     onClick={() => setTargetMode('PRODUCT')} />
@@ -506,8 +506,8 @@ export default function StockAdjustmentsPage() {
             {/* Variant picker */}
             {options && targetMode === 'VARIANT' && (
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Variant Chuno *</label>
-                <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 p-2">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Variant Chuno *</label>
+                <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2">
                   {options.variants.map((v) => {
                     const active = variantId === v.id;
                     return (
@@ -515,16 +515,16 @@ export default function StockAdjustmentsPage() {
                         className={`w-full text-left p-2.5 rounded-lg border-2 transition flex items-center gap-2 ${
                           active
                             ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 ring-2 ring-violet-200 dark:ring-violet-500/30'
-                            : 'border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-500/50 bg-white dark:bg-slate-800/60'
+                            : 'border-slate-200 dark:border-ink-700 hover:border-violet-300 dark:hover:border-violet-500/50 bg-white dark:bg-ink-800/60'
                         }`}>
-                        <div className="h-10 w-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0">
+                        <div className="h-10 w-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-ink-800 shrink-0">
                           {v.imageUrl ? <img src={v.imageUrl} className="w-full h-full object-cover" alt="" />
                             : v.colorHex ? <div className="w-full h-full" style={{ backgroundColor: v.colorHex }} />
                             : <div className="w-full h-full flex items-center justify-center"><Palette className="h-4 w-4 text-slate-400" /></div>}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-sm text-slate-900 dark:text-white truncate">{v.name}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono">
+                          <div className="font-bold text-sm text-slate-900 dark:text-ink-white truncate">{v.name}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono">
                             {v.sku || '—'} • Stock: <span className="font-bold text-emerald-700 dark:text-emerald-400">{formatQty(v.stock)}</span>
                           </div>
                         </div>
@@ -539,8 +539,8 @@ export default function StockAdjustmentsPage() {
             {/* Roll picker */}
             {options && targetMode === 'ROLL' && (
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Roll Chuno *</label>
-                <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 p-2">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Roll Chuno *</label>
+                <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2">
                   {options.carpetRolls.map((r) => {
                     const active = carpetRollId === r.id;
                     return (
@@ -548,22 +548,22 @@ export default function StockAdjustmentsPage() {
                         className={`w-full text-left p-2.5 rounded-lg border-2 transition ${
                           active
                             ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 ring-2 ring-emerald-200 dark:ring-emerald-500/30'
-                            : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 bg-white dark:bg-slate-800/60'
+                            : 'border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 bg-white dark:bg-ink-800/60'
                         }`}>
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0 flex-1">
-                            <div className="font-bold text-sm text-slate-900 dark:text-white font-mono">{r.rollNumber}</div>
-                            <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 mt-0.5">
+                            <div className="font-bold text-sm text-slate-900 dark:text-ink-white font-mono">{r.rollNumber}</div>
+                            <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 mt-0.5">
                               {r.widthFt}ft{r.widthInch ? ` ${r.widthInch}in` : ''} × {r.remainingLengthFt}ft{r.remainingLengthInch ? ` ${r.remainingLengthInch}in` : ''}
                               {' '}= <span className="font-extrabold text-emerald-700 dark:text-emerald-400">{formatQty(r.remainingSqft)} sqft</span>
                             </div>
-                            {r.rackNumber && <div className="text-[0.625rem] text-slate-500 dark:text-slate-400">📍 {r.rackNumber}</div>}
+                            {r.rackNumber && <div className="text-[0.625rem] text-slate-500 dark:text-ink-400">📍 {r.rackNumber}</div>}
                           </div>
                           <div className="flex flex-col items-end gap-1 shrink-0">
                             <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full ${
                               r.status === 'ACTIVE' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               r.status === 'DAMAGED' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300' :
-                              'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                              'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
                             }`}>{r.status}</span>
                             {active && <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />}
                           </div>
@@ -575,7 +575,7 @@ export default function StockAdjustmentsPage() {
 
                 {selectedRoll && (
                   <div className="mt-3 space-y-2">
-                    <label className="block text-xs font-extrabold text-slate-700 dark:text-slate-300">Roll Action *</label>
+                    <label className="block text-xs font-extrabold text-slate-700 dark:text-ink-300">Roll Action *</label>
                     <div className="grid grid-cols-2 gap-1.5">
                       <ActionBtn label="Adjust Length" active={rollAction === 'ADJUST_LENGTH'}
                         onClick={() => setRollAction('ADJUST_LENGTH')} icon={Ruler} tone="blue" />
@@ -608,8 +608,8 @@ export default function StockAdjustmentsPage() {
             {/* IMEI picker */}
             {options && targetMode === 'IMEI' && (
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">IMEI Chuno *</label>
-                <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-slate-700 p-2">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">IMEI Chuno *</label>
+                <div className="space-y-1.5 max-h-[240px] overflow-y-auto rounded-xl border-2 border-slate-200 dark:border-ink-700 p-2">
                   {options.imeis.map((i) => {
                     const active = imeiId === i.id;
                     return (
@@ -617,12 +617,12 @@ export default function StockAdjustmentsPage() {
                         className={`w-full text-left p-2.5 rounded-lg border-2 transition ${
                           active
                             ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 ring-2 ring-blue-200 dark:ring-blue-500/30'
-                            : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-slate-800/60'
+                            : 'border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 bg-white dark:bg-ink-800/60'
                         }`}>
                         <div className="flex items-center justify-between gap-2">
                           <div className="min-w-0 flex-1">
-                            <div className="font-bold text-sm text-slate-900 dark:text-white font-mono">{i.imei1}</div>
-                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5">
+                            <div className="font-bold text-sm text-slate-900 dark:text-ink-white font-mono">{i.imei1}</div>
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5">
                               {i.variant?.name && <span className="text-violet-700 dark:text-violet-400 font-bold">{i.variant.name} • </span>}
                               {i.color && <span>🎨 {i.color}</span>}
                             </div>
@@ -631,7 +631,7 @@ export default function StockAdjustmentsPage() {
                             <span className={`text-[0.625rem] font-extrabold px-1.5 py-0.5 rounded-full ${
                               i.status === 'IN_STOCK' ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' :
                               i.status === 'DAMAGED' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300' :
-                              'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                              'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300'
                             }`}>{i.status}</span>
                             {active && <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />}
                           </div>
@@ -645,7 +645,7 @@ export default function StockAdjustmentsPage() {
 
             {/* Type selector */}
             <div>
-              <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5">Adjustment Type *</label>
+              <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5">Adjustment Type *</label>
               <div className="grid grid-cols-2 gap-2">
                 {(Object.entries(typeConfig) as [AdjustmentType, any][]).map(([key, cfg]) => {
                   const Icon = cfg.icon;
@@ -653,7 +653,7 @@ export default function StockAdjustmentsPage() {
                   return (
                     <button key={key} type="button" onClick={() => setType(key)}
                       className={`px-3 py-2.5 rounded-xl border-2 transition text-left ${
-                        active ? cfg.tone + ' shadow-md' : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50'
+                        active ? cfg.tone + ' shadow-md' : 'bg-white dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50'
                       }`}>
                       <div className="flex items-center gap-1.5">
                         <Icon className="h-3.5 w-3.5" />
@@ -677,7 +677,7 @@ export default function StockAdjustmentsPage() {
                     'rounded-xl border-2 p-3 flex items-center justify-between text-xs font-extrabold',
                     stockPreview.negative
                       ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/40 text-rose-800 dark:text-rose-300'
-                      : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200',
+                      : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200',
                   ].join(' ')}>
                     <span>Abhi: {formatQty(stockPreview.current)} {stockPreview.unit}</span>
                     <span>→</span>
@@ -693,7 +693,7 @@ export default function StockAdjustmentsPage() {
             {/* Reason + quick reasons */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300">Reason *</label>
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300">Reason *</label>
                 {industryStock.industryId && (
                   <span className="text-[0.625rem] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/15 border border-blue-200 dark:border-blue-500/40 rounded-full px-2 py-0.5 inline-flex items-center gap-1">
                     <Sparkles className="h-2.5 w-2.5" />
@@ -719,7 +719,7 @@ export default function StockAdjustmentsPage() {
                           key={r.reason}
                           type="button"
                           onClick={() => setReason(r.reason)}
-                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold hover:shadow-md transition bg-white/70 dark:bg-slate-800/60"
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold hover:shadow-md transition bg-white/70 dark:bg-ink-800/60"
                           style={{ borderColor: `${r.color}50`, color: r.color }}
                         >
                           <span>{r.emoji}</span>
@@ -734,13 +734,13 @@ export default function StockAdjustmentsPage() {
 
               {industryStock.adjustmentReasons.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1 items-center">
-                  <span className="text-[0.625rem] uppercase text-slate-500 dark:text-slate-400 font-bold mr-1">Common:</span>
+                  <span className="text-[0.625rem] uppercase text-slate-500 dark:text-ink-400 font-bold mr-1">Common:</span>
                   {industryStock.adjustmentReasons.slice(0, 5).map((r) => (
                     <button
                       key={r}
                       type="button"
                       onClick={() => setReason(r)}
-                      className="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition"
+                      className="px-2 py-0.5 rounded-full text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-300 transition"
                     >
                       {r}
                     </button>
@@ -760,29 +760,29 @@ export default function StockAdjustmentsPage() {
         </div>
 
         {/* ═══ HISTORY ═══ */}
-        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+        <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
             <div className="flex items-center justify-between flex-wrap gap-2">
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Adjustment History</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tabular-nums">{filteredAdjustments.length} of {adjustments.length}</p>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Adjustment History</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold tabular-nums">{filteredAdjustments.length} of {adjustments.length}</p>
               </div>
               <div className="relative">
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input ref={historySearchRef} value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
                   placeholder="Search... (/ shortcut)"
-                  className="h-9 w-56 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition" />
+                  className="h-9 w-56 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 transition" />
               </div>
             </div>
             <div className="flex gap-1 flex-wrap">
               <button onClick={() => setHistoryFilter('all')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  historyFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  historyFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 shadow-sm' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                 }`}>Sab</button>
               {(Object.entries(typeConfig) as [AdjustmentType, any][]).map(([key, cfg]) => (
                 <button key={key} onClick={() => setHistoryFilter(key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1 border-2 ${
-                    historyFilter === key ? cfg.tone + ' shadow-sm' : 'bg-slate-100 dark:bg-slate-800 border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    historyFilter === key ? cfg.tone + ' shadow-sm' : 'bg-slate-100 dark:bg-ink-800 border-transparent text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                   }`}>
                   <cfg.icon className="h-3 w-3" />{cfg.label}
                 </button>
@@ -801,20 +801,20 @@ export default function StockAdjustmentsPage() {
               <div className="mx-auto h-16 w-16 rounded-3xl bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-500/20 dark:to-indigo-500/20 flex items-center justify-center">
                 <ClipboardCheck className="h-8 w-8 text-blue-600 dark:text-blue-400" />
               </div>
-              <h4 className="mt-3 font-extrabold text-slate-900 dark:text-white">
+              <h4 className="mt-3 font-extrabold text-slate-900 dark:text-ink-white">
                 {hasHistoryFilters ? 'Kuch nahi mila' : 'Abhi koi adjustment nahi'}
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                 {hasHistoryFilters ? 'Filter change karo' : 'Baayein form se pehli adjustment karo'}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[700px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[700px] overflow-y-auto">
               {filteredAdjustments.map((a: any) => {
                 const cfg = typeConfig[a.type as AdjustmentType];
                 const Icon = cfg.icon;
                 return (
-                  <div key={a.id} className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                  <div key={a.id} className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 min-w-0 flex-1">
                         <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 border-2 ${cfg.tone}`}>
@@ -822,7 +822,7 @@ export default function StockAdjustmentsPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-extrabold text-slate-900 dark:text-white text-sm">{a.product?.name}</span>
+                            <span className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{a.product?.name}</span>
                             <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.tone}`}>
                               {cfg.label}
                             </span>
@@ -842,9 +842,9 @@ export default function StockAdjustmentsPage() {
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold">{a.reason}</div>
-                          {a.note && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">{a.note}</div>}
-                          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
+                          <div className="text-xs text-slate-600 dark:text-ink-300 mt-0.5 font-semibold">{a.reason}</div>
+                          {a.note && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 italic">{a.note}</div>}
+                          <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-1 flex items-center gap-2 flex-wrap font-semibold">
                             <span className="inline-flex items-center gap-0.5">
                               <Calendar className="h-2.5 w-2.5" />{formatDate(a.createdAt)}
                             </span>
@@ -863,7 +863,7 @@ export default function StockAdjustmentsPage() {
                         <div className={`font-extrabold text-lg tabular-nums ${cfg.isPositive ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
                           {cfg.isPositive ? '+' : '−'}{formatQty(a.quantity)}
                         </div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">{a.product?.unit}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">{a.product?.unit}</div>
                       </div>
                     </div>
                   </div>
@@ -905,20 +905,20 @@ function AdjustmentsTeacher({ industryEmoji, onClose }: { industryEmoji?: string
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Stock Adjustment Kya Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Kabhi kabhi stock <strong>sale ya purchase ke baghair</strong> badalta hai —
             maal toota, ginti me farq nikla, maal gum hua. Ye page us <strong>har change ka record</strong> rakhta hai
             taake stock hamesha sach bataye.
@@ -932,7 +932,7 @@ function AdjustmentsTeacher({ industryEmoji, onClose }: { industryEmoji?: string
             <TypeCard emoji="🕳️" title="Loss" desc="Maal gum hua / chori — poora nuqsaan, record rakho" tone="amber" />
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>Product khud detect karta hai</strong> — jis product ke variants/rolls/IMEIs hain, woh options khud khul jate hain</TipRow>
             <TipRow><strong>Reason zaroori hai</strong> — taake baad me pata ho stock kyun badla (audit ka hissa)</TipRow>
             <TipRow><strong>👁️ Live preview</strong> — type karte hi dikhta hai naya stock kitna hoga (minus ho to warning)</TipRow>
@@ -966,8 +966,8 @@ function TypeCard({ emoji, title, desc, tone }: { emoji: string; title: string; 
   return (
     <div className={`rounded-xl border-2 p-3 ${tones[tone]}`}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white mt-1">{title}</div>
+      <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -991,12 +991,12 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     amber:  'from-amber-500 to-amber-700 shadow-amber-500/40',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm transition-all">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm transition-all">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1013,11 +1013,11 @@ function ModeButton({ icon: Icon, label, active, disabled, onClick }: any) {
         active
           ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 ring-2 ring-blue-200 dark:ring-blue-500/30 shadow-md'
           : disabled
-            ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 opacity-40 cursor-not-allowed'
-            : 'bg-white dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50'
+            ? 'bg-slate-50 dark:bg-ink-800/40 border-slate-200 dark:border-ink-700 opacity-40 cursor-not-allowed'
+            : 'bg-white dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50'
       }`}>
-      <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-blue-600 dark:text-blue-400' : disabled ? 'text-slate-400 dark:text-slate-500' : 'text-slate-600 dark:text-slate-300'}`} />
-      <span className={`text-xs font-extrabold truncate ${active ? 'text-blue-700 dark:text-blue-300' : disabled ? 'text-slate-400 dark:text-slate-500' : 'text-slate-700 dark:text-slate-200'}`}>
+      <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-blue-600 dark:text-blue-400' : disabled ? 'text-slate-400 dark:text-ink-500' : 'text-slate-600 dark:text-ink-300'}`} />
+      <span className={`text-xs font-extrabold truncate ${active ? 'text-blue-700 dark:text-blue-300' : disabled ? 'text-slate-400 dark:text-ink-500' : 'text-slate-700 dark:text-ink-200'}`}>
         {label}
       </span>
     </button>
@@ -1026,14 +1026,14 @@ function ModeButton({ icon: Icon, label, active, disabled, onClick }: any) {
 
 function ActionBtn({ icon: Icon, label, active, onClick, tone }: any) {
   const tones: Record<string, string> = {
-    blue:    active ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'         : 'border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-500/50 text-slate-700 dark:text-slate-300',
-    rose:    active ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'          : 'border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-500/50 text-slate-700 dark:text-slate-300',
-    amber:   active ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'     : 'border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-500/50 text-slate-700 dark:text-slate-300',
-    emerald: active ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 text-slate-700 dark:text-slate-300',
+    blue:    active ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'         : 'border-slate-200 dark:border-ink-700 hover:border-blue-300 dark:hover:border-blue-500/50 text-slate-700 dark:text-ink-300',
+    rose:    active ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300'          : 'border-slate-200 dark:border-ink-700 hover:border-rose-300 dark:hover:border-rose-500/50 text-slate-700 dark:text-ink-300',
+    amber:   active ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'     : 'border-slate-200 dark:border-ink-700 hover:border-amber-300 dark:hover:border-amber-500/50 text-slate-700 dark:text-ink-300',
+    emerald: active ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 text-slate-700 dark:text-ink-300',
   };
   return (
     <button type="button" onClick={onClick}
-      className={`px-2 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 bg-white dark:bg-slate-800/60 ${tones[tone]}`}>
+      className={`px-2 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition inline-flex items-center gap-1 bg-white dark:bg-ink-800/60 ${tones[tone]}`}>
       <Icon className="h-3 w-3" />{label}
     </button>
   );

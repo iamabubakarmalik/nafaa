@@ -118,13 +118,13 @@ export default function CustomerDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-4 pb-10">
-        <div className="h-8 w-40 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-        <div className="h-56 rounded-3xl bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900 animate-pulse" />
+        <div className="h-8 w-40 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
+        <div className="h-56 rounded-3xl bg-gradient-to-br from-slate-200 to-slate-100 dark:from-ink-800 dark:to-ink-900 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
         <div className="grid lg:grid-cols-2 gap-4">
-          {[1, 2].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2].map((i) => <div key={i} className="h-80 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       </div>
     );
@@ -132,12 +132,12 @@ export default function CustomerDetailPage() {
 
   if (!customer) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">
-        <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center">
+      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-16 text-center">
+        <div className="h-16 w-16 rounded-2xl bg-slate-100 dark:bg-ink-800 mx-auto flex items-center justify-center">
           <AlertTriangle className="h-7 w-7 text-slate-400" />
         </div>
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Customer nahi mila</h3>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold">Shayad delete ho gaya ho</p>
+        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Customer nahi mila</h3>
+        <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold">Shayad delete ho gaya ho</p>
         <Link to="/customers">
           <Button className="mt-4 bg-gradient-to-r from-blue-600 to-cyan-700 font-extrabold">
             <ArrowLeft className="h-4 w-4" /> Customers List
@@ -215,7 +215,7 @@ export default function CustomerDetailPage() {
       <div className="flex items-center justify-between print:hidden">
         <Link
           to="/customers"
-          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 font-extrabold transition"
+          className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-300 hover:text-blue-600 dark:hover:text-blue-400 font-extrabold transition"
         >
           <ArrowLeft className="h-4 w-4" /> Customers
         </Link>
@@ -229,14 +229,14 @@ export default function CustomerDetailPage() {
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 disabled:opacity-50 transition"
+            className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 disabled:opacity-50 transition"
           >
             <RefreshCw className={`h-4 w-4 ${isRefetching ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
           </button>
           <button
             onClick={() => window.print()}
-            className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
+            className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition"
           >
             <Printer className="h-4 w-4" /> <span className="hidden sm:inline">Print</span>
           </button>
@@ -244,7 +244,7 @@ export default function CustomerDetailPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-cyan-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
 
@@ -422,38 +422,38 @@ export default function CustomerDetailPage() {
           {/* ═══ SALES + LEDGER ═══ */}
           <div className="grid lg:grid-cols-2 gap-4 sm:gap-5">
             {/* Recent Sales */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden">
-              <div className="px-4 sm:px-5 py-3.5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden">
+              <div className="px-4 sm:px-5 py-3.5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-sm">
                   <Receipt className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Recent Sales
                 </h3>
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-extrabold tabular-nums">{customer._count.sales} total</span>
+                <span className="text-xs text-slate-500 dark:text-ink-400 font-extrabold tabular-nums">{customer._count.sales} total</span>
               </div>
               {customer.sales.length === 0 ? (
                 <div className="p-10 text-center">
-                  <Receipt className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Abhi koi sale nahi</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">POS pe sale karo — yahan aa jayegi</p>
+                  <Receipt className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Abhi koi sale nahi</p>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">POS pe sale karo — yahan aa jayegi</p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
                   {customer.sales.map((s: any) => (
                     <Link
                       key={s.id}
                       to={`/sales/${s.id}/receipt`}
-                      className="flex items-center justify-between px-4 sm:px-5 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group"
+                      className="flex items-center justify-between px-4 sm:px-5 py-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition group"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="font-extrabold text-sm text-slate-900 dark:text-white font-mono">{s.saleNumber}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1 mt-0.5">
+                        <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white font-mono">{s.saleNumber}</div>
+                        <div className="text-xs text-slate-500 dark:text-ink-400 font-bold flex items-center gap-1 mt-0.5">
                           <Calendar className="h-3 w-3" /> {formatDateTime(s.soldAt)}
                         </div>
                       </div>
                       <div className="text-right shrink-0 ml-3">
                         <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(s.total)}</div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 font-bold">{s.paymentMethod}</div>
+                        <div className="text-xs text-slate-500 dark:text-ink-400 font-bold">{s.paymentMethod}</div>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-slate-300 dark:text-slate-600 ml-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition" />
+                      <ArrowRight className="h-4 w-4 text-slate-300 dark:text-ink-600 ml-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition" />
                     </Link>
                   ))}
                 </div>
@@ -461,16 +461,16 @@ export default function CustomerDetailPage() {
             </div>
 
             {/* Khata Ledger */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-black/20 overflow-hidden">
-              <div className="px-4 sm:px-5 py-3.5 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-                <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm dark:shadow-black/20 overflow-hidden">
+              <div className="px-4 sm:px-5 py-3.5 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-2 flex-wrap">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2 text-sm">
                   <Wallet className="h-4 w-4 text-rose-600 dark:text-rose-400" /> Khata Ledger
                 </h3>
                 <div className="flex items-center gap-2">
                   {customer.ledgers.length > 0 && (
                     <button
                       onClick={exportLedgerCSV}
-                      className="text-xs font-extrabold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white inline-flex items-center gap-1 transition"
+                      className="text-xs font-extrabold text-slate-600 dark:text-ink-300 hover:text-slate-900 dark:hover:text-ink-white inline-flex items-center gap-1 transition"
                     >
                       <Download className="h-3 w-3" /> CSV
                     </button>
@@ -482,12 +482,12 @@ export default function CustomerDetailPage() {
               </div>
               {customer.ledgers.length === 0 ? (
                 <div className="p-10 text-center">
-                  <History className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                  <p className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Koi transaction nahi</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Khata transactions yahan dikhengi</p>
+                  <History className="h-10 w-10 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                  <p className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Koi transaction nahi</p>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">Khata transactions yahan dikhengi</p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+                <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
                   {customer.ledgers.map((l: any) => {
                     const isCredit = l.amount > 0;
                     const Icon = isCredit ? ArrowUpFromLine : ArrowDownToLine;
@@ -501,13 +501,13 @@ export default function CustomerDetailPage() {
                           <Icon className="h-4 w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-extrabold text-slate-900 dark:text-white capitalize">
+                          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white capitalize">
                             {l.type.replace(/_/g, ' ').toLowerCase()}
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
+                          <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold truncate">
                             {l.note || l.reference || '—'}
                           </div>
-                          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                          <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold mt-0.5">
                             {formatRelative(l.createdAt)}
                           </div>
                         </div>
@@ -515,7 +515,7 @@ export default function CustomerDetailPage() {
                           <div className={`font-extrabold text-sm tabular-nums ${isCredit ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
                             {isCredit ? '+' : ''}{formatPKR(l.amount)}
                           </div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold tabular-nums">
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold tabular-nums">
                             Bal: {formatPKR(l.balanceAfter)}
                           </div>
                         </div>
@@ -532,15 +532,15 @@ export default function CustomerDetailPage() {
             <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/5 border-2 border-amber-200 dark:border-amber-500/30 shadow-sm overflow-hidden">
               <div className="px-4 sm:px-5 py-3.5 border-b-2 border-amber-200 dark:border-amber-500/30 flex items-center gap-2">
                 <Award className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">Loyalty Activity</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Loyalty Activity</h3>
                 <span className="ml-auto text-xs text-amber-700 dark:text-amber-400 font-extrabold tabular-nums">{customer.loyaltyTransactions.length}</span>
               </div>
               <div className="divide-y divide-amber-100 dark:divide-amber-500/10 max-h-[300px] overflow-y-auto">
                 {customer.loyaltyTransactions.map((t: any) => (
                   <div key={t.id} className="px-4 sm:px-5 py-3 flex items-center justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm capitalize">{t.type.replace(/_/g, ' ').toLowerCase()}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm capitalize">{t.type.replace(/_/g, ' ').toLowerCase()}</div>
+                      <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold truncate">
                         {formatRelative(t.createdAt)} • {t.note || t.reference || '—'}
                       </div>
                     </div>
@@ -565,26 +565,26 @@ export default function CustomerDetailPage() {
 
           {/* ═══ ADDITIONAL INFO ═══ */}
           {(customer.cnic || customer.gender) && (
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-sm dark:shadow-black/20">
-              <h3 className="font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2 text-sm">
-                <CreditCard className="h-4 w-4 text-slate-600 dark:text-slate-400" /> Additional Info
+            <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 sm:p-5 shadow-sm dark:shadow-black/20">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2 text-sm">
+                <CreditCard className="h-4 w-4 text-slate-600 dark:text-ink-400" /> Additional Info
               </h3>
               <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 {customer.cnic && (
                   <div>
-                    <dt className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">CNIC</dt>
-                    <dd className="font-mono font-extrabold text-slate-900 dark:text-white mt-0.5">{customer.cnic}</dd>
+                    <dt className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase tracking-wider">CNIC</dt>
+                    <dd className="font-mono font-extrabold text-slate-900 dark:text-ink-white mt-0.5">{customer.cnic}</dd>
                   </div>
                 )}
                 {customer.gender && (
                   <div>
-                    <dt className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Gender</dt>
-                    <dd className="font-extrabold text-slate-900 dark:text-white mt-0.5 capitalize">{customer.gender.toLowerCase()}</dd>
+                    <dt className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase tracking-wider">Gender</dt>
+                    <dd className="font-extrabold text-slate-900 dark:text-ink-white mt-0.5 capitalize">{customer.gender.toLowerCase()}</dd>
                   </div>
                 )}
                 <div>
-                  <dt className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider">Customer Since</dt>
-                  <dd className="font-extrabold text-slate-900 dark:text-white mt-0.5">{formatDate(customer.createdAt)}</dd>
+                  <dt className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase tracking-wider">Customer Since</dt>
+                  <dd className="font-extrabold text-slate-900 dark:text-ink-white mt-0.5">{formatDate(customer.createdAt)}</dd>
                 </div>
               </dl>
             </div>
@@ -593,7 +593,7 @@ export default function CustomerDetailPage() {
       )}
 
       {/* ═══ STICKY ACTION BAR (mobile) ═══ */}
-      <div className="fixed bottom-0 inset-x-0 z-30 sm:hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t-2 border-slate-200 dark:border-slate-800 p-3 flex gap-2 print:hidden">
+      <div className="fixed bottom-0 inset-x-0 z-30 sm:hidden bg-white/95 dark:bg-ink-900/95 backdrop-blur-md border-t-2 border-slate-200 dark:border-ink-800 p-3 flex gap-2 print:hidden">
         {customer.phone && (
           <button
             onClick={whatsappCustomer}
@@ -643,17 +643,17 @@ function DeleteConfirmModal({ customer, loading, onClose, onConfirm }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden"
+        className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-5 text-center">
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 text-white mx-auto flex items-center justify-center shadow-lg shadow-rose-500/40">
             <Trash2 className="h-7 w-7" />
           </div>
-          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             "{customer.name}" delete karein?
           </h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+          <p className="mt-1 text-xs text-slate-500 dark:text-ink-400 font-semibold">
             {customer.balance > 0
               ? `⚠️ Is ka ${formatPKR(customer.balance)} udhaar baqi hai! Pehle wusooli karo.`
               : 'Ye action undo nahi ho sakta. Sales history mehfooz rahegi.'}
@@ -686,24 +686,24 @@ function CustomerDetailTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Customer Profile Kaise Parhein?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye page customer ki <strong>poori kahani</strong> batata hai — kitna kharcha, kitna udhaar, kab aakhri dafa aya:
           </p>
 
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>📊 Credit limit bar</strong> — udhaar limit ke kitne % pe hai (red = rok do naya udhaar!)</TipRow>
             <TipRow><strong>⏰ "X din pehle last shopping"</strong> — 30+ din pe amber warning aati hai, "miss you" bhejo</TipRow>
             <TipRow><strong>🎂 Birthday banner</strong> — aaj birthday ho to pink banner dikhega, discount do!</TipRow>
@@ -758,15 +758,15 @@ function Kpi({ icon: Icon, label, value, sub, tone }: any) {
     slate:  'from-slate-400 to-slate-600 shadow-slate-500/30',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm dark:shadow-black/20">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm dark:shadow-black/20">
       <div className="flex items-center gap-3">
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold truncate">{sub}</div>}
         </div>
       </div>
     </div>

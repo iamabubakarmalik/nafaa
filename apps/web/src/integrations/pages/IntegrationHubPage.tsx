@@ -39,7 +39,7 @@ type CatKey = keyof typeof CATEGORY_CONFIG;
 
 const STATUS_CONFIG: Record<string, { label: string; icon: any; chip: string; dot: string }> = {
   CONNECTED:    { label: 'Chal raha', icon: CheckCircle2, chip: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300', dot: 'bg-emerald-500' },
-  DISCONNECTED: { label: 'Band', icon: XCircle, chip: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300', dot: 'bg-slate-400' },
+  DISCONNECTED: { label: 'Band', icon: XCircle, chip: 'bg-slate-100 text-slate-600 dark:bg-ink-800 dark:text-ink-300', dot: 'bg-slate-400' },
   ERROR:        { label: 'Ghalti', icon: AlertCircle, chip: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300', dot: 'bg-rose-500' },
   PENDING:      { label: 'Intezar', icon: Clock, chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300', dot: 'bg-amber-500' },
   SUSPENDED:    { label: 'Rok diya', icon: AlertCircle, chip: 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300', dot: 'bg-rose-500' },
@@ -236,7 +236,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
   if (isLoading) {
     return (
       <div className="w-full space-y-4">
-        <div className="h-52 rounded-3xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-52 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[0, 1, 2, 3].map((i) => <SkeletonCard key={i} />)}</div>
         <SkeletonCard />
       </div>
@@ -353,10 +353,10 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
               </h3>
               <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                 {stats.errored.map((i) => (
-                  <div key={i.id} className="flex items-center gap-2 rounded-2xl bg-white/80 dark:bg-slate-900/60 border border-rose-200 dark:border-rose-500/30 p-2">
+                  <div key={i.id} className="flex items-center gap-2 rounded-2xl bg-white/80 dark:bg-ink-900/60 border border-rose-200 dark:border-rose-500/30 p-2">
                     <span className="h-9 w-9 rounded-xl bg-rose-100 dark:bg-rose-500/20 flex items-center justify-center text-lg shrink-0">{getIntegrationEmoji(i.type)}</span>
                     <div className="min-w-0 flex-1">
-                      <div className="text-sm font-black text-slate-900 dark:text-white truncate">{i.displayName}</div>
+                      <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{i.displayName}</div>
                       <div className="text-[0.6875rem] font-bold text-rose-600">{STATUS_CONFIG[i.status]?.label}{i.lastSyncAt ? ` · ${timeAgo(i.lastSyncAt)} pehle` : ''}</div>
                     </div>
                     <button onClick={() => reconnectMutation.mutate(i.id)} disabled={reconnectMutation.isPending}
@@ -380,7 +380,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             <button key={t.value} onClick={() => setActiveTab(t.value)} title={`${idx + 1} dabayein`}
               className={cn('rounded-3xl border-2 px-3 sm:px-5 py-3 sm:py-4 text-left transition active:scale-[0.99]',
                 on ? 'bg-gradient-to-br from-violet-600 to-indigo-700 border-transparent text-white shadow-xl shadow-violet-500/30'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-violet-400 hover:shadow-lg')}>
+                  : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-violet-400 hover:shadow-lg')}>
               <div className="flex items-center gap-3">
                 <div className={cn('h-10 w-10 sm:h-12 sm:w-12 rounded-2xl flex items-center justify-center shrink-0',
                   on ? 'bg-white/20' : 'bg-gradient-to-br from-violet-500 to-indigo-700 text-white')}>
@@ -391,7 +391,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                     <span className="text-base font-black truncate">{t.label}</span>
                     {n > 0 && (
                       <span className={cn('px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums',
-                        t.value === 'overview' ? (on ? 'bg-black/25' : 'bg-slate-100 dark:bg-slate-800 text-slate-500') : 'bg-rose-500 text-white')}>{n}</span>
+                        t.value === 'overview' ? (on ? 'bg-black/25' : 'bg-slate-100 dark:bg-ink-800 text-slate-500') : 'bg-rose-500 text-white')}>{n}</span>
                     )}
                   </div>
                   <div className={cn('text-[0.6875rem] font-bold truncate', on ? 'text-white/80' : 'text-slate-400')}>{t.hint}</div>
@@ -405,15 +405,15 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
 
       {/* ═══ TOOLBAR ═══ */}
       {activeTab !== 'orders' && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
           <div className="flex gap-2 flex-wrap items-center">
             <div className="relative flex-1 min-w-[220px]">
               <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder={activeTab === 'logs' ? 'Integration, kaam ya ghalti… (/ dabao)' : 'Foodpanda, Daraz, TCS… (/ dabao)'}
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition" />
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition" />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
@@ -421,29 +421,29 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
 
             {activeTab === 'overview' ? (
               <>
-                <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800/70 p-1">
+                <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-ink-800/70 p-1">
                   {([['all', 'Sab'], ['CONNECTED', 'Chal rahi'], ['ERROR', 'Masla'], ['OFF', 'Band']] as const).map(([k, l]) => (
                     <button key={k} onClick={() => setStatusFilter(k)}
                       className={cn('h-10 rounded-xl px-3 text-xs font-black transition',
-                        statusFilter === k ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200')}>{l}</button>
+                        statusFilter === k ? 'bg-white dark:bg-ink-900 text-slate-900 dark:text-ink-white shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-ink-200')}>{l}</button>
                   ))}
                 </div>
-                <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800/70 p-1">
+                <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-ink-800/70 p-1">
                   {([['grid', LayoutGrid], ['list', List]] as const).map(([k, Icon]) => (
                     <button key={k} onClick={() => setLayout(k)} title={k === 'grid' ? 'Cards' : 'List'}
                       className={cn('h-10 w-10 rounded-xl flex items-center justify-center transition',
-                        layout === k ? 'bg-white dark:bg-slate-900 text-violet-700 dark:text-violet-300 shadow' : 'text-slate-500')}>
+                        layout === k ? 'bg-white dark:bg-ink-900 text-violet-700 dark:text-violet-300 shadow' : 'text-slate-500')}>
                       <Icon className="h-4 w-4" />
                     </button>
                   ))}
                 </div>
               </>
             ) : (
-              <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800/70 p-1">
+              <div className="flex gap-1 rounded-2xl bg-slate-100 dark:bg-ink-800/70 p-1">
                 {([['all', `Sab ${logs.length}`], ['SUCCESS', `Theek ${logStats.ok}`], ['FAILED', `Ghalti ${logStats.bad}`], ['RUNNING', `Chal raha ${logStats.run}`]] as const).map(([k, l]) => (
                   <button key={k} onClick={() => setLogFilter(k)}
                     className={cn('h-10 rounded-xl px-3 text-xs font-black transition',
-                      logFilter === k ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200')}>{l}</button>
+                      logFilter === k ? 'bg-white dark:bg-ink-900 text-slate-900 dark:text-ink-white shadow' : 'text-slate-500 hover:text-slate-800 dark:hover:text-ink-200')}>{l}</button>
                 ))}
               </div>
             )}
@@ -460,7 +460,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
               <button onClick={() => setFilterCategory(null)}
                 className={cn('shrink-0 px-3 py-2 rounded-xl text-xs font-black transition border-2 inline-flex items-center gap-1.5',
-                  !filterCategory ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700')}>
+                  !filterCategory ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 border-transparent' : 'bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-700')}>
                 <Globe className="h-3.5 w-3.5" /> Har kism
               </button>
               {byCategory.map((c) => {
@@ -468,9 +468,9 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                 return (
                   <button key={c.key} onClick={() => setFilterCategory(on ? null : c.key)}
                     className={cn('shrink-0 px-3 py-2 rounded-xl text-xs font-black transition border-2 inline-flex items-center gap-1.5',
-                      on ? `bg-gradient-to-r ${c.gradient} text-white border-transparent shadow-lg` : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300')}>
+                      on ? `bg-gradient-to-r ${c.gradient} text-white border-transparent shadow-lg` : 'bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-700 hover:border-slate-300')}>
                     <span>{c.emoji}</span> {c.label}
-                    <span className={cn('px-1.5 rounded text-[0.6875rem] tabular-nums', on ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-700')}>{c.mine.length}</span>
+                    <span className={cn('px-1.5 rounded text-[0.6875rem] tabular-nums', on ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-700')}>{c.mine.length}</span>
                   </button>
                 );
               })}
@@ -489,20 +489,20 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                 const live = c.mine.filter((i) => i.status === 'CONNECTED').length;
                 return (
                   <button key={c.key} onClick={() => setFilterCategory(c.key)}
-                    className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 text-left hover:shadow-md hover:-translate-y-0.5 transition">
+                    className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 text-left hover:shadow-md hover:-translate-y-0.5 transition">
                     <div className="flex items-center justify-between">
                       <span className={cn('h-10 w-10 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-lg', c.gradient)}><c.icon className="h-5 w-5" /></span>
                       {live > 0 ? <span className="text-[0.6875rem] font-black text-emerald-600">● {live} chal rahi</span>
                         : <span className="text-[0.6875rem] font-black text-slate-400">Abhi koi nahi</span>}
                     </div>
-                    <div className="mt-3 font-black text-slate-900 dark:text-white">{c.label}</div>
+                    <div className="mt-3 font-black text-slate-900 dark:text-ink-white">{c.label}</div>
                     <div className="text-[0.6875rem] font-bold text-slate-500">{c.hint}</div>
                     <div className="mt-2 flex -space-x-1.5">
                       {c.mine.slice(0, 5).map((i) => (
-                        <span key={i.id} className="h-7 w-7 rounded-full bg-slate-100 dark:bg-slate-800 ring-2 ring-white dark:ring-slate-900 flex items-center justify-center text-sm">{getIntegrationEmoji(i.type)}</span>
+                        <span key={i.id} className="h-7 w-7 rounded-full bg-slate-100 dark:bg-ink-800 ring-2 ring-white dark:ring-ink-900 flex items-center justify-center text-sm">{getIntegrationEmoji(i.type)}</span>
                       ))}
                       {c.open.length > 0 && (
-                        <span className="h-7 px-2 rounded-full bg-violet-100 dark:bg-violet-500/20 ring-2 ring-white dark:ring-slate-900 flex items-center text-[0.6875rem] font-black text-violet-700 dark:text-violet-300">+{c.open.length} aur</span>
+                        <span className="h-7 px-2 rounded-full bg-violet-100 dark:bg-violet-500/20 ring-2 ring-white dark:ring-ink-900 flex items-center text-[0.6875rem] font-black text-violet-700 dark:text-violet-300">+{c.open.length} aur</span>
                       )}
                     </div>
                   </button>
@@ -516,9 +516,9 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             integrations.length === 0 ? (
               <EmptyState onConnect={() => setConnectModal(true)} onGuide={() => setShowTeacher(true)} />
             ) : (
-              <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 text-center">
+              <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 text-center">
                 <Search className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-                <p className="text-base font-black text-slate-800 dark:text-slate-100">Jori hui integrations me kuch nahi mila</p>
+                <p className="text-base font-black text-slate-800 dark:text-ink-100">Jori hui integrations me kuch nahi mila</p>
                 <p className="text-xs font-bold text-slate-500 mt-1">Chaant badlein — ya neeche directory me naya platform dhoondein.</p>
                 <Button className="mt-3" variant="secondary" onClick={clearFilters}><X className="h-4 w-4" /> Chaant hatao</Button>
               </div>
@@ -536,7 +536,7 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
                   ))}
                 </div>
               ) : (
-                <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden divide-y-2 divide-slate-100 dark:divide-slate-800">
+                <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 overflow-hidden divide-y-2 divide-slate-100 dark:divide-ink-800">
                   {filteredIntegrations.map((it) => (
                     <IntegrationRow key={it.id} integration={it}
                       onOpen={() => openIntegration(it)}
@@ -553,8 +553,8 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             className="flex items-center gap-4 rounded-3xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/5 p-4 hover:shadow-md transition print:hidden">
             <span className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shrink-0"><Store className="h-6 w-6" /></span>
             <div className="flex-1 min-w-0">
-              <div className="font-black text-slate-900 dark:text-white">Apni website jorein — WooCommerce, Shopify ya custom</div>
-              <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">Setup checklist, test order, products sync aur keys — sab ek safhe par</div>
+              <div className="font-black text-slate-900 dark:text-ink-white">Apni website jorein — WooCommerce, Shopify ya custom</div>
+              <div className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">Setup checklist, test order, products sync aur keys — sab ek safhe par</div>
             </div>
             <ChevronRight className="h-5 w-5 text-emerald-600 shrink-0" />
           </Link>
@@ -566,22 +566,22 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
               <div className="space-y-5">
                 {directory.map((g) => (
                   <div key={g.key}>
-                    <div className="mb-2 flex items-center gap-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                    <div className="mb-2 flex items-center gap-2 text-sm font-black text-slate-700 dark:text-ink-200">
                       <span>{g.cfg.emoji}</span> {g.cfg.label}
                       <span className="text-[0.6875rem] font-bold text-slate-400">· {g.cfg.hint}</span>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3">
                       {g.items.map((a: any) => (
                         <button key={a.type} onClick={() => startConnect(a)}
-                          className="group relative flex flex-col p-4 rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-lg transition text-left">
+                          className="group relative flex flex-col p-4 rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-lg transition text-left">
                           {a.popular && (
                             <span className="absolute top-3 right-3 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 text-[0.625rem] font-black">
                               <Star className="h-2.5 w-2.5 fill-current" /> Mashhoor
                             </span>
                           )}
                           <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: `${a.color ?? '#8b5cf6'}20` }}>{a.icon}</div>
-                          <div className="mt-3 font-black text-sm text-slate-900 dark:text-white">{a.name}</div>
-                          <div className="mt-0.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 line-clamp-2 flex-1">{a.description}</div>
+                          <div className="mt-3 font-black text-sm text-slate-900 dark:text-ink-white">{a.name}</div>
+                          <div className="mt-0.5 text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 line-clamp-2 flex-1">{a.description}</div>
                           <div className="mt-3 inline-flex items-center gap-1 text-[0.6875rem] font-black text-violet-700 dark:text-violet-300">
                             <Plus className="h-3 w-3" /> Jorein
                           </div>
@@ -603,8 +603,8 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             className="flex items-center gap-4 rounded-3xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-teal-50 p-4 hover:shadow-md dark:border-emerald-500/40 dark:from-emerald-500/10 dark:to-teal-500/5 transition">
             <span className="h-12 w-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center text-2xl shadow-lg shrink-0">🛍️</span>
             <div className="flex-1 min-w-0">
-              <div className="font-black text-slate-900 dark:text-white">Online Orders ka poora safha</div>
-              <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+              <div className="font-black text-slate-900 dark:text-ink-white">Online Orders ka poora safha</div>
+              <div className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
                 Accept → bill → receipt → stock, delivery aur COD ka hisaab, analytics — sab ek jagah
               </div>
             </div>
@@ -627,15 +627,15 @@ export default function IntegrationHubPage({ defaultTab = 'overview' }: { defaul
             </section>
           )}
           {logs.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-12 text-center">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-12 text-center">
               <Activity className="h-12 w-12 mx-auto mb-3 text-slate-400" />
-              <div className="font-black text-slate-800 dark:text-slate-100">Abhi koi sync activity nahi</div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">Integration jorein — har sync yahan nazar aayega.</p>
+              <div className="font-black text-slate-800 dark:text-ink-100">Abhi koi sync activity nahi</div>
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-bold">Integration jorein — har sync yahan nazar aayega.</p>
             </div>
           ) : shownLogs.length === 0 ? (
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-8 text-center text-sm font-bold text-slate-400">Is chaant me kuch nahi</div>
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-8 text-center text-sm font-bold text-slate-400">Is chaant me kuch nahi</div>
           ) : (
-            <div className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 overflow-hidden divide-y-2 divide-slate-100 dark:divide-slate-800">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 overflow-hidden divide-y-2 divide-slate-100 dark:divide-ink-800">
               {shownLogs.map((log) => <SyncLogRow key={log.id} log={log} />)}
             </div>
           )}
@@ -684,12 +684,12 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active, highlight, 
         onClick && 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer',
         active ? 'border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/20 bg-violet-50 dark:bg-violet-500/10'
           : highlight ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-amber-300 dark:border-amber-500/40'
-            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800')}>
+            : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight">{value}</div>
-          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-tight">{value}</div>
+          {sub && <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1.5 line-clamp-2">{sub}</div>}
         </div>
         <div className={cn('h-11 w-11 rounded-2xl bg-gradient-to-br text-white flex items-center justify-center shadow-lg shrink-0', KPI_TONES[tone], pulse && 'animate-pulse')}>
           <Icon className="h-5 w-5" />
@@ -704,7 +704,7 @@ function MiniKpi({ label, value, tone }: { label: string; value: React.ReactNode
     emerald: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30',
     rose: 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30',
     amber: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30',
-    slate: 'text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
+    slate: 'text-slate-700 dark:text-ink-200 bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800',
   }[tone];
   return (
     <div className={cn('rounded-2xl border-2 p-3', t)}>
@@ -718,7 +718,7 @@ function SectionHead({ title, sub, icon: Icon }: { title: string; sub?: string; 
   return (
     <div className="mb-3 flex items-end justify-between gap-2">
       <div>
-        <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+        <h2 className="text-lg font-black text-slate-900 dark:text-ink-white flex items-center gap-2">
           {Icon && <Icon className="h-5 w-5 text-violet-600" />}{title}
         </h2>
         {sub && <p className="text-[0.75rem] font-bold text-slate-500">{sub}</p>}
@@ -731,15 +731,15 @@ function EmptyState({ onConnect, onGuide }: { onConnect: () => void; onGuide: ()
   return (
     <div className="rounded-3xl border-2 border-dashed border-violet-300 dark:border-violet-500/30 bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-500/5 dark:to-indigo-500/5 p-8 sm:p-12 text-center">
       <div className="text-5xl sm:text-6xl">🔌</div>
-      <h3 className="mt-3 text-xl font-black text-slate-900 dark:text-white">Abhi koi integration nahi juri</h3>
-      <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 max-w-lg mx-auto font-semibold">
+      <h3 className="mt-3 text-xl font-black text-slate-900 dark:text-ink-white">Abhi koi integration nahi juri</h3>
+      <p className="text-sm text-slate-600 dark:text-ink-300 mt-2 max-w-lg mx-auto font-semibold">
         Foodpanda, Daraz, apni website, TCS courier — jor dein aur orders khud Nafaa POS me aayenge.
       </p>
       <div className="mx-auto mt-5 grid max-w-2xl gap-2 sm:grid-cols-3 text-left">
         {[['1', 'Platform chunein', 'Neeche ki list se'], ['2', 'Keys daalein', 'Platform ke portal se'], ['3', 'Orders aayen', 'Har 30 second me']].map(([n, t, d]) => (
-          <div key={n} className="rounded-2xl bg-white/80 dark:bg-slate-900/60 border-2 border-violet-200 dark:border-violet-500/30 p-3">
+          <div key={n} className="rounded-2xl bg-white/80 dark:bg-ink-900/60 border-2 border-violet-200 dark:border-violet-500/30 p-3">
             <div className="h-6 w-6 rounded-lg bg-violet-600 text-white text-xs font-black flex items-center justify-center">{n}</div>
-            <div className="mt-1.5 text-sm font-black text-slate-900 dark:text-white">{t}</div>
+            <div className="mt-1.5 text-sm font-black text-slate-900 dark:text-ink-white">{t}</div>
             <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
           </div>
         ))}
@@ -766,18 +766,18 @@ function IntegrationCard({ integration: it, onOpen, onDisconnect, onReconnect }:
   const sr = rate(it.totalOrdersSynced ?? 0, it.totalErrors ?? 0);
 
   return (
-    <div className={cn('group relative flex flex-col rounded-3xl bg-white dark:bg-slate-900 border-2 shadow-sm hover:shadow-lg transition overflow-hidden',
-      isError ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-500/40')}>
+    <div className={cn('group relative flex flex-col rounded-3xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition overflow-hidden',
+      isError ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800 hover:border-violet-300 dark:hover:border-violet-500/40')}>
       <div className={cn('h-1.5 bg-gradient-to-r', cat.gradient)} />
       <div className="p-5 flex-1 flex flex-col">
         <div className="flex items-start gap-3">
-          <div className="relative h-12 w-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl shrink-0">
+          <div className="relative h-12 w-12 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-2xl shrink-0">
             {getIntegrationEmoji(it.type)}
-            <span className={cn('absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-white dark:ring-slate-900', st.dot, isConnected && 'animate-pulse')} />
+            <span className={cn('absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full ring-2 ring-white dark:ring-ink-900', st.dot, isConnected && 'animate-pulse')} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="font-black text-sm text-slate-900 dark:text-white truncate">{it.displayName}</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">{cat.emoji} {String(it.type ?? '').replace(/_/g, ' ')}</div>
+            <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">{it.displayName}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 uppercase tracking-wider truncate">{cat.emoji} {String(it.type ?? '').replace(/_/g, ' ')}</div>
           </div>
           <span className={cn('shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.6875rem] font-black', st.chip)}>
             <st.icon className="h-3 w-3" /> {st.label}
@@ -801,12 +801,12 @@ function IntegrationCard({ integration: it, onOpen, onDisconnect, onReconnect }:
             <span>Sync kamyabi</span>
             <span className={sr >= 95 ? 'text-emerald-600' : sr >= 80 ? 'text-amber-600' : 'text-rose-600'}>{sr.toFixed(0)}%</span>
           </div>
-          <div className="mt-1 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+          <div className="mt-1 h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
             <div className={cn('h-full rounded-full', sr >= 95 ? 'bg-emerald-500' : sr >= 80 ? 'bg-amber-500' : 'bg-rose-500')} style={{ width: `${sr}%` }} />
           </div>
         </div>
 
-        <div className="mt-auto pt-3 border-t-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+        <div className="mt-auto pt-3 border-t-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Button size="sm" variant="outline" fullWidth onClick={onOpen} leftIcon={<Settings className="h-3.5 w-3.5" />}>Sambhalein</Button>
           {isConnected ? (
             <Button size="sm" variant="ghost" onClick={onDisconnect} title="Band karein" className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/20 dark:text-rose-400">
@@ -829,22 +829,22 @@ function IntegrationRow({ integration: it, onOpen, onDisconnect, onReconnect }: 
   const isConnected = it.status === 'CONNECTED';
   const sr = rate(it.totalOrdersSynced ?? 0, it.totalErrors ?? 0);
   return (
-    <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-      <span className="relative h-11 w-11 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xl shrink-0">
+    <div className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
+      <span className="relative h-11 w-11 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xl shrink-0">
         {getIntegrationEmoji(it.type)}
-        <span className={cn('absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-slate-900', st.dot)} />
+        <span className={cn('absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ring-white dark:ring-ink-900', st.dot)} />
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-black text-sm text-slate-900 dark:text-white truncate">{it.displayName}</span>
+          <span className="font-black text-sm text-slate-900 dark:text-ink-white truncate">{it.displayName}</span>
           <span className={cn('rounded-full px-2 py-0.5 text-[0.6875rem] font-black', st.chip)}>{st.label}</span>
         </div>
         <div className="text-[0.6875rem] font-bold text-slate-500 truncate">{cat.emoji} {cat.label} · {String(it.type ?? '').replace(/_/g, ' ')}</div>
       </div>
       <div className="hidden md:grid grid-cols-3 gap-6 text-right shrink-0">
-        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-white">{Number(it.totalOrdersSynced ?? 0).toLocaleString('en-PK')}</div><div className="text-[0.6875rem] font-bold text-slate-400">orders</div></div>
+        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-ink-white">{Number(it.totalOrdersSynced ?? 0).toLocaleString('en-PK')}</div><div className="text-[0.6875rem] font-bold text-slate-400">orders</div></div>
         <div><div className={cn('text-sm font-black tabular-nums', sr >= 95 ? 'text-emerald-600' : sr >= 80 ? 'text-amber-600' : 'text-rose-600')}>{sr.toFixed(0)}%</div><div className="text-[0.6875rem] font-bold text-slate-400">kamyabi</div></div>
-        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-white">{it.lastSyncAt ? timeAgo(it.lastSyncAt) : '—'}</div><div className="text-[0.6875rem] font-bold text-slate-400">aakhri sync</div></div>
+        <div><div className="text-sm font-black tabular-nums text-slate-900 dark:text-ink-white">{it.lastSyncAt ? timeAgo(it.lastSyncAt) : '—'}</div><div className="text-[0.6875rem] font-bold text-slate-400">aakhri sync</div></div>
       </div>
       <div className="flex gap-1.5 shrink-0">
         <Button size="sm" variant="outline" onClick={onOpen} leftIcon={<Settings className="h-3.5 w-3.5" />}>Sambhalein</Button>
@@ -858,10 +858,10 @@ function IntegrationRow({ integration: it, onOpen, onDisconnect, onReconnect }: 
 
 function Mini({ label, value, icon: Icon, warn }: { label: string; value: React.ReactNode; icon: any; warn?: boolean }) {
   return (
-    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-center">
+    <div className="p-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 text-center">
       <Icon className={cn('h-3 w-3 mx-auto', warn ? 'text-rose-500' : 'text-slate-400')} />
-      <div className={cn('mt-0.5 font-black text-xs truncate tabular-nums', warn ? 'text-rose-600' : 'text-slate-900 dark:text-white')}>{value}</div>
-      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className={cn('mt-0.5 font-black text-xs truncate tabular-nums', warn ? 'text-rose-600' : 'text-slate-900 dark:text-ink-white')}>{value}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">{label}</div>
     </div>
   );
 }
@@ -878,10 +878,10 @@ function SyncLogRow({ log }: { log: any }) {
         {ok ? <CheckCircle2 className="h-5 w-5" /> : bad ? <AlertCircle className="h-5 w-5" /> : <RefreshCw className="h-5 w-5 animate-spin" />}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-black text-sm text-slate-900 dark:text-white truncate">
-          {getIntegrationEmoji(log.integration?.type)} {log.integration?.displayName ?? 'Nameloom'} <span className="text-slate-400">·</span> <span className="font-bold text-slate-600 dark:text-slate-300">{log.operation}</span>
+        <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">
+          {getIntegrationEmoji(log.integration?.type)} {log.integration?.displayName ?? 'Nameloom'} <span className="text-slate-400">·</span> <span className="font-bold text-slate-600 dark:text-ink-300">{log.operation}</span>
         </div>
-        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-bold flex items-center gap-2 flex-wrap">
+        <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-bold flex items-center gap-2 flex-wrap">
           <span className="text-emerald-700 dark:text-emerald-400">{log.recordsSuccess ?? 0} theek</span>
           <span className="text-rose-700 dark:text-rose-400">{log.recordsFailed ?? 0} ghalat</span>
           <span>{log.recordsProcessed ?? 0} kul</span>
@@ -889,7 +889,7 @@ function SyncLogRow({ log }: { log: any }) {
         {log.errorMessage && <div className="text-[0.6875rem] text-rose-700 dark:text-rose-400 mt-0.5 font-bold line-clamp-2">⚠️ {log.errorMessage}</div>}
       </div>
       <div className="text-right shrink-0">
-        <div className="text-xs font-black text-slate-700 dark:text-slate-200">{new Date(log.startedAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
+        <div className="text-xs font-black text-slate-700 dark:text-ink-200">{new Date(log.startedAt).toLocaleTimeString('en-PK', { hour: '2-digit', minute: '2-digit' })}</div>
         <div className="text-[0.6875rem] font-bold text-slate-400">{new Date(log.startedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} · {timeAgo(log.startedAt)}</div>
       </div>
     </div>
@@ -899,15 +899,15 @@ function SyncLogRow({ log }: { log: any }) {
 function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-violet-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Integrations ka safha</h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="text-[0.8125rem] font-semibold text-slate-700 dark:text-slate-200">
+          <p className="text-[0.8125rem] font-semibold text-slate-700 dark:text-ink-200">
             Integration matlab doosre platform ko apne POS se jorna. Foodpanda par order aaya — seedha Nafaa me.
             Parcel TCS se gaya — tracking khud.
           </p>
@@ -919,9 +919,9 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
           <Tip icon={Truck} title="📦 Courier">TCS, Leopards, CallCourier — parcel book aur tracking.</Tip>
           <Tip icon={CreditCard} title="💳 Payment">JazzCash, EasyPaisa, NayaPay, Raast — online paisa lena.</Tip>
           <Tip icon={Calculator} title="📊 Hisaab kitaab">QuickBooks, Xero — bikri khud books me.</Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Halat ka matlab</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-700 dark:text-slate-200">
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-700 dark:text-ink-200">
               <div>🟢 <strong>Chal raha</strong> — sab theek</div>
               <div>🔴 <strong>Ghalti</strong> — dobara jorein</div>
               <div>⚪ <strong>Band</strong> — aap ne band ki</div>
@@ -934,9 +934,9 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
             Masle wali integration hamesha upar laal patti me dikhti hai.
           </Tip>
           <Tip icon={Globe} title="Apni website">WooCommerce, Shopify ya custom website ke liye alag safha hai — checklist, test order aur keys ke saath.</Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
               <div><Kbd>/</Kbd> dhoondo</div>
               <div><Kbd>N</Kbd> nayi integration</div>
               <div><Kbd>1</Kbd>–<Kbd>3</Kbd> tabs</div>
@@ -953,7 +953,7 @@ function IntegrationsTeacher({ onClose }: { onClose: () => void }) {
 }
 
 function Kbd({ children }: { children: React.ReactNode }) {
-  return <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border font-mono">{children}</kbd>;
+  return <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">{children}</kbd>;
 }
 
 function Tip({ icon: Icon, title, children }: any) {
@@ -963,8 +963,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-violet-600 dark:text-violet-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

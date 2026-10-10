@@ -106,7 +106,7 @@ export default function OnlineCustomersPage() {
         {SEGMENTS.map((s) => (
           <button key={s.key} onClick={() => { setSegment(s.key); setPage(0); }} title={s.hint}
             className={cn('shrink-0 rounded-md px-3 py-1.5 text-[0.8125rem] font-medium',
-              segment === s.key ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800')}>
+              segment === s.key ? 'bg-slate-900 text-white dark:bg-ink-white dark:text-ink-900' : 'text-slate-600 hover:bg-slate-100 dark:text-ink-300 dark:hover:bg-ink-800')}>
             {s.label}{data ? <span className="ml-1 opacity-60">{data.counts[s.key] ?? 0}</span> : null}
           </button>
         ))}
@@ -132,9 +132,9 @@ export default function OnlineCustomersPage() {
           <Btn size="sm" disabled={!rows.length} onClick={copyNumbers} icon={<Copy className="h-3.5 w-3.5" />}>Numbers copy</Btn>
           <Btn size="sm" disabled={!rows.length} onClick={csv} icon={<Download className="h-3.5 w-3.5" />}>CSV</Btn>
         </div>
-        <div className={cn('mt-3 border-t border-slate-100 dark:border-slate-800', isFetching && 'opacity-70')}>
+        <div className={cn('mt-3 border-t border-slate-100 dark:border-ink-800', isFetching && 'opacity-70')}>
           {isLoading ? (
-            <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>
+            <div className="p-5"><div className="h-24 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
           ) : error ? (
             <EmptyState title="Customers nahi khule">{apiErrorMessage(error)}</EmptyState>
           ) : rows.length === 0 ? (
@@ -142,7 +142,7 @@ export default function OnlineCustomersPage() {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-[0.8125rem]">
-                <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-800/40">
+                <thead className="bg-slate-50 text-left text-[0.71875rem] font-semibold uppercase tracking-wide text-slate-500 dark:bg-ink-800/40">
                   <tr>
                     <th className="px-4 py-2 sm:px-5">Customer</th>
                     <th className="px-3 py-2 text-right">Orders</th>
@@ -151,15 +151,15 @@ export default function OnlineCustomersPage() {
                     <th className="px-4 py-2 text-right sm:px-5" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                   {rows.map((c) => {
                     const wa = waNumber(c.phone);
                     const text = msgFor(c);
                     return (
-                      <tr key={c.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                      <tr key={c.key} className="hover:bg-slate-50 dark:hover:bg-ink-800/30">
                         <td className="px-4 py-2.5 sm:px-5">
                           <div className="flex flex-wrap items-center gap-1.5">
-                            <Link to={`/online-orders?search=${encodeURIComponent(c.phone)}`} className="font-semibold text-slate-900 hover:underline dark:text-white">{c.name}</Link>
+                            <Link to={`/online-orders?search=${encodeURIComponent(c.phone)}`} className="font-semibold text-slate-900 hover:underline dark:text-ink-white">{c.name}</Link>
                             {c.segments.includes('vip') && <Badge tone="success">★ VIP</Badge>}
                             {c.blocked && <Badge tone="critical">Blocked</Badge>}
                             {c.returned > 0 && !c.blocked && <Badge tone="warning">{c.returned} wapas</Badge>}
@@ -168,10 +168,10 @@ export default function OnlineCustomersPage() {
                         </td>
                         <td className="px-3 py-2.5 text-right tabular-nums">{c.delivered}<span className="text-slate-400"> / {c.orders}</span></td>
                         <td className="px-3 py-2.5 text-right tabular-nums">
-                          <div className="font-semibold text-slate-900 dark:text-white">{rs(c.spent)}</div>
+                          <div className="font-semibold text-slate-900 dark:text-ink-white">{rs(c.spent)}</div>
                           {c.avgOrder > 0 && <div className="text-[0.6875rem] text-slate-400">ausat {rs(c.avgOrder)}</div>}
                         </td>
-                        <td className="px-3 py-2.5 text-right text-slate-600 dark:text-slate-300">{c.daysSince === 0 ? 'aaj' : `${c.daysSince} din pehle`}</td>
+                        <td className="px-3 py-2.5 text-right text-slate-600 dark:text-ink-300">{c.daysSince === 0 ? 'aaj' : `${c.daysSince} din pehle`}</td>
                         <td className="px-4 py-2.5 sm:px-5">
                           <div className="flex justify-end gap-1">
                             {wa && !c.blocked && (
@@ -195,7 +195,7 @@ export default function OnlineCustomersPage() {
           )}
         </div>
         {pages > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-slate-800 sm:px-5">
+          <div className="flex items-center justify-between border-t border-slate-100 px-4 py-2.5 text-[0.78125rem] text-slate-500 dark:border-ink-800 sm:px-5">
             <span>{data?.total} customers</span>
             <div className="flex gap-1">
               <Btn size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Pichhe</Btn>

@@ -269,7 +269,7 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
       footer={
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => setMode('print')}
-            className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
+            className="h-11 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition">
             <Printer className="h-4 w-4" /> Hisab Print
           </button>
           <button onClick={wa}
@@ -358,7 +358,7 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
               <button key={v} onClick={() => setKind(v as FilterKind)}
                 className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
                   kind === v ? 'bg-orange-600 border-orange-600 text-white shadow'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-orange-400'
+                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-orange-400'
                 }`}>{label}</button>
             ))}
           </div>
@@ -366,8 +366,8 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
           {/* Timeline */}
           {rows.length === 0 ? (
             <div className="py-10 text-center">
-              <BookOpen className="h-10 w-10 mx-auto text-slate-300 dark:text-slate-600" />
-              <p className="mt-2 text-sm font-extrabold text-slate-700 dark:text-slate-200">Khata abhi khali hai</p>
+              <BookOpen className="h-10 w-10 mx-auto text-slate-300 dark:text-ink-600" />
+              <p className="mt-2 text-sm font-extrabold text-slate-700 dark:text-ink-200">Khata abhi khali hai</p>
               <p className="text-xs font-semibold text-slate-400 mt-0.5">
                 Purana hisab daalein ya "Maal Liya" se pehli entry banayein
               </p>
@@ -385,23 +385,23 @@ export function SupplierKhataModal({ supplierId, onClose }: { supplierId: string
           {/* Kharidari */}
           {data.purchases.length > 0 && (
             <div>
-              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
+              <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1.5">
                 Is supplier se kharidari ({data.purchases.length})
               </div>
               <div className="space-y-1.5 max-h-56 overflow-y-auto">
                 {data.purchases.slice().reverse().map((p) => {
                   const due = Math.max(p.total - p.paidAmount, 0);
                   return (
-                    <div key={p.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-2.5 py-2">
+                    <div key={p.id} className="flex items-center gap-2 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-2.5 py-2">
                       <div className="min-w-0 flex-1">
-                        <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                        <div className="text-[0.6875rem] font-extrabold text-slate-800 dark:text-ink-100 truncate">
                           {p.purchaseNumber}
                           <span className="ml-1.5 font-bold text-slate-400">{p.items.length} cheezein</span>
                         </div>
                         <div className="text-[0.6875rem] font-bold text-slate-400">{fmtDate(p.purchasedAt)}</div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-800 dark:text-slate-100">{formatPKR(p.total)}</div>
+                        <div className="text-[0.6875rem] font-extrabold tabular-nums text-slate-800 dark:text-ink-100">{formatPKR(p.total)}</div>
                         {due > 0 && <div className="text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400 tabular-nums">{formatPKR(due)} baqi</div>}
                       </div>
                     </div>
@@ -423,7 +423,7 @@ function Shell({ title, subtitle, badge, onClose, children, footer }: {
 }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
+      <div className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 relative bg-gradient-to-br from-slate-950 via-orange-900 to-amber-700 text-white px-5 py-4 overflow-hidden">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-orange-400/25 blur-2xl" />
@@ -444,7 +444,7 @@ function Shell({ title, subtitle, badge, onClose, children, footer }: {
         </div>
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
         {footer && (
-          <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4">{footer}</div>
+          <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4">{footer}</div>
         )}
       </div>
     </div>
@@ -458,8 +458,8 @@ function EntryRow({ e, canDelete, onDelete }: {
   const m = ledgerMeta(e.type);
   const d = entryDelta(e);
   return (
-    <div className="group flex items-center gap-2.5 rounded-xl bg-white dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 px-2.5 py-2">
-      <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-base shrink-0">
+    <div className="group flex items-center gap-2.5 rounded-xl bg-white dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 px-2.5 py-2">
+      <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-base shrink-0">
         {m.emoji}
       </div>
       <div className="min-w-0 flex-1">
@@ -467,7 +467,7 @@ function EntryRow({ e, canDelete, onDelete }: {
           <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black border ${m.cls}`}>{m.label}</span>
           {e.reference && <span className="font-mono text-[0.6875rem] font-bold text-slate-400">{e.reference}</span>}
         </div>
-        {e.note && <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 truncate">{e.note}</div>}
+        {e.note && <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 truncate">{e.note}</div>}
         <div className="text-[0.6875rem] font-bold text-slate-400">{fmtDateTime(e.entryDate)}</div>
       </div>
       <div className="text-right shrink-0">
@@ -491,16 +491,16 @@ function EntryRow({ e, canDelete, onDelete }: {
 /* ═════════════ FORMS ═════════════ */
 const inp = (extra = '', bad = false) =>
   [
-    'w-full rounded-xl border-2 px-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-white',
+    'w-full rounded-xl border-2 px-3 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white',
     'placeholder:text-slate-400 focus:outline-none focus:ring-2 transition',
     bad ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-        : 'border-slate-200 dark:border-slate-700 focus:border-orange-500 focus:ring-orange-200 dark:focus:ring-orange-500/30',
+        : 'border-slate-200 dark:border-ink-700 focus:border-orange-500 focus:ring-orange-200 dark:focus:ring-orange-500/30',
     extra,
   ].join(' ');
 
 function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">
       {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
       {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
     </label>
@@ -515,14 +515,14 @@ function FormShell({ icon: Icon, title, hint, tone, children }: any) {
     violet: 'from-violet-500 to-purple-600',
   };
   return (
-    <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 p-4">
+    <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900/60 p-4">
       <div className="flex items-start gap-2.5 mb-3">
         <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${tones[tone] ?? tones.amber} text-white flex items-center justify-center shadow shrink-0`}>
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</h4>
-          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</p>}
+          <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{title}</h4>
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{hint}</p>}
         </div>
       </div>
       {children}
@@ -608,7 +608,7 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
           <div className="grid grid-cols-4 gap-1.5">
             {quicks.map((v) => (
               <button key={v} type="button" onClick={() => setAmount(String(v))}
-                className="h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-xs font-extrabold text-slate-700 dark:text-slate-200 tabular-nums transition">
+                className="h-10 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-xs font-extrabold text-slate-700 dark:text-ink-200 tabular-nums transition">
                 {v === max ? 'Poora' : v >= 1000 ? `${v / 1000}k` : v}
               </button>
             ))}
@@ -634,13 +634,13 @@ function AmountForm({ title, hint, icon, tone, max, pending, onCancel, onSubmit,
                   className={`h-11 rounded-xl text-[0.6875rem] font-extrabold transition border-2 ${
                     method === v
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-transparent hover:border-emerald-400'
+                      : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 border-transparent hover:border-emerald-400'
                   }`}>
                   {label}
                 </button>
               ))}
             </div>
-            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {method === 'CASH'
                 ? 'Cash golak (cash register) se nikal jayega.'
                 : 'Golak par asar nahi — ye paisa golak se nahi gaya.'}
@@ -688,12 +688,12 @@ function AdjustForm({ pending, onCancel, onSubmit }: any) {
           <button type="button" onClick={() => setDir('down')}
             className={`h-12 rounded-xl text-xs font-extrabold border-2 transition ${
               dir === 'down' ? 'bg-emerald-600 border-emerald-600 text-white shadow'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
             }`}>➖ Hamara dena KAM hua</button>
           <button type="button" onClick={() => setDir('up')}
             className={`h-12 rounded-xl text-xs font-extrabold border-2 transition ${
               dir === 'up' ? 'bg-rose-600 border-rose-600 text-white shadow'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
             }`}>➕ Hamara dena BARHA</button>
         </div>
         <div>
@@ -729,15 +729,15 @@ function PrintPicker({ onPick, onCancel }: { onPick: (p: 'a4' | 'thermal') => vo
       <div className="space-y-2">
         <button onClick={() => onPick('a4')}
           className="w-full rounded-2xl border-2 border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10 p-4 text-left hover:shadow-lg transition active:scale-[0.98]">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">📄 A4 — poora hisab</div>
-          <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">📄 A4 — poora hisab</div>
+          <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 mt-0.5">
             Har entry alag line par, chalta hua balance, aur dono dastakhaton ki jagah. PDF bhi bana sakte hain.
           </div>
         </button>
         <button onClick={() => onPick('thermal')}
           className="w-full rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 p-4 text-left hover:shadow-lg transition active:scale-[0.98]">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">🧾 80mm — chhoti parchi</div>
-          <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-slate-300 mt-0.5">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">🧾 80mm — chhoti parchi</div>
+          <div className="text-[0.6875rem] font-semibold text-slate-600 dark:text-ink-300 mt-0.5">
             Usi printer se jis se receipt nikalti hai — supplier ko haath me dene ke liye.
           </div>
         </button>
@@ -763,7 +763,7 @@ function Box({ label, value, tone }: { label: string; value: string; tone: 'ambe
 function SmallBtn({ icon: Icon, label, onClick }: any) {
   return (
     <button onClick={onClick}
-      className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 hover:border-orange-400 transition">
+      className="h-9 px-3 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1.5 hover:border-orange-400 transition">
       <Icon className="h-3.5 w-3.5" /> {label}
     </button>
   );

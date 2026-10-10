@@ -25,14 +25,14 @@ interface Props {
 export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNext, validation }: Props) {
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
-        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-neutral-800">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-ink-800">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-md">
             <DollarSign className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Charge Type *</h3>
-            <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">How do you charge for this service?</p>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Charge Type *</h3>
+            <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">How do you charge for this service?</p>
           </div>
         </div>
 
@@ -48,11 +48,11 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
                   'p-4 rounded-2xl border-2 transition-all text-left',
                   active
                     ? 'border-emerald-500 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-950/40 shadow-md ring-2 ring-emerald-200'
-                    : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300',
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300',
                 ].join(' ')}
               >
                 <div className="text-3xl mb-1">{t.emoji}</div>
-                <div className={'font-extrabold text-sm ' + (active ? 'text-emerald-800' : 'text-slate-900 dark:text-white')}>
+                <div className={'font-extrabold text-sm ' + (active ? 'text-emerald-800' : 'text-slate-900 dark:text-ink-white')}>
                   {t.label}
                 </div>
                 <div className="text-[0.6875rem] font-semibold text-slate-500 mt-0.5">{t.desc}</div>
@@ -62,13 +62,13 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
         </div>
       </section>
 
-      <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-emerald-950/30 dark:via-neutral-900 dark:to-green-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-emerald-50 via-white to-green-50 dark:from-emerald-950/30 dark:via-ink-900 dark:to-green-950/30 border-2 border-emerald-200 dark:border-emerald-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-emerald-200/60 dark:border-emerald-800/60">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-md">
             <Wallet className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Base Charges</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Base Charges</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Fill any that apply — at least one required</p>
           </div>
         </div>
@@ -112,13 +112,13 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
         </div>
       </section>
 
-      <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-950/30 dark:via-neutral-900 dark:to-orange-950/30 border-2 border-amber-200 dark:border-amber-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-amber-950/30 dark:via-ink-900 dark:to-orange-950/30 border-2 border-amber-200 dark:border-amber-800 shadow-sm p-5 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b-2 border-amber-200/60 dark:border-amber-800/60">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
             <Zap className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Surcharges (optional)</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Surcharges (optional)</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Extra charges for special conditions</p>
           </div>
         </div>
@@ -155,13 +155,13 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
-        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-neutral-800">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
+        <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-ink-800">
           <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-md">
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">Advanced Options</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">Advanced Options</h3>
             <p className="text-[0.6875rem] text-slate-500 font-semibold">Quote and advance payment rules</p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
             'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition',
             pricing.requiresQuote
               ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/30'
-              : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300',
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300',
           ].join(' ')}>
             <input
               type="checkbox"
@@ -190,7 +190,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
             'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition',
             pricing.requiresAdvance
               ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30'
-              : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300',
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300',
           ].join(' ')}>
             <input
               type="checkbox"
@@ -245,7 +245,7 @@ export function ServicesBizWizardStep2Pricing({ pricing, onChange, onBack, onNex
         </div>
       )}
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex items-center justify-between flex-wrap gap-3">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 flex items-center justify-between flex-wrap gap-3">
         <Button variant="secondary" onClick={onBack}>
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
@@ -272,7 +272,7 @@ function PriceInput({ label, emoji, value, onChange, tone }: any) {
   };
   return (
     <div>
-      <label className="block text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
+      <label className="block text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 uppercase tracking-wider">
         {emoji} {label}
       </label>
       <div className="relative">

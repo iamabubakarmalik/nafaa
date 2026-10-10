@@ -284,7 +284,7 @@ export default function AmcContractsPage() {
               <div className="flex gap-1.5 flex-wrap mt-2">
                 {stale.slice(0, 6).map((c) => (
                   <button key={c.id} onClick={() => setRenewFor(c)}
-                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border-2 border-rose-200 dark:border-rose-500/30 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-300 transition">
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-ink-900 border-2 border-rose-200 dark:border-rose-500/30 text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-300 transition">
                     {c.contractNumber} · {c.customerName}
                   </button>
                 ))}
@@ -334,11 +334,11 @@ export default function AmcContractsPage() {
             className={`h-11 px-4 rounded-2xl text-sm font-extrabold inline-flex items-center gap-2 shrink-0 transition ${
               tab === t.v
                 ? 'bg-gradient-to-r from-cyan-600 to-teal-700 text-white shadow-lg shadow-cyan-500/30'
-                : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                : 'bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
             }`}>
             <t.icon className="h-4 w-4" /> {t.label}
             {t.n !== undefined && t.n > 0 && (
-              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-slate-800'}`}>{t.n}</span>
+              <span className={`px-1.5 rounded-full text-[0.6875rem] tabular-nums ${tab === t.v ? 'bg-black/20' : 'bg-slate-200 dark:bg-ink-800'}`}>{t.n}</span>
             )}
           </button>
         ))}
@@ -356,7 +356,7 @@ export default function AmcContractsPage() {
                   className={inputCls('h-12 pl-9 pr-9')} />
                 {search && (
                   <button onClick={() => setSearch('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
                     <X className="h-3.5 w-3.5 text-slate-500" />
                   </button>
                 )}
@@ -412,10 +412,10 @@ export default function AmcContractsPage() {
           hint="Sab se qareeb wala sab se upar — renew ka paisa yahin chhupa hai"
           right={
             <div className="flex gap-1.5">
-              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
+              <button onClick={doCsv} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                 <FileSpreadsheet className="h-3.5 w-3.5" /> CSV
               </button>
-              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
+              <button onClick={doPrint} className="h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold inline-flex items-center gap-1 transition">
                 <Printer className="h-3.5 w-3.5" /> Print
               </button>
             </div>
@@ -433,7 +433,7 @@ export default function AmcContractsPage() {
                   <div key={c.id} className={`rounded-2xl border-2 p-3 ${
                     over ? 'border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10'
                          : c.daysLeft <= 15 ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10'
-                         : 'border-slate-200 dark:border-slate-800'
+                         : 'border-slate-200 dark:border-ink-800'
                   }`}>
                     <div className="flex items-start gap-3 flex-wrap">
                       <div className={`h-12 w-12 rounded-2xl flex flex-col items-center justify-center shrink-0 text-white ${
@@ -444,14 +444,14 @@ export default function AmcContractsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{c.contractNumber}</span>
+                          <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-sm">{c.contractNumber}</span>
                           <StatusBadge meta={amcTypeMeta(c.amcType)} size="xs" />
                           {over && <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white text-[0.625rem] font-black">TAREEKH GUZRI</span>}
                         </div>
-                        <div className="font-bold text-sm text-slate-800 dark:text-slate-100 mt-0.5 truncate">
+                        <div className="font-bold text-sm text-slate-800 dark:text-ink-100 mt-0.5 truncate">
                           {c.customerName} · {c.customerPhone}
                         </div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                           {c.productName ?? 'Cheez darj nahi'} · khatam {fmtDate(c.expiryDate)} ·{' '}
                           visits {c.freeVisitsUsed}/{c.freeVisitsAllowed}
                           {pending > 0 && <span className="text-rose-600 dark:text-rose-400"> · {money(pending)} baqi</span>}
@@ -467,7 +467,7 @@ export default function AmcContractsPage() {
                           </a>
                         )}
                         <button onClick={() => sendReminder.mutate(c.id)} disabled={sendReminder.isPending}
-                          className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition" title="Reminder">
+                          className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center transition" title="Reminder">
                           <Bell className="h-4 w-4" />
                         </button>
                         <button onClick={() => setRenewFor(c)}
@@ -536,7 +536,7 @@ export default function AmcContractsPage() {
             ) : (
               <div className="space-y-1.5">
                 {summary!.expiringList.map((e) => (
-                  <div key={e.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+                  <div key={e.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
                     <div className={`h-9 w-9 rounded-xl flex flex-col items-center justify-center text-white shrink-0 ${
                       e.daysLeft <= 7 ? 'bg-rose-600' : e.daysLeft <= 15 ? 'bg-amber-500' : 'bg-cyan-600'
                     }`}>
@@ -544,13 +544,13 @@ export default function AmcContractsPage() {
                       <span className="text-[0.625rem] font-extrabold">DIN</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">{e.customerName}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{e.customerName}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 font-mono truncate">
                         {e.contractNumber} · {amcTypeMeta(e.amcType).label} · visits {e.freeVisitsUsed}/{e.freeVisitsAllowed}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums">{money(e.contractValue)}</div>
+                      <div className="text-xs font-black text-slate-900 dark:text-ink-white tabular-nums">{money(e.contractValue)}</div>
                       {e.pending > 0 && <div className="text-[0.6875rem] font-extrabold text-rose-600 tabular-nums">{money(e.pending)} baqi</div>}
                       {e.autoRenew && <div className="text-[0.6875rem] font-extrabold text-emerald-600">Auto renew</div>}
                     </div>
@@ -643,16 +643,16 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
   const stale = c.status === 'ACTIVE' && daysLeft < 0;
 
   return (
-    <div className={`rounded-2xl bg-white dark:bg-slate-900 border-2 overflow-hidden transition hover:shadow-lg ${
-      stale ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-slate-800'
+    <div className={`rounded-2xl bg-white dark:bg-ink-900 border-2 overflow-hidden transition hover:shadow-lg ${
+      stale ? 'border-rose-300 dark:border-rose-500/40' : 'border-slate-200 dark:border-ink-800'
     }`}>
       <div className="h-1.5" style={{ background: type.hex }} />
       <div className="p-4 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="font-mono text-xs font-extrabold text-slate-500 dark:text-slate-400">{c.contractNumber}</div>
-            <div className="font-black text-slate-900 dark:text-white truncate">{c.customerName}</div>
-            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <div className="font-mono text-xs font-extrabold text-slate-500 dark:text-ink-400">{c.contractNumber}</div>
+            <div className="font-black text-slate-900 dark:text-ink-white truncate">{c.customerName}</div>
+            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {c.customerPhone}{c.productName ? ` · ${c.productName}` : ''}
             </div>
           </div>
@@ -670,9 +670,9 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
         )}
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
             <div className="text-[0.625rem] font-extrabold uppercase tracking-wider text-slate-500">Khatam</div>
-            <div className="text-sm font-black text-slate-900 dark:text-white">{fmtDate(c.expiryDate)}</div>
+            <div className="text-sm font-black text-slate-900 dark:text-ink-white">{fmtDate(c.expiryDate)}</div>
             <div className={`text-[0.6875rem] font-extrabold ${daysLeft < 0 ? 'text-rose-600' : daysLeft <= 30 ? 'text-amber-600' : 'text-slate-400'}`}>
               {daysLeft < 0 ? `${Math.abs(daysLeft)} din guzre` : `${daysLeft} din baqi`}
             </div>
@@ -690,11 +690,11 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
 
         {/* free visits */}
         <div>
-          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 mb-1">
             <span>Free visits</span>
             <span className="tabular-nums">{c.freeVisitsUsed} / {c.freeVisitsAllowed} · {visitsLeft} baqi</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
             <div className={`h-full rounded-full transition-all ${
               visitPct >= 100 ? 'bg-rose-500' : visitPct >= 75 ? 'bg-amber-500' : 'bg-emerald-500'
             }`} style={{ width: `${Math.min(visitPct, 100)}%` }} />
@@ -720,11 +720,11 @@ function ContractCard({ c, money, onRenew, onStatus, onRemind, reminding }: {
             <RotateCw className="h-3.5 w-3.5" /> Renew
           </button>
           <button onClick={onStatus} title="Halat badlein"
-            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center transition">
+            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center transition">
             <Edit3 className="h-4 w-4" />
           </button>
           <button onClick={onRemind} disabled={reminding} title="Reminder"
-            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center disabled:opacity-50 transition">
+            className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center disabled:opacity-50 transition">
             <Bell className="h-4 w-4" />
           </button>
           {c.customerPhone && (
@@ -770,7 +770,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
                 <button key={m} type="button" onClick={() => setMonths(String(m))}
                   className={`px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                     months === String(m) ? 'bg-cyan-600 border-cyan-600 text-white'
-                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300'
+                      : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300'
                   }`}>{m} mahine</button>
               ))}
             </div>
@@ -795,7 +795,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
                 Poora
               </button>
               <button type="button" onClick={() => setPaid(String(Math.round(v / 2)))}
-                className="px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+                className="px-3 py-1 rounded-lg text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 transition">
                 Aadha
               </button>
             </div>
@@ -810,7 +810,7 @@ function RenewSheet({ c, pending, onClose, onSubmit }: {
             <div className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500">
               {v - p > 0 ? 'Baqi rahega' : 'Poora mil gaya'}
             </div>
-            <div className="text-xl font-black tabular-nums text-slate-900 dark:text-white">
+            <div className="text-xl font-black tabular-nums text-slate-900 dark:text-ink-white">
               {formatPKR(Math.max(v - p, 0))}
             </div>
           </div>
@@ -854,10 +854,10 @@ function StatusSheet({ c, pending, onClose, onSubmit }: {
               <button key={k} onClick={() => setStatus(k)}
                 className={`rounded-2xl border-2 p-3 text-left transition ${
                   status === k ? 'border-cyan-500 ring-2 ring-cyan-200 dark:ring-cyan-500/30 bg-cyan-50 dark:bg-cyan-500/10'
-                               : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
+                               : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900'
                 }`}>
                 <div className="text-lg">{m.emoji}</div>
-                <div className="text-sm font-extrabold text-slate-900 dark:text-white">{m.label}</div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">{m.label}</div>
               </button>
             );
           })}

@@ -191,13 +191,13 @@ export default function MobileProfitReportPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-40 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="h-40 rounded-3xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+            <div key={i} className="h-32 rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
           ))}
         </div>
-        <div className="h-72 rounded-3xl bg-slate-200 dark:bg-slate-800 animate-pulse" />
+        <div className="h-72 rounded-3xl bg-slate-200 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -209,7 +209,7 @@ export default function MobileProfitReportPage() {
       <PrintStyles orientation="portrait" title="Profit Report" subtitle="Paisa kahan se ban raha hai" />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 dark:from-slate-950 dark:via-emerald-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-teal-700 dark:from-ink-950 dark:via-emerald-950 dark:to-teal-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-teal-400/20 blur-3xl pointer-events-none" />
 
@@ -287,7 +287,7 @@ export default function MobileProfitReportPage() {
             className={`shrink-0 h-10 px-3.5 rounded-xl text-xs font-extrabold transition border-2 ${
               period === p.value
                 ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white border-transparent shadow-lg shadow-emerald-500/30'
-                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300 dark:hover:border-emerald-500/40'
+                : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-emerald-300 dark:hover:border-emerald-500/40'
             }`}
           >
             <span className="mr-1">{p.emoji}</span>{p.label}
@@ -296,12 +296,12 @@ export default function MobileProfitReportPage() {
       </div>
 
       {noData ? (
-        <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-14 text-center">
-          <div className="mx-auto h-16 w-16 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-3">
+        <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-14 text-center">
+          <div className="mx-auto h-16 w-16 rounded-3xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mb-3">
             <AlertCircle className="h-8 w-8 text-slate-400" />
           </div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Is arse me koi sale nahi</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Is arse me koi sale nahi</h3>
+          <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
             Doosra period chuno, ya POS se pehli sale karo
           </p>
         </div>
@@ -318,7 +318,7 @@ export default function MobileProfitReportPage() {
               return (
                 <div
                   key={key}
-                  className={`rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 ${meta.ring} shadow-sm p-4 flex flex-col`}
+                  className={`rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 ${meta.ring} shadow-sm p-4 flex flex-col`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
@@ -326,10 +326,10 @@ export default function MobileProfitReportPage() {
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
                           {meta.label}
                         </div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                           {s?.units ?? 0} units · {s?.sales ?? 0} sales
                         </div>
                       </div>
@@ -341,19 +341,19 @@ export default function MobileProfitReportPage() {
 
                   <div className="mt-3 space-y-1.5 text-sm">
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Bikri</span>
-                      <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">
+                      <span className="font-semibold text-slate-500 dark:text-ink-400">Bikri</span>
+                      <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
                         {formatPKR(s?.revenue ?? 0)}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="font-semibold text-slate-500 dark:text-slate-400">Lagat</span>
-                      <span className="font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                      <span className="font-semibold text-slate-500 dark:text-ink-400">Lagat</span>
+                      <span className="font-bold text-slate-600 dark:text-ink-300 tabular-nums">
                         {hideCost ? '•••' : formatPKR(s?.cost ?? 0)}
                       </span>
                     </div>
-                    <div className="flex justify-between pt-1.5 border-t-2 border-slate-100 dark:border-slate-800">
-                      <span className="font-extrabold text-slate-900 dark:text-white">Munafa</span>
+                    <div className="flex justify-between pt-1.5 border-t-2 border-slate-100 dark:border-ink-800">
+                      <span className="font-extrabold text-slate-900 dark:text-ink-white">Munafa</span>
                       <span className={`font-extrabold tabular-nums ${(s?.profit ?? 0) >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                         {hideCost ? '•••' : formatPKR(s?.profit ?? 0)}
                       </span>
@@ -362,11 +362,11 @@ export default function MobileProfitReportPage() {
 
                   {/* Share of total profit */}
                   <div className="mt-3">
-                    <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mb-1">
                       <span>Kul munafe ka hissa</span>
                       <span className="tabular-nums">{shareOfProfit.toFixed(0)}%</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                       <div
                         className={`h-full bg-gradient-to-r ${meta.grad} transition-all`}
                         style={{ width: `${Math.max(Math.min(shareOfProfit, 100), 0)}%` }}
@@ -381,17 +381,17 @@ export default function MobileProfitReportPage() {
           {/* ═══ CHARTS ═══ */}
           <div className="grid lg:grid-cols-[1fr_360px] gap-3 items-start">
             {/* Daily trend */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-9 w-9 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                   <BarChart3 className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">Rozana Bikri aur Munafa</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Rozana Bikri aur Munafa</h3>
               </div>
               <div className="h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={trend} margin={{ top: 4, right: 8, left: -12, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-800" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-800" vertical={false} />
                     <XAxis dataKey="date" tick={{ fontSize: 11, fontWeight: 700 }} className="fill-slate-500" tickLine={false} axisLine={false} />
                     <YAxis tick={{ fontSize: 11, fontWeight: 700 }} className="fill-slate-500" tickLine={false} axisLine={false} width={56}
                       tickFormatter={(v: number) => (v >= 1000 ? `${Math.round(v / 1000)}k` : String(v))} />
@@ -408,16 +408,16 @@ export default function MobileProfitReportPage() {
             </div>
 
             {/* Profit share pie */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center">
                   <PiggyBank className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">Munafe ka Hissa</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Munafe ka Hissa</h3>
               </div>
               {pieData.length === 0 ? (
                 <div className="h-64 flex items-center justify-center text-center">
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                  <p className="text-sm font-semibold text-slate-500 dark:text-ink-400">
                     Is arse me koi munafa record nahi hua
                   </p>
                 </div>
@@ -441,15 +441,15 @@ export default function MobileProfitReportPage() {
           </div>
 
           {/* ═══ TOP MODELS ═══ */}
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="p-4 sm:p-5 flex items-center justify-between gap-3 flex-wrap border-b-2 border-slate-100 dark:border-slate-800">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="p-4 sm:p-5 flex items-center justify-between gap-3 flex-wrap border-b-2 border-slate-100 dark:border-ink-800">
               <div className="flex items-center gap-2">
                 <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
                   <Package className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
                   Top Models{' '}
-                  <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({products.length})</span>
+                  <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({products.length})</span>
                 </h3>
               </div>
               <div className="flex gap-2 flex-wrap print:hidden">
@@ -459,13 +459,13 @@ export default function MobileProfitReportPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Model ya brand..."
-                    className="h-10 w-44 sm:w-56 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                    className="h-10 w-44 sm:w-56 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
                   />
                 </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as SortBy)}
-                  className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500"
+                  className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500"
                 >
                   <option value="profit">Sab se zyada munafa</option>
                   <option value="margin">Behtareen margin</option>
@@ -477,43 +477,43 @@ export default function MobileProfitReportPage() {
 
             {products.length === 0 ? (
               <div className="p-10 text-center">
-                <Package className="h-8 w-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                <Package className="h-8 w-8 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+                <p className="text-sm font-semibold text-slate-500 dark:text-ink-400">
                   {search ? `"${search}" se koi model nahi mila` : 'Koi model data nahi'}
                 </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60">
+                  <thead className="bg-slate-50 dark:bg-ink-800/60">
                     <tr className="text-left">
-                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">#</th>
-                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Model</th>
-                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Units</th>
-                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Bikri</th>
-                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Munafa</th>
-                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider text-right">Margin</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">#</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Model</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider text-right">Units</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider text-right">Bikri</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider text-right">Munafa</th>
+                      <th className="px-4 py-2.5 text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider text-right">Margin</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                     {products.map((p, i) => (
-                      <tr key={p.productId} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
+                      <tr key={p.productId} className="hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
                         <td className="px-4 py-2.5">
                           <span className={`inline-flex h-6 w-6 items-center justify-center rounded-lg text-[0.6875rem] font-extrabold tabular-nums ${
                             i === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'
-                              : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                              : 'bg-slate-100 text-slate-500 dark:bg-ink-800 dark:text-ink-400'
                           }`}>
                             {i + 1}
                           </span>
                         </td>
                         <td className="px-4 py-2.5">
-                          <div className="font-extrabold text-slate-900 dark:text-white">{p.name}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white">{p.name}</div>
                           {p.brand && (
-                            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{p.brand}</div>
+                            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{p.brand}</div>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 text-right font-bold text-slate-700 dark:text-slate-300 tabular-nums">{p.units}</td>
-                        <td className="px-4 py-2.5 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(p.revenue)}</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-slate-700 dark:text-ink-300 tabular-nums">{p.units}</td>
+                        <td className="px-4 py-2.5 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(p.revenue)}</td>
                         <td className={`px-4 py-2.5 text-right font-extrabold tabular-nums ${p.profit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                           {hideCost ? '•••' : formatPKR(p.profit)}
                         </td>
@@ -537,7 +537,7 @@ export default function MobileProfitReportPage() {
             )}
           </div>
 
-          <p className="text-[0.6875rem] font-semibold text-slate-400 dark:text-slate-500 text-center">
+          <p className="text-[0.6875rem] font-semibold text-slate-400 dark:text-ink-500 text-center">
             Repair ki kamai bhi isi report me shamil hai — delivery par har repair apni sale banati hai.
           </p>
         </>

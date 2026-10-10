@@ -56,13 +56,13 @@ export const payMeta = (m?: string | null) => PAY_META[m ?? 'OTHER'] ?? PAY_META
 /* ─────────────────── Chhote purzay ─────────────────── */
 
 export const inputCls =
-  'w-full h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-[#ffffff] dark:bg-slate-800 ' +
-  'px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 ' +
+  'w-full h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-[#ffffff] dark:bg-ink-800 ' +
+  'px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 ' +
   'focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-200 dark:focus:ring-teal-500/30 transition';
 
 export function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300">
+    <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 font-mono text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300">
       {children}
     </span>
   );
@@ -88,18 +88,18 @@ export function Kpi({ icon: Icon, label, value, sub, tone = 'slate', onClick, ac
     <Tag onClick={onClick} title={hint}
       className={[
         'relative overflow-hidden rounded-2xl border-2 p-3 sm:p-4 text-left w-full transition',
-        'bg-[#ffffff] dark:bg-slate-900',
+        'bg-[#ffffff] dark:bg-ink-900',
         active ? 'border-teal-500 ring-2 ring-teal-200 dark:ring-teal-500/30'
-               : 'border-slate-200 dark:border-slate-800',
+               : 'border-slate-200 dark:border-ink-800',
         onClick ? 'hover:border-teal-400 hover:shadow-lg active:scale-[0.98] cursor-pointer' : '',
       ].join(' ')}>
       <div className={`absolute -top-6 -right-6 h-20 w-20 rounded-full bg-gradient-to-br ${tones[tone]} opacity-10`} />
       <div className={`relative h-9 w-9 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="relative mt-2 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">{label}</div>
-      <div className="relative text-lg sm:text-xl font-black text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-      {sub && <div className="relative text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{sub}</div>}
+      <div className="relative mt-2 text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">{label}</div>
+      <div className="relative text-lg sm:text-xl font-black text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+      {sub && <div className="relative text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{sub}</div>}
     </Tag>
   );
 }
@@ -115,7 +115,7 @@ export function Panel({ icon: Icon, title, desc, tone = 'teal', right, children,
     slate: 'from-slate-500 to-slate-700', indigo: 'from-indigo-500 to-blue-700',
   };
   return (
-    <section className={`rounded-3xl bg-[#ffffff] dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 ${className}`}>
+    <section className={`rounded-3xl bg-[#ffffff] dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 ${className}`}>
       <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
         <div className="flex items-center gap-2.5 min-w-0">
           {Icon && (
@@ -124,8 +124,8 @@ export function Panel({ icon: Icon, title, desc, tone = 'teal', right, children,
             </div>
           )}
           <div className="min-w-0">
-            <h3 className="font-black text-slate-900 dark:text-white truncate">{title}</h3>
-            {desc && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{desc}</p>}
+            <h3 className="font-black text-slate-900 dark:text-ink-white truncate">{title}</h3>
+            {desc && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{desc}</p>}
           </div>
         </div>
         {right}
@@ -138,11 +138,11 @@ export function Panel({ icon: Icon, title, desc, tone = 'teal', right, children,
 export function Empty({ icon: Icon, title, desc, action }: { icon: any; title: string; desc?: string; action?: React.ReactNode }) {
   return (
     <div className="py-14 text-center">
-      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
+      <div className="h-16 w-16 rounded-3xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mx-auto mb-3">
         <Icon className="h-7 w-7 text-slate-400" />
       </div>
-      <p className="font-black text-slate-800 dark:text-slate-200">{title}</p>
-      {desc && <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">{desc}</p>}
+      <p className="font-black text-slate-800 dark:text-ink-200">{title}</p>
+      {desc && <p className="text-xs font-bold text-slate-500 dark:text-ink-400 mt-1 max-w-sm mx-auto">{desc}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -161,7 +161,7 @@ export function Modal({ title, subtitle, icon, onClose, children, wide }: {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className={`w-full ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'} bg-[#ffffff] dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col`}>
+        className={`w-full ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'} bg-[#ffffff] dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col`}>
         <div className={`shrink-0 relative bg-gradient-to-br ${SUPPLIER_GRADIENT} text-white px-5 py-4 overflow-hidden`}>
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
           <div className="relative flex items-start justify-between gap-3">
@@ -192,13 +192,13 @@ export function Teacher({ title, subtitle, steps, tips, onClose }: {
     <Modal title={title} subtitle={subtitle} icon={<GraduationCap className="h-5 w-5" />} onClose={onClose} wide>
       <div className="space-y-3">
         {steps.map((s, i) => (
-          <div key={i} className="flex gap-3 rounded-2xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+          <div key={i} className="flex gap-3 rounded-2xl border-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 p-3.5">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-700 text-white flex items-center justify-center font-black shrink-0">
               {s.icon ?? i + 1}
             </div>
             <div className="min-w-0">
-              <div className="font-black text-slate-900 dark:text-white text-sm">{s.head}</div>
-              <p className="text-[0.8125rem] font-semibold text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">{s.body}</p>
+              <div className="font-black text-slate-900 dark:text-ink-white text-sm">{s.head}</div>
+              <p className="text-[0.8125rem] font-semibold text-slate-600 dark:text-ink-300 mt-0.5 leading-relaxed">{s.body}</p>
             </div>
           </div>
         ))}
@@ -225,8 +225,8 @@ export function Shortcuts({ list, onClose }: { list: Array<[string, string]>; on
       icon={<Keyboard className="h-5 w-5" />} onClose={onClose}>
       <div className="space-y-2">
         {list.map(([k, d]) => (
-          <div key={k} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{d}</span>
+          <div key={k} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 px-3 py-2.5">
+            <span className="text-sm font-bold text-slate-700 dark:text-ink-200">{d}</span>
             <Kbd>{k}</Kbd>
           </div>
         ))}

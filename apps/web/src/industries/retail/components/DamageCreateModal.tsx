@@ -98,7 +98,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
       onClick={onClose}
     >
       <div
-        className="w-full sm:max-w-3xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] sm:max-h-[92vh] flex flex-col"
+        className="w-full sm:max-w-3xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] sm:max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* HEADER */}
@@ -128,7 +128,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
           {/* Product Selection */}
           {!selectedProduct ? (
             <div>
-              <label className="text-xs uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2 block">Select Product *</label>
+              <label className="text-xs uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-2 block">Select Product *</label>
               <div className="relative">
                 <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
@@ -136,7 +136,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                   value={productSearch}
                   onChange={(e) => setProductSearch(e.target.value)}
                   placeholder="Search product by name, SKU, barcode..."
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-rose-500 transition"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-rose-500 transition"
                 />
               </div>
               <div className="mt-2 max-h-64 overflow-y-auto space-y-1">
@@ -144,25 +144,25 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                   <button
                     key={p.id}
                     onClick={() => setSelectedProduct(p)}
-                    className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition text-left"
+                    className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-slate-50 dark:hover:bg-ink-800 transition text-left"
                   >
-                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                       {p.images?.[0]?.url ? (
                         <img src={p.images[0].url} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <Package className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                        <Package className="h-5 w-5 text-slate-400 dark:text-ink-500" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{p.name}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">{p.name}</div>
+                      <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                         Stock: {p.stock} {p.unit} • Cost: {formatPKR(p.costPrice)}
                       </div>
                     </div>
                   </button>
                 ))}
                 {products.length === 0 && (
-                  <div className="py-8 text-center text-sm font-bold text-slate-400 dark:text-slate-500">
+                  <div className="py-8 text-center text-sm font-bold text-slate-400 dark:text-ink-500">
                     Koi product nahi mila
                   </div>
                 )}
@@ -172,16 +172,16 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
             <>
               {/* Selected product */}
               <div className="rounded-2xl bg-rose-50 dark:bg-rose-500/10 border-2 border-rose-200 dark:border-rose-500/40 p-3 flex items-center gap-3">
-                <div className="h-12 w-12 rounded-xl bg-white dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-500/30">
+                <div className="h-12 w-12 rounded-xl bg-white dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-rose-200 dark:border-rose-500/30">
                   {selectedProduct.images?.[0]?.url ? (
                     <img src={selectedProduct.images[0].url} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <Package className="h-5 w-5 text-slate-400 dark:text-slate-500" />
+                    <Package className="h-5 w-5 text-slate-400 dark:text-ink-500" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{selectedProduct.name}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{selectedProduct.name}</div>
+                  <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                     Stock: {selectedProduct.stock} {selectedProduct.unit}
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Reason Grid */}
               <div>
-                <label className="text-xs uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-2 block">Damage Reason *</label>
+                <label className="text-xs uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-2 block">Damage Reason *</label>
                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {REASON_OPTIONS.map((r) => (
                     <button
@@ -205,13 +205,13 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                         'p-3 rounded-xl border-2 text-center transition ' +
                         (form.reasonCode === r.value
                           ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-sm'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-rose-300 dark:hover:border-rose-500/50')
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300 dark:hover:border-rose-500/50')
                       }
                     >
                       <div className="text-2xl mb-1">{r.emoji}</div>
                       <div className={
                         'text-[0.6875rem] font-extrabold ' +
-                        (form.reasonCode === r.value ? 'text-rose-900 dark:text-rose-300' : 'text-slate-700 dark:text-slate-300')
+                        (form.reasonCode === r.value ? 'text-rose-900 dark:text-rose-300' : 'text-slate-700 dark:text-ink-300')
                       }>{r.label}</div>
                     </button>
                   ))}
@@ -221,36 +221,36 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
               {/* Quantity + Cost + Salvage */}
               <div className="grid sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Quantity *</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Quantity *</label>
                   <input
                     type="number"
                     step="0.01"
                     min="0.01"
                     value={form.quantity}
                     onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
-                    className="h-11 w-full rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-white dark:bg-slate-800 px-3 text-lg font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-rose-200 dark:border-rose-500/40 bg-white dark:bg-ink-800 px-3 text-lg font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-rose-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Unit Cost</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Unit Cost</label>
                   <input
                     type="number"
                     step="0.01"
                     value={form.unitCost}
                     onChange={(e) => setForm({ ...form, unitCost: Number(e.target.value) })}
                     placeholder={String(selectedProduct.costPrice)}
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-rose-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-rose-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Salvage Value</label>
+                  <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Salvage Value</label>
                   <input
                     type="number"
                     step="0.01"
                     value={form.salvageValue}
                     onChange={(e) => setForm({ ...form, salvageValue: Number(e.target.value) })}
                     placeholder="0"
-                    className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-blue-200 dark:border-blue-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
                   />
                 </div>
               </div>
@@ -264,19 +264,19 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Reason description */}
               <div>
-                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Detailed Reason *</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Detailed Reason *</label>
                 <textarea
                   rows={2}
                   value={form.reason}
                   onChange={(e) => setForm({ ...form, reason: e.target.value })}
                   placeholder="Water leaked from ceiling, box got wet..."
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-rose-500 resize-none transition"
+                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-rose-500 resize-none transition"
                 />
               </div>
 
               {/* Photos */}
               <div>
-                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">
                   <Camera className="h-3 w-3 inline mr-1" />
                   Photos (evidence)
                 </label>
@@ -291,7 +291,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                 {form.photos.length > 0 && (
                   <div className="mt-2 flex gap-2 flex-wrap">
                     {form.photos.map((url, i) => (
-                      <div key={i} className="relative h-16 w-16 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+                      <div key={i} className="relative h-16 w-16 rounded-lg overflow-hidden border border-slate-200 dark:border-ink-700">
                         <img src={url} alt="" className="h-full w-full object-cover" />
                         <button
                           onClick={() => setForm({ ...form, photos: form.photos.filter((_, idx) => idx !== i) })}
@@ -307,13 +307,13 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
 
               {/* Notes */}
               <div>
-                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1 block">Internal Notes (optional)</label>
+                <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1 block">Internal Notes (optional)</label>
                 <textarea
                   rows={2}
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
                   placeholder="For team reference..."
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-rose-500 resize-none transition"
+                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-rose-500 resize-none transition"
                 />
               </div>
 
@@ -338,7 +338,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
                     placeholder="Claim amount"
                     value={form.claimAmount || ''}
                     onChange={(e) => setForm({ ...form, claimAmount: Number(e.target.value) })}
-                    className="h-9 w-32 rounded-lg border border-blue-300 dark:border-blue-500/40 bg-white dark:bg-slate-800 px-2 text-sm font-bold text-right text-slate-900 dark:text-white shrink-0"
+                    className="h-9 w-32 rounded-lg border border-blue-300 dark:border-blue-500/40 bg-white dark:bg-ink-800 px-2 text-sm font-bold text-right text-slate-900 dark:text-ink-white shrink-0"
                   />
                 )}
               </label>
@@ -370,7 +370,7 @@ export function DamageCreateModal({ onClose, onCreated }: Props) {
         </div>
 
         {/* FOOTER */}
-        <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 px-5 py-3 flex items-center justify-end gap-2 shrink-0">
+        <div className="border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 px-5 py-3 flex items-center justify-end gap-2 shrink-0">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button
             onClick={() => createMutation.mutate()}

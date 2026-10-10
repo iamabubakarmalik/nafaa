@@ -13,7 +13,7 @@ import { Button } from '@core/ui/Button';
 
 /** Appliances ka apna gradient — cyan/teal, poori industry me yehi */
 export const APPLIANCE_GRADIENT =
-  'bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 dark:from-slate-950 dark:via-cyan-950 dark:to-teal-900';
+  'bg-gradient-to-br from-slate-950 via-cyan-900 to-teal-700 dark:from-ink-950 dark:via-cyan-950 dark:to-teal-900';
 
 /**
  * Keyboard chip.
@@ -162,20 +162,20 @@ export function Kpi({
     <Comp
       onClick={onClick}
       className={[
-        'group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
+        'group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-cyan-500 dark:border-cyan-400 ring-2 ring-cyan-200 dark:ring-cyan-500/20'
           : alert
             ? 'border-rose-300 dark:border-rose-500/40'
-            : 'border-slate-200 dark:border-slate-800',
+            : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${KPI_TONES[tone]} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
           <Icon className="h-5 w-5" />
@@ -213,7 +213,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5 ${className}`}>
+    <section className={`rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5 ${className}`}>
       {(title || right) && (
         <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
           <div className="flex items-start gap-2 min-w-0">
@@ -223,8 +223,8 @@ export function Panel({
               </div>
             )}
             <div className="min-w-0">
-              {title && <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</h3>}
-              {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</p>}
+              {title && <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{title}</h3>}
+              {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{hint}</p>}
             </div>
           </div>
           {right && <div className="shrink-0">{right}</div>}
@@ -277,32 +277,32 @@ export function Teacher({
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-cyan-300 dark:border-cyan-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 dark:border-cyan-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-cyan-200 dark:border-cyan-500/30 bg-gradient-to-r from-cyan-50 to-teal-50 dark:from-cyan-500/15 dark:to-teal-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-cyan-900 dark:text-cyan-200 flex items-center gap-2 text-sm sm:text-base">
             <GraduationCap className="h-5 w-5 shrink-0" /> {title}
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition shrink-0">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition shrink-0">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">{intro}</p>
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">{intro}</p>
 
           {blocks.map((b) => (
             <div key={b.title} className={`rounded-2xl border-2 p-4 space-y-2 text-xs font-semibold ${BLOCK_TONES[b.tone ?? 'cyan']}`}>
               <div className="text-[0.6875rem] uppercase tracking-widest font-black mb-1">{b.title}</div>
-              <div className="space-y-2 text-slate-700 dark:text-slate-200">
+              <div className="space-y-2 text-slate-700 dark:text-ink-200">
                 {b.tips.map((t, i) => <TipRow key={i}>{t}</TipRow>)}
               </div>
             </div>
           ))}
 
           {shortcuts && shortcuts.length > 0 && (
-            <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
+            <div className="rounded-xl bg-slate-900 dark:bg-ink-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
               <div className="text-[0.6875rem] uppercase tracking-widest font-black text-cyan-300 mb-2">⌨️ Shortcuts</div>
               <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
                 {shortcuts.map((s) => (
@@ -341,12 +341,12 @@ export function Empty({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-teal-600 flex items-center justify-center shadow-lg shadow-cyan-500/40">
         <Icon className="h-9 w-9 text-white" />
       </div>
-      <h3 className="mt-5 text-xl font-extrabold text-slate-900 dark:text-white">{title}</h3>
-      {hint && <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold mt-2 max-w-md mx-auto">{hint}</p>}
+      <h3 className="mt-5 text-xl font-extrabold text-slate-900 dark:text-ink-white">{title}</h3>
+      {hint && <p className="text-sm text-slate-500 dark:text-ink-400 font-semibold mt-2 max-w-md mx-auto">{hint}</p>}
       {action && <div className="mt-5 flex gap-2 justify-center flex-wrap">{action}</div>}
     </div>
   );
@@ -368,7 +368,7 @@ export function Sheet({
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className={`w-full ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'} bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col`}
+        className={`w-full ${wide ? 'sm:max-w-3xl' : 'sm:max-w-lg'} bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="shrink-0 relative bg-gradient-to-br from-cyan-700 via-teal-600 to-emerald-700 text-white px-5 py-4 overflow-hidden">
@@ -392,7 +392,7 @@ export function Sheet({
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
 
         {footer && (
-          <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4">
+          <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4">
             {footer}
           </div>
         )}
@@ -409,10 +409,10 @@ export function Field({
 }) {
   return (
     <div>
-      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
         {label}
         {required && <span className="text-rose-500 ml-0.5">*</span>}
-        {hint && <span className="text-slate-400 dark:text-slate-500 normal-case font-bold ml-1">({hint})</span>}
+        {hint && <span className="text-slate-400 dark:text-ink-500 normal-case font-bold ml-1">({hint})</span>}
       </label>
       {children}
       {error && <div className="mt-1 text-[0.6875rem] font-extrabold text-rose-600 dark:text-rose-400">{error}</div>}
@@ -423,11 +423,11 @@ export function Field({
 export const inputCls = (extra = '', error = false) =>
   [
     'w-full rounded-xl border-2 px-3',
-    'bg-white dark:bg-slate-800 text-slate-900 dark:text-white',
-    'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+    'bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white',
+    'placeholder:text-slate-400 dark:placeholder:text-ink-500',
     error
       ? 'border-rose-400 dark:border-rose-500/60 focus:border-rose-500 focus:ring-rose-200 dark:focus:ring-rose-500/30'
-      : 'border-slate-200 dark:border-slate-700 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-cyan-200 dark:focus:ring-cyan-500/30',
+      : 'border-slate-200 dark:border-ink-700 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-cyan-200 dark:focus:ring-cyan-500/30',
     'focus:outline-none focus:ring-2 transition',
     extra,
   ].join(' ');
@@ -448,7 +448,7 @@ export function ChipRow<T extends string>({
         className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
           value === null
             ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+            : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
         }`}
       >
         {allLabel}
@@ -460,7 +460,7 @@ export function ChipRow<T extends string>({
           className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition inline-flex items-center gap-1 ${
             value === o.value
               ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+              : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
           }`}
         >
           {o.emoji && <span>{o.emoji}</span>}

@@ -45,7 +45,7 @@ export function ServicesBizWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-neutral-800 shadow-sm bg-white dark:bg-neutral-900">
+      <div className="rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-800 shadow-sm bg-white dark:bg-ink-900">
         <div className="relative aspect-video bg-gradient-to-br from-cyan-500 via-blue-600 to-cyan-700">
           {primaryImage ? (
             <img src={primaryImage} alt="" className="w-full h-full object-cover" />
@@ -67,17 +67,17 @@ export function ServicesBizWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-        <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-neutral-800">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-ink-800">
           <StatCell icon={DollarSign} label="Charges" value={stats.chargeCount} tone="cyan" />
           <StatCell icon={Zap} label="Surcharges" value={stats.surchargeCount} tone="amber" />
         </div>
-        <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-neutral-800 border-t-2 border-slate-100 dark:border-neutral-800">
+        <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-ink-800 border-t-2 border-slate-100 dark:border-ink-800">
           <StatCell icon={Wrench} label="Tools" value={stats.toolsCount} tone="violet" />
           <StatCell icon={Package} label="Parts" value={stats.partsCount} tone="emerald" />
         </div>
         {minPrice && (
-          <div className="border-t-2 border-slate-100 dark:border-neutral-800 p-4 bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-950/30 dark:to-neutral-900">
+          <div className="border-t-2 border-slate-100 dark:border-ink-800 p-4 bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-950/30 dark:to-ink-900">
             <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-cyan-700">Starting At</div>
             <div className="text-2xl font-extrabold text-cyan-900 dark:text-cyan-100 tabular-nums">
               {formatPKRFull(minPrice)}
@@ -86,7 +86,7 @@ export function ServicesBizWizardSummary({ draft, stats, allValid }: Props) {
         )}
       </div>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-3 space-y-2">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 space-y-2">
         <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600">Highlights</div>
         <div className="flex flex-wrap gap-1">
           {draft.basic.isPopular && <Badge label="🔥 Popular" tone="red" />}
@@ -105,7 +105,7 @@ export function ServicesBizWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       </div>
 
-      <div className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 dark:bg-ink-800/50 border border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves as you type
       </div>
     </aside>
@@ -123,7 +123,7 @@ function StatCell({ icon: Icon, label, value, tone }: { icon: any; label: string
         <Icon className={'h-3 w-3 ' + tones[tone]} />
         <div className={'text-[0.6875rem] uppercase tracking-wider font-extrabold ' + tones[tone]}>{label}</div>
       </div>
-      <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+      <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
     </div>
   );
 }

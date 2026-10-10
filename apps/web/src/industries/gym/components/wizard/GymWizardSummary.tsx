@@ -25,14 +25,14 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
       </div>
 
       {stats.hasPhoto && draft.subscription.photoUrl && (
-        <div className="rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-neutral-800 shadow-sm bg-white dark:bg-neutral-900">
+        <div className="rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-800 shadow-sm bg-white dark:bg-ink-900">
           <div className="relative aspect-square bg-gradient-to-br from-red-400 via-orange-500 to-red-600">
             <img src={draft.subscription.photoUrl} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
       )}
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2.5">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2.5">
         <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
           <Activity className="h-3 w-3" /> Body Stats
         </div>
@@ -47,7 +47,7 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
         {draft.basic.targetWeightKg && <Row label="Target" value={draft.basic.targetWeightKg + ' kg'} highlight />}
       </div>
 
-      <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2">
+      <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
         <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 flex items-center gap-1">
           <Target className="h-3 w-3" /> Goals & Schedule
         </div>
@@ -64,7 +64,7 @@ export function GymWizardSummary({ draft, stats, allValid }: Props) {
         </div>
       )}
 
-      <div className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 border border-slate-200 dark:border-neutral-700 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
+      <div className="rounded-xl bg-slate-50 dark:bg-ink-800/50 border border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] text-slate-500 font-semibold text-center">
         💾 Draft auto-saves as you type
       </div>
     </aside>
@@ -75,7 +75,7 @@ function Row({ label, value, highlight }: { label: string; value: string; highli
   return (
     <div className="flex items-center justify-between text-xs">
       <span className="text-slate-500 font-semibold">{label}</span>
-      <span className={'font-extrabold ' + (highlight ? 'text-red-700' : 'text-slate-900 dark:text-white')}>{value}</span>
+      <span className={'font-extrabold ' + (highlight ? 'text-red-700' : 'text-slate-900 dark:text-ink-white')}>{value}</span>
     </div>
   );
 }

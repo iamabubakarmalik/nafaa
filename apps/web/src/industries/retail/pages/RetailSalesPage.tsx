@@ -653,7 +653,7 @@ export default function RetailSalesPage() {
             <button key={t.v} onClick={() => setTab(t.v)}
               className={`group relative overflow-hidden rounded-3xl border-2 px-4 sm:px-6 py-4 text-left transition active:scale-[0.99] ${
                 on ? 'bg-gradient-to-br from-sky-600 to-cyan-700 border-transparent text-white shadow-xl shadow-sky-500/30'
-                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:border-sky-400 hover:shadow-lg'
+                   : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800 text-slate-600 dark:text-ink-300 hover:border-sky-400 hover:shadow-lg'
               }`}>
               {on && <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-white/15 blur-2xl" />}
               <div className="relative flex items-center gap-3">
@@ -667,7 +667,7 @@ export default function RetailSalesPage() {
                     <span className="text-base sm:text-lg font-black truncate">{t.label}</span>
                     {t.n !== undefined && (
                       <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-black tabular-nums ${
-                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        on ? 'bg-black/25 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                       }`}>{t.n}</span>
                     )}
                   </div>
@@ -685,16 +685,16 @@ export default function RetailSalesPage() {
           chali jati thi aur asal cheez (bill ki list) neeche dhakel
           jati. Ab sirf search samne; baqi chaant ek dropdown me,
           aur jo chaant lagi ho wo button par nazar aa jati hai. */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
         <div className="flex gap-2 flex-wrap items-center">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Bill #, customer, cheez, barcode… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -706,7 +706,7 @@ export default function RetailSalesPage() {
               className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                 dateFilter !== 'today'
                   ? 'border-sky-500 bg-sky-50 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-sky-400'
               }`}>
               <CalendarRange className="h-4 w-4" />
               <span className="max-w-[140px] truncate">{DATE_OPTIONS.find((d) => d.v === dateFilter)?.l}</span>
@@ -715,7 +715,7 @@ export default function RetailSalesPage() {
             {showDatePicker && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowDatePicker(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-2">
+                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-2">
                   <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Tareekh chunein</div>
                   <div className="grid grid-cols-2 gap-1.5">
                     {DATE_OPTIONS.map((d) => (
@@ -723,7 +723,7 @@ export default function RetailSalesPage() {
                         onClick={() => { setDateFilter(d.v); if (d.v !== 'custom') setShowDatePicker(false); }}
                         className={`h-10 rounded-xl text-xs font-black transition ${
                           dateFilter === d.v ? 'bg-sky-600 text-white shadow'
-                                             : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                             : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                         }`}>{d.l}</button>
                     ))}
                   </div>
@@ -732,16 +732,16 @@ export default function RetailSalesPage() {
                       <div>
                         <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">Se</label>
                         <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" />
+                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500" />
                       </div>
                       <div>
                         <label className="text-[0.6875rem] font-black uppercase text-slate-500 mb-1 block">Tak</label>
                         <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500" />
+                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500" />
                       </div>
                     </div>
                   )}
-                  <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">
+                  <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 text-[0.6875rem] font-bold text-slate-500 text-center">
                     {rangeLabel}
                   </div>
                 </div>
@@ -755,7 +755,7 @@ export default function RetailSalesPage() {
               className={`h-12 px-4 rounded-2xl border-2 text-sm font-black inline-flex items-center gap-2 transition ${
                 paymentFilter !== 'all' || creditOnly
                   ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-amber-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-amber-400'
               }`}>
               <Filter className="h-4 w-4" /> Payment Type
               {(paymentFilter !== 'all' || creditOnly) && (
@@ -768,19 +768,19 @@ export default function RetailSalesPage() {
             {showMoreFilters && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setShowMoreFilters(false)} />
-                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3">
+                <div className="absolute right-0 z-40 mt-2 w-72 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3">
                   <div>
                     <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1.5">Paisa kis tarah aaya</div>
                     <div className="grid grid-cols-2 gap-1.5">
                       <button onClick={() => setPaymentFilter('all')}
                         className={`h-10 rounded-xl text-[0.6875rem] font-black transition ${
-                          paymentFilter === 'all' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          paymentFilter === 'all' ? 'bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900'
+                                                  : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'
                         }`}>Sab</button>
                       {Object.entries(paymentConfig).map(([k, cfg]) => (
                         <button key={k} onClick={() => setPaymentFilter(k as PaymentMethod)}
                           className={`h-10 rounded-xl text-[0.6875rem] font-black inline-flex items-center justify-center gap-1 transition ${
-                            paymentFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                            paymentFilter === k ? 'text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'
                           }`}
                           style={paymentFilter === k ? { background: cfg.hex } : undefined}>
                           <cfg.icon className="h-3 w-3" /> {cfg.label}
@@ -817,7 +817,7 @@ export default function RetailSalesPage() {
             <span className="text-slate-400">Payment Type:</span>
             <span className="px-2 py-1 rounded-lg bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300">{rangeLabel}</span>
             {paymentFilter !== 'all' && (
-              <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+              <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">
                 {paymentConfig[paymentFilter]?.label}
               </span>
             )}
@@ -825,7 +825,7 @@ export default function RetailSalesPage() {
               <span className="px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300">Sirf udhaar</span>
             )}
             {search && (
-              <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">"{search}"</span>
+              <span className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">"{search}"</span>
             )}
             <span className="text-slate-400">→ {stats.count} bill</span>
           </div>
@@ -881,7 +881,7 @@ export default function RetailSalesPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-2">
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-2">
                 Peela column sab se masroof ghanta hai — us waqt counter par zyada banda rakhein.
               </p>
             </Panel>
@@ -909,8 +909,8 @@ export default function RetailSalesPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-1.5 mt-1">
                     {payData.map((p) => (
-                      <div key={p.name} className="rounded-xl bg-slate-50 dark:bg-slate-800/60 p-2 flex items-center justify-between">
-                        <span className="text-[0.6875rem] font-black text-slate-600 dark:text-slate-300">{p.name}</span>
+                      <div key={p.name} className="rounded-xl bg-slate-50 dark:bg-ink-800/60 p-2 flex items-center justify-between">
+                        <span className="text-[0.6875rem] font-black text-slate-600 dark:text-ink-300">{p.name}</span>
                         <span className="text-xs font-black tabular-nums" style={{ color: p.hex }}>
                           {showValue(formatPKR(p.value))}
                         </span>
@@ -932,18 +932,18 @@ export default function RetailSalesPage() {
                   {topProducts.map((p, i) => {
                     const pct = topProducts[0].revenue > 0 ? (p.revenue / topProducts[0].revenue) * 100 : 0;
                     return (
-                      <div key={p.name} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+                      <div key={p.name} className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
                         <div className="flex items-center gap-2.5 mb-1.5">
                           <span className={`h-7 w-7 rounded-xl flex items-center justify-center text-[0.6875rem] font-black shrink-0 ${
-                            i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                            i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                           }`}>{i === 0 ? '🏆' : i + 1}</span>
-                          <span className="font-black text-sm text-slate-900 dark:text-white truncate flex-1">{p.name}</span>
+                          <span className="font-black text-sm text-slate-900 dark:text-ink-white truncate flex-1">{p.name}</span>
                           <span className="text-[0.6875rem] font-bold text-slate-400 shrink-0 tabular-nums">{p.qty.toFixed(0)} bikay</span>
-                          <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums shrink-0">
+                          <span className="text-sm font-black text-slate-900 dark:text-ink-white tabular-nums shrink-0">
                             {showValue(formatPKR(p.revenue))}
                           </span>
                         </div>
-                        <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                        <div className="h-1.5 rounded-full bg-slate-200 dark:bg-ink-700 overflow-hidden">
                           <div className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-600 transition-all duration-700"
                             style={{ width: `${Math.min(pct, 100)}%` }} />
                         </div>
@@ -963,18 +963,18 @@ export default function RetailSalesPage() {
               ) : (
                 <div className="space-y-1.5">
                   {topCustomers.map((c, i) => (
-                    <div key={c.name + i} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-2.5">
+                    <div key={c.name + i} className="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-2.5">
                       <span className={`h-9 w-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 ${
-                        i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600 text-white' : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                       }`}>{i === 0 ? '👑' : i + 1}</span>
                       <div className="min-w-0 flex-1">
-                        <div className="font-black text-sm text-slate-900 dark:text-white truncate">{c.name}</div>
-                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                        <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">{c.name}</div>
+                        <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                           {c.orders} bill{c.phone ? ` · ${c.phone}` : ''}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-black text-slate-900 dark:text-white tabular-nums">
+                        <div className="text-sm font-black text-slate-900 dark:text-ink-white tabular-nums">
                           {showValue(formatPKR(c.total))}
                         </div>
                         {c.credit > 0 && (
@@ -1011,11 +1011,11 @@ export default function RetailSalesPage() {
 
       {/* ══════════ LIST ══════════ */}
       {tab === 'list' && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:border-0 print:rounded-none print:shadow-none">
           {isLoading ? (
             <div className="p-6 space-y-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
               ))}
             </div>
           ) : filteredSales.length === 0 ? (
@@ -1023,10 +1023,10 @@ export default function RetailSalesPage() {
               <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-sky-500 to-cyan-700 mx-auto flex items-center justify-center shadow-lg shadow-sky-500/40">
                 <ShoppingCart className="h-10 w-10 text-white" />
               </div>
-              <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-white">
+              <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-ink-white">
                 {hasFilters ? 'Is Payment Type par kuch nahi mila' : 'Is muddat me koi bikri nahi'}
               </h3>
-              <p className="mt-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+              <p className="mt-1.5 text-sm font-bold text-slate-500 dark:text-ink-400 max-w-md mx-auto">
                 {hasFilters ? 'Tareekh ya Payment Type badal kar dekhein' : 'POS se pehli bikri karein — 30 second ka kaam'}
               </p>
               <div className="mt-4 flex gap-2 justify-center flex-wrap">
@@ -1045,7 +1045,7 @@ export default function RetailSalesPage() {
             </div>
           ) : (
             <>
-              <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
                 {filteredSales.slice(0, visible).map((sale) => {
                   const PayIcon = paymentConfig[sale.paymentMethod]?.icon || CreditCard;
                   const payColor = paymentConfig[sale.paymentMethod]?.color || '#64748b';
@@ -1055,7 +1055,7 @@ export default function RetailSalesPage() {
                   return (
                     <div key={sale.id}
                       className={`relative px-4 sm:px-5 py-4 transition group ${
-                        isVoided ? 'opacity-60 bg-slate-50/60 dark:bg-slate-800/30' : 'hover:bg-sky-50/40 dark:hover:bg-sky-500/5'
+                        isVoided ? 'opacity-60 bg-slate-50/60 dark:bg-ink-800/30' : 'hover:bg-sky-50/40 dark:hover:bg-sky-500/5'
                       }`}>
                       <Link to={receiptLink(sale.id)} className="absolute inset-0 print:hidden" aria-label={`Receipt ${sale.saleNumber}`} />
 
@@ -1067,7 +1067,7 @@ export default function RetailSalesPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono font-black text-slate-900 dark:text-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
+                              <span className="font-mono font-black text-slate-900 dark:text-ink-white text-sm">{sale.saleNumber}</span> <SaleSourceBadge sale={sale as any} className="ml-1 align-middle" />
                               {isVoided && (
                                 <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 text-[0.6875rem] font-black">
                                   WAPAS LI GAYI
@@ -1089,7 +1089,7 @@ export default function RetailSalesPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="mt-1 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-2 flex-wrap">
+                            <div className="mt-1 text-xs font-bold text-slate-600 dark:text-ink-300 flex items-center gap-2 flex-wrap">
                               <User className="h-3 w-3 shrink-0" />
                               <span className="truncate max-w-[160px]">{sale.customer?.name || 'Walk-in'}</span>
                               {sale.customer?.phone && (
@@ -1100,9 +1100,9 @@ export default function RetailSalesPage() {
                               <span>{sale.items.length} cheezein · {totalQty.toFixed(0)} qty</span>
                             </div>
                             {/* Waqt — poori tareekh aur "kitni der pehle" dono */}
-                            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 inline-flex items-center gap-1.5 flex-wrap">
+                            <div className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 inline-flex items-center gap-1.5 flex-wrap">
                               <Clock className="h-2.5 w-2.5" />
-                              <span className="text-slate-700 dark:text-slate-200">{fmtTime(sale.soldAt)}</span>
+                              <span className="text-slate-700 dark:text-ink-200">{fmtTime(sale.soldAt)}</span>
                               <span className="text-slate-300">•</span>
                               <span>{fmtDateTime(sale.soldAt)}</span>
                               <span className="text-slate-300">•</span>
@@ -1111,13 +1111,13 @@ export default function RetailSalesPage() {
                             <div className="mt-2 flex flex-wrap gap-1">
                               {sale.items.slice(0, 4).map((it: any) => (
                                 <span key={it.id}
-                                  className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 max-w-[180px] truncate inline-flex items-center gap-1">
+                                  className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 max-w-[180px] truncate inline-flex items-center gap-1">
                                   {it.product?.barcode && <Barcode className="h-2.5 w-2.5 text-sky-600" />}
                                   {it.product?.name} × {Number(it.quantity).toFixed(Number(it.quantity) % 1 === 0 ? 0 : 2)}
                                 </span>
                               ))}
                               {sale.items.length > 4 && (
-                                <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">
+                                <span className="px-1.5 py-0.5 rounded text-[0.6875rem] font-bold bg-slate-100 dark:bg-ink-800 text-slate-500">
                                   +{sale.items.length - 4} aur
                                 </span>
                               )}
@@ -1171,7 +1171,7 @@ export default function RetailSalesPage() {
                               );
                             })()}
                             <Link to={receiptLink(sale.id, true)} onClick={(e) => e.stopPropagation()} title="Seedha print"
-                              className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 px-2 py-1 text-[0.6875rem] font-black text-slate-600 dark:text-slate-300 transition">
+                              className="relative z-10 inline-flex items-center gap-1 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-sky-100 dark:hover:bg-sky-500/20 px-2 py-1 text-[0.6875rem] font-black text-slate-600 dark:text-ink-300 transition">
                               <Printer className="h-3 w-3" /> Print
                             </Link>
                             <span className="inline-flex items-center gap-1 text-[0.6875rem] font-black text-sky-600 dark:text-sky-400 group-hover:text-sky-700 transition">
@@ -1187,7 +1187,7 @@ export default function RetailSalesPage() {
 
               {visible < filteredSales.length && (
                 <button onClick={() => setVisible((v) => v + 50)}
-                  className="w-full py-4 text-xs font-black text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 border-t-2 border-slate-100 dark:border-slate-800 transition print:hidden">
+                  className="w-full py-4 text-xs font-black text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-500/10 border-t-2 border-slate-100 dark:border-ink-800 transition print:hidden">
                   Aur {Math.min(50, filteredSales.length - visible)} dikhayein
                   <span className="text-slate-400 ml-1">({visible}/{filteredSales.length})</span>
                 </button>
@@ -1202,7 +1202,7 @@ export default function RetailSalesPage() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
           onClick={() => setVoidTarget(null)}>
           <div onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-rose-200 dark:border-rose-500/40">
+            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-rose-200 dark:border-rose-500/40">
             <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
               <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center mb-2">
                 <Undo2 className="h-6 w-6" />
@@ -1226,18 +1226,18 @@ export default function RetailSalesPage() {
                 </ul>
               </div>
 
-              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+              <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
                 Bill mitta nahi — us par <strong>WAPAS LI GAYI</strong> ka nishan lag jata hai.
                 Record rehta hai taake baad me pata chale ke kya hua tha.
               </div>
 
               <div>
-                <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+                <label className="block text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                   Wajah (optional)
                 </label>
                 <input value={voidReason} onChange={(e) => setVoidReason(e.target.value)}
                   placeholder="Demo ki bikri thi / ghalat bill ban gaya"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm font-bold focus:outline-none focus:border-rose-500 transition" />
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm font-bold focus:outline-none focus:border-rose-500 transition" />
               </div>
 
               <div className="flex gap-2 pt-1">
@@ -1332,14 +1332,14 @@ function Panel({ icon: Icon, title, hint, children }: {
   icon: any; title: string; hint?: string; children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
       <div className="flex items-center gap-3 mb-4">
         <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-700 text-white flex items-center justify-center shadow-lg shrink-0">
           <Icon className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <h3 className="font-black text-slate-900 dark:text-white text-base leading-tight">{title}</h3>
-          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">{hint}</p>}
+          <h3 className="font-black text-slate-900 dark:text-ink-white text-base leading-tight">{title}</h3>
+          {hint && <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">{hint}</p>}
         </div>
       </div>
       {children}
@@ -1379,7 +1379,7 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
       <div className="fixed inset-0 z-[70] print:hidden" onClick={onClose} />
       <div
         style={{ top: pos.top, right: pos.right }}
-        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-white print:hidden"
+        className="fixed z-[71] w-64 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3 text-slate-900 dark:text-ink-white print:hidden"
       >
         <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</div>
         <div>
@@ -1388,7 +1388,7 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
             {(['58', '80'] as const).map((w) => (
               <button key={w} onClick={() => onChange({ paperWidth: w })}
                 className={`h-9 rounded-lg text-[0.6875rem] font-black transition ${
-                  prefs.paperWidth === w ? 'bg-sky-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  prefs.paperWidth === w ? 'bg-sky-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                 }`}>{w}mm</button>
             ))}
           </div>
@@ -1399,7 +1399,7 @@ function ReceiptPrefsPopover({ prefs, onChange, onClose, anchorRef }: {
             {([['short', 'Chhota'], ['full', 'Poora']] as const).map(([m, l]) => (
               <button key={m} onClick={() => onChange({ mode: m })}
                 className={`h-9 rounded-lg text-[0.6875rem] font-black transition ${
-                  prefs.mode === m ? 'bg-sky-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                  prefs.mode === m ? 'bg-sky-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                 }`}>{l}</button>
             ))}
           </div>
@@ -1427,25 +1427,25 @@ function SalesTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Sales Page — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye tumhari <strong>saari sales ka record</strong> hai — kab kya bika, kisne liya, kitna paisa aya,
             kitna udhaar bacha. POS se sale hoti hai to seedhi yahan aati hai.
           </p>
 
-          <div className="rounded-2xl border-2 border-sky-200 dark:border-sky-500/30 bg-sky-50/60 dark:bg-sky-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-sky-200 dark:border-sky-500/30 bg-sky-50/60 dark:bg-sky-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>🔒 Privacy Toggle</strong> — password wala icon dabao, saare paise chhup jayenge</TipRow>
             <TipRow><strong>⚙️ Receipt button</strong> — paper size (58/80mm), short/full mode, auto-print, logo — sab yahi se set karo</TipRow>
             <TipRow><strong>🖨️ Row ka Print</strong> — har sale ke paas chhota Print button — seedha thermal pe nikalo</TipRow>
@@ -1457,7 +1457,7 @@ function SalesTeacher({ onClose }: { onClose: () => void }) {
             <TipRow><strong>⌨️ / dabao</strong> — search box pe jump</TipRow>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💡 <strong>Pro tip:</strong> Roz shaam ko "Today" filter check karo — aaj kitni sale hui, kitna udhaar gaya, kis method se paise aye. 30 second me poori dukaan ka hisaab!
           </div>
 
@@ -1503,14 +1503,14 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active, 
           ? 'border-amber-500 dark:border-amber-500/60 ring-2 ring-amber-200 dark:ring-amber-500/20 bg-amber-50 dark:bg-amber-500/10'
           : highlight
           ? 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-500/10 dark:to-cyan-500/10 border-blue-300 dark:border-blue-500/40'
-          : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800',
+          : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1 leading-snug">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-tight break-words">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-1 leading-snug">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1523,13 +1523,13 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active, 
 function SummaryCell({ label, value, tone }: any) {
   const tones: Record<string, string> = {
     sky: 'text-sky-700 dark:text-sky-400',
-    slate: 'text-slate-900 dark:text-white',
+    slate: 'text-slate-900 dark:text-ink-white',
     blue: 'text-blue-700 dark:text-blue-400',
     amber: 'text-amber-700 dark:text-amber-400',
   };
   return (
     <div>
-      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]}`}>{value}</div>
     </div>
   );

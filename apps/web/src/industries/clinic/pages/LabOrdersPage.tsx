@@ -50,15 +50,15 @@ export default function LabOrdersPage() {
         {['all', 'ORDERED', 'SAMPLE_COLLECTED', 'IN_PROGRESS', 'COMPLETED', 'REPORTED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-violet-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{s === 'all' ? 'All' : s.replace(/_/g, ' ')}</button>
         ))}
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-40 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : orders.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <TestTube className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No lab orders</p>
         </div>
@@ -69,8 +69,8 @@ export default function LabOrdersPage() {
             const critical = order.tests?.filter((t: any) => t.isCritical).length ?? 0;
             return (
               <div key={order.id} className={
-                'rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-4 space-y-3 ' +
-                (critical > 0 ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 dark:border-neutral-800')
+                'rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm p-4 space-y-3 ' +
+                (critical > 0 ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 dark:border-ink-800')
               }>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3">
@@ -107,9 +107,9 @@ export default function LabOrdersPage() {
                       'rounded-lg border-2 p-2 text-xs ' +
                       (t.isCritical ? 'border-red-300 bg-red-50 dark:bg-red-950/30' :
                        t.isAbnormal ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/30' :
-                       'border-slate-200 bg-slate-50 dark:bg-neutral-800/50')
+                       'border-slate-200 bg-slate-50 dark:bg-ink-800/50')
                     }>
-                      <div className="font-extrabold text-slate-900 dark:text-white">{t.testName}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white">{t.testName}</div>
                       {t.result && (
                         <div className="mt-1 text-xs font-bold">
                           Result: <span className={t.isCritical ? 'text-red-700' : t.isAbnormal ? 'text-amber-700' : 'text-slate-700'}>
@@ -122,7 +122,7 @@ export default function LabOrdersPage() {
                   ))}
                 </div>
 
-                <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+                <div className="flex gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
                   {order.status === 'ORDERED' && (
                     <button onClick={() => statusMutation.mutate({ id: order.id, status: 'SAMPLE_COLLECTED' })} className="px-3 py-2 rounded-lg bg-cyan-100 text-cyan-700 text-xs font-extrabold hover:bg-cyan-200">
                       Mark Sample Collected

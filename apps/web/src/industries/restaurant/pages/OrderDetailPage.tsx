@@ -79,8 +79,8 @@ export default function OrderDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
-        <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+        <div className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
+        <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
       </div>
     );
   }
@@ -149,7 +149,7 @@ export default function OrderDetailPage() {
 
       {/* STATUS FLOW */}
       {statusCfg.next.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 flex flex-wrap gap-2 items-center">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 flex flex-wrap gap-2 items-center">
           <span className="text-xs uppercase tracking-wider font-extrabold text-slate-600">Next Action:</span>
           {statusCfg.next.map((next) => {
             const nextCfg = STATUS_CONFIG[next];
@@ -182,8 +182,8 @@ export default function OrderDetailPage() {
         <section className="space-y-4">
           {/* Customer Info */}
           {(order.customerName || order.customerPhone || order.deliveryAddress) && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
                 <User className="h-5 w-5 text-violet-600" />
                 Customer
               </h3>
@@ -191,7 +191,7 @@ export default function OrderDetailPage() {
                 {order.customerName && (
                   <div className="flex items-center gap-2">
                     <User className="h-3.5 w-3.5 text-slate-400" />
-                    <span className="font-bold text-slate-900 dark:text-white">{order.customerName}</span>
+                    <span className="font-bold text-slate-900 dark:text-ink-white">{order.customerName}</span>
                   </div>
                 )}
                 {order.customerPhone && (
@@ -206,7 +206,7 @@ export default function OrderDetailPage() {
                   <div className="flex items-start gap-2">
                     <MapPin className="h-3.5 w-3.5 text-slate-400 mt-0.5" />
                     <div>
-                      <div className="font-bold text-slate-900 dark:text-white">{order.deliveryAddress}</div>
+                      <div className="font-bold text-slate-900 dark:text-ink-white">{order.deliveryAddress}</div>
                       {order.deliveryNotes && <div className="text-xs text-slate-500 italic mt-0.5">{order.deliveryNotes}</div>}
                     </div>
                   </div>
@@ -222,28 +222,28 @@ export default function OrderDetailPage() {
                 <MessageSquare className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" />
                 <div>
                   <div className="text-xs uppercase font-extrabold text-amber-700 dark:text-amber-400">Special Request</div>
-                  <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{order.specialRequests}</div>
+                  <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-ink-white">{order.specialRequests}</div>
                 </div>
               </div>
             </div>
           )}
 
           {/* Items */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order Items</h3>
-              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold text-slate-700 dark:text-slate-300">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white">Order Items</h3>
+              <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-ink-800 text-xs font-extrabold text-slate-700 dark:text-ink-300">
                 {order.items.length} items
               </span>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {order.items.map((item: any) => (
                 <div key={item.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-lg font-extrabold text-amber-700 tabular-nums">{item.quantity}×</span>
-                        <span className="font-extrabold text-slate-900 dark:text-white">{item.product?.name}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{item.product?.name}</span>
                         {item.status && item.status !== 'PLACED' && (
                           <span className={
                             'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
@@ -288,18 +288,18 @@ export default function OrderDetailPage() {
 
           {/* KOTs */}
           {order.kots && order.kots.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-              <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800">
+                <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                   <ChefHat className="h-5 w-5 text-amber-600" />
                   Kitchen Order Tickets
                 </h3>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {order.kots.map((kot: any) => (
                   <div key={kot.id} className="p-3 flex items-center justify-between">
                     <div>
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white">{kot.kotNumber}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{kot.kotNumber}</div>
                       <div className="text-xs text-slate-500 font-semibold">
                         {kot.station && kot.station + ' • '}
                         {new Date(kot.createdAt).toLocaleString('en-PK', { timeStyle: 'short' })}
@@ -403,15 +403,15 @@ export default function OrderDetailPage() {
 
           {/* Payments */}
           {order.payments && order.payments.length > 0 && (
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 dark:border-neutral-800">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Payment History</h3>
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-slate-100 dark:border-ink-800">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-ink-white">Payment History</h3>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {order.payments.map((p: any) => (
                   <div key={p.id} className="p-3 text-xs">
                     <div className="flex justify-between font-bold">
-                      <span className="text-slate-700 dark:text-slate-300">{p.paymentMethod}</span>
+                      <span className="text-slate-700 dark:text-ink-300">{p.paymentMethod}</span>
                       <span className="text-emerald-700 tabular-nums">{formatPKR(p.amount)}</span>
                     </div>
                     <div className="text-slate-500 mt-0.5">
@@ -449,9 +449,9 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
-          <h3 className="font-extrabold text-slate-900 dark:text-white">Add Payment</h3>
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Add Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
             <X className="h-4 w-4" />
           </button>
@@ -470,7 +470,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
                 <button
                   key={f}
                   onClick={() => setAmount(Number((remaining * f).toFixed(2)))}
-                  className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-neutral-800 text-xs font-extrabold hover:bg-slate-200"
+                  className="flex-1 h-8 rounded-lg bg-slate-100 dark:bg-ink-800 text-xs font-extrabold hover:bg-slate-200"
                 >
                   {(f * 100).toFixed(0)}%
                 </button>
@@ -487,7 +487,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
                   onClick={() => setMethod(m)}
                   className={
                     'p-2 rounded-lg border-2 text-xs font-extrabold ' +
-                    (method === m ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-emerald-300')
+                    (method === m ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-emerald-300')
                   }
                 >
                   {m}
@@ -502,7 +502,7 @@ function PaymentModal({ orderId, remaining, onClose, onDone }: any) {
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               placeholder="TXN ID, cheque #..."
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
             />
           </div>
 
@@ -545,10 +545,10 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-lg bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-        <div className="px-5 py-3 border-b border-slate-200 dark:border-neutral-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
+      <div className="w-full max-w-lg bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-ink-800 bg-violet-50 dark:bg-violet-950/30 flex items-center justify-between">
           <div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Split Bill</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Split Bill</h3>
             <p className="text-xs text-slate-500 font-semibold">Total: {formatPKR(total)}</p>
           </div>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -565,9 +565,9 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
           </div>
 
           {splits.map((sp, i) => (
-            <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-3 space-y-2">
+            <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-3 space-y-2">
               <div className="flex items-center justify-between">
-                <div className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Person #{i + 1}</div>
+                <div className="text-xs font-extrabold text-slate-700 dark:text-ink-300">Person #{i + 1}</div>
                 {splits.length > 2 && (
                   <button onClick={() => removeSplit(i)} className="h-6 w-6 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center">
                     <X className="h-3 w-3" />
@@ -579,7 +579,7 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
                   value={sp.paidBy}
                   onChange={(e) => updateSplit(i, { paidBy: e.target.value })}
                   placeholder="Name (optional)"
-                  className="h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                  className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                 />
                 <input
                   type="number" step="0.01"
@@ -590,7 +590,7 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
                 <select
                   value={sp.paymentMethod}
                   onChange={(e) => updateSplit(i, { paymentMethod: e.target.value })}
-                  className="h-9 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                  className="h-9 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                 >
                   <option>CASH</option><option>CARD</option><option>JAZZCASH</option><option>EASYPAISA</option><option>BANK</option>
                 </select>
@@ -605,7 +605,7 @@ function SplitBillModal({ orderId, total, onClose, onDone }: any) {
             {Math.abs(diff) < 0.01 ? '✓ Splits balanced!' : 'Diff: ' + formatPKR(diff) + (diff > 0 ? ' short' : ' extra')}
           </div>
         </div>
-        <div className="border-t-2 border-slate-200 dark:border-neutral-800 p-4 flex gap-2">
+        <div className="border-t-2 border-slate-200 dark:border-ink-800 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-violet-600 to-purple-700"

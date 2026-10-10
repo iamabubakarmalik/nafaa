@@ -55,7 +55,7 @@ export default function DispatchPage() {
       </section>
 
       {isLoading ? (
-        <div className="h-96 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />
+        <div className="h-96 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
       ) : (
         <div className="grid lg:grid-cols-[1fr_400px] gap-6">
           {/* Map placeholder (would integrate real map here) */}
@@ -71,7 +71,7 @@ export default function DispatchPage() {
               </div>
 
               {/* Simulated map with dots */}
-              <div className="relative h-96 rounded-2xl bg-white/50 dark:bg-neutral-900/50 backdrop-blur border-2 border-white/60 shadow-inner overflow-hidden">
+              <div className="relative h-96 rounded-2xl bg-white/50 dark:bg-ink-900/50 backdrop-blur border-2 border-white/60 shadow-inner overflow-hidden">
                 <div className="absolute inset-0 grid grid-cols-8 grid-rows-8 opacity-20">
                   {Array.from({ length: 64 }).map((_, i) => (
                     <div key={i} className="border border-slate-300" />
@@ -150,7 +150,7 @@ export default function DispatchPage() {
 
           {/* Technicians list */}
           <div className="space-y-4">
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b bg-violet-50 dark:bg-violet-950/30">
                 <h3 className="font-extrabold flex items-center gap-2">
                   <User className="h-4 w-4 text-violet-600" />
@@ -191,7 +191,7 @@ export default function DispatchPage() {
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+            <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b bg-blue-50 dark:bg-blue-950/30">
                 <h3 className="font-extrabold flex items-center gap-2">
                   <Briefcase className="h-4 w-4 text-blue-600" />
@@ -203,7 +203,7 @@ export default function DispatchPage() {
                   <div className="py-8 text-center text-sm text-slate-500 font-semibold">No active jobs</div>
                 ) : (
                   activeJobs.map((j: any) => (
-                    <Link key={j.id} to={'/services-biz/jobs/' + j.id} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                    <Link key={j.id} to={'/services-biz/jobs/' + j.id} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                       <div className={
                         'h-10 w-10 rounded-xl text-white flex items-center justify-center shrink-0 ' +
                         (j.priority === 'EMERGENCY' ? 'bg-red-600 animate-pulse' :
@@ -242,11 +242,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     amber: 'from-amber-500 to-orange-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />

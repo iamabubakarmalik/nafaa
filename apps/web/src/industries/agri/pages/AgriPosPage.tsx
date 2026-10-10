@@ -1012,7 +1012,7 @@ export default function AgriPosPage() {
       )}
 
       <div className="min-h-[calc(100dvh-5rem)] lg:h-[calc(100dvh-7rem)] flex flex-col lg:grid lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] gap-2 lg:gap-3">
-        <section className="lg:flex-1 rounded-2xl lg:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm lg:overflow-hidden flex flex-col lg:min-h-0">
+        <section className="lg:flex-1 rounded-2xl lg:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm lg:overflow-hidden flex flex-col lg:min-h-0">
 
           {/* HEADER */}
           <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-lime-700 text-white">
@@ -1079,8 +1079,8 @@ export default function AgriPosPage() {
           </div>
 
           {/* VIEW TABS */}
-          <div className="shrink-0 px-3 sm:px-4 pt-3 bg-slate-50 dark:bg-slate-900/60 border-b-2 border-slate-100 dark:border-slate-800">
-            <div className="flex gap-1.5 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-1">
+          <div className="shrink-0 px-3 sm:px-4 pt-3 bg-slate-50 dark:bg-ink-900/60 border-b-2 border-slate-100 dark:border-ink-800">
+            <div className="flex gap-1.5 bg-white dark:bg-ink-800 rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-1">
               <PosViewTab active={viewMode === 'products'} onClick={() => setViewMode('products')} icon={Package} label="Maal" count={products.length} color="sky" shortcut="F7" />
               <PosViewTab active={viewMode === 'combos'} onClick={() => setViewMode('combos')} icon={Sparkles} label="Combos" count={combos.length} color="violet" shortcut="F8" highlight={combos.length > 0} />
               <PosViewTab active={viewMode === 'quickkeys'} onClick={() => setViewMode('quickkeys')} icon={Zap} label="Quick" count={quickKeys.length} color="amber" shortcut="F10" />
@@ -1088,22 +1088,22 @@ export default function AgriPosPage() {
           </div>
 
           {/* SEARCH + BARCODE */}
-          <div className="shrink-0 px-3 sm:px-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border-b-2 border-slate-100 dark:border-slate-800 space-y-2">
+          <div className="shrink-0 px-3 sm:px-4 py-2.5 bg-slate-50 dark:bg-ink-900/60 border-b-2 border-slate-100 dark:border-ink-800 space-y-2">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Search className="h-5 w-5 sm:h-6 sm:w-6 text-slate-400 absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input ref={searchRef}
-                  className="h-14 sm:h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 sm:pl-14 pr-10 sm:pr-12 text-lg sm:text-xl font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20 transition"
+                  className="h-14 sm:h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 sm:pl-14 pr-10 sm:pr-12 text-lg sm:text-xl font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20 transition"
                   placeholder={viewMode === 'products' ? 'Urea, gandum, sundi… (/)' : viewMode === 'combos' ? 'Combo naam…' : 'Quick key…'}
                   value={search} onChange={(e) => setSearch(e.target.value)} />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 flex items-center justify-center transition">
+                  <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 h-9 w-9 sm:h-10 sm:w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-700 active:scale-95 flex items-center justify-center transition">
                     <X className="h-5 w-5 text-slate-500" />
                   </button>
                 )}
               </div>
               <button onClick={() => setScannerOpen(true)} title="Camera scan (F2)"
-                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-700 dark:to-slate-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
+                className="h-14 sm:h-16 w-16 sm:w-20 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 dark:from-ink-700 dark:to-ink-800 active:scale-95 text-white flex flex-col items-center justify-center gap-0.5 shadow-lg transition shrink-0">
                 <Camera className="h-5 w-5 sm:h-6 sm:w-6" /><span className="text-[0.625rem] sm:text-[0.6875rem] font-extrabold uppercase">Scan</span>
               </button>
             </div>
@@ -1120,7 +1120,7 @@ export default function AgriPosPage() {
                 {/* Qism — agri ki apni patti */}
                 <div className="flex gap-1.5 overflow-x-auto pb-0.5 -mx-1 px-1">
                   <KindBtn on={kind === 'all'} onClick={() => setKind('all')} icon={Grid3x3}
-                    label="Sab" n={counts.all} onCls="bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent" />
+                    label="Sab" n={counts.all} onCls="bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 border-transparent" />
                   {KIND_TABS.map((t) => (
                     <KindBtn key={t.v} on={kind === t.v} onClick={() => setKind(t.v)} icon={t.icon}
                       label={t.l} n={counts[t.v] ?? 0} onCls={t.on} />
@@ -1136,13 +1136,13 @@ export default function AgriPosPage() {
                   <button onClick={() => setSeasonFilter('')}
                     className={`shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold border-2 transition active:scale-95 ${
                       !seasonFilter ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-emerald-300'
+                        : 'bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 border-slate-200 dark:border-ink-700 hover:border-emerald-300'
                     }`}>Har mausam</button>
                   {AGRI_SEASONS.map((s) => (
                     <button key={s.v} onClick={() => setSeasonFilter(seasonFilter === s.v ? '' : s.v)}
                       className={`shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold border-2 transition active:scale-95 ${
                         seasonFilter === s.v ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
-                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-emerald-300'
+                          : 'bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 border-slate-200 dark:border-ink-700 hover:border-emerald-300'
                       }`}>{s.e} {s.l}</button>
                   ))}
                 </div>
@@ -1151,7 +1151,7 @@ export default function AgriPosPage() {
                   <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
                     <button onClick={() => setCategoryId('')}
                       className={`shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 border-2 transition active:scale-95 ${
-                        !categoryId ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-emerald-300'
+                        !categoryId ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 border-slate-200 dark:border-ink-700 hover:border-emerald-300'
                       }`}>
                       Sab categories
                     </button>
@@ -1159,11 +1159,11 @@ export default function AgriPosPage() {
                       const active = categoryId === cat.id;
                       return (
                         <button key={cat.id} onClick={() => setCategoryId(active ? '' : cat.id)}
-                          className="shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 transition active:scale-95"
+                          className="shrink-0 h-9 px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 transition active:scale-95"
                           style={active ? { backgroundColor: cat.color || '#059669', borderColor: cat.color || '#059669', color: '#fff' } : undefined}>
                           {!active && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: cat.color || '#94a3b8' }} />}
-                          <span className={active ? '' : 'text-slate-700 dark:text-slate-200'}>{cat.name}</span>
-                          <span className={`px-1.5 rounded-md text-[0.6875rem] tabular-nums ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{cat.count}</span>
+                          <span className={active ? '' : 'text-slate-700 dark:text-ink-200'}>{cat.name}</span>
+                          <span className={`px-1.5 rounded-md text-[0.6875rem] tabular-nums ${active ? 'bg-white/20' : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'}`}>{cat.count}</span>
                         </button>
                       );
                     })}
@@ -1174,10 +1174,10 @@ export default function AgriPosPage() {
           </div>
 
           {/* GRID */}
-          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-slate-950/40 lg:min-h-0">
+          <div ref={scrollRef} onScroll={handleScroll} className="lg:flex-1 lg:overflow-y-auto p-2 sm:p-3 bg-slate-50/50 dark:bg-ink-950/40 lg:min-h-0">
             {isLoading ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-3">
-                {Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
+                {Array.from({ length: 12 }).map((_, i) => <div key={i} className="aspect-[3/4] rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />)}
               </div>
             ) : viewMode === 'products' ? (
               filteredRows.length === 0 ? (
@@ -1195,7 +1195,7 @@ export default function AgriPosPage() {
                   </div>
                   {hasMore && (
                     <button onClick={() => setVisibleCount((c) => c + 60)}
-                      className="mt-3 w-full h-12 rounded-2xl bg-white dark:bg-slate-800 border-4 border-slate-200 dark:border-slate-700 hover:border-emerald-400 active:scale-[0.98] text-slate-700 dark:text-slate-200 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
+                      className="mt-3 w-full h-12 rounded-2xl bg-white dark:bg-ink-800 border-4 border-slate-200 dark:border-ink-700 hover:border-emerald-400 active:scale-[0.98] text-slate-700 dark:text-ink-200 text-sm font-extrabold inline-flex items-center justify-center gap-2 transition">
                       <Package className="h-4 w-4" /> Aur dikhaein ({filteredRows.length - visibleCount} baqi)
                     </button>
                   )}
@@ -1216,9 +1216,9 @@ export default function AgriPosPage() {
               <div className="space-y-4">
                 {Object.entries(groupedQuickKeys).map(([group, keys]) => (
                   <div key={group}>
-                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                    <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider mb-2 flex items-center gap-1.5">
                       <div className="h-1 w-6 rounded-full bg-emerald-500" /> {group}
-                      <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[0.625rem] tabular-nums">{keys.length}</span>
+                      <span className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300 text-[0.625rem] tabular-nums">{keys.length}</span>
                     </div>
                     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-4 xl:grid-cols-6 gap-2">
                       {keys.map((k) => <PosQuickKeyTile key={k.id} qk={k} products={products} combos={combos} hidePrices={hidePrices} onClick={() => addQuickKey(k)} />)}
@@ -1307,11 +1307,11 @@ function AgriTile({ row, inCart, hidePrices, onClick }: {
   return (
     <button onClick={onClick}
       className={[
-        'group relative text-left rounded-2xl bg-white dark:bg-slate-900 border-2 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all',
+        'group relative text-left rounded-2xl bg-white dark:bg-ink-900 border-2 overflow-hidden shadow-sm hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98] transition-all',
         inCart > 0 ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/25'
           : blocked ? 'border-rose-400 dark:border-rose-500/60'
           : certSoon ? 'border-amber-400 dark:border-amber-500/60'
-          : 'border-slate-200 dark:border-slate-800 hover:border-emerald-400',
+          : 'border-slate-200 dark:border-ink-800 hover:border-emerald-400',
         out || blocked ? 'opacity-70' : '',
       ].join(' ')}>
       {inCart > 0 && (
@@ -1320,11 +1320,11 @@ function AgriTile({ row, inCart, hidePrices, onClick }: {
         </span>
       )}
 
-      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
+      <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-ink-800">
         {img ? (
           <img src={img} alt={p.name} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-lime-100 dark:from-slate-800 dark:to-slate-900">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-emerald-50 to-lime-100 dark:from-ink-800 dark:to-ink-900">
             <span className="text-4xl drop-shadow-sm">{AGRI_KIND_EMOJI[kind]}</span>
           </div>
         )}
@@ -1370,7 +1370,7 @@ function AgriTile({ row, inCart, hidePrices, onClick }: {
       </div>
 
       <div className="p-2.5">
-        <div className="font-extrabold text-[0.8125rem] text-slate-900 dark:text-white leading-tight line-clamp-2 min-h-[2.1rem]">{p.name}</div>
+        <div className="font-extrabold text-[0.8125rem] text-slate-900 dark:text-ink-white leading-tight line-clamp-2 min-h-[2.1rem]">{p.name}</div>
         {crops.length > 0 && (
           <div className="text-[0.625rem] font-bold text-emerald-700 dark:text-emerald-400 truncate mt-0.5">
             🌾 {crops.slice(0, 2).join(', ')}
@@ -1386,7 +1386,7 @@ function AgriTile({ row, inCart, hidePrices, onClick }: {
               {!hidePrices && perPack > 0 && ` • ${formatPKR(perPack)}/${packUnit}`}
             </div>
           </div>
-          <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+          <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md shrink-0 bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">
             {AGRI_KIND_EMOJI[kind]}
           </span>
         </div>
@@ -1416,7 +1416,7 @@ function BlockedModal({ info, onClose }: {
 
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-center gap-3">
           <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
@@ -1441,9 +1441,9 @@ function BlockedModal({ info, onClose }: {
             </p>
           </div>
 
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-1">Kya karna hai</div>
-            <ol className="space-y-1 text-[0.75rem] font-bold text-slate-700 dark:text-slate-200">
+            <ol className="space-y-1 text-[0.75rem] font-bold text-slate-700 dark:text-ink-200">
               <li>1. Registration renew karwayein</li>
               <li>2. Nayi tareekh product me bhar dein</li>
               <li>3. Phir ye POS par khud chalne lagegi</li>
@@ -1452,7 +1452,7 @@ function BlockedModal({ info, onClose }: {
 
           <div className="flex gap-2">
             <button onClick={onClose}
-              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-extrabold transition">
+              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-sm font-extrabold transition">
               Theek hai
             </button>
             <Link to={`/agri-products/${product.id}/edit`}
@@ -1470,10 +1470,10 @@ function KindBtn({ on, onClick, icon: Icon, label, n, onCls }: any) {
   return (
     <button onClick={onClick}
       className={`shrink-0 h-9 sm:h-10 px-3 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center gap-1.5 border-2 transition active:scale-95 ${
-        on ? `${onCls} shadow-md` : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-emerald-300'
+        on ? `${onCls} shadow-md` : 'bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 border-slate-200 dark:border-ink-700 hover:border-emerald-300'
       }`}>
       <Icon className="h-3.5 w-3.5" /> {label}
-      <span className={`px-1.5 rounded-md text-[0.6875rem] tabular-nums ${on ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700'}`}>{n}</span>
+      <span className={`px-1.5 rounded-md text-[0.6875rem] tabular-nums ${on ? 'bg-white/20' : 'bg-slate-100 dark:bg-ink-700'}`}>{n}</span>
     </button>
   );
 }
@@ -1521,7 +1521,7 @@ function FarmerStrip({ farmer, hidePrices }: { farmer: any; hidePrices: boolean 
               </span>
             )}
           </div>
-          <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 truncate">
+          <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 truncate">
             {[farmer.village, farmer.district].filter(Boolean).join(', ') || 'Gaon nahi likha'}
             {farmer.landAreaAcres ? ` · ${farmer.landAreaAcres} acre` : ''}
           </div>
@@ -1537,7 +1537,7 @@ function FarmerStrip({ farmer, hidePrices }: { farmer: any; hidePrices: boolean 
         <div className={`mt-2 rounded-xl px-2 py-1.5 text-[0.6875rem] font-extrabold ${
           overLimit
             ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-800 dark:text-rose-300'
-            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200'
+            : 'bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200'
         }`}>
           {overLimit
             ? `Udhaar ki hadd poori ho chuki — ${formatPKR(owed)} / ${formatPKR(limit)}`

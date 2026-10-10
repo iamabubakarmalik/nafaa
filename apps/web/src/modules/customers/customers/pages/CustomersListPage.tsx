@@ -469,7 +469,7 @@ export default function CustomersListPage() {
       )}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-slate-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-cyan-700 dark:from-ink-950 dark:via-blue-950 dark:to-cyan-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-cyan-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-blue-400/20 blur-3xl pointer-events-none" />
 
@@ -542,16 +542,16 @@ export default function CustomersListPage() {
 
       {/* ═══ TABS ═══ */}
       <div className="flex items-center gap-2 flex-wrap">
-        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+        <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
           <TabBtn active={tab === 'customers'} onClick={() => setTab('customers')} icon={Users} label="Customers" />
           <TabBtn active={tab === 'analytics'} onClick={() => setTab('analytics')} icon={BarChart3} label="Analytics" />
         </div>
         {!isAllShops && (
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1 shadow-sm">
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-1 shadow-sm">
             <button
               onClick={() => setParams((p) => ({ ...p, scope: 'branch', page: 1 }))}
               className={`px-3 py-2 rounded-xl text-xs font-extrabold transition ${
-                params.scope !== 'all' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                params.scope !== 'all' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
               }`}
             >
               <Store className="h-3.5 w-3.5 inline mr-1 -mt-0.5" /> Is shop ke
@@ -559,7 +559,7 @@ export default function CustomersListPage() {
             <button
               onClick={() => setParams((p) => ({ ...p, scope: 'all', page: 1 }))}
               className={`px-3 py-2 rounded-xl text-xs font-extrabold transition ${
-                params.scope === 'all' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                params.scope === 'all' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
               }`}
             >
               <Layers className="h-3.5 w-3.5 inline mr-1 -mt-0.5" /> Saare
@@ -601,7 +601,7 @@ export default function CustomersListPage() {
                   const isToday = c.day === new Date().getDate();
                   return (
                     <div key={c.id} className={`shrink-0 rounded-2xl border-2 px-3.5 py-2.5 flex items-center gap-2.5 ${
-                      isToday ? 'bg-gradient-to-br from-pink-500 to-rose-600 border-transparent text-white shadow-lg' : 'bg-white dark:bg-slate-900 border-pink-200 dark:border-pink-500/30'
+                      isToday ? 'bg-gradient-to-br from-pink-500 to-rose-600 border-transparent text-white shadow-lg' : 'bg-white dark:bg-ink-900 border-pink-200 dark:border-pink-500/30'
                     }`}>
                       <div className={`h-9 w-9 rounded-xl flex items-center justify-center font-extrabold text-sm shrink-0 ${
                         isToday ? 'bg-white/20' : 'bg-gradient-to-br from-pink-400 to-rose-500 text-white'
@@ -609,7 +609,7 @@ export default function CustomersListPage() {
                         {c.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <div className={`text-xs font-extrabold truncate ${isToday ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                        <div className={`text-xs font-extrabold truncate ${isToday ? 'text-white' : 'text-slate-900 dark:text-ink-white'}`}>
                           {c.name} {isToday && '🎉'}
                         </div>
                         <div className={`text-[0.6875rem] font-bold ${isToday ? 'text-white/80' : 'text-pink-600 dark:text-pink-400'}`}>
@@ -633,10 +633,10 @@ export default function CustomersListPage() {
 
           {/* ═══ TOP SPENDERS ═══ */}
           {stats && stats.topSpenders.length > 0 && (
-            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                <h3 className="font-extrabold text-slate-900 dark:text-white">Top Spenders</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Top Spenders</h3>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
                 {stats.topSpenders.map((s: any, idx: number) => (
@@ -658,7 +658,7 @@ export default function CustomersListPage() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-slate-900 dark:text-white text-sm truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition">{s.name}</div>
+                        <div className="font-bold text-slate-900 dark:text-ink-white text-sm truncate group-hover:text-amber-700 dark:group-hover:text-amber-400 transition">{s.name}</div>
                         <div className="text-xs text-amber-700 dark:text-amber-400 font-extrabold mt-0.5 tabular-nums">{formatPKR(s.totalSpent)}</div>
                       </div>
                     </div>
@@ -674,29 +674,29 @@ export default function CustomersListPage() {
               <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 ref={searchRef}
-                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
+                className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-500/30 transition"
                 placeholder="Naam, phone, CNIC, email... (/ shortcut)"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
               />
               {searchInput && (
-                <button onClick={() => setSearchInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition">
+                <button onClick={() => setSearchInput('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center transition">
                   <X className="h-4 w-4 text-slate-400" />
                 </button>
               )}
             </div>
 
             {/* Grid / List toggle */}
-            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1 h-12" title="Grid / List (G)">
+            <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-1 h-12" title="Grid / List (G)">
               <button onClick={() => setView('grid')}
                 className={`px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-                  view === 'grid' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                  view === 'grid' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
                 }`}>
                 <LayoutGrid className="h-4 w-4" /> <span className="hidden md:inline">Cards</span>
               </button>
               <button onClick={() => setView('list')}
                 className={`px-3 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-                  view === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                  view === 'list' ? 'bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'
                 }`}>
                 <List className="h-4 w-4" /> <span className="hidden md:inline">List</span>
               </button>
@@ -708,25 +708,25 @@ export default function CustomersListPage() {
                 'h-12 px-4 rounded-2xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition',
                 showFilters || hasFilters
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-blue-300',
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-blue-300',
               ].join(' ')}
             >
               <SlidersHorizontal className="h-4 w-4" /> <span className="hidden sm:inline">Filters</span>
               {hasFilters && <span className="h-5 w-5 rounded-full bg-blue-600 text-white text-[0.6875rem] font-bold flex items-center justify-center">!</span>}
             </button>
-            <div className="hidden lg:flex items-center text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums px-1">
+            <div className="hidden lg:flex items-center text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums px-1">
               {data?.meta?.total ?? items.length} customers
             </div>
           </div>
 
           {/* ═══ FILTERS PANEL ═══ */}
           {showFilters && (
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 sm:p-5 space-y-3">
+            <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 sm:p-5 space-y-3">
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Type</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 mb-1.5 uppercase tracking-wider">Type</label>
                   <select
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
                     value={params.isVip === true ? 'vip' : params.hasCredit === true ? 'credit' : 'all'}
                     onChange={(e) => {
                       const v = e.target.value;
@@ -739,9 +739,9 @@ export default function CustomersListPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Sort</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 mb-1.5 uppercase tracking-wider">Sort</label>
                   <select
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
                     value={params.sortBy ?? 'createdAt'}
                     onChange={(e) => setParams({ ...params, sortBy: e.target.value as any, page: 1 })}
                   >
@@ -752,18 +752,18 @@ export default function CustomersListPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">City</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 mb-1.5 uppercase tracking-wider">City</label>
                   <input
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-blue-500 transition"
                     placeholder="Lahore, Karachi..."
                     value={params.city ?? ''}
                     onChange={(e) => setParams({ ...params, city: e.target.value || undefined, page: 1 })}
                   />
                 </div>
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Ek page pe</label>
+                  <label className="block text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 mb-1.5 uppercase tracking-wider">Ek page pe</label>
                   <select
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-blue-500 transition"
                     value={String(params.limit ?? 24)}
                     onChange={(e) => setParams({ ...params, limit: Number(e.target.value), page: 1 })}
                   >
@@ -784,7 +784,7 @@ export default function CustomersListPage() {
 
           {/* ═══ BULK BAR ═══ */}
           {selected.size > 0 && (
-            <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-blue-900 dark:from-slate-950 dark:to-blue-950 text-white border-2 border-blue-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
+            <div className="sticky top-2 z-30 rounded-2xl bg-gradient-to-r from-slate-900 to-blue-900 dark:from-ink-950 dark:to-blue-950 text-white border-2 border-blue-400/40 shadow-2xl p-3 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 mr-1">
                 <div className="h-9 w-9 rounded-xl bg-white/15 flex items-center justify-center font-extrabold tabular-nums text-sm">{selected.size}</div>
                 <div className="text-xs font-extrabold leading-tight">
@@ -835,25 +835,25 @@ export default function CustomersListPage() {
             view === 'grid' ? (
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className="h-52 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                  <div key={i} className="h-52 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
                 ))}
               </div>
             ) : (
               <div className="space-y-1.5">
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                  <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+                  <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
                 ))}
               </div>
             )
           ) : items.length === 0 ? (
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
               <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/40">
                 <Users className="h-9 w-9 text-white" />
               </div>
-              <h3 className="mt-5 text-xl font-extrabold text-slate-900 dark:text-white">
+              <h3 className="mt-5 text-xl font-extrabold text-slate-900 dark:text-ink-white">
                 {hasFilters ? 'Koi customer nahi mila' : 'Abhi koi customer nahi'}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold mt-2 max-w-md mx-auto">
+              <p className="text-sm text-slate-500 dark:text-ink-400 font-semibold mt-2 max-w-md mx-auto">
                 {hasFilters ? 'Filter change kar ke dekho ya clear karo' : 'Apna pehla customer add karo — phir sales, khata, loyalty sab yahan track hogi'}
               </p>
               <div className="mt-5 flex gap-2 justify-center flex-wrap">
@@ -906,19 +906,19 @@ export default function CustomersListPage() {
 
           {/* ═══ PAGINATION ═══ */}
           {data && data.meta.totalPages > 1 && (
-            <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-slate-900/80 rounded-2xl border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4">
-              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">
-                Page <strong className="text-slate-900 dark:text-white">{data.meta.page}</strong> of <strong className="text-slate-900 dark:text-white">{data.meta.totalPages}</strong>
+            <div className="flex items-center justify-between flex-wrap gap-2 bg-white dark:bg-ink-900/80 rounded-2xl border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4">
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-ink-400 font-bold">
+                Page <strong className="text-slate-900 dark:text-ink-white">{data.meta.page}</strong> of <strong className="text-slate-900 dark:text-ink-white">{data.meta.totalPages}</strong>
                 <span className="opacity-50 mx-1">•</span>
-                <strong className="text-slate-900 dark:text-white tabular-nums">{data.meta.total}</strong> total
+                <strong className="text-slate-900 dark:text-ink-white tabular-nums">{data.meta.total}</strong> total
               </div>
               <div className="flex gap-2">
                 <button disabled={params.page === 1} onClick={() => setParams({ ...params, page: (params.page ?? 1) - 1 })}
-                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1 transition">
+                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1 transition">
                   <ChevronLeft className="h-4 w-4" /> Pehle
                 </button>
                 <button disabled={(params.page ?? 1) >= data.meta.totalPages} onClick={() => setParams({ ...params, page: (params.page ?? 1) + 1 })}
-                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1 transition">
+                  className="h-10 px-4 rounded-xl border-2 border-slate-200 dark:border-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-ink-800 inline-flex items-center gap-1 transition">
                   Agla <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -937,12 +937,12 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
   return (
     <div
       className={[
-        'group relative rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden',
+        'group relative rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden',
         checked ? 'border-blue-500 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-500/25'
-          : c.isActive === false ? 'opacity-70 border-slate-200 dark:border-slate-800'
+          : c.isActive === false ? 'opacity-70 border-slate-200 dark:border-ink-800'
           : c.isVip ? 'border-amber-300 dark:border-amber-500/40 hover:border-amber-400'
           : c.balance > 0 ? 'border-rose-200 dark:border-rose-500/30 hover:border-rose-300'
-          : 'border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-500/50',
+          : 'border-slate-200 dark:border-ink-800 hover:border-blue-300 dark:hover:border-blue-500/50',
       ].join(' ')}
     >
       {/* select checkbox — hamesha nazar aata hai */}
@@ -950,7 +950,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
         onClick={onToggle}
         title="Select karo (bulk actions ke liye)"
         className={`absolute top-2.5 right-2.5 z-10 h-7 w-7 rounded-lg border-2 flex items-center justify-center transition ${
-          checked ? 'bg-blue-600 border-blue-600 text-white shadow' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-blue-400'
+          checked ? 'bg-blue-600 border-blue-600 text-white shadow' : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-blue-400'
         }`}
       >
         <CheckCircle2 className="h-4 w-4" />
@@ -971,7 +971,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
               </div>
             )}
             {c.isVip && (
-              <div className="absolute -top-1 -left-1 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center shadow ring-2 ring-white dark:ring-slate-900">
+              <div className="absolute -top-1 -left-1 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center shadow ring-2 ring-white dark:ring-ink-900">
                 <Crown className="h-3 w-3 text-white" />
               </div>
             )}
@@ -980,19 +980,19 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
             )}
           </div>
           <div className="flex-1 min-w-0 pr-7">
-            <h3 className="font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">{c.name}</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">{c.name}</h3>
             {c.phone && (
-              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-bold">
+              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-bold">
                 <Phone className="h-3 w-3" /> {c.phone}
               </div>
             )}
             {c.city && (
-              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400 font-bold">
+              <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-ink-400 font-bold">
                 <MapPin className="h-3 w-3" /> {c.city}{c.area && `, ${c.area}`}
               </div>
             )}
             {c.cnic && (
-              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold font-mono mt-0.5">
+              <div className="flex items-center gap-1 text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold font-mono mt-0.5">
                 <CreditCard className="h-2.5 w-2.5" /> {c.cnic}
               </div>
             )}
@@ -1005,10 +1005,10 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
             <div className="text-sm font-extrabold text-emerald-700 dark:text-emerald-400 truncate tabular-nums">{formatPKR(c.totalSpent)}</div>
           </div>
           <div className={`rounded-xl px-2.5 py-2 border ${
-            c.balance > 0 ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30' : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+            c.balance > 0 ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30' : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'
           }`}>
-            <div className={`text-[0.6875rem] font-extrabold uppercase tracking-wider ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>Khata</div>
-            <div className={`text-sm font-extrabold truncate tabular-nums ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300'}`}>
+            <div className={`text-[0.6875rem] font-extrabold uppercase tracking-wider ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500 dark:text-ink-400'}`}>Khata</div>
+            <div className={`text-sm font-extrabold truncate tabular-nums ${c.balance > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-slate-700 dark:text-ink-300'}`}>
               {c.balance > 0 ? formatPKR(c.balance) : 'Clear ✓'}
             </div>
           </div>
@@ -1026,7 +1026,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
               <AlertTriangle className="h-3 w-3" /> Limit paar
             </span>
           )}
-          <span className="inline-flex items-center gap-1 text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">
+          <span className="inline-flex items-center gap-1 text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">
             <CalendarDays className="h-2.5 w-2.5" />
             {new Date(c.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}
           </span>
@@ -1034,7 +1034,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
       </Link>
 
       {/* Quick actions — HAMESHA nazar aate hain */}
-      <div className="px-3 py-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 flex items-center justify-between">
+      <div className="px-3 py-2 border-t border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/60 flex items-center justify-between">
         <div className="flex items-center gap-1">
           {c.phone && (
             <button onClick={onWhatsapp}
@@ -1058,7 +1058,7 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
         </div>
         <div className="flex items-center gap-1">
           <Link to={`/customers/${c.id}`}
-            className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center transition" title="Poori detail">
+            className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-700 dark:text-ink-200 flex items-center justify-center transition" title="Poori detail">
             <Eye className="h-3.5 w-3.5" />
           </Link>
           <Link to={`/customers/${c.id}/edit`}
@@ -1080,15 +1080,15 @@ function CustomerCard({ c, checked, onToggle, onWhatsapp, onDelete }: any) {
    ═════════════════════════════════════════════════════════════ */
 function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onWhatsapp, onDelete }: any) {
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm min-w-[880px]">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-800/80 border-b-2 border-slate-200 dark:border-slate-700">
+            <tr className="bg-slate-50 dark:bg-ink-800/80 border-b-2 border-slate-200 dark:border-ink-700">
               <th className="px-3 py-3 w-10">
                 <button onClick={onToggleAll} title="Poora page select"
                   className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
-                    allSelected ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-blue-400'
+                    allSelected ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-blue-400'
                   }`}>
                   <CheckCircle2 className="h-3.5 w-3.5" />
                 </button>
@@ -1107,13 +1107,13 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
               const checked = selected.has(c.id);
               return (
                 <tr key={c.id}
-                  className={`border-b border-slate-100 dark:border-slate-800 transition ${
-                    checked ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                  className={`border-b border-slate-100 dark:border-ink-800 transition ${
+                    checked ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-slate-50 dark:hover:bg-ink-800/50'
                   } ${c.isActive === false ? 'opacity-60' : ''}`}>
                   <td className="px-3 py-2.5">
                     <button onClick={() => onToggle(c.id)}
                       className={`h-6 w-6 rounded-md border-2 flex items-center justify-center transition ${
-                        checked ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-transparent hover:border-blue-400'
+                        checked ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white dark:bg-ink-800 border-slate-300 dark:border-ink-600 text-transparent hover:border-blue-400'
                       }`}>
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </button>
@@ -1132,22 +1132,22 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
                         </div>
                       )}
                       <div className="min-w-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem] truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition flex items-center gap-1">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem] truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition flex items-center gap-1">
                           {c.isVip && <Crown className="h-3 w-3 text-amber-500 shrink-0" />}
                           {c.name}
                         </div>
-                        <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold">
+                        <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold">
                           {new Date(c.createdAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: '2-digit' })}
                           {c.cnic ? ` • ${c.cnic}` : ''}
                         </div>
                       </div>
                     </Link>
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                     {c.phone || <span className="text-slate-400">—</span>}
                     {c.email && <div className="text-[0.6875rem] text-slate-400 truncate max-w-[160px]">{c.email}</div>}
                   </td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300">
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-600 dark:text-ink-300">
                     {[c.city, c.area].filter(Boolean).join(', ') || <span className="text-slate-400">—</span>}
                   </td>
                   <td className="px-3 py-2.5 text-center text-xs font-extrabold text-amber-600 dark:text-amber-400 tabular-nums">
@@ -1160,7 +1160,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
                     {c.balance > 0 ? (
                       <span className="text-rose-600 dark:text-rose-400">{formatPKR(c.balance)}</span>
                     ) : (
-                      <span className="text-slate-400 dark:text-slate-500">Clear ✓</span>
+                      <span className="text-slate-400 dark:text-ink-500">Clear ✓</span>
                     )}
                   </td>
                   <td className="px-3 py-2.5 pr-4">
@@ -1172,7 +1172,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
                         </button>
                       )}
                       <Link to={`/customers/${c.id}`}
-                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 flex items-center justify-center transition" title="Poori detail">
+                        className="h-8 w-8 rounded-lg bg-slate-200/70 dark:bg-ink-700 hover:bg-slate-300 dark:hover:bg-ink-600 text-slate-700 dark:text-ink-200 flex items-center justify-center transition" title="Poori detail">
                         <Eye className="h-3.5 w-3.5" />
                       </Link>
                       <Link to={`/customers/${c.id}/edit`}
@@ -1190,7 +1190,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
             })}
           </tbody>
           <tfoot>
-            <tr className="bg-slate-900 dark:bg-slate-950 text-white">
+            <tr className="bg-slate-900 dark:bg-ink-950 text-white">
               <td colSpan={5} className="px-3 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-widest">Is page ka total</td>
               <td className="px-3 py-3 text-right text-xs font-extrabold text-emerald-300 tabular-nums whitespace-nowrap">
                 {formatPKR(rows.reduce((s: number, c: any) => s + Number(c.totalSpent || 0), 0))}
@@ -1209,7 +1209,7 @@ function CustomerTable({ rows, selected, allSelected, onToggle, onToggleAll, onW
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-3 text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -1289,10 +1289,10 @@ function CustomerAnalytics({ rows, loading, stats, total }: { rows: any[]; loadi
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
         <div className="grid lg:grid-cols-2 gap-3">
-          {[1, 2].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2].map((i) => <div key={i} className="h-72 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       </div>
     );
@@ -1300,10 +1300,10 @@ function CustomerAnalytics({ rows, loading, stats, total }: { rows: any[]; loadi
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-16 text-center">
-        <BarChart3 className="h-12 w-12 mx-auto text-slate-300 dark:text-slate-600" />
-        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">Abhi analytics ke liye data nahi</h3>
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">Pehle kuch customers add karo — phir yahan poori tasveer milegi.</p>
+      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-16 text-center">
+        <BarChart3 className="h-12 w-12 mx-auto text-slate-300 dark:text-ink-600" />
+        <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">Abhi analytics ke liye data nahi</h3>
+        <p className="text-sm font-semibold text-slate-500 dark:text-ink-400 mt-1">Pehle kuch customers add karo — phir yahan poori tasveer milegi.</p>
       </div>
     );
   }
@@ -1414,14 +1414,14 @@ const TOOLTIP: React.CSSProperties = {
 
 function ChartCard({ icon: Icon, title, hint, children }: any) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
       <div className="flex items-start gap-2 mb-3">
         <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shadow shrink-0">
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{title}</h3>
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{hint}</p>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{title}</h3>
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{hint}</p>
         </div>
       </div>
       {children}
@@ -1434,23 +1434,23 @@ function LeaderCard({ title, rows, valueOf, tone, empty }: any) {
     ? 'text-rose-700 dark:text-rose-400'
     : 'text-emerald-700 dark:text-emerald-400';
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
-      <h3 className="font-extrabold text-slate-900 dark:text-white text-sm mb-3">{title}</h3>
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
+      <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm mb-3">{title}</h3>
       {rows.length === 0 ? (
-        <p className="text-xs font-bold text-slate-400 dark:text-slate-500 py-6 text-center">{empty}</p>
+        <p className="text-xs font-bold text-slate-400 dark:text-ink-500 py-6 text-center">{empty}</p>
       ) : (
         <div className="space-y-1">
           {rows.map((c: any, i: number) => (
             <Link key={c.id} to={`/customers/${c.id}`}
-              className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
+              className="flex items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition group">
               <span className={`h-6 w-6 rounded-lg text-[0.6875rem] font-extrabold flex items-center justify-center shrink-0 ${
-                i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                i === 0 ? 'bg-amber-500 text-white' : i === 1 ? 'bg-slate-400 text-white' : i === 2 ? 'bg-orange-500 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-500 dark:text-ink-400'
               }`}>{i + 1}</span>
               <div className="flex-1 min-w-0">
-                <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">
+                <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-blue-700 dark:group-hover:text-blue-300 transition">
                   {c.isVip ? '👑 ' : ''}{c.name}
                 </div>
-                {c.phone && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">{c.phone}</div>}
+                {c.phone && <div className="text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">{c.phone}</div>}
               </div>
               <div className={`text-xs font-extrabold tabular-nums whitespace-nowrap ${toneCls}`}>{valueOf(c)}</div>
             </Link>
@@ -1470,12 +1470,12 @@ function AnaBox({ icon: Icon, tone, label, value, sub }: any) {
     slate: 'from-slate-500 to-slate-700 shadow-slate-500/40',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-4 w-4" />
@@ -1520,7 +1520,7 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } }}>
         <div className="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700 text-white px-5 py-4 overflow-hidden">
@@ -1541,18 +1541,18 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
 
         <div className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">Naam *</label>
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">Naam *</label>
             <input ref={nameRef} value={name} onChange={(e) => setName(e.target.value)}
               placeholder="Ali Raza, Faiza Baji..." maxLength={60}
-              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-base font-black text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+              className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-base font-black text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
           </div>
           <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Phone <span className="text-slate-400 normal-case font-bold">(optional — WhatsApp ke liye)</span>
             </label>
             <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="0300-1234567" inputMode="tel"
-              className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-slate-800 px-4 text-sm font-bold font-mono text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none transition ${
-                phone && !phoneOk ? 'border-rose-400 focus:border-rose-500' : 'border-slate-200 dark:border-slate-700 focus:border-emerald-500'
+              className={`h-12 w-full rounded-xl border-2 bg-white dark:bg-ink-800 px-4 text-sm font-bold font-mono text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none transition ${
+                phone && !phoneOk ? 'border-rose-400 focus:border-rose-500' : 'border-slate-200 dark:border-ink-700 focus:border-emerald-500'
               }`} />
             {phone && !phoneOk && (
               <div className="mt-1 text-[0.6875rem] font-black text-rose-600 flex items-center gap-1">
@@ -1563,25 +1563,25 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
           <button type="button" onClick={() => setIsVip(!isVip)}
             className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition ${
               isVip ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/10 border-amber-300 dark:border-amber-500/40'
-                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                    : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700'
             }`}>
             <div className="flex items-center gap-2.5">
               <Crown className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <div className="text-left">
-                <div className="text-sm font-extrabold text-slate-900 dark:text-white">VIP Customer</div>
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Premium tier — khaas treatment</div>
+                <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">VIP Customer</div>
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">Premium tier — khaas treatment</div>
               </div>
             </div>
-            <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${isVip ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            <div className={`h-6 w-11 rounded-full transition-colors relative shrink-0 ${isVip ? 'bg-amber-500' : 'bg-slate-300 dark:bg-ink-600'}`}>
               <div className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${isVip ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
             </div>
           </button>
-          <div className="text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+          <div className="text-center text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
             Baqi details (CNIC, address, photo) baad me full form se — <Link to="/customers/new" className="text-blue-600 dark:text-blue-400 hover:underline">Full Form</Link>
           </div>
         </div>
 
-        <div className="border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1 h-12" onClick={onClose}><X className="h-4 w-4" /> Cancel</Button>
           <button onClick={submit} disabled={!name.trim() || !phoneOk || createMutation.isPending}
             className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 disabled:opacity-50 text-white text-sm font-black inline-flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/40 transition active:scale-[0.98]">
@@ -1600,7 +1600,7 @@ function QuickAddCustomerModal({ onClose, onCreated }: { onClose: () => void; on
 function PrintOptionsModal({ count, onlySelected, onA4, onThermal, onCSV, onClose }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
+      <div className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}>
         <div className="shrink-0 relative bg-gradient-to-br from-blue-700 via-indigo-600 to-violet-700 text-white px-5 py-4 overflow-hidden">
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-blue-400/25 blur-2xl" />
@@ -1645,15 +1645,15 @@ function PrintOptionsModal({ count, onlySelected, onA4, onThermal, onCSV, onClos
             desc="Excel / Google Sheets ke liye — credit limit aur birthday column bhi included."
             onClick={onCSV}
           />
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-slate-400 mb-1">💡 Tips</div>
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-black text-slate-500 dark:text-ink-400 mb-1">💡 Tips</div>
             <TipRow><strong>PDF:</strong> A4 → print dialog me "Save as PDF"</TipRow>
             <TipRow><strong>Colored:</strong> "Background graphics" ON karo</TipRow>
             <TipRow><strong>Chuno phir print karo</strong> — jin customers ko ☑️ select karo ge, sirf unka report banega</TipRow>
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4">
           <Button variant="secondary" className="w-full" onClick={onClose}><X className="h-4 w-4" /> Band Karo</Button>
         </div>
       </div>
@@ -1671,10 +1671,10 @@ function PrintOption({ icon, grad, border, bg, title, badge, badgeCls, desc, onC
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <h4 className="text-base font-black text-slate-900 dark:text-white">{title}</h4>
+            <h4 className="text-base font-black text-slate-900 dark:text-ink-white">{title}</h4>
             <span className={`px-2 py-0.5 rounded-full ${badgeCls} text-white text-[0.625rem] font-black uppercase`}>{badge}</span>
           </div>
-          <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 leading-relaxed">{desc}</p>
+          <p className="text-xs font-semibold text-slate-600 dark:text-ink-300 leading-relaxed">{desc}</p>
         </div>
         <ArrowR className="h-6 w-6 text-slate-400 shrink-0 self-center group-hover:translate-x-1 transition" />
       </div>
@@ -1688,14 +1688,14 @@ function PrintOption({ icon, grad, border, bg, title, badge, badgeCls, desc, onC
 function DeleteConfirmModal({ customer, loading, onClose, onConfirm }: any) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden"
+      <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="p-5 text-center">
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 text-white mx-auto flex items-center justify-center shadow-lg shadow-rose-500/40">
             <Trash2 className="h-7 w-7" />
           </div>
-          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-white">"{customer.name}" delete karein?</h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-ink-white">"{customer.name}" delete karein?</h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-ink-400 font-semibold">
             {customer.balance > 0
               ? `⚠️ Is ka ${formatPKR(customer.balance)} udhaar baqi hai! Pehle wusooli karo.`
               : 'Ye action undo nahi ho sakta. Sales history mehfooz rahegi.'}
@@ -1717,14 +1717,14 @@ function BulkDeleteModal({ rows, loading, onClose, onConfirm }: any) {
   const withDebt = rows.filter((c: any) => Number(c.balance) > 0);
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+      <div className="w-full max-w-md rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 dark:border-rose-500/40 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}>
         <div className="p-5 text-center shrink-0">
           <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 text-white mx-auto flex items-center justify-center shadow-lg shadow-rose-500/40">
             <Trash2 className="h-7 w-7" />
           </div>
-          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-white">{rows.length} customers delete karein?</h3>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-semibold">
+          <h3 className="mt-3 text-lg font-extrabold text-slate-900 dark:text-ink-white">{rows.length} customers delete karein?</h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-ink-400 font-semibold">
             Ye action undo nahi ho sakta. Jin ki sales ya khata history hai, wo delete nahi honge — unka naam baad me bata diya jayega.
           </p>
         </div>
@@ -1740,10 +1740,10 @@ function BulkDeleteModal({ rows, loading, onClose, onConfirm }: any) {
         )}
 
         <div className="flex-1 overflow-y-auto p-5 pt-3">
-          <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-800 max-h-52 overflow-y-auto">
+          <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 divide-y divide-slate-100 dark:divide-ink-800 max-h-52 overflow-y-auto">
             {rows.map((c: any) => (
               <div key={c.id} className="flex items-center justify-between gap-2 px-3 py-2 text-xs">
-                <span className="font-extrabold text-slate-800 dark:text-slate-100 truncate">{c.isVip ? '👑 ' : ''}{c.name}</span>
+                <span className="font-extrabold text-slate-800 dark:text-ink-100 truncate">{c.isVip ? '👑 ' : ''}{c.name}</span>
                 <span className={`font-extrabold tabular-nums shrink-0 ${c.balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-400'}`}>
                   {c.balance > 0 ? formatPKR(c.balance) : 'Clear'}
                 </span>
@@ -1752,7 +1752,7 @@ function BulkDeleteModal({ rows, loading, onClose, onConfirm }: any) {
           </div>
         </div>
 
-        <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-rose-600 to-red-700 font-extrabold shadow-lg shadow-rose-500/40"
             onClick={onConfirm} loading={loading}>
@@ -1770,29 +1770,29 @@ function BulkDeleteModal({ rows, loading, onClose, onConfirm }: any) {
 function CustomersTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-blue-200 dark:border-blue-500/30 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-blue-900 dark:text-blue-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Customers Kaise Manage Karein?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye aapki <strong>poori gahak list</strong> hai — VIP 👑, khata wale 💳, top spenders 🏆, birthdays 🎂. Har industry me bilkul ek jaisa page.
           </p>
 
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-emerald-800 dark:text-emerald-200 mb-1">⚡ Customer Banao</div>
             <TipRow>Hero me <strong>"Quick"</strong> (ya <Kbd dark>N</Kbd>) — sirf naam likho, customer ready. Details baad me</TipRow>
             <TipRow><strong>Full Form</strong> — photo, CNIC, address, credit limit sab ke liye</TipRow>
           </div>
 
-          <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-violet-200 dark:border-violet-500/30 bg-violet-50/60 dark:bg-violet-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-violet-800 dark:text-violet-200 mb-1">🔲 Do View • ☑️ Bulk Kaam</div>
             <TipRow><strong>Cards / List</strong> — upar toggle se (ya <Kbd dark>G</Kbd>). List view me table bante hai — kharch, khata, points ek nazar me</TipRow>
             <TipRow><strong>☑️ Select</strong> — card ke kone ka checkbox ya list ka box. Phir upar wali bar se: VIP banao, numbers copy, CSV, print, bulk delete</TipRow>
@@ -1800,7 +1800,7 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
             <TipRow>Buttons <strong>hamesha nazar aate hain</strong> — mouse le jane ka intezar nahi karna parta</TipRow>
           </div>
 
-          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-blue-50/60 dark:bg-blue-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-blue-800 dark:text-blue-200 mb-1">📊 Analytics & Rabta</div>
             <TipRow><strong>Analytics tab</strong> (<Kbd dark>A</Kbd>) — naye customers ka mahina-war graph, kharch ke bracket, sheher, khata ki soorat, top 10 spenders aur top 10 udhaar walay</TipRow>
             <TipRow><strong>💬 Smart WhatsApp</strong> — Faiza ko "baji", Ali ko "bhai" khud lagta hai. Udhaar wale ko reminder, clear wale ko thank-you</TipRow>
@@ -1809,7 +1809,7 @@ function CustomersTeacher({ onClose }: { onClose: () => void }) {
             <TipRow><strong>🖨️ Print</strong> — A4 report, 80mm thermal list, CSV — filters aur selection dono ke sath</TipRow>
           </div>
 
-          <div className="rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
+          <div className="rounded-xl bg-slate-900 dark:bg-ink-950 border border-slate-700 p-3 text-xs font-semibold text-slate-200">
             <div className="text-[0.6875rem] uppercase tracking-widest font-black text-blue-300 mb-2">⌨️ Shortcuts</div>
             <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem]">
               <div><Kbd dark>/</Kbd> Search</div>
@@ -1866,7 +1866,7 @@ function TabBtn({ active, onClick, icon: Icon, label }: any) {
   return (
     <button onClick={onClick}
       className={`px-4 py-2 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 transition ${
-        active ? 'bg-slate-900 dark:bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+        active ? 'bg-slate-900 dark:bg-blue-600 text-white shadow' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-800'
       }`}>
       <Icon className="h-4 w-4" /> {label}
     </button>
@@ -1885,16 +1885,16 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
+        'group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
-        active ? 'border-blue-500 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-500/20' : 'border-slate-200 dark:border-slate-800',
+        active ? 'border-blue-500 dark:border-blue-400 ring-2 ring-blue-200 dark:ring-blue-500/20' : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
           <Icon className="h-5 w-5" />

@@ -42,7 +42,7 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
       <section className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3 dark:border-emerald-500/30 dark:bg-emerald-500/5">
         <CheckCircle2 className="h-5 w-5 text-emerald-600" />
         <div className="flex-1 text-sm">
-          <div className="font-black text-slate-900 dark:text-white">Customer ne confirm kiya</div>
+          <div className="font-black text-slate-900 dark:text-ink-white">Customer ne confirm kiya</div>
           <div className="text-xs text-slate-500">{whenText(c.at)}{c.attempts > 1 ? ` · ${c.attempts} koshish` : ''}</div>
         </div>
       </section>
@@ -53,10 +53,10 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
     <section className={cn('rounded-2xl border p-4',
       c?.result === 'REFUSED' ? 'border-rose-200 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-500/5'
         : 'border-amber-200 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-500/5')}>
-      <div className="text-sm font-black text-slate-900 dark:text-white">
+      <div className="text-sm font-black text-slate-900 dark:text-ink-white">
         {c?.result === 'REFUSED' ? 'Customer ne mana kiya' : 'COD — bhejne se pehle customer se confirm karein'}
       </div>
-      <div className="mt-0.5 text-xs text-slate-600 dark:text-slate-300">
+      <div className="mt-0.5 text-xs text-slate-600 dark:text-ink-300">
         {c?.result === 'NO_ANSWER'
           ? `${c.attempts} dafa jawab nahi mila · aakhri ${whenText(c.at)}`
           : c?.result === 'REFUSED' ? 'Order cancel kar dein — stock wapas aa jayega'
@@ -70,7 +70,7 @@ export function ConfirmCard({ order: o, onChanged, onRefused }: { order: OnlineO
           </a>
         )}
         {o.customerPhone && (
-          <a href={`tel:${o.customerPhone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-white dark:border-neutral-700 dark:text-slate-200">
+          <a href={`tel:${o.customerPhone}`} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-white dark:border-ink-700 dark:text-ink-200">
             <Phone className="h-3.5 w-3.5" /> Call
           </a>
         )}

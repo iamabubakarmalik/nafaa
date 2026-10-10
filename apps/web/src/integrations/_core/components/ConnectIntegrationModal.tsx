@@ -150,7 +150,7 @@ export function ConnectIntegrationModal({
                       });
                       setFieldValues(defaults);
                     }}
-                    className="group p-4 rounded-2xl border-2 border-slate-200 dark:border-neutral-700 hover:border-brand-400 dark:hover:border-brand-600 transition text-left"
+                    className="group p-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-brand-400 dark:hover:border-brand-600 transition text-left"
                   >
                     <div
                       className="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3 group-hover:scale-110 transition"
@@ -158,7 +158,7 @@ export function ConnectIntegrationModal({
                     >
                       {avail.icon}
                     </div>
-                    <div className="font-extrabold text-sm text-slate-900 dark:text-white">
+                    <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">
                       {avail.name}
                     </div>
                     <div className="text-[0.6875rem] text-slate-500 mt-1 line-clamp-2">
@@ -183,7 +183,7 @@ export function ConnectIntegrationModal({
       {selected && (
         <div className="space-y-4">
           {/* Selected integration header */}
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-800 dark:to-neutral-900 flex items-center gap-3">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-ink-800 dark:to-ink-900 flex items-center gap-3">
             <div
               className="h-14 w-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
               style={{ backgroundColor: `${selected.color}20` }}
@@ -191,7 +191,7 @@ export function ConnectIntegrationModal({
               {selected.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-black text-base text-slate-900 dark:text-white">
+              <div className="font-black text-base text-slate-900 dark:text-ink-white">
                 {selected.name}
               </div>
               <div className="text-xs text-slate-500 mt-1">{selected.description}</div>
@@ -247,7 +247,7 @@ export function ConnectIntegrationModal({
                   <li><strong>Webhook URL</strong> — jahan orders bhejne hain</li>
                   <li><strong>Product API</strong> — GET se products fetch karein</li>
                 </ul>
-                <div className="mt-2 p-2 rounded-lg bg-white dark:bg-neutral-900 font-mono text-[0.6875rem] text-slate-700 dark:text-slate-300">
+                <div className="mt-2 p-2 rounded-lg bg-white dark:bg-ink-900 font-mono text-[0.6875rem] text-slate-700 dark:text-ink-300">
                   fetch('https://api.nafaa.pk/api/integrations/webhooks/custom-website/YOUR_API_KEY', {'{'}<br/>
                   &nbsp;&nbsp;method: 'POST',<br/>
                   &nbsp;&nbsp;headers: {'{'} 'Content-Type': 'application/json' {'}'},<br/>

@@ -27,7 +27,7 @@ export default function DairyDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -110,7 +110,7 @@ export default function DairyDashboardPage() {
 
       {/* MONTHLY */}
       <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp className="h-5 w-5 text-emerald-600" />
             <h3 className="text-lg font-bold">Monthly Business (30d)</h3>
@@ -168,17 +168,17 @@ export default function DairyDashboardPage() {
 
       {/* TOP LISTS */}
       <section className="grid lg:grid-cols-3 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
             <h3 className="text-lg font-bold flex items-center gap-2"><Award className="h-5 w-5 text-amber-600" />Top Customers</h3>
             <p className="text-xs text-slate-500 font-semibold">30 days consumption</p>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topCustomers.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-500 font-semibold">No data yet</div>
             ) : (
               topCustomers.map((tc: any, i: number) => (
-                <Link key={i} to={'/dairy/customers/' + tc.customer?.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={i} to={'/dairy/customers/' + tc.customer?.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className={
                     'h-8 w-8 rounded-lg text-white flex items-center justify-center font-extrabold text-sm shrink-0 ' +
                     (i === 0 ? 'bg-amber-500' : i === 1 ? 'bg-slate-400' : i === 2 ? 'bg-orange-600' : 'bg-slate-500')
@@ -196,17 +196,17 @@ export default function DairyDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
             <h3 className="text-lg font-bold flex items-center gap-2"><User className="h-5 w-5 text-emerald-600" />Top Farmers</h3>
             <p className="text-xs text-slate-500 font-semibold">30 days supply</p>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topFarmers.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-500 font-semibold">No data yet</div>
             ) : (
               topFarmers.map((tf: any, i: number) => (
-                <Link key={i} to={'/dairy/farmers/' + tf.farmer?.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={i} to={'/dairy/farmers/' + tf.farmer?.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className={
                     'h-8 w-8 rounded-lg text-white flex items-center justify-center font-extrabold text-sm shrink-0 ' +
                     (i === 0 ? 'bg-emerald-500' : i === 1 ? 'bg-cyan-500' : i === 2 ? 'bg-blue-500' : 'bg-slate-500')
@@ -224,17 +224,17 @@ export default function DairyDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
             <h3 className="text-lg font-bold flex items-center gap-2"><AlertCircle className="h-5 w-5 text-rose-600" />Top Debtors</h3>
             <p className="text-xs text-slate-500 font-semibold">Highest outstanding</p>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topDebtors.length === 0 ? (
               <div className="py-8 text-center text-sm text-slate-500 font-semibold">No debts</div>
             ) : (
               topDebtors.map((d: any, i: number) => (
-                <Link key={d.id} to={'/dairy/customers/' + d.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={d.id} to={'/dairy/customers/' + d.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className="h-8 w-8 rounded-lg bg-rose-500 text-white flex items-center justify-center font-extrabold text-sm shrink-0">{i + 1}</div>
                   <div className="flex-1 min-w-0">
                     <div className="font-extrabold text-sm truncate">{d.name}</div>
@@ -261,12 +261,12 @@ function KpiCard({ label, value, sub, icon: Icon, color }: any) {
     amber: 'from-amber-500 to-orange-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm hover:shadow-md transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={
           'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] +
@@ -293,7 +293,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -301,7 +301,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

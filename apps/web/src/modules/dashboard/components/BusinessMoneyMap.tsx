@@ -49,10 +49,10 @@ export function BusinessMoneyMap({
       <PiggyBank className="h-5 w-5" />
     </div>
     <div>
-      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">
         {title ?? 'Paisa Kahan Hai 💰'}
       </h3>
-      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">
+      <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">
         {subtitle ?? 'Maal, kharcha, lena aur dena — sab ek nazar me'}
       </p>
     </div>
@@ -117,7 +117,7 @@ export function BusinessMoneyMap({
         <Hourglass className="h-5 w-5" />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
           {formatPKR(money.inventory.deadStockValue)} ka maal phansa hua hai
         </div>
         <div className="text-xs font-bold text-rose-700 dark:text-rose-300">
@@ -146,21 +146,21 @@ function MoneyTile({ icon: Icon, label, value, sub, tone, to, urgent }: any) {
   const t = tones[tone] ?? tones.teal;
   return (
     <Link to={to} className={[
-      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'rounded-2xl bg-white dark:bg-ink-900/60 border-2 p-3 sm:p-4',
       'shadow-sm dark:shadow-black/20 hover:shadow-lg transition-all hover:-translate-y-0.5',
-      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
       t.ring,
     ].join(' ')}>
       <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md mb-2`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold truncate">
+      <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-ink-400 font-extrabold truncate">
         {label}
       </div>
-      <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">
+      <div className="mt-0.5 text-base sm:text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">
         {value}
       </div>
-      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 leading-snug line-clamp-2">
+      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-1 leading-snug line-clamp-2">
         {sub}
       </div>
     </Link>

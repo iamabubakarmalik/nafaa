@@ -304,7 +304,7 @@ export default function MobileDashboard() {
       {/* ═══════════════════════════════════════════════════════
           HERO — greeting + KPIs + actions
           ═══════════════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-slate-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-blue-900 to-indigo-700 dark:from-ink-950 dark:via-blue-950 dark:to-indigo-900 text-white p-4 sm:p-6 shadow-2xl">
         {/* Glowing blobs */}
         <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-blue-400/30 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
@@ -432,15 +432,15 @@ export default function MobileDashboard() {
       {/* ═══════════════════════════════════════════════════════
           PAISA KAHAN SE — chaar raston ka munafa
           ═══════════════════════════════════════════════════════ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40">
               <PiggyBank className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Paisa Kahan Se Aa Raha Hai?</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Paisa Kahan Se Aa Raha Hai?</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">
                 {RANGE_LABEL[range]} · kul munafa{' '}
                 <strong className="text-emerald-700 dark:text-emerald-400">
                   {hideCost ? '••••' : formatPKR(profitSplit?.totals.profit ?? 0)}
@@ -458,7 +458,7 @@ export default function MobileDashboard() {
                 className={`h-9 px-3 rounded-lg text-xs font-extrabold transition border-2 inline-flex items-center gap-1 ${
                   range === r
                     ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white border-transparent shadow'
-                    : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-300'
+                    : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-emerald-300'
                 }`}
               >
                 {r === 'custom' && <CalendarDays className="h-3.5 w-3.5" />}
@@ -469,18 +469,18 @@ export default function MobileDashboard() {
         </div>
 
         {range === 'custom' && (
-          <div className="px-4 sm:px-6 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2 flex-wrap print:hidden">
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Se</label>
+          <div className="px-4 sm:px-6 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2 flex-wrap print:hidden">
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Se</label>
             <input
               type="date" value={customFrom} max={customTo}
               onChange={(e) => setCustomFrom(e.target.value)}
-              className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+              className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
             />
-            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Tak</label>
+            <label className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Tak</label>
             <input
               type="date" value={customTo} min={customFrom} max={isoDay(new Date())}
               onChange={(e) => setCustomTo(e.target.value)}
-              className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+              className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
             />
           </div>
         )}
@@ -493,15 +493,15 @@ export default function MobileDashboard() {
             const total = profitSplit?.totals.profit ?? 0;
             const share = total > 0 && row ? (row.profit / total) * 100 : 0;
             return (
-              <div key={key} className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-3.5">
+              <div key={key} className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${meta.grad} text-white flex items-center justify-center shadow shrink-0`}>
                       <Icon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{meta.label}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{meta.label}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 tabular-nums">
                         {row?.units ?? 0} units
                       </div>
                     </div>
@@ -513,11 +513,11 @@ export default function MobileDashboard() {
 
                 <div className="mt-3 space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-slate-500 dark:text-slate-400">Bikri</span>
-                    <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(row?.revenue ?? 0)}</span>
+                    <span className="font-semibold text-slate-500 dark:text-ink-400">Bikri</span>
+                    <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(row?.revenue ?? 0)}</span>
                   </div>
-                  <div className="flex justify-between pt-1 border-t-2 border-slate-100 dark:border-slate-800">
-                    <span className="font-extrabold text-slate-900 dark:text-white">Munafa</span>
+                  <div className="flex justify-between pt-1 border-t-2 border-slate-100 dark:border-ink-800">
+                    <span className="font-extrabold text-slate-900 dark:text-ink-white">Munafa</span>
                     <span className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                       {hideCost ? '•••' : formatPKR(row?.profit ?? 0)}
                     </span>
@@ -525,11 +525,11 @@ export default function MobileDashboard() {
                 </div>
 
                 <div className="mt-2.5">
-                  <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-1">
+                  <div className="flex justify-between text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mb-1">
                     <span>Hissa</span>
                     <span className="tabular-nums">{share.toFixed(0)}%</span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                     <div className={`h-full bg-gradient-to-r ${meta.grad} transition-all`}
                       style={{ width: `${Math.max(Math.min(share, 100), 0)}%` }} />
                   </div>
@@ -596,7 +596,7 @@ export default function MobileDashboard() {
             subtitle={range === '30d' ? '30 din ka data' : '7 din ka data'}
             tone="blue"
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 text-[0.6875rem] font-extrabold">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1 text-[0.6875rem] font-extrabold">
                 {(['7d', '30d'] as Range[]).map((r) => (
                   <button
                     key={r}
@@ -604,8 +604,8 @@ export default function MobileDashboard() {
                     className={[
                       'px-3 py-1.5 rounded-lg transition-all',
                       range === r
-                        ? 'bg-white dark:bg-slate-900 text-blue-700 dark:text-blue-300 shadow-md'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200',
+                        ? 'bg-white dark:bg-ink-900 text-blue-700 dark:text-blue-300 shadow-md'
+                        : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-200',
                     ].join(' ')}
                   >
                     {r === '7d' ? '7 Din' : '30 Din'}
@@ -628,9 +628,9 @@ export default function MobileDashboard() {
                       <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
-                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.4} />
+                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                   <Tooltip
                     formatter={(v: any) => formatPKR(Number(v))}
                     contentStyle={{
@@ -669,9 +669,9 @@ export default function MobileDashboard() {
                       <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" opacity={0.4} />
-                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-slate-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
-                  <YAxis className="fill-slate-500 dark:fill-slate-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-ink-700" opacity={0.4} />
+                  <XAxis dataKey="label" className="fill-slate-500 dark:fill-ink-400" fontSize={9} interval={1} tickLine={false} axisLine={false} />
+                  <YAxis className="fill-slate-500 dark:fill-ink-400" fontSize={10} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
                   <Tooltip
                     formatter={(v: any) => formatPKR(Number(v))}
                     contentStyle={{
@@ -730,7 +730,7 @@ export default function MobileDashboard() {
         </div>
 
         {ptaBreakdown.length > 0 && (
-          <div className="mt-4 rounded-xl bg-white dark:bg-slate-800/60 border border-blue-200 dark:border-blue-500/30 p-3">
+          <div className="mt-4 rounded-xl bg-white dark:bg-ink-800/60 border border-blue-200 dark:border-blue-500/30 p-3">
             <div className="text-xs font-extrabold text-blue-700 dark:text-blue-300 uppercase mb-2">PTA Status Breakdown</div>
             <div className="flex flex-wrap gap-2">
               {ptaBreakdown.map((p) => (
@@ -813,9 +813,9 @@ export default function MobileDashboard() {
                         <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm" style={{ backgroundColor: p.color }}>
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="font-extrabold text-slate-700 dark:text-slate-200 min-w-0 flex-1 truncate">{p.name}</span>
-                        <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">{pct.toFixed(0)}%</span>
-                        <span className="font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">{formatPKR(p.value)}</span>
+                        <span className="font-extrabold text-slate-700 dark:text-ink-200 min-w-0 flex-1 truncate">{p.name}</span>
+                        <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">{pct.toFixed(0)}%</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums shrink-0">{formatPKR(p.value)}</span>
                       </div>
                     );
                   })}
@@ -837,8 +837,8 @@ export default function MobileDashboard() {
             <Rocket className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Quick Actions 🚀</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-bold">Sab mobile features ek jaga</p>
+            <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Quick Actions 🚀</h3>
+            <p className="text-xs text-slate-500 dark:text-ink-400 font-bold">Sab mobile features ek jaga</p>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
@@ -874,19 +874,19 @@ export default function MobileDashboard() {
           ═══════════════════════════════════════════════════════ */}
       <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
               <Crown className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Top Movers 🏆</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Is mahine ke best sellers</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Top Movers 🏆</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">Is mahine ke best sellers</p>
             </div>
             <Link to="/mobile-reports" className="text-blue-700 dark:text-blue-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               Reports <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
             {data?.topProducts?.length ? (
               data.topProducts.slice(0, 8).map((p, idx) => {
                 const rankGrads = [
@@ -900,20 +900,20 @@ export default function MobileDashboard() {
                   'from-slate-400 to-slate-600',
                 ];
                 return (
-                  <div key={p.productId} className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                  <div key={p.productId} className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                     <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${rankGrads[idx]} text-white font-extrabold flex items-center justify-center text-sm shrink-0 shadow-md`}>
                       {idx < 3 ? <Crown className="h-4 w-4" /> : idx + 1}
                     </div>
-                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                       {p.product?.images?.[0]?.url ? (
                         <img src={p.product.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                       ) : (
-                        <Smartphone className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                        <Smartphone className="h-4 w-4 text-slate-400 dark:text-ink-500" />
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.product?.name || 'Unknown'}</div>
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{p.product?.name || 'Unknown'}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">
                         {p.quantitySold.toFixed(0)} {p.product?.unit} • {(p as any).orderCount ?? 0} orders
                       </div>
                     </div>
@@ -930,45 +930,45 @@ export default function MobileDashboard() {
         </Card>
 
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3 bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-500/10 dark:to-red-500/10">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-rose-500 to-red-700 text-white flex items-center justify-center shadow-lg shadow-rose-500/40">
               <Hourglass className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Slow Movers 🐢</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">30+ din se koi bikri nahi</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Slow Movers 🐢</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">30+ din se koi bikri nahi</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
             {slowMovers.length === 0 ? (
               <div className="px-6 py-12 text-center">
                 <div className="h-14 w-14 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <Star className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">Sab kuch chal raha hai! 🎉</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-bold">Koi ruka hua product nahi</p>
+                <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Sab kuch chal raha hai! 🎉</h4>
+                <p className="text-xs text-slate-600 dark:text-ink-400 mt-1 font-bold">Koi ruka hua product nahi</p>
               </div>
             ) : (
               slowMovers.slice(0, 8).map((p: any) => (
                 <Link key={p.id} to={`/mobile-products/${p.id}`}
-                  className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                  className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                     {p.images?.[0]?.url ? (
                       <img src={p.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                     ) : (
-                      <Smartphone className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+                      <Smartphone className="h-4 w-4 text-slate-400 dark:text-ink-500" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                    <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{p.name}</div>
+                    <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">
                       Stock: {p.stock} {p.unit} • {p.category?.name || 'No category'}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
                     <div className="text-[0.6875rem] font-extrabold text-rose-700 dark:text-rose-400 uppercase tracking-wider">Discount karo</div>
-                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500 ml-auto mt-0.5" />
+                    <ArrowRight className="h-3.5 w-3.5 text-slate-400 dark:text-ink-500 ml-auto mt-0.5" />
                   </div>
                 </Link>
               ))
@@ -982,33 +982,33 @@ export default function MobileDashboard() {
           ═══════════════════════════════════════════════════════ */}
       <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/40">
               <Receipt className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Recent Sales</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">Latest receipts</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Recent Sales</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">Latest receipts</p>
             </div>
             <Link to="/sales" className="text-blue-700 dark:text-blue-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               All <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[380px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[380px] overflow-y-auto">
             {data?.recentSales?.length ? (
               data.recentSales.slice(0, 8).map((sale) => {
                 const PayIcon = PAYMENT_ICONS[sale.paymentMethod] || CreditCard;
                 const payColor = PAYMENT_COLORS[sale.paymentMethod] || '#64748b';
                 return (
                   <Link key={sale.id} to={`/sales/${sale.id}/receipt`}
-                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                   >
                     <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0 text-white shadow-md" style={{ backgroundColor: payColor }}>
                       <PayIcon className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white truncate font-mono text-xs">{sale.saleNumber}</div>
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 truncate font-bold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white truncate font-mono text-xs">{sale.saleNumber}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 truncate font-bold">
                         {sale.customer?.name || 'Walk-in'} • {formatDate(sale.soldAt)}
                       </div>
                     </div>
@@ -1030,25 +1030,25 @@ export default function MobileDashboard() {
         </Card>
 
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-lg shadow-amber-500/40">
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Low Stock</h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">{data?.lowStockProducts?.length ?? 0} items need attention</p>
+              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Low Stock</h3>
+              <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">{data?.lowStockProducts?.length ?? 0} items need attention</p>
             </div>
             <Link to="/products?filter=low" className="text-blue-700 dark:text-blue-400 text-xs font-extrabold inline-flex items-center gap-1 hover:underline">
               All <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[380px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[380px] overflow-y-auto">
             {data?.lowStockProducts?.length ? (
               data.lowStockProducts.slice(0, 8).map((p) => {
                 const isOut = p.stock === 0;
                 return (
                   <Link key={p.id} to={`/mobile-products/${p.id}`}
-                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
                   >
                     <div className={[
                       'h-10 w-10 rounded-xl overflow-hidden flex items-center justify-center shrink-0 border',
@@ -1061,8 +1061,8 @@ export default function MobileDashboard() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{formatPKR(p.price)} / {p.unit}</div>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{p.name}</div>
+                      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">{formatPKR(p.price)} / {p.unit}</div>
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`text-lg font-extrabold tabular-nums ${isOut ? 'text-rose-700 dark:text-rose-400' : 'text-amber-700 dark:text-amber-400'}`}>
@@ -1080,8 +1080,8 @@ export default function MobileDashboard() {
                 <div className="h-14 w-14 rounded-2xl bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center mx-auto mb-3 shadow-sm">
                   <Package className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">All stock healthy! 🎉</h4>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-bold">Koi product low nahi</p>
+                <h4 className="font-extrabold text-slate-900 dark:text-ink-white text-sm">All stock healthy! 🎉</h4>
+                <p className="text-xs text-slate-600 dark:text-ink-400 mt-1 font-bold">Koi product low nahi</p>
               </div>
             )}
           </div>
@@ -1104,7 +1104,7 @@ function DashboardTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-slate-800">
+        className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col border-2 border-transparent dark:border-ink-800">
         <div className="px-5 py-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 border-b-2 border-amber-200 dark:border-amber-500/30 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-lg">
@@ -1112,11 +1112,11 @@ function DashboardTeacher({ onClose }: { onClose: () => void }) {
             </div>
             <div>
               <div className="text-[0.6875rem] uppercase tracking-wider text-amber-700 dark:text-amber-300 font-extrabold">Guide</div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white">Dashboard Kaise Parhein?</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Dashboard Kaise Parhein?</h3>
             </div>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
@@ -1135,7 +1135,7 @@ function DashboardTeacher({ onClose }: { onClose: () => void }) {
             tips={['CSV me chaaron raston ka poora hisab aata hai']} />
         </div>
 
-        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-right shrink-0">
+        <div className="px-5 py-3.5 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 text-right shrink-0">
           <Button onClick={onClose} className="bg-gradient-to-r from-amber-500 to-orange-600 font-extrabold shadow-lg shadow-amber-500/30">
             <CheckCircle2 className="h-4 w-4" /> Samajh Gaya
           </Button>
@@ -1147,18 +1147,18 @@ function DashboardTeacher({ onClose }: { onClose: () => void }) {
 
 function GuideStep({ n, title, body, tips }: any) {
   return (
-    <div className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3.5">
+    <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/50 p-3.5">
       <div className="flex items-start gap-3">
         <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-extrabold text-sm shrink-0 shadow-md">
           {n}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-extrabold text-slate-900 dark:text-white">{title}</div>
-          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{body}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white">{title}</div>
+          <div className="text-xs font-semibold text-slate-600 dark:text-ink-300 mt-1 leading-relaxed">{body}</div>
           {tips && (
             <ul className="mt-2 space-y-1">
               {tips.map((t: string, i: number) => (
-                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 flex items-start gap-1.5">
+                <li key={i} className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 flex items-start gap-1.5">
                   <Sparkles className="h-2.5 w-2.5 text-amber-500 shrink-0 mt-0.5" /> {t}
                 </li>
               ))}
@@ -1180,23 +1180,23 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700">
-        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-200 dark:border-ink-700">
+        <div className="px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
               <Keyboard className="h-4 w-4" />
             </div>
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Keyboard Shortcuts</h3>
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Keyboard Shortcuts</h3>
           </div>
-          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-xl hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-2">
           {sc.map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-slate-700 dark:text-slate-300">{desc}</span>
-              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 font-mono text-xs font-extrabold text-slate-700 dark:text-slate-200">
+              <span className="font-semibold text-slate-700 dark:text-ink-300">{desc}</span>
+              <kbd className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 font-mono text-xs font-extrabold text-slate-700 dark:text-ink-200">
                 {key}
               </kbd>
             </div>
@@ -1210,8 +1210,8 @@ function ShortcutsModal({ onClose }: { onClose: () => void }) {
 function Card({ children, noPad = false }: any) {
   return (
     <div className={[
-      'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm',
-      'border-2 border-slate-200 dark:border-slate-800',
+      'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm',
+      'border-2 border-slate-200 dark:border-ink-800',
       'shadow-sm dark:shadow-black/20 overflow-hidden',
       noPad ? '' : 'p-4 sm:p-5',
     ].join(' ')}>
@@ -1235,8 +1235,8 @@ function CardHeader({ icon: Icon, title, subtitle, tone, right }: any) {
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h3>
-          <p className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold">{subtitle}</p>
+          <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-ink-white leading-tight">{title}</h3>
+          <p className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold">{subtitle}</p>
         </div>
       </div>
       {right}
@@ -1248,7 +1248,7 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
       {items.map((it) => (
-        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300">
+        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300">
           <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: it.color }} />
           {it.label}
         </div>
@@ -1317,15 +1317,15 @@ function AlertCard({ to, icon: Icon, title, desc, tone }: any) {
   };
   const t = tones[tone] ?? tones.amber;
   return (
-    <Link to={to} className={`rounded-2xl bg-white dark:bg-slate-900/60 border-2 ${t.border} p-3 flex items-center gap-3 hover:shadow-lg hover:-translate-y-0.5 transition-all group`}>
+    <Link to={to} className={`rounded-2xl bg-white dark:bg-ink-900/60 border-2 ${t.border} p-3 flex items-center gap-3 hover:shadow-lg hover:-translate-y-0.5 transition-all group`}>
       <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-lg ${t.iconBg} shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">{title}</div>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">{title}</div>
         <div className={`text-xs font-bold ${t.text} truncate`}>{desc}</div>
       </div>
-      <ArrowRight className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 group-hover:translate-x-1 transition-transform" />
+      <ArrowRight className="h-4 w-4 text-slate-400 dark:text-ink-500 shrink-0 group-hover:translate-x-1 transition-transform" />
     </Link>
   );
 }
@@ -1342,14 +1342,14 @@ function PnLCell({ label, value, sub, tone, icon: Icon, highlight }: any) {
       'rounded-2xl p-3 border-2',
       highlight
         ? 'bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-500/15 dark:to-cyan-500/15 border-blue-300 dark:border-blue-500/40'
-        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700',
+        : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700',
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={`h-3 w-3 ${tones[tone]}`} />
-        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400">{label}</div>
       </div>
       <div className={`text-base sm:text-xl font-extrabold tabular-nums leading-tight ${tones[tone]}`}>{value}</div>
-      <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -1374,13 +1374,13 @@ function OpsCard({ to, icon: Icon, title, desc, tone, primary }: any) {
       'rounded-2xl border-2 p-3 sm:p-4 group hover:-translate-y-1 transition-all duration-200',
       primary
         ? 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-500/15 dark:to-indigo-500/15 border-blue-300 dark:border-blue-500/40 shadow-lg dark:shadow-blue-500/20'
-        : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/20',
+        : 'bg-white dark:bg-ink-900/60 border-slate-200 dark:border-ink-800 hover:border-blue-300 dark:hover:border-blue-500/50 hover:shadow-lg dark:hover:shadow-blue-500/20',
     ].join(' ')}>
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${tones[tone] ?? tones.blue} text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-200`}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm truncate">{title}</div>
-      <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{desc}</div>
+      <div className="font-extrabold text-slate-900 dark:text-ink-white text-xs sm:text-sm truncate">{title}</div>
+      <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-0.5 truncate">{desc}</div>
     </Link>
   );
 }
@@ -1398,19 +1398,19 @@ function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
   };
   const inner = (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'rounded-2xl bg-white dark:bg-ink-900/60 border-2 p-3 sm:p-4',
       'shadow-sm dark:shadow-black/20 hover:shadow-lg dark:hover:shadow-blue-500/10',
       'transition-all hover:-translate-y-0.5 relative',
-      alert ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      alert ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       {alert && value > 0 && (
         <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rose-500 animate-ping" />
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-slate-400 font-extrabold">{title}</div>
-          <div className="mt-1 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-wider text-slate-600 dark:text-ink-400 font-extrabold">{title}</div>
+          <div className="mt-1 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tones[tone] ?? tones.blue} text-white flex items-center justify-center shadow-md shrink-0`}>
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1429,17 +1429,17 @@ function MiniStat({ label, value, sub, tone }: any) {
     rose:    'text-rose-700 dark:text-rose-400',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
-      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+    <div className="rounded-2xl bg-white dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
+      <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
       <div className={`text-2xl font-extrabold tabular-nums mt-1 ${tones[tone]}`}>{value}</div>
-      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{sub}</div>
     </div>
   );
 }
 
 function EmptyChart({ icon: Icon, message }: any) {
   return (
-    <div className="h-[240px] sm:h-[300px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+    <div className="h-[240px] sm:h-[300px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-ink-500">
       <Icon className="h-10 w-10" />
       <p className="text-sm font-extrabold">{message}</p>
     </div>
@@ -1449,10 +1449,10 @@ function EmptyChart({ icon: Icon, message }: any) {
 function EmptyList({ icon: Icon, message }: any) {
   return (
     <div className="px-6 py-12 text-center">
-      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-        <Icon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mx-auto mb-3">
+        <Icon className="h-6 w-6 text-slate-400 dark:text-ink-500" />
       </div>
-      <p className="font-extrabold text-slate-500 dark:text-slate-400 text-sm">{message}</p>
+      <p className="font-extrabold text-slate-500 dark:text-ink-400 text-sm">{message}</p>
 
       {/* ═══ BANDON KA HISSA ═══ */}
       <CommissionCard tone="violet" />

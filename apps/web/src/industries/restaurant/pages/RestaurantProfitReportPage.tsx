@@ -51,7 +51,7 @@ const SORTS: Array<{ v: SortKey; l: string }> = [
 
 /* Food cost ka darja — dukaan-daar ki zabaan me */
 function grade(pct: number) {
-  if (pct <= 0) return { l: 'Pata nahi', c: 'bg-slate-100 dark:bg-slate-800 text-slate-500', note: 'Recipe ya rate nahi bhara' };
+  if (pct <= 0) return { l: 'Pata nahi', c: 'bg-slate-100 dark:bg-ink-800 text-slate-500', note: 'Recipe ya rate nahi bhara' };
   if (pct <= 30) return { l: 'Behtareen', c: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300', note: 'Achha munafa' };
   if (pct <= 38) return { l: 'Theek', c: 'bg-sky-100 dark:bg-sky-500/20 text-sky-700 dark:text-sky-300', note: 'Aam tor par yehi hota hai' };
   if (pct <= 45) return { l: 'Dhyan dein', c: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300', note: 'Thora zyada hai' };
@@ -230,8 +230,8 @@ export default function RestaurantProfitReportPage() {
               </p>
               <div className="mt-2 space-y-1">
                 {stats.busyButPoor.map((r) => (
-                  <div key={r.recipeId} className="flex items-center justify-between gap-2 rounded-xl bg-white dark:bg-slate-800 px-2.5 py-1.5 flex-wrap">
-                    <span className="text-[0.75rem] font-black text-slate-900 dark:text-white truncate">{r.name}</span>
+                  <div key={r.recipeId} className="flex items-center justify-between gap-2 rounded-xl bg-white dark:bg-ink-800 px-2.5 py-1.5 flex-wrap">
+                    <span className="text-[0.75rem] font-black text-slate-900 dark:text-ink-white truncate">{r.name}</span>
                     <span className="text-[0.6875rem] font-bold text-rose-700 dark:text-rose-400 tabular-nums shrink-0">
                       {r.totalOrdered} dafa biki · food cost {r.foodCostPct.toFixed(0)}% · ek plate par {money(r.profit)}
                     </span>
@@ -245,19 +245,19 @@ export default function RestaurantProfitReportPage() {
 
       {/* ═══ SAB SE ZYADA KAMAI ═══ */}
       {stats.top.length > 0 && stats.top[0].earned > 0 && !hideCost && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
-          <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
+          <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5">
             <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shrink-0">
               <Trophy className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 dark:text-white">Sab se zyada kamai in se hui</h2>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Sab se zyada kamai in se hui</h2>
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Ek plate ka munafa × kitni dafa biki — dukaan inhi par chalti hai
               </p>
             </div>
           </header>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {stats.top.map((r, i) => {
               const max = stats.top[0].earned || 1;
               return (
@@ -265,11 +265,11 @@ export default function RestaurantProfitReportPage() {
                   <div className="flex items-center gap-2.5">
                     <span className={`h-8 w-8 rounded-xl text-white text-xs font-black flex items-center justify-center shrink-0 ${
                       i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                     }`}>{i + 1}</span>
                     <span className="flex-1 min-w-0">
-                      <span className="block text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</span>
-                      <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                      <span className="block text-sm font-black text-slate-900 dark:text-ink-white truncate">{r.name}</span>
+                      <span className="block text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                         {r.totalOrdered} dafa · ek plate par {money(r.profit)}
                       </span>
                     </span>
@@ -277,7 +277,7 @@ export default function RestaurantProfitReportPage() {
                       {money(r.earned)}
                     </span>
                   </div>
-                  <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                     <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-600"
                       style={{ width: `${Math.max((r.earned / max) * 100, 2)}%` }} />
                   </div>
@@ -289,34 +289,34 @@ export default function RestaurantProfitReportPage() {
       )}
 
       {/* ═══ CHAANT ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 flex gap-2 flex-wrap print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 flex gap-2 flex-wrap print:hidden">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Dish ka naam…"
-            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition" />
+            className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition" />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
               <X className="h-4 w-4 text-slate-400" />
             </button>
           )}
         </div>
         <select value={sortKey} onChange={(e) => setSortKey(e.target.value as SortKey)}
-          className="h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition">
+          className="h-12 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-orange-500 transition">
           {SORTS.map((s) => <option key={s.v} value={s.v}>{s.l}</option>)}
         </select>
       </section>
 
       {/* ═══ POORI LIST ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
         {cookQ.isLoading ? (
           <div className="p-4 space-y-2">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <Soup className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-base font-black text-slate-700 dark:text-slate-200">
+            <p className="text-base font-black text-slate-700 dark:text-ink-200">
               {rows.length === 0 ? 'Kisi dish par recipe nahi bani' : 'Kuch nahi mila'}
             </p>
             {rows.length === 0 && (
@@ -334,7 +334,7 @@ export default function RestaurantProfitReportPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-100 dark:border-slate-800">
+              <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-100 dark:border-ink-800">
                 <tr>
                   <Th>Dish</Th>
                   <Th className="text-right">Rate</Th>
@@ -346,15 +346,15 @@ export default function RestaurantProfitReportPage() {
                   <Th className="text-right">Kul kamaya</Th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
                 {filtered.map((r) => (
                   <tr key={r.recipeId} className={`transition ${
-                    r.foodCostPct > 45 ? 'bg-rose-50/40 dark:bg-rose-500/5' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    r.foodCostPct > 45 ? 'bg-rose-50/40 dark:bg-rose-500/5' : 'hover:bg-slate-50 dark:hover:bg-ink-800/40'
                   }`}>
                     <td className="px-3 py-2.5">
                       <Link to={r.productId ? `/restaurant-menu/${r.productId}` : '/restaurant/menu'}
                         className="block min-w-0 group">
-                        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate group-hover:text-orange-600 transition">
+                        <span className="block text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate group-hover:text-orange-600 transition">
                           {r.name}
                         </span>
                         {!r.isAvailable && (
@@ -362,10 +362,10 @@ export default function RestaurantProfitReportPage() {
                         )}
                       </Link>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-white tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-slate-900 dark:text-ink-white tabular-nums">
                       {formatPKR(r.price)}
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 tabular-nums">
                       {money(r.cost)}
                     </td>
                     <td className="px-3 py-2.5 text-right">
@@ -373,7 +373,7 @@ export default function RestaurantProfitReportPage() {
                         r.profit > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                       }`}>{money(r.profit)}</span>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-black text-slate-700 dark:text-slate-200 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-black text-slate-700 dark:text-ink-200 tabular-nums">
                       {r.foodCostPct > 0 ? `${r.foodCostPct.toFixed(0)}%` : '—'}
                     </td>
                     <td className="px-3 py-2.5">
@@ -381,7 +381,7 @@ export default function RestaurantProfitReportPage() {
                         {r.g.l}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <td className="px-3 py-2.5 text-right text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 tabular-nums">
                       {r.totalOrdered || '—'}
                     </td>
                     <td className="px-3 py-2.5 text-right text-[0.8125rem] font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
@@ -396,14 +396,14 @@ export default function RestaurantProfitReportPage() {
       </section>
 
       {withoutRecipe.length > 0 && (
-        <section className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
+        <section className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-start gap-2.5 flex-wrap print:hidden">
           <Soup className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
-          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-slate-700 dark:text-slate-300">
+          <p className="flex-1 min-w-[220px] text-[0.75rem] font-bold text-slate-700 dark:text-ink-300">
             <strong>{withoutRecipe.length} dish</strong> par recipe nahi bani — in ka food cost nikal hi
             nahi sakta. Ho sakta hai inhi me se koi nuqsan par bik rahi ho aur pata hi na chale.
           </p>
           <Link to="/restaurant/recipes"
-            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
+            className="h-9 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-[0.6875rem] font-black inline-flex items-center gap-1.5 shrink-0 transition">
             Recipe banayein
           </Link>
         </section>
@@ -418,7 +418,7 @@ const heroBtn = 'h-11 px-3 rounded-xl bg-white/15 hover:bg-white/25 border borde
 
 function Th({ children, className = '' }: any) {
   return (
-    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap ${className}`}>
+    <th className={`px-3 py-2.5 text-left text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 whitespace-nowrap ${className}`}>
       {children}
     </th>
   );
@@ -426,14 +426,14 @@ function Th({ children, className = '' }: any) {
 
 function Kpi({ icon: Icon, label, value, sub, tone }: any) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</span>
       </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none truncate">
+      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none truncate">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
@@ -445,7 +445,7 @@ function Teacher({ onClose }: any) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -466,17 +466,17 @@ function Teacher({ onClose }: any) {
             { i: Soup, t: 'Recipe ke baghair kuch pata nahi', d: 'Jis dish par recipe nahi, us ka food cost nikal hi nahi sakta. Ho sakta hai wohi nuqsan par bik rahi ho aur mahino pata na chale.' },
             { i: Flame, t: 'Lagat recipe se aati hai', d: 'Har ingredient ka cost price × miqdar. Is liye saamaan ka rate theek bhara hona chahiye, warna poora hisab ghalat chalega.' },
           ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange-600 to-amber-700 text-white flex items-center justify-center shrink-0">
                 <x.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['G', 'Ye safha'], ['R', 'Taaza'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
@@ -487,7 +487,7 @@ function Teacher({ onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-orange-600 to-amber-700">Samajh gaya</Button>
         </footer>
       </div>

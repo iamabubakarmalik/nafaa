@@ -1,13 +1,27 @@
 /**
  * Tailwind configuration.
  *
- * Brand colors, fonts and radius come from CSS variables defined by the
- * design system (src/design-system), so the theme can change at runtime
- * without rebuilding CSS. Do not hard-code brand hex values here.
+ * All colors come from the design system (src/design-system):
+ *  - brand / emerald read the runtime accent scale (CSS variables), so the
+ *    theme changes without rebuilding CSS;
+ *  - every other color switches to its dark value automatically through
+ *    tailwind/palette.cjs, so screens do not need hand-written dark classes;
+ *  - ink-* is a fixed grey for explicit `dark:` classes.
+ * Do not hard-code hex values here.
  */
 
-const STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
-const brandScale = Object.fromEntries(STEPS.map((step) => [step, `rgb(var(--brand-${step}) / <alpha-value>)`]));
+const tw = require('tailwindcss/colors');
+const plugin = require('tailwindcss/plugin');
+const { buildPalettes, brandPalettes } = require('./src/design-system/tailwind/palette.cjs');
+
+/** Semantic aliases: success (green), info (blue), accent (amber). */
+const SEMANTIC = { success: tw.green, info: tw.blue, accent: tw.amber };
+
+const { palettes, darkVars, ink } = buildPalettes(SEMANTIC);
+const brand = brandPalettes();
+
+/** Per-usage palettes: hue and grey families plus brand (emerald is the legacy name for brand). */
+const forUsage = (kind, extra = {}) => ({ ...palettes[kind], brand: { ...brand[kind], ...extra }, emerald: brand[kind] });
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -16,8 +30,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // `text-brand-fg` is the readable text color on top of brand backgrounds.
-        brand: { ...brandScale, fg: 'var(--brand-fg)' },
+        ...SEMANTIC,
+        ink,
+        brand: { ...brand.bg, fg: 'var(--brand-fg)' },
+        emerald: brand.bg,
         // App shell surfaces: page canvas, sidebar, top bar and their dividers.
         shell: {
           canvas: 'rgb(var(--shell-canvas) / <alpha-value>)',
@@ -25,57 +41,19 @@ module.exports = {
           bar: 'rgb(var(--shell-bar) / <alpha-value>)',
           line: 'rgb(var(--shell-line) / <alpha-value>)',
         },
-        // Existing screens use `emerald-*` as the primary color; it follows the brand too.
-        emerald: brandScale,
-        accent: {
-          50:  '#fffbeb',
-          100: '#fef3c7',
-          200: '#fde68a',
-          300: '#fcd34d',
-          400: '#fbbf24',
-          500: '#f59e0b',
-          600: '#d97706',
-          700: '#b45309',
-          800: '#92400e',
-          900: '#78350f',
-        },
-        rose: {
-          50:  '#fff1f2',
-          100: '#ffe4e6',
-          200: '#fecdd3',
-          300: '#fda4af',
-          400: '#fb7185',
-          500: '#f43f5e',
-          600: '#e11d48',
-          700: '#be123c',
-          800: '#9f1239',
-          900: '#881337',
-        },
-        info: {
-          50:  '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e40af',
-          900: '#1e3a8a',
-        },
-        success: {
-          50:  '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-        },
       },
+      backgroundColor: forUsage('bg'),
+      gradientColorStops: forUsage('bg'),
+      textColor: forUsage('text', { fg: 'var(--brand-fg)' }),
+      placeholderColor: forUsage('text'),
+      textDecorationColor: forUsage('text'),
+      fill: forUsage('text'),
+      stroke: forUsage('text'),
+      borderColor: { ...forUsage('border'), DEFAULT: palettes.border.gray[200] },
+      divideColor: { ...forUsage('border'), DEFAULT: palettes.border.gray[200] },
+      ringColor: forUsage('border'),
+      ringOffsetColor: forUsage('border'),
+      outlineColor: forUsage('border'),
       fontFamily: {
         sans: ['var(--font-latin)'],
         display: ['var(--font-latin)'],
@@ -136,5 +114,9 @@ module.exports = {
       letterSpacing: { tightest: '-0.03em' },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [
+    require('tailwindcss-animate'),
+    // Dark values for every color step that changes in dark mode.
+    plugin(({ addBase }) => addBase({ 'html.dark': darkVars })),
+  ],
 };

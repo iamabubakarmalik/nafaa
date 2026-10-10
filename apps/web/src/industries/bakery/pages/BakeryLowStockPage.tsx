@@ -429,12 +429,12 @@ export default function BakeryLowStockPage() {
             className={`h-14 rounded-2xl border-2 font-black text-xs sm:text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-amber-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-amber-400'
             }`}>
             <Icon className="h-4 w-4" />
             <span className="truncate">{label}</span>
             <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg ${
-              tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+              tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
             }`}>{count}</span>
             <kbd className="hidden sm:inline text-[0.625rem] opacity-60">{key}</kbd>
           </button>
@@ -442,16 +442,16 @@ export default function BakeryLowStockPage() {
       </div>
 
       {/* ═══ SEARCH + FILTER ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 print:hidden">
         <div className="flex gap-2 flex-wrap items-center">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Naam, category, supplier… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -463,7 +463,7 @@ export default function BakeryLowStockPage() {
                 className={`h-12 px-3.5 rounded-2xl border-2 text-xs font-black transition ${
                   urgency === v
                     ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-amber-400'
                 }`}>{l}</button>
             ))}
           </div>
@@ -471,7 +471,7 @@ export default function BakeryLowStockPage() {
           {tab !== 'freshness' && (
             <div className="flex gap-1.5">
               <button onClick={copyList}
-                className="h-12 px-3.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-black text-slate-700 dark:text-slate-200 hover:border-amber-400 inline-flex items-center gap-1.5 transition">
+                className="h-12 px-3.5 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs font-black text-slate-700 dark:text-ink-200 hover:border-amber-400 inline-flex items-center gap-1.5 transition">
                 {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 <span className="hidden sm:inline">{copied ? 'Copy hui' : 'List copy'}</span>
               </button>
@@ -521,11 +521,11 @@ function BakeTab({ rows, chart, onStock }: {
   return (
     <div className="space-y-4">
       {chart.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
-          <h3 className="font-black text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
+          <h3 className="font-black text-slate-900 dark:text-ink-white mb-1 flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-amber-600" /> Sab se ziyada kya banana hai
           </h3>
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mb-3">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mb-3">
             Neeche wali patti = abhi counter par kitna hai
           </p>
           <div className="h-64">
@@ -546,17 +546,17 @@ function BakeTab({ rows, chart, onStock }: {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <ClipboardList className="h-4 w-4 text-amber-600" />
-          <h3 className="font-black text-slate-900 dark:text-white">Aaj ki baking list</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Aaj ki baking list</h3>
           <span className="ml-auto text-xs font-black text-slate-500">{rows.length} cheezein</span>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((r) => {
             const out = r.have === 0;
             return (
-              <div key={r.productId} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition avoid-break">
+              <div key={r.productId} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition avoid-break">
                 <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
                   out ? 'bg-rose-100 dark:bg-rose-500/20' : 'bg-amber-100 dark:bg-amber-500/20'
                 }`}>
@@ -566,14 +566,14 @@ function BakeTab({ rows, chart, onStock }: {
 
                 <div className="min-w-0 flex-1">
                   <Link to={`/products/${r.productId}`}
-                    className="block truncate font-extrabold text-sm text-slate-900 dark:text-white hover:text-amber-600">
+                    className="block truncate font-extrabold text-sm text-slate-900 dark:text-ink-white hover:text-amber-600">
                     {r.productName}
                   </Link>
                   <div className="flex items-center gap-2 flex-wrap mt-0.5">
                     {r.category && (
                       <span className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">{r.category}</span>
                     )}
-                    <span className={`text-[0.6875rem] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <span className={`text-[0.6875rem] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-ink-400'}`}>
                       {out ? 'Bilkul khatam' : `Abhi ${fmtQty(r.have)} ${r.unit}`}
                     </span>
                   </div>
@@ -621,8 +621,8 @@ function IngredientsTab({ rows, chart, totalCost }: {
       </div>
 
       {chart.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
-          <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
+          <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
             <BarChart3 className="h-4 w-4 text-violet-600" /> Kis cheez ki sab se ziyada kami
           </h3>
           <div className="h-64">
@@ -643,17 +643,17 @@ function IngredientsTab({ rows, chart, totalCost }: {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Wheat className="h-4 w-4 text-violet-600" />
-          <h3 className="font-black text-slate-900 dark:text-white">Mangwane ki list</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Mangwane ki list</h3>
           <span className="ml-auto text-xs font-black text-slate-500">{rows.length} cheezein</span>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((i: Ingredient & { have: number; level: number; short: number }) => {
             const out = i.have === 0;
             return (
-              <div key={i.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition avoid-break">
+              <div key={i.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition avoid-break">
                 <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
                   out ? 'bg-rose-100 dark:bg-rose-500/20' : 'bg-violet-100 dark:bg-violet-500/20'
                 }`}>
@@ -664,7 +664,7 @@ function IngredientsTab({ rows, chart, totalCost }: {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="truncate font-extrabold text-sm text-slate-900 dark:text-white">{i.name}</span>
+                    <span className="truncate font-extrabold text-sm text-slate-900 dark:text-ink-white">{i.name}</span>
                     {i.isCritical && (
                       <span className="text-[0.625rem] font-black uppercase px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300">
                         Zaroori
@@ -672,7 +672,7 @@ function IngredientsTab({ rows, chart, totalCost }: {
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap mt-0.5">
-                    <span className={`text-[0.6875rem] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400'}`}>
+                    <span className={`text-[0.6875rem] font-black ${out ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-ink-400'}`}>
                       {out ? 'Bilkul khatam' : `Abhi ${fmtQty(i.have)} ${i.unit}`}
                     </span>
                     {i.supplierName && (
@@ -717,8 +717,8 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
   return (
     <div className="space-y-4">
       {pie.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
-          <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
+          <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
             <Timer className="h-4 w-4 text-emerald-600" /> Kitna waqt bacha hai
           </h3>
           <div className="h-64">
@@ -735,21 +735,21 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
         </section>
       )}
 
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
           <Flame className="h-4 w-4 text-rose-600" />
-          <h3 className="font-black text-slate-900 dark:text-white">Jaldi bech dein</h3>
+          <h3 className="font-black text-slate-900 dark:text-ink-white">Jaldi bech dein</h3>
           <Link to="/bakery/freshness"
             className="ml-auto text-xs font-black text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 print:hidden">
             Taazgi ka safha <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((f: FreshnessLog & { left: number }) => {
             const gone = f.left <= 0;
             const soon = f.left > 0 && f.left <= 2;
             return (
-              <div key={f.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition avoid-break">
+              <div key={f.id} className="p-3 sm:p-4 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition avoid-break">
                 <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${
                   gone ? 'bg-rose-100 dark:bg-rose-500/20'
                     : soon ? 'bg-orange-100 dark:bg-orange-500/20'
@@ -763,7 +763,7 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-extrabold text-sm text-slate-900 dark:text-white">{f.productName}</div>
+                  <div className="truncate font-extrabold text-sm text-slate-900 dark:text-ink-white">{f.productName}</div>
                   <div className="flex items-center gap-2 flex-wrap mt-0.5">
                     {f.batchNumber && (
                       <span className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Batch {f.batchNumber}</span>
@@ -771,7 +771,7 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
                     <span className={`text-[0.6875rem] font-black ${
                       gone ? 'text-rose-600 dark:text-rose-400'
                         : soon ? 'text-orange-600 dark:text-orange-400'
-                        : 'text-slate-500 dark:text-slate-400'
+                        : 'text-slate-500 dark:text-ink-400'
                     }`}>
                       {hoursPhrase(f.left)}
                     </span>
@@ -780,7 +780,7 @@ function FreshnessTab({ rows, pie }: { rows: any[]; pie: any[] }) {
 
                 <div className="text-right shrink-0">
                   <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-400">Bachi hui</div>
-                  <div className="text-lg font-black text-slate-900 dark:text-white tabular-nums">{fmtQty(Number(f.currentQty))}</div>
+                  <div className="text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">{fmtQty(Number(f.currentQty))}</div>
                 </div>
               </div>
             );
@@ -809,16 +809,16 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-amber-500 dark:border-amber-500/60 ring-2 ring-amber-200 dark:ring-amber-500/20 bg-amber-50 dark:bg-amber-500/10'
-          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800',
+          : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800',
       ].join(' ')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-slate-400 font-black">{label}</div>
-          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-tight break-words">
+          <div className="text-[0.6875rem] uppercase tracking-[0.15em] text-slate-500 dark:text-ink-400 font-black">{label}</div>
+          <div className="mt-2 text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-tight break-words">
             {value}
           </div>
           {sub && (
-            <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1.5 leading-snug line-clamp-2">{sub}</div>
+            <div className="text-[0.6875rem] sm:text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-1.5 leading-snug line-clamp-2">{sub}</div>
           )}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
@@ -831,12 +831,12 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
 
 function Empty({ icon: Icon, title, sub }: any) {
   return (
-    <div className="rounded-3xl bg-white dark:bg-slate-900 border-4 border-dashed border-slate-200 dark:border-slate-700 p-10 sm:p-14 text-center">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-4 border-dashed border-slate-200 dark:border-ink-700 p-10 sm:p-14 text-center">
       <div className="h-16 w-16 rounded-3xl bg-emerald-100 dark:bg-emerald-500/20 mx-auto flex items-center justify-center">
         <Icon className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
       </div>
-      <p className="mt-4 font-black text-slate-800 dark:text-slate-100 text-lg sm:text-xl">{title}</p>
-      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold mt-1.5 max-w-md mx-auto">{sub}</p>
+      <p className="mt-4 font-black text-slate-800 dark:text-ink-100 text-lg sm:text-xl">{title}</p>
+      <p className="text-xs sm:text-sm text-slate-500 dark:text-ink-400 font-bold mt-1.5 max-w-md mx-auto">{sub}</p>
     </div>
   );
 }
@@ -844,18 +844,18 @@ function Empty({ icon: Icon, title, sub }: any) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-500/15 dark:to-orange-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye safha kya karta hai
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
-          <p className="font-bold text-slate-700 dark:text-slate-200">
+          <p className="font-bold text-slate-700 dark:text-ink-200">
             Bakery ka masla kiryana jaisa nahi hota. Is liye ye safha teen hisson me hai —
             roz subah teenon dekh lein, poora din aasan ho jata hai.
           </p>
@@ -878,13 +878,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             <strong>List copy</strong> ya <strong>WhatsApp</strong> — poori list ek click me
             bawarchi ya supplier ko chali jayegi.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">1 2 3</kbd> tab badlo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">G</kbd> ye madad</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">1 2 3</kbd> tab badlo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">G</kbd> ye madad</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -901,8 +901,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-amber-600 dark:text-amber-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

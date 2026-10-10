@@ -82,9 +82,9 @@ export default function SchoolListsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="grid sm:grid-cols-2 gap-2">
-          <select value={schoolFilter} onChange={(e) => setSchoolFilter(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
+          <select value={schoolFilter} onChange={(e) => setSchoolFilter(e.target.value)} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500">
             <option value="">All Schools</option>
             {schools.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
@@ -92,7 +92,7 @@ export default function SchoolListsPage() {
             {['all', 'DRAFT', 'ACTIVE', 'CLOSED', 'ARCHIVED'].map((s) => (
               <button key={s} onClick={() => setStatusFilter(s)} className={
                 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-                (statusFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+                (statusFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
               }>{s === 'all' ? 'All' : s}</button>
             ))}
           </div>
@@ -105,17 +105,17 @@ export default function SchoolListsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : lists.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Newspaper className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No school lists yet</p>
         </div>
       ) : (
         <section className="grid gap-3">
           {lists.map((list) => (
-            <div key={list.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+            <div key={list.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow shrink-0">
@@ -123,7 +123,7 @@ export default function SchoolListsPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-extrabold text-slate-900 dark:text-white">{list.title}</span>
+                      <span className="font-extrabold text-slate-900 dark:text-ink-white">{list.title}</span>
                       <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + STATUS_COLORS[list.status]}>
                         {list.status}
                       </span>
@@ -143,10 +143,10 @@ export default function SchoolListsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
                 <div className="text-center">
                   <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Items</div>
-                  <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{list.totalItems}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{list.totalItems}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-[0.625rem] uppercase font-extrabold text-cyan-700">Orders</div>
@@ -162,7 +162,7 @@ export default function SchoolListsPage() {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800">
+              <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-100 dark:border-ink-800">
                 <button onClick={() => { setEditing(list); setShowForm(true); }} className="flex-1 h-9 rounded-lg bg-cyan-100 hover:bg-cyan-200 text-cyan-700 text-xs font-extrabold flex items-center justify-center gap-1">
                   Edit List
                 </button>
@@ -260,27 +260,27 @@ function SchoolListForm({ editing, schools, onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-cyan-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-cyan-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-cyan-50 dark:bg-cyan-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">{editing ? 'Edit School List' : 'New School List'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
       </div>
       <div className="p-5 space-y-3 max-h-[85vh] overflow-y-auto">
-        <select value={form.schoolId} onChange={(e) => setForm({ ...form, schoolId: e.target.value })} disabled={!!editing} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500 disabled:opacity-70">
+        <select value={form.schoolId} onChange={(e) => setForm({ ...form, schoolId: e.target.value })} disabled={!!editing} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500 disabled:opacity-70">
           <option value="">Select School *</option>
           {schools.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
         <div className="grid sm:grid-cols-4 gap-3">
-          <input value={form.session} onChange={(e) => setForm({ ...form, session: e.target.value })} placeholder="Session *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })} placeholder="Grade *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} placeholder="Section" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-          <input value={form.medium} onChange={(e) => setForm({ ...form, medium: e.target.value })} placeholder="Medium" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.session} onChange={(e) => setForm({ ...form, session: e.target.value })} placeholder="Session *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })} placeholder="Grade *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value })} placeholder="Section" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+          <input value={form.medium} onChange={(e) => setForm({ ...form, medium: e.target.value })} placeholder="Medium" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
         </div>
-        <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Title" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
+        <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Title" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-cyan-500 resize-none" />
 
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 overflow-hidden">
-          <div className="px-4 py-2 bg-slate-50 dark:bg-neutral-800/50 flex items-center justify-between">
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 overflow-hidden">
+          <div className="px-4 py-2 bg-slate-50 dark:bg-ink-800/50 flex items-center justify-between">
             <div className="text-sm font-extrabold">📚 Items ({items.length})</div>
             <div className="flex gap-1">
               <Button size="sm" onClick={() => setShowProductPicker(!showProductPicker)}>

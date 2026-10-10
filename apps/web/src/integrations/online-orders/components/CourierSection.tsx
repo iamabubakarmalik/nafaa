@@ -62,14 +62,14 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
     const st = STATE_LABEL[(o.courierStatus ?? 'BOOKED') as CourierState] ?? STATE_LABEL.UNKNOWN;
     const history = o.courierTrail?.history ?? [];
     return (
-      <section className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+      <section className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
         <div className="flex items-start gap-3">
           <Truck className="mt-0.5 h-5 w-5 text-slate-400" />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-black text-slate-900 dark:text-white">{o.courierLabel ?? 'Courier'}</span>
+              <span className="text-sm font-black text-slate-900 dark:text-ink-white">{o.courierLabel ?? 'Courier'}</span>
               <button
-                className="inline-flex items-center gap-1 font-mono text-[0.8125rem] font-bold text-slate-700 hover:underline dark:text-slate-200"
+                className="inline-flex items-center gap-1 font-mono text-[0.8125rem] font-bold text-slate-700 hover:underline dark:text-ink-200"
                 onClick={() => navigator.clipboard?.writeText(o.trackingNumber!).then(() => toast.success('CN copy ho gaya'))}
               >
                 {o.trackingNumber} <Copy className="h-3 w-3" />
@@ -86,9 +86,9 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
         {history.length > 1 && (
           <details className="mt-3 text-xs">
             <summary className="cursor-pointer font-bold text-slate-500">Courier ka safar ({history.length})</summary>
-            <ol className="mt-2 space-y-1 border-l border-slate-200 pl-3 dark:border-neutral-700">
+            <ol className="mt-2 space-y-1 border-l border-slate-200 pl-3 dark:border-ink-700">
               {[...history].reverse().map((h, i) => (
-                <li key={i} className="text-slate-600 dark:text-slate-300">
+                <li key={i} className="text-slate-600 dark:text-ink-300">
                   {h.label}{h.at ? <span className="text-slate-400"> · {h.at}</span> : null}
                 </li>
               ))}
@@ -129,10 +129,10 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
   if (!connected.length) {
     return (
-      <section className="flex items-center gap-3 rounded-2xl border border-dashed border-slate-300 p-4 dark:border-neutral-700">
+      <section className="flex items-center gap-3 rounded-2xl border border-dashed border-slate-300 p-4 dark:border-ink-700">
         <Zap className="h-5 w-5 text-slate-400" />
         <div className="flex-1 text-xs text-slate-500">
-          <span className="font-bold text-slate-700 dark:text-slate-200">PostEx ya Leopards jorein</span> — phir yahin se ek click me booking, CN aur label.
+          <span className="font-bold text-slate-700 dark:text-ink-200">PostEx ya Leopards jorein</span> — phir yahin se ek click me booking, CN aur label.
         </div>
         <Link to="/online-store/couriers" className="text-xs font-bold text-emerald-700 hover:underline dark:text-emerald-400">Jorein →</Link>
       </section>
@@ -141,10 +141,10 @@ export function CourierSection({ order: o, onChanged }: { order: OnlineOrderDeta
 
   return (
     <>
-      <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+      <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
         <Truck className="h-5 w-5 text-slate-400" />
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-black text-slate-900 dark:text-white">Courier par book karein</div>
+          <div className="text-sm font-black text-slate-900 dark:text-ink-white">Courier par book karein</div>
           <div className="text-xs text-slate-500">CN aur label khud banega · COD {o.paymentStatus === 'PAID' ? 'nahi (paid)' : rs(o.total)}</div>
         </div>
         <Button size="sm" variant="primary" onClick={() => setBookOpen(true)} leftIcon={<Zap className="h-3.5 w-3.5" />}>
@@ -252,7 +252,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
                 key={c.code}
                 onClick={() => setCourier(c.code)}
                 className={cn('rounded-lg border px-3 py-1.5 text-sm font-bold',
-                  c.code === courier ? 'border-slate-900 bg-slate-900 text-white dark:border-white dark:bg-white dark:text-slate-900' : 'border-slate-200 text-slate-700 dark:border-neutral-700 dark:text-slate-200')}
+                  c.code === courier ? 'border-slate-900 bg-slate-900 text-white dark:border-ink-white dark:bg-ink-white dark:text-ink-900' : 'border-slate-200 text-slate-700 dark:border-ink-700 dark:text-ink-200')}
               >
                 {c.name}
               </button>
@@ -261,7 +261,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
         )}
 
         <label className="block">
-          <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+          <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">
             Shehar {o.customerCity ? <span className="font-normal text-slate-400">(customer ne likha: {o.customerCity})</span> : null}
           </span>
           {optsLoading ? (
@@ -282,15 +282,15 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
 
         <div className="grid grid-cols-3 gap-2">
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Wazan (kg)</span>
+            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">Wazan (kg)</span>
             <input type="number" min="0.01" step="0.1" value={weight} onChange={(e) => setWeight(e.target.value)} className={inputCls} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Pieces</span>
+            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">Pieces</span>
             <input type="number" min="1" step="1" value={pieces} onChange={(e) => setPieces(e.target.value)} className={inputCls} />
           </label>
           <label className="block">
-            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">COD (Rs)</span>
+            <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">COD (Rs)</span>
             <input type="number" min="0" step="1" value={cod} onChange={(e) => setCod(e.target.value)} className={inputCls} />
           </label>
         </div>
@@ -299,7 +299,7 @@ function BookModal({ order: o, couriers, onClose, onBooked }: {
         )}
 
         <label className="block">
-          <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Courier ke liye note (optional)</span>
+          <span className="mb-1 block text-xs font-bold text-slate-600 dark:text-ink-300">Courier ke liye note (optional)</span>
           <input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Fragile, call karke aayein…" className={inputCls} maxLength={200} />
         </label>
       </div>

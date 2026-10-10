@@ -87,7 +87,7 @@ export function QuickStockModal({ product, onClose }: Props) {
     >
       {/* ✅ FIX: max-h-[92vh] + flex-col + body scroll — ab kabhi cut nahi hoga */}
       <div
-        className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+        className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Head — shrink-0, hamesha dikhega */}
@@ -139,7 +139,7 @@ export function QuickStockModal({ product, onClose }: Props) {
           {/* Input */}
           {mode !== 'set' ? (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 {mode === 'add' ? `Kitna maal aaya? (${unit})` : `Kitna maal kam hua? (${unit})`}
               </label>
               <div className="flex items-center gap-2">
@@ -149,7 +149,7 @@ export function QuickStockModal({ product, onClose }: Props) {
                     const nv = Math.max(0, v - 1);
                     mode === 'add' ? setAddQty(nv) : setRemoveQty(nv);
                   }}
-                  className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0 transition"
+                  className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 flex items-center justify-center shrink-0 transition"
                 >
                   <Minus className="h-5 w-5" />
                 </button>
@@ -197,8 +197,8 @@ export function QuickStockModal({ product, onClose }: Props) {
                     className={[
                       'px-3 py-1.5 rounded-xl border-2 text-xs font-extrabold transition',
                       mode === 'add'
-                        ? 'bg-white dark:bg-slate-800 border-emerald-200 dark:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
-                        : 'bg-white dark:bg-slate-800 border-rose-200 dark:border-rose-500/40 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-rose-800 dark:text-rose-300',
+                        ? 'bg-white dark:bg-ink-800 border-emerald-200 dark:border-emerald-500/40 hover:bg-emerald-50 dark:hover:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300'
+                        : 'bg-white dark:bg-ink-800 border-rose-200 dark:border-rose-500/40 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-rose-800 dark:text-rose-300',
                     ].join(' ')}
                   >
                     +{q}
@@ -206,7 +206,7 @@ export function QuickStockModal({ product, onClose }: Props) {
                 ))}
                 <button
                   onClick={() => mode === 'add' ? setAddQty('') : setRemoveQty('')}
-                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-extrabold transition"
+                  className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300 text-xs font-extrabold transition"
                 >
                   Clear
                 </button>
@@ -214,7 +214,7 @@ export function QuickStockModal({ product, onClose }: Props) {
             </div>
           ) : (
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 Naya total stock ({unit})
               </label>
               <input
@@ -232,14 +232,14 @@ export function QuickStockModal({ product, onClose }: Props) {
           )}
 
           {/* Preview */}
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 flex items-center justify-between gap-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Naya Stock</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Naya Stock</div>
               <div className={[
                 'text-2xl font-extrabold tabular-nums',
-                finalStock < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white',
+                finalStock < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-ink-white',
               ].join(' ')}>
-                {finalStock} <span className="text-sm font-bold text-slate-500 dark:text-slate-400">{unit}</span>
+                {finalStock} <span className="text-sm font-bold text-slate-500 dark:text-ink-400">{unit}</span>
               </div>
             </div>
             {diff !== 0 && (
@@ -253,7 +253,7 @@ export function QuickStockModal({ product, onClose }: Props) {
               </div>
             )}
             <div className="text-right">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 tracking-wider">Stock Value</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 tracking-wider">Stock Value</div>
               <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
                 {formatPKRFull(Math.max(finalStock, 0) * Number(product?.price || 0))}
               </div>
@@ -269,7 +269,7 @@ export function QuickStockModal({ product, onClose }: Props) {
         </div>
 
         {/* Footer — shrink-0, hamesha dikhega */}
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
           <Button variant="secondary" onClick={onClose} className="flex-1">Cancel</Button>
           <Button
             onClick={() => mutation.mutate()}
@@ -295,7 +295,7 @@ function ModeBtn({ active, onClick, activeCls, title, sub }: {
         'py-3 rounded-2xl border-2 font-extrabold text-xs sm:text-sm transition',
         active
           ? activeCls
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600',
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-slate-300 dark:hover:border-ink-600',
       ].join(' ')}
     >
       {title}

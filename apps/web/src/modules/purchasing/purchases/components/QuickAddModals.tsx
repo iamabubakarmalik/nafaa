@@ -27,16 +27,16 @@ import { useQuery } from '@tanstack/react-query';
 
 const inp = (extra = '', bad = false) =>
   [
-    'w-full rounded-xl border-2 px-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-white',
+    'w-full rounded-xl border-2 px-3 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white',
     'placeholder:text-slate-400 focus:outline-none focus:ring-2 transition',
     bad ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-200'
-        : 'border-slate-200 dark:border-slate-700 focus:border-teal-500 focus:ring-teal-200 dark:focus:ring-teal-500/30',
+        : 'border-slate-200 dark:border-ink-700 focus:border-teal-500 focus:ring-teal-200 dark:focus:ring-teal-500/30',
     extra,
   ].join(' ');
 
 function Lbl({ children, hint, req }: { children: React.ReactNode; hint?: string; req?: boolean }) {
   return (
-    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">
       {children}{req && <span className="text-rose-500 ml-0.5">*</span>}
       {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
     </label>
@@ -50,7 +50,7 @@ function Shell({ title, subtitle, badge, icon, tone, onClose, children, footer }
   };
   return (
     <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-lg bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
+      <div className="w-full sm:max-w-lg bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}>
         <div className={`shrink-0 relative bg-gradient-to-br ${tones[tone] ?? tones.teal} text-white px-5 py-4 overflow-hidden`}>
           <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
@@ -69,7 +69,7 @@ function Shell({ title, subtitle, badge, icon, tone, onClose, children, footer }
         </div>
         <div className="flex-1 overflow-y-auto p-5">{children}</div>
         {footer && (
-          <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4">{footer}</div>
+          <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4">{footer}</div>
         )}
       </div>
     </div>
@@ -289,7 +289,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
               <input className={inp('h-11 font-bold font-mono')} placeholder="DAL-1234"
                 value={sku} onChange={(e) => setSku(e.target.value)} />
               <button type="button" onClick={autoSku} title="Khud bana dein"
-                className="h-11 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-600 dark:text-slate-300 shrink-0 transition">
+                className="h-11 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-blue-100 dark:hover:bg-blue-500/20 text-slate-600 dark:text-ink-300 shrink-0 transition">
                 <Sparkles className="h-4 w-4" />
               </button>
             </div>
@@ -336,7 +336,7 @@ export function QuickProductModal({ initialName, initialBarcode, wizardPath, onC
           <div className="flex gap-1.5 flex-wrap">
             {[10, 15, 20, 25, 30].map((p) => (
               <button key={p} type="button" onClick={() => markup(p)}
-                className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-blue-400 transition">
+                className="px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold bg-slate-100 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-blue-400 transition">
                 +{p}%
               </button>
             ))}

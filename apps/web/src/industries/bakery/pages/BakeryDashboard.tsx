@@ -421,19 +421,19 @@ export default function BakeryDashboardV2() {
 
       {/* ═══ AAJ KA KAAM ═══ */}
       {todo.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5">
             <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white flex items-center justify-center shrink-0">
               <Target className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">Aaj ka kaam</h2>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-sm sm:text-base font-black text-slate-900 dark:text-ink-white">Aaj ka kaam</h2>
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Oopar wala sab se zaroori — neeche tak aate aate halka hota jata hai
               </p>
             </div>
           </header>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {todo.map((t, i) => (
               <TodoRow key={i} {...t} />
             ))}
@@ -447,11 +447,11 @@ export default function BakeryDashboardV2() {
           <CardHeader icon={TrendingUp} title="Bikri ka rujhan" tone="pink"
             subtitle={range === '7d' ? 'Pichhle 7 din' : 'Pichhle 30 din'}
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1">
                 {(['7d', '30d'] as const).map((r) => (
                   <button key={r} onClick={() => setRange(r)}
                     className={`px-3 py-1.5 rounded-lg text-[0.6875rem] font-black transition ${
-                      range === r ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300'
+                      range === r ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-300'
                     }`}>{r === '7d' ? '7 din' : '30 din'}</button>
                 ))}
               </div>
@@ -489,11 +489,11 @@ export default function BakeryDashboardV2() {
           <CardHeader icon={Clock} title="Kis waqt rush hota hai" tone="amber"
             subtitle={peakHour != null ? `Sab se masroof ${hourLabel(peakHour)}` : 'Batch isi hisab se lagayein'}
             right={
-              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+              <div className="inline-flex rounded-xl bg-slate-100 dark:bg-ink-800 p-1">
                 {([[1, 'Aaj'], [7, 'Hafta']] as const).map(([d, l]) => (
                   <button key={d} onClick={() => setHourDays(d as 1 | 7)}
                     className={`px-2.5 py-1.5 rounded-lg text-[0.6875rem] font-black transition ${
-                      hourDays === d ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300'
+                      hourDays === d ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-600 dark:text-ink-300'
                     }`}>{l}</button>
                 ))}
               </div>
@@ -517,7 +517,7 @@ export default function BakeryDashboardV2() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 text-center">
+              <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 text-center">
                 {hourDays === 1 ? 'Aaj ka hisab' : 'Hafte ka rozana ausat'} · gehra rang = sab se masroof ghanta
                 {peakHour != null && ' — us se pehle wala batch tayyar hona chahiye'}
               </p>
@@ -562,7 +562,7 @@ export default function BakeryDashboardV2() {
                 <Timer className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-black text-slate-900 dark:text-white text-sm">
+                <div className="font-black text-slate-900 dark:text-ink-white text-sm">
                   {formatPKR(fresh.value)} ka maal 24 ghante me kharab ho jayega
                 </div>
                 <div className="text-xs font-bold text-rose-700 dark:text-rose-300">
@@ -577,15 +577,15 @@ export default function BakeryDashboardV2() {
           )}
 
           {money.inventory.deadStockValue > 0 && (
-            <div className="mt-3 rounded-2xl bg-gradient-to-r from-slate-50 to-violet-50 dark:from-slate-800/60 dark:to-violet-500/15 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3 flex-wrap">
+            <div className="mt-3 rounded-2xl bg-gradient-to-r from-slate-50 to-violet-50 dark:from-ink-800/60 dark:to-violet-500/15 border-2 border-slate-200 dark:border-ink-700 px-4 py-3 flex items-center gap-3 flex-wrap">
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-slate-500 to-violet-600 text-white flex items-center justify-center shadow-md shrink-0">
                 <Hourglass className="h-5 w-5" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-black text-slate-900 dark:text-white text-sm">
+                <div className="font-black text-slate-900 dark:text-ink-white text-sm">
                   {formatPKR(money.inventory.deadStockValue)} ka maal atka hua hai
                 </div>
-                <div className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                <div className="text-xs font-bold text-slate-600 dark:text-ink-300">
                   {money.inventory.deadStockCount} cheezein 60 din se nahi bikin — deal bana kar nikalein
                 </div>
               </div>
@@ -610,13 +610,13 @@ export default function BakeryDashboardV2() {
           </Card>
 
           <Card noPad>
-            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
               <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shrink-0">
                 <ShoppingBag className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Maal ki kharidari</h3>
-                <p className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-ink-white">Maal ki kharidari</h3>
+                <p className="text-xs font-bold text-slate-600 dark:text-ink-400">
                   Aaj {formatPKR(money.purchases.todayTotal)} • mahine {formatPKR(money.purchases.monthTotal)}
                 </p>
               </div>
@@ -624,23 +624,23 @@ export default function BakeryDashboardV2() {
                 Sab <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[340px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[340px] overflow-y-auto">
               {money.purchases.recent?.length ? money.purchases.recent.map((pu: any) => {
                 const due = Number(pu.total) - Number(pu.paidAmount);
                 return (
                   <Link key={pu.id} to={`/purchases/${pu.id}`}
-                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                    className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                     <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center shrink-0">
                       <Package className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="font-black text-slate-900 dark:text-white truncate text-sm">{pu.supplier?.name || 'Supplier'}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 truncate font-mono">
+                      <div className="font-black text-slate-900 dark:text-ink-white truncate text-sm">{pu.supplier?.name || 'Supplier'}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 truncate font-mono">
                         {pu.purchaseNumber} • {formatDate(pu.purchasedAt)}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-black text-slate-900 dark:text-white text-sm tabular-nums">{formatPKR(pu.total)}</div>
+                      <div className="font-black text-slate-900 dark:text-ink-white text-sm tabular-nums">{formatPKR(pu.total)}</div>
                       {due > 0 && <div className="text-[0.6875rem] font-black text-amber-700 dark:text-amber-400">Baqi: {formatPKR(due)}</div>}
                     </div>
                   </Link>
@@ -674,22 +674,22 @@ export default function BakeryDashboardV2() {
               <PnLCell label="= Haath me bacha" value={formatPKR(pnl.net)} sub={`Margin ${pnl.netPct.toFixed(1)}%`} tone="pink" icon={Target} highlight />
             </div>
 
-            <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center gap-3 flex-wrap">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-slate-400 shrink-0">Aaj</div>
+            <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 px-4 py-3 flex items-center gap-3 flex-wrap">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-ink-400 shrink-0">Aaj</div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Bikri</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-ink-400">Bikri</span>
                 <span className="text-sm font-black text-emerald-700 dark:text-emerald-400 tabular-nums">{formatPKR(s.salesToday ?? 0)}</span>
               </div>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-slate-300 dark:text-ink-600">•</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Kharcha</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-ink-400">Kharcha</span>
                 <span className="text-sm font-black text-amber-700 dark:text-amber-400 tabular-nums">
                   {formatPKR(money?.expenses?.today ?? s.expensesToday ?? 0)}
                 </span>
               </div>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-slate-300 dark:text-ink-600">•</span>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Bacha</span>
+                <span className="text-xs font-bold text-slate-600 dark:text-ink-400">Bacha</span>
                 <span className={`text-sm font-black tabular-nums ${
                   (money?.profit?.todayNet ?? s.netProfitToday ?? 0) >= 0
                     ? 'text-pink-700 dark:text-pink-400' : 'text-rose-700 dark:text-rose-400'
@@ -724,9 +724,9 @@ export default function BakeryDashboardV2() {
                         <div className="h-7 w-7 rounded-lg flex items-center justify-center text-white shrink-0 shadow-sm" style={{ backgroundColor: p.color }}>
                           <Icon className="h-3.5 w-3.5" />
                         </div>
-                        <span className="font-black text-slate-700 dark:text-slate-200 min-w-0 flex-1 truncate">{p.name}</span>
-                        <span className="font-bold text-slate-500 dark:text-slate-400 tabular-nums">{pct.toFixed(0)}%</span>
-                        <span className="font-black text-slate-900 dark:text-white tabular-nums shrink-0">{formatPKR(p.value)}</span>
+                        <span className="font-black text-slate-700 dark:text-ink-200 min-w-0 flex-1 truncate">{p.name}</span>
+                        <span className="font-bold text-slate-500 dark:text-ink-400 tabular-nums">{pct.toFixed(0)}%</span>
+                        <span className="font-black text-slate-900 dark:text-ink-white tabular-nums shrink-0">{formatPKR(p.value)}</span>
                       </div>
                     );
                   })}
@@ -771,31 +771,31 @@ export default function BakeryDashboardV2() {
       {/* ═══ KYA CHAL RAHA, KYA ATKA ═══ */}
       <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shrink-0">
               <Crown className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Sab se zyada kya bika</h3>
-              <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Is mahine — isi ka batch bara rakhein</p>
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-ink-white">Sab se zyada kya bika</h3>
+              <p className="text-xs font-bold text-slate-600 dark:text-ink-400">Is mahine — isi ka batch bara rakhein</p>
             </div>
             <Link to="/reports" className="text-pink-700 dark:text-pink-400 text-xs font-black inline-flex items-center gap-1 hover:underline shrink-0">
               Sab <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[360px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[360px] overflow-y-auto">
             {(o?.topProducts ?? []).length > 0 ? (o?.topProducts ?? []).slice(0, 8).map((p: any, i: number) => (
               <Link key={p.productId ?? i} to={`/bakery-products/${p.productId}`}
-                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                 <span className={`h-8 w-8 rounded-xl text-white text-xs font-black flex items-center justify-center shrink-0 ${
                   i === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-600'
                     : i === 1 ? 'bg-gradient-to-br from-slate-400 to-slate-600'
                       : i === 2 ? 'bg-gradient-to-br from-orange-400 to-amber-700'
-                        : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        : 'bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
                 }`}>{i + 1}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-black text-slate-900 dark:text-white truncate text-sm">{p.product?.name ?? 'Cheez'}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">
+                  <div className="font-black text-slate-900 dark:text-ink-white truncate text-sm">{p.product?.name ?? 'Cheez'}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400">
                     {fmtQty(Number(p.quantitySold || 0))} {p.product?.unit ?? ''} · {p.orderCount ?? 0} bill
                   </div>
                 </div>
@@ -808,31 +808,31 @@ export default function BakeryDashboardV2() {
         </Card>
 
         <Card noPad>
-          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
             <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-slate-500 to-violet-700 text-white flex items-center justify-center shadow-lg shrink-0">
               <Hourglass className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">Kaunsa maal atka hua hai</h3>
-              <p className="text-xs font-bold text-slate-600 dark:text-slate-400">30 din se nahi bika — ya deal banayein ya banana band</p>
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-ink-white">Kaunsa maal atka hua hai</h3>
+              <p className="text-xs font-bold text-slate-600 dark:text-ink-400">30 din se nahi bika — ya deal banayein ya banana band</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[360px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[360px] overflow-y-auto">
             {slowMovers.length > 0 ? slowMovers.slice(0, 8).map((p: any) => (
               <Link key={p.id} to={`/bakery-products/${p.id}`}
-                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
-                <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0">
+                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
+                <div className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-500 flex items-center justify-center shrink-0">
                   <Package className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-black text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">
+                  <div className="font-black text-slate-900 dark:text-ink-white truncate text-sm">{p.name}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400">
                     Stock {fmtQty(Number(p.stock || 0))} {p.unit ?? ''}
                     {p.lastSoldAt ? ` · aakhri bikri ${formatDate(p.lastSoldAt)}` : ' · kabhi nahi bika'}
                   </div>
                 </div>
                 {!hideCost && (
-                  <div className="font-black text-slate-700 dark:text-slate-300 text-sm tabular-nums shrink-0">
+                  <div className="font-black text-slate-700 dark:text-ink-300 text-sm tabular-nums shrink-0">
                     {formatPKR(Number(p.stock || 0) * Number(p.costPrice ?? p.price ?? 0))}
                   </div>
                 )}
@@ -861,7 +861,7 @@ export default function BakeryDashboardV2() {
           <ListHead icon={Timer} tone="from-rose-500 to-orange-600" title="Jald kharab hone wala"
             sub={fresh.value > 0 && !hideCost ? `${formatPKR(fresh.value)} ka maal` : '24 ghante ke andar'}
             to="/bakery/freshness" />
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {fresh.list.length > 0 ? fresh.list.map((f: any) => (
               <div key={f.id} className="px-4 py-2.5 flex items-center gap-2.5">
                 <span className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${
@@ -870,10 +870,10 @@ export default function BakeryDashboardV2() {
                   {f.left <= 0 ? <Flame className="h-4 w-4" /> : <Timer className="h-4 w-4" />}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-black text-slate-900 dark:text-white truncate">
+                  <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">
                     {f.productName ?? 'Batch'}
                   </div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                     {fmtQty(Number(f.currentQty || 0))} baqi
                     {f.batchNumber && ` · ${f.batchNumber}`}
                     {priceById.get(f.productId) && !hideCost
@@ -893,16 +893,16 @@ export default function BakeryDashboardV2() {
           <ListHead icon={Cake} tone="from-pink-500 to-fuchsia-700" title="Aane wale order"
             sub={orders.due > 0 && !hideCost ? `${formatPKR(orders.due)} baqi lena hai` : `${orders.active.length} chaalu`}
             to="/bakery/cake-orders" />
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {orders.list.length > 0 ? orders.list.map((x: any) => (
               <Link key={x.id} to={x.kind === 'cake' ? '/bakery/cake-orders' : '/bakery/bulk-orders'}
-                className="px-4 py-2.5 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                className="px-4 py-2.5 flex items-center gap-2.5 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                 <span className="h-8 w-8 rounded-xl bg-pink-100 dark:bg-pink-500/20 text-pink-600 flex items-center justify-center shrink-0">
                   {x.kind === 'cake' ? <Cake className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-black text-slate-900 dark:text-white truncate">{x.name || 'Grahak'}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 font-mono truncate">{x.number}</div>
+                  <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{x.name || 'Grahak'}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 font-mono truncate">{x.number}</div>
                 </div>
                 <span className={`text-[0.6875rem] font-black shrink-0 ${
                   x.left == null ? 'text-slate-400' : x.left < 0 ? 'text-rose-600' : x.left <= 24 ? 'text-amber-600' : 'text-slate-500'
@@ -918,15 +918,15 @@ export default function BakeryDashboardV2() {
           <ListHead icon={Wheat} tone="from-amber-500 to-orange-600" title="Saamaan kam ho gaya"
             sub={raw.critical > 0 ? `${raw.critical} bilkul khatam` : `${raw.low} cheezein kam`}
             to="/bakery/ingredients" />
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {raw.list.length > 0 ? raw.list.map((i: any) => (
               <div key={i.id} className="px-4 py-2.5 flex items-center gap-2.5">
                 <span className="h-8 w-8 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
                   <Wheat className="h-4 w-4" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-black text-slate-900 dark:text-white truncate">{i.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                  <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{i.name}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                     {fmtQty(Number(i.currentStock || 0))} {i.unit ?? ''} baqi
                   </div>
                 </div>
@@ -943,22 +943,22 @@ export default function BakeryDashboardV2() {
       <section className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         <Card noPad>
           <ListHead icon={Receipt} tone="from-pink-500 to-fuchsia-700" title="Haaliya bikri" sub="Aakhri bill" to="/sales" />
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[360px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[360px] overflow-y-auto">
             {(o?.recentSales ?? []).length > 0 ? (o?.recentSales ?? []).slice(0, 8).map((sale: any) => (
               <Link key={sale.id} to={`/sales/${sale.id}/receipt`}
-                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                 <div className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
                   style={{ backgroundColor: (PAYMENT_COLORS[sale.paymentMethod] ?? '#64748b') + '22' }}>
                   <Receipt className="h-4 w-4" style={{ color: PAYMENT_COLORS[sale.paymentMethod] ?? '#64748b' }} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-black text-slate-900 dark:text-white truncate text-sm font-mono">{sale.saleNumber}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 truncate">
+                  <div className="font-black text-slate-900 dark:text-ink-white truncate text-sm font-mono">{sale.saleNumber}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 truncate">
                     {sale.customer?.name ?? 'Walk-in'} · {formatDate(sale.soldAt)}
                   </div>
                 </div>
                 <div className="text-right shrink-0">
-                  <div className="font-black text-slate-900 dark:text-white text-sm tabular-nums">
+                  <div className="font-black text-slate-900 dark:text-ink-white text-sm tabular-nums">
                     {hideCost ? '••••' : formatPKR(sale.total)}
                   </div>
                   {Number(sale.creditAmount) > 0 && (
@@ -975,18 +975,18 @@ export default function BakeryDashboardV2() {
         <Card noPad>
           <ListHead icon={AlertTriangle} tone="from-amber-500 to-orange-600" title="Counter par kam ho gaya"
             sub="Agla batch isi ka" to="/low-stock" />
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[360px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[360px] overflow-y-auto">
             {(o?.lowStockProducts ?? []).length > 0 ? (o?.lowStockProducts ?? []).slice(0, 8).map((p: any) => (
               <Link key={p.id} to={`/bakery-products/${p.id}`}
-                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition">
                 <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 ${
                   Number(p.stock) <= 0 ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-600' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-600'
                 }`}>
                   <Package className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="font-black text-slate-900 dark:text-white truncate text-sm">{p.name}</div>
-                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">
+                  <div className="font-black text-slate-900 dark:text-ink-white truncate text-sm">{p.name}</div>
+                  <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400">
                     {fmtQty(Number(p.stock || 0))} {p.unit} baqi · alert {p.lowStockAlert}
                   </div>
                 </div>
@@ -1011,8 +1011,8 @@ export default function BakeryDashboardV2() {
 function Card({ children, noPad = false }: any) {
   return (
     <div className={[
-      'rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm',
-      'border-2 border-slate-200 dark:border-slate-800',
+      'rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm',
+      'border-2 border-slate-200 dark:border-ink-800',
       'shadow-sm dark:shadow-black/20 overflow-hidden',
       noPad ? '' : 'p-4 sm:p-5',
     ].join(' ')}>
@@ -1037,8 +1037,8 @@ function CardHeader({ icon: Icon, title, subtitle, tone, right }: any) {
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
-          <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white leading-tight">{title}</h3>
-          <p className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400">{subtitle}</p>
+          <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-ink-white leading-tight">{title}</h3>
+          <p className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400">{subtitle}</p>
         </div>
       </div>
       {right}
@@ -1053,8 +1053,8 @@ function SectionHead({ icon: Icon, title, sub, tone }: any) {
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
-        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">{title}</h3>
-        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{sub}</p>
+        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-ink-white">{title}</h3>
+        <p className="text-xs font-bold text-slate-500 dark:text-ink-400">{sub}</p>
       </div>
     </div>
   );
@@ -1062,13 +1062,13 @@ function SectionHead({ icon: Icon, title, sub, tone }: any) {
 
 function ListHead({ icon: Icon, tone, title, sub, to }: any) {
   return (
-    <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+    <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
       <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shadow-lg shrink-0`}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">{title}</h3>
-        {sub && <p className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 truncate">{sub}</p>}
+        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-ink-white truncate">{title}</h3>
+        {sub && <p className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 truncate">{sub}</p>}
       </div>
       {to && (
         <Link to={to} className="text-pink-700 dark:text-pink-400 text-xs font-black inline-flex items-center gap-1 hover:underline shrink-0">
@@ -1083,7 +1083,7 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
   return (
     <div className="mt-2 flex items-center justify-center gap-4 flex-wrap">
       {items.map((it) => (
-        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-black text-slate-600 dark:text-slate-300">
+        <div key={it.label} className="inline-flex items-center gap-1.5 text-[0.6875rem] font-black text-slate-600 dark:text-ink-300">
           <span className="h-2.5 w-2.5 rounded-full shadow-sm" style={{ backgroundColor: it.color }} />
           {it.label}
         </div>
@@ -1131,18 +1131,18 @@ const TODO_TONES: Record<string, { grad: string; text: string; border: string }>
   rose: { grad: 'from-rose-500 to-red-600', text: 'text-rose-700 dark:text-rose-300', border: 'hover:border-rose-300' },
   amber: { grad: 'from-amber-500 to-orange-600', text: 'text-amber-700 dark:text-amber-300', border: 'hover:border-amber-300' },
   violet: { grad: 'from-violet-500 to-purple-600', text: 'text-violet-700 dark:text-violet-300', border: 'hover:border-violet-300' },
-  slate: { grad: 'from-slate-500 to-slate-700', text: 'text-slate-600 dark:text-slate-300', border: 'hover:border-slate-300' },
+  slate: { grad: 'from-slate-500 to-slate-700', text: 'text-slate-600 dark:text-ink-300', border: 'hover:border-slate-300' },
 };
 
 function TodoRow({ icon: Icon, tone, text, to, cta }: any) {
   const t = TODO_TONES[tone] ?? TODO_TONES.slate;
   return (
-    <Link to={to} className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition group">
+    <Link to={to} className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition group">
       <span className={`h-10 w-10 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md shrink-0`}>
         <Icon className="h-5 w-5" />
       </span>
       <p className={`flex-1 min-w-0 text-[0.8125rem] font-bold ${t.text}`}>{text}</p>
-      <span className="shrink-0 h-9 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1 group-hover:bg-pink-100 dark:group-hover:bg-pink-500/20 group-hover:text-pink-700 dark:group-hover:text-pink-300 transition">
+      <span className="shrink-0 h-9 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1 group-hover:bg-pink-100 dark:group-hover:bg-pink-500/20 group-hover:text-pink-700 dark:group-hover:text-pink-300 transition">
         {cta} <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
       </span>
     </Link>
@@ -1162,14 +1162,14 @@ function PnLCell({ label, value, sub, tone, icon: Icon, highlight }: any) {
       'rounded-2xl p-3 border-2',
       highlight
         ? 'bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 border-pink-300 dark:border-pink-500/40'
-        : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700',
+        : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700',
     ].join(' ')}>
       <div className="flex items-center gap-1.5 mb-1">
         <Icon className={`h-3 w-3 ${PNL_TONES[tone]}`} />
-        <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-slate-400 truncate">{label}</div>
+        <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-ink-400 truncate">{label}</div>
       </div>
       <div className={`text-base sm:text-xl font-black tabular-nums leading-tight ${PNL_TONES[tone]}`}>{value}</div>
-      <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 mt-1 truncate">{sub}</div>
+      <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 mt-1 truncate">{sub}</div>
     </div>
   );
 }
@@ -1194,13 +1194,13 @@ function OpsCard({ to, icon: Icon, title, desc, tone, primary }: any) {
       'rounded-2xl border-2 p-3 sm:p-4 group hover:-translate-y-1 transition-all duration-200',
       primary
         ? 'bg-gradient-to-br from-pink-50 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/15 border-pink-300 dark:border-pink-500/40 shadow-lg'
-        : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 hover:border-pink-300 dark:hover:border-pink-500/50 hover:shadow-lg',
+        : 'bg-white dark:bg-ink-900/60 border-slate-200 dark:border-ink-800 hover:border-pink-300 dark:hover:border-pink-500/50 hover:shadow-lg',
     ].join(' ')}>
       <div className={`h-10 w-10 rounded-xl bg-gradient-to-br ${OPS_TONES[tone] ?? OPS_TONES.pink} text-white flex items-center justify-center shadow-md mb-2 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-200`}>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="font-black text-slate-900 dark:text-white text-xs sm:text-sm truncate">{title}</div>
-      <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5 truncate">{desc}</div>
+      <div className="font-black text-slate-900 dark:text-ink-white text-xs sm:text-sm truncate">{title}</div>
+      <div className="text-[0.6875rem] sm:text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5 truncate">{desc}</div>
     </Link>
   );
 }
@@ -1218,17 +1218,17 @@ function MoneyTile({ icon: Icon, label, value, sub, tone, to, urgent }: any) {
   const t = MONEY_TONES[tone] ?? MONEY_TONES.teal;
   return (
     <Link to={to} className={[
-      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'rounded-2xl bg-white dark:bg-ink-900/60 border-2 p-3 sm:p-4',
       'shadow-sm dark:shadow-black/20 hover:shadow-lg transition-all hover:-translate-y-0.5',
-      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      urgent ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
       t.ring,
     ].join(' ')}>
       <div className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shadow-md mb-2`}>
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-slate-400 truncate">{label}</div>
-      <div className="mt-0.5 text-base sm:text-xl font-black text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-      <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 mt-1 leading-snug line-clamp-2">{sub}</div>
+      <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-ink-400 truncate">{label}</div>
+      <div className="mt-0.5 text-base sm:text-xl font-black text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+      <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 mt-1 leading-snug line-clamp-2">{sub}</div>
     </Link>
   );
 }
@@ -1256,23 +1256,23 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
             <div className="flex items-baseline justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
-                <span className="text-xs font-black text-slate-800 dark:text-slate-100 truncate">{r.name}</span>
-                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">×{r.count}</span>
+                <span className="text-xs font-black text-slate-800 dark:text-ink-100 truncate">{r.name}</span>
+                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 shrink-0">×{r.count}</span>
               </div>
-              <div className="text-xs font-black text-slate-900 dark:text-white tabular-nums shrink-0">
+              <div className="text-xs font-black text-slate-900 dark:text-ink-white tabular-nums shrink-0">
                 {formatPKR(r.amount)}
-                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{pctOfTotal.toFixed(0)}%</span>
+                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{pctOfTotal.toFixed(0)}%</span>
               </div>
             </div>
-            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
               <div className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${Math.max((r.amount / max) * 100, 2)}%`, backgroundColor: color }} />
             </div>
           </div>
         );
       })}
-      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-slate-800 flex items-baseline justify-between">
-        <span className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">Kul kharcha</span>
+      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-ink-800 flex items-baseline justify-between">
+        <span className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-600 dark:text-ink-400">Kul kharcha</span>
         <span className="text-sm font-black text-amber-700 dark:text-amber-400 tabular-nums">{formatPKR(total)}</span>
       </div>
     </div>
@@ -1291,20 +1291,20 @@ const STAT_TONES: Record<string, string> = {
 function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
   const inner = (
     <div className={[
-      'rounded-2xl bg-white dark:bg-slate-900/60 border-2 p-3 sm:p-4',
+      'rounded-2xl bg-white dark:bg-ink-900/60 border-2 p-3 sm:p-4',
       'shadow-sm dark:shadow-black/20 hover:shadow-lg transition-all hover:-translate-y-0.5 relative',
-      alert && Number(value) > 0 ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-slate-800',
+      alert && Number(value) > 0 ? 'border-amber-300 dark:border-amber-500/40' : 'border-slate-200 dark:border-ink-800',
     ].join(' ')}>
       {alert && Number(value) > 0 && (
         <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-rose-500 animate-ping" />
       )}
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-slate-400 truncate">{title}</div>
-          <div className="mt-1 text-lg sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums truncate">
+          <div className="text-[0.6875rem] uppercase tracking-wider font-black text-slate-600 dark:text-ink-400 truncate">{title}</div>
+          <div className="mt-1 text-lg sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums truncate">
             {typeof value === 'number' ? value.toLocaleString() : value}
           </div>
-          {sub && <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-10 w-10 rounded-2xl bg-gradient-to-br ${STAT_TONES[tone] ?? STAT_TONES.pink} text-white flex items-center justify-center shadow-md shrink-0`}>
           <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -1317,7 +1317,7 @@ function StatCard({ title, value, icon: Icon, tone, link, alert, sub }: any) {
 
 function EmptyChart({ icon: Icon, message }: any) {
   return (
-    <div className="h-[240px] sm:h-[280px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
+    <div className="h-[240px] sm:h-[280px] flex flex-col items-center justify-center gap-2 text-slate-400 dark:text-ink-500">
       <Icon className="h-10 w-10" />
       <p className="text-sm font-black">{message}</p>
     </div>
@@ -1327,10 +1327,10 @@ function EmptyChart({ icon: Icon, message }: any) {
 function EmptyList({ icon: Icon, message }: any) {
   return (
     <div className="px-6 py-10 text-center">
-      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-3">
-        <Icon className="h-6 w-6 text-slate-400 dark:text-slate-500" />
+      <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center mx-auto mb-3">
+        <Icon className="h-6 w-6 text-slate-400 dark:text-ink-500" />
       </div>
-      <p className="text-sm font-black text-slate-500 dark:text-slate-400">{message}</p>
+      <p className="text-sm font-black text-slate-500 dark:text-ink-400">{message}</p>
     </div>
   );
 }
@@ -1340,7 +1340,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[60] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -1363,17 +1363,17 @@ function Teacher({ onClose }: { onClose: () => void }) {
             { i: Hourglass, t: 'Atka hua maal', d: '30 din se jo nahi bika — ya deal bana kar nikalein, ya wo cheez banana band kar dein. Har mahine ye list chhoti honi chahiye.' },
             { i: DollarSign, t: 'Paisa chhupana ho to', d: 'Upar 🔒 wala button dabayein — lagat, munafa aur kul raqam chhup jati hai. Staff ke samne safha kholna ho to kaam aata hai.' },
           ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className="h-9 w-9 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white flex items-center justify-center shrink-0">
                 <x.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['G', 'Ye safha'], ['R', 'Taaza karein'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
@@ -1384,7 +1384,7 @@ function Teacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className="w-full bg-gradient-to-r from-pink-600 to-fuchsia-700">Samajh gaya</Button>
         </footer>
       </div>

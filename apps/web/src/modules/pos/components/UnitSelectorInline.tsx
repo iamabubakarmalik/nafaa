@@ -50,9 +50,9 @@ export function UnitSelectorInline({ productId, variantId, currentUnitId, onSele
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-50 min-w-[240px] rounded-xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-700 shadow-2xl overflow-hidden">
-            <div className="px-3 py-2 border-b border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-800/50">
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400">
+          <div className="absolute right-0 top-full mt-1 z-50 min-w-[240px] rounded-xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl overflow-hidden">
+            <div className="px-3 py-2 border-b border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400">
                 Select Unit
               </div>
             </div>
@@ -70,12 +70,12 @@ export function UnitSelectorInline({ productId, variantId, currentUnitId, onSele
                       'w-full px-3 py-2 flex items-center justify-between gap-3 transition text-left ' +
                       (isSelected
                         ? 'bg-emerald-50 dark:bg-emerald-950/40 border-l-4 border-emerald-500'
-                        : 'hover:bg-slate-50 dark:hover:bg-neutral-800')
+                        : 'hover:bg-slate-50 dark:hover:bg-ink-800')
                     }
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="font-extrabold text-sm capitalize text-slate-900 dark:text-white">
+                        <span className="font-extrabold text-sm capitalize text-slate-900 dark:text-ink-white">
                           {unit.unitName}
                         </span>
                         {unit.isBase && (

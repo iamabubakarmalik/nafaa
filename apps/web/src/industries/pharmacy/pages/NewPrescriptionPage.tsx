@@ -167,7 +167,7 @@ export default function NewPrescriptionPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* TYPE */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
             <label className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 mb-2 block">Prescription Type</label>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {TYPES.map((t) => (
@@ -178,7 +178,7 @@ export default function NewPrescriptionPage() {
                     'p-3 rounded-xl border-2 text-center transition ' +
                     (form.type === t.value
                       ? 'border-violet-500 bg-violet-50 dark:bg-violet-950/40 shadow'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-violet-300')
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-violet-300')
                   }
                 >
                   <div className="text-xl mb-1">{t.emoji}</div>
@@ -189,8 +189,8 @@ export default function NewPrescriptionPage() {
           </section>
 
           {/* DOCTOR */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Stethoscope className="h-4 w-4 text-emerald-600" />
               Doctor Information
             </h3>
@@ -199,7 +199,7 @@ export default function NewPrescriptionPage() {
               <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-200 dark:border-emerald-800 p-3 flex items-center gap-3">
                 <Award className="h-5 w-5 text-emerald-600" />
                 <div className="flex-1">
-                  <div className="font-extrabold text-slate-900 dark:text-white">{form.doctorName}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white">{form.doctorName}</div>
                   <div className="text-xs text-slate-600 font-semibold">
                     Reg: {form.doctorRegNumber}
                     {form.doctorSpeciality && ' • ' + form.doctorSpeciality}
@@ -217,7 +217,7 @@ export default function NewPrescriptionPage() {
                 <div className="sm:col-span-2">
                   <button
                     onClick={() => setShowDoctorPicker(true)}
-                    className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-neutral-600 bg-slate-50 dark:bg-neutral-800 text-sm font-extrabold text-slate-600 hover:border-emerald-400"
+                    className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 hover:border-emerald-400"
                   >
                     <Search className="h-4 w-4 inline mr-1" />
                     Search Registered Doctor
@@ -227,25 +227,25 @@ export default function NewPrescriptionPage() {
                   value={form.doctorName}
                   onChange={(e) => setForm({ ...form, doctorName: e.target.value })}
                   placeholder="Doctor Name (manual entry)"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                 />
                 <input
                   value={form.doctorRegNumber}
                   onChange={(e) => setForm({ ...form, doctorRegNumber: e.target.value })}
                   placeholder="PMDC Reg #"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-emerald-500"
                 />
                 <input
                   value={form.doctorSpeciality}
                   onChange={(e) => setForm({ ...form, doctorSpeciality: e.target.value })}
                   placeholder="Speciality"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                 />
                 <input
                   value={form.hospitalName}
                   onChange={(e) => setForm({ ...form, hospitalName: e.target.value })}
                   placeholder="Hospital / Clinic"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                 />
               </div>
             )}
@@ -258,9 +258,9 @@ export default function NewPrescriptionPage() {
                     value={doctorSearch}
                     onChange={(e) => setDoctorSearch(e.target.value)}
                     placeholder="Search by name, reg #..."
-                    className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                    className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                   />
-                  <button onClick={() => setShowDoctorPicker(false)} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+                  <button onClick={() => setShowDoctorPicker(false)} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
                     <X className="h-4 w-4" />
                   </button>
                 </div>
@@ -269,7 +269,7 @@ export default function NewPrescriptionPage() {
                     <button
                       key={doc.id}
                       onClick={() => pickDoctor(doc)}
-                      className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-neutral-800 text-left"
+                      className="w-full px-3 py-2 flex items-center gap-3 rounded-lg hover:bg-white dark:hover:bg-ink-800 text-left"
                     >
                       <Stethoscope className="h-4 w-4 text-emerald-600" />
                       <div className="flex-1 min-w-0">
@@ -287,8 +287,8 @@ export default function NewPrescriptionPage() {
           </section>
 
           {/* PATIENT */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-violet-600" />
               Patient Information
             </h3>
@@ -306,7 +306,7 @@ export default function NewPrescriptionPage() {
                     patientPhone: c?.phone || form.patientPhone,
                   });
                 }}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
               >
                 <option value="">Walk-in / New patient</option>
                 {(customersData?.items ?? []).map((c) => (
@@ -320,19 +320,19 @@ export default function NewPrescriptionPage() {
                 value={form.patientName}
                 onChange={(e) => setForm({ ...form, patientName: e.target.value })}
                 placeholder="Patient name"
-                className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
               />
               <input
                 value={form.patientPhone}
                 onChange={(e) => setForm({ ...form, patientPhone: e.target.value })}
                 placeholder="Phone"
-                className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
               />
               <input
                 value={form.patientCnic}
                 onChange={(e) => setForm({ ...form, patientCnic: e.target.value })}
                 placeholder="CNIC (required for narcotics)"
-                className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500"
+                className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-violet-500"
               />
               <div className="grid grid-cols-3 gap-2">
                 <input
@@ -340,12 +340,12 @@ export default function NewPrescriptionPage() {
                   value={form.patientAge}
                   onChange={(e) => setForm({ ...form, patientAge: e.target.value })}
                   placeholder="Age"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
                 />
                 <select
                   value={form.patientGender}
                   onChange={(e) => setForm({ ...form, patientGender: e.target.value })}
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
                 >
                   <option value="">Sex</option>
                   <option value="M">M</option>
@@ -357,16 +357,16 @@ export default function NewPrescriptionPage() {
                   value={form.patientWeight}
                   onChange={(e) => setForm({ ...form, patientWeight: e.target.value })}
                   placeholder="Wt (kg)"
-                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
+                  className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums focus:outline-none focus:border-violet-500"
                 />
               </div>
             </div>
           </section>
 
           {/* MEDICINES */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Pill className="h-4 w-4 text-violet-600" />
                 Prescribed Medicines
               </h3>
@@ -378,7 +378,7 @@ export default function NewPrescriptionPage() {
 
             <div className="space-y-2">
               {items.map((item, i) => (
-                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
+                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 dark:bg-ink-800/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Medicine #{i + 1}</span>
                     {items.length > 1 && (
@@ -394,7 +394,7 @@ export default function NewPrescriptionPage() {
                         value={item.medicineName}
                         onChange={(e) => updateItem(i, { medicineName: e.target.value })}
                         placeholder="Medicine name *"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 pr-9 text-sm font-bold focus:outline-none focus:border-violet-500"
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 pr-9 text-sm font-bold focus:outline-none focus:border-violet-500"
                       />
                       <button
                         onClick={() => setShowProductPicker(i)}
@@ -408,7 +408,7 @@ export default function NewPrescriptionPage() {
                       value={item.strength || ''}
                       onChange={(e) => updateItem(i, { strength: e.target.value })}
                       placeholder="500mg"
-                      className="h-10 sm:col-span-1 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
+                      className="h-10 sm:col-span-1 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
                     />
                     <input
                       type="number" step="0.5"
@@ -420,7 +420,7 @@ export default function NewPrescriptionPage() {
                       value={item.unit || 'tablet'}
                       onChange={(e) => updateItem(i, { unit: e.target.value })}
                       placeholder="unit"
-                      className="h-10 sm:col-span-1 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
+                      className="h-10 sm:col-span-1 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-violet-500"
                     />
                   </div>
 
@@ -432,9 +432,9 @@ export default function NewPrescriptionPage() {
                           value={productSearch}
                           onChange={(e) => setProductSearch(e.target.value)}
                           placeholder="Search medicine..."
-                          className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+                          className="flex-1 h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
                         />
-                        <button onClick={() => setShowProductPicker(null)} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+                        <button onClick={() => setShowProductPicker(null)} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -443,7 +443,7 @@ export default function NewPrescriptionPage() {
                           <button
                             key={p.id}
                             onClick={() => pickProductForItem(i, p)}
-                            className="w-full px-2 py-1.5 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-neutral-800 text-left"
+                            className="w-full px-2 py-1.5 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-ink-800 text-left"
                           >
                             <Pill className="h-3.5 w-3.5 text-slate-400" />
                             <span className="text-xs font-extrabold truncate flex-1">{p.name}</span>
@@ -459,19 +459,19 @@ export default function NewPrescriptionPage() {
                       value={item.dose || ''}
                       onChange={(e) => updateItem(i, { dose: e.target.value })}
                       placeholder="Dose (500mg)"
-                      className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                      className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                     />
                     <input
                       value={item.frequency || ''}
                       onChange={(e) => updateItem(i, { frequency: e.target.value })}
                       placeholder="Frequency (1-0-1 / TID)"
-                      className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                      className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                     />
                     <input
                       value={item.duration || ''}
                       onChange={(e) => updateItem(i, { duration: e.target.value })}
                       placeholder="Duration (7 days)"
-                      className="h-9 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                      className="h-9 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                     />
                   </div>
 
@@ -479,7 +479,7 @@ export default function NewPrescriptionPage() {
                     value={item.instructions || ''}
                     onChange={(e) => updateItem(i, { instructions: e.target.value })}
                     placeholder="Instructions (after meals, empty stomach...)"
-                    className="h-9 w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
+                    className="h-9 w-full rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold focus:outline-none focus:border-violet-500"
                   />
                 </div>
               ))}
@@ -487,14 +487,14 @@ export default function NewPrescriptionPage() {
           </section>
 
           {/* DIAGNOSIS */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Diagnosis & Notes</h3>
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Diagnosis & Notes</h3>
 
             <input
               value={form.chiefComplaint}
               onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })}
               placeholder="Chief complaint"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-violet-500"
             />
 
             <textarea
@@ -502,7 +502,7 @@ export default function NewPrescriptionPage() {
               value={form.diagnosis}
               onChange={(e) => setForm({ ...form, diagnosis: e.target.value })}
               placeholder="Diagnosis / clinical notes"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
             />
 
             <textarea
@@ -510,7 +510,7 @@ export default function NewPrescriptionPage() {
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
               placeholder="Internal notes"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500 resize-none"
             />
           </section>
         </div>
@@ -519,8 +519,8 @@ export default function NewPrescriptionPage() {
         <aside className="space-y-4">
           <div className="sticky top-4 space-y-4">
             {/* IMAGES */}
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4">
+              <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-2 flex items-center gap-2">
                 <Camera className="h-4 w-4 text-violet-600" />
                 Prescription Images
               </h4>
@@ -550,8 +550,8 @@ export default function NewPrescriptionPage() {
             </section>
 
             {/* REFILL */}
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
+              <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Repeat className="h-4 w-4 text-emerald-600" />
                 Refill Settings
               </h4>
@@ -571,12 +571,12 @@ export default function NewPrescriptionPage() {
                     value={form.refillsAllowed}
                     onChange={(e) => setForm({ ...form, refillsAllowed: e.target.value })}
                     placeholder="Refills allowed"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-emerald-500"
                   />
                   <select
                     value={form.refillFrequency}
                     onChange={(e) => setForm({ ...form, refillFrequency: e.target.value })}
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500"
                   >
                     <option value="">Frequency...</option>
                     {REFILL_FREQ.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -586,8 +586,8 @@ export default function NewPrescriptionPage() {
             </section>
 
             {/* INSURANCE */}
-            <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-2">
-              <h4 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+            <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-2">
+              <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-blue-600" />
                 Insurance
               </h4>
@@ -606,13 +606,13 @@ export default function NewPrescriptionPage() {
                     value={form.insuranceProvider}
                     onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })}
                     placeholder="Provider"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500"
                   />
                   <input
                     value={form.insuranceApprovalCode}
                     onChange={(e) => setForm({ ...form, insuranceApprovalCode: e.target.value })}
                     placeholder="Approval code"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-blue-500"
                   />
                 </>
               )}

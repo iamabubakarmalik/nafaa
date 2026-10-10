@@ -19,7 +19,7 @@ const STEPS = [
 
 export function ServicesBizWizardStepper({ currentStep, stepValidation, onStepClick }: Props) {
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-2 overflow-x-auto">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-2 overflow-x-auto">
       <div className="flex items-center gap-2 min-w-max">
         {STEPS.map((s, idx) => {
           const isActive = currentStep === s.id;
@@ -39,7 +39,7 @@ export function ServicesBizWizardStepper({ currentStep, stepValidation, onStepCl
                     ? 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/40'
                     : isPast
                       ? 'bg-cyan-50 dark:bg-cyan-950/30 text-cyan-800 dark:text-cyan-200 hover:bg-cyan-100 border-2 border-cyan-200'
-                      : 'bg-slate-50 dark:bg-neutral-800 text-slate-500 border-2 border-transparent hover:bg-slate-100',
+                      : 'bg-slate-50 dark:bg-ink-800 text-slate-500 border-2 border-transparent hover:bg-slate-100',
                 ].join(' ')}
               >
                 <div className={[

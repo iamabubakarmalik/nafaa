@@ -271,12 +271,12 @@ export default function AppliancesReportsPage() {
 
       {/* Range */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arsa</span>
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400">Arsa</span>
         {[7, 30, 90, 365].map((d) => (
           <button key={d} onClick={() => setDays(d)}
             className={`px-3 py-1.5 rounded-xl text-[0.6875rem] font-extrabold border-2 transition ${
               days === d ? 'bg-cyan-600 border-cyan-600 text-white shadow'
-                : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-cyan-400'
+                : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-cyan-400'
             }`}>
             {d === 7 ? '7 din' : d === 30 ? '1 mahina' : d === 90 ? '3 mahine' : '1 saal'}
           </button>
@@ -286,7 +286,7 @@ export default function AppliancesReportsPage() {
       {/* Top KPIs */}
       {loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : (
         <>
@@ -318,7 +318,7 @@ export default function AppliancesReportsPage() {
                 rose: 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-700 dark:text-rose-300',
                 amber: 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300',
                 violet: 'bg-violet-50 dark:bg-violet-500/10 border-violet-200 dark:border-violet-500/30 text-violet-700 dark:text-violet-300',
-                slate: 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300',
+                slate: 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300',
               };
               return (
                 <Link key={i} to={al.to}
@@ -363,18 +363,18 @@ export default function AppliancesReportsPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {REPORTS.map((r) => (
             <Link key={r.to} to={r.to}
-              className="group rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-4 hover:shadow-xl hover:-translate-y-0.5 hover:border-cyan-300 dark:hover:border-cyan-500/50 transition-all">
+              className="group rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-4 hover:shadow-xl hover:-translate-y-0.5 hover:border-cyan-300 dark:hover:border-cyan-500/50 transition-all">
               <div className="flex items-start gap-3">
                 <div className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${r.tone} text-white flex items-center justify-center shadow-lg shrink-0 group-hover:scale-110 transition`}>
                   <r.icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
+                  <h4 className="text-sm font-extrabold text-slate-900 dark:text-ink-white group-hover:text-cyan-700 dark:group-hover:text-cyan-300 transition">
                     {r.emoji} {r.title}
                   </h4>
-                  <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{r.hint}</p>
+                  <p className="text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">{r.hint}</p>
                 </div>
-                <ChevronRight className="h-5 w-5 text-slate-300 dark:text-slate-600 shrink-0 self-center group-hover:translate-x-1 group-hover:text-cyan-500 transition" />
+                <ChevronRight className="h-5 w-5 text-slate-300 dark:text-ink-600 shrink-0 self-center group-hover:translate-x-1 group-hover:text-cyan-500 transition" />
               </div>
             </Link>
           ))}
@@ -391,9 +391,9 @@ export default function AppliancesReportsPage() {
             { to: '/khata', icon: Wallet, label: 'Khata / Udhaar' },
           ].map((l) => (
             <Link key={l.to} to={l.to}
-              className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 hover:border-cyan-400 hover:shadow transition">
+              className="flex flex-col items-center gap-1.5 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-3 hover:border-cyan-400 hover:shadow transition">
               <l.icon className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-              <span className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-200 text-center">{l.label}</span>
+              <span className="text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-200 text-center">{l.label}</span>
             </Link>
           ))}
         </div>

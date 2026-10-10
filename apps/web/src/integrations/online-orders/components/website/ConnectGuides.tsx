@@ -30,11 +30,11 @@ export function PlatformPicker({ value, onChange }: { value: Platform; onChange:
             'rounded-2xl border-2 p-4 text-left transition',
             value === p.key
               ? 'border-emerald-500 bg-emerald-50 shadow-sm dark:bg-emerald-500/10'
-              : 'border-slate-200 bg-white hover:border-slate-300 dark:border-neutral-800 dark:bg-neutral-900',
+              : 'border-slate-200 bg-white hover:border-slate-300 dark:border-ink-800 dark:bg-ink-900',
           )}
         >
           <div className="text-2xl">{p.emoji}</div>
-          <div className="mt-1 text-sm font-black text-slate-900 dark:text-white">{p.title}</div>
+          <div className="mt-1 text-sm font-black text-slate-900 dark:text-ink-white">{p.title}</div>
           <div className="text-xs text-slate-500">{p.sub}</div>
         </button>
       ))}
@@ -71,8 +71,8 @@ function StepItem({ n, title, children }: { n: number; title: string; children?:
     <li className="flex gap-3">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-xs font-black text-white">{n}</span>
       <div className="min-w-0 flex-1 pt-0.5">
-        <div className="text-sm font-black text-slate-900 dark:text-white">{title}</div>
-        {children && <div className="mt-1.5 space-y-2 text-sm text-slate-600 dark:text-slate-300">{children}</div>}
+        <div className="text-sm font-black text-slate-900 dark:text-ink-white">{title}</div>
+        {children && <div className="mt-1.5 space-y-2 text-sm text-slate-600 dark:text-ink-300">{children}</div>}
       </div>
     </li>
   );
@@ -87,7 +87,7 @@ function WooGuide({ apiKey, secret, hook, pluginZip, channelId, isWooChannel, wo
   const [mode, setMode] = useState<'oneclick' | 'plugin' | 'webhook'>(isWooChannel ? 'oneclick' : 'plugin');
   return (
     <div className="space-y-4">
-      <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 dark:bg-neutral-900">
+      <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 dark:bg-ink-900">
         {isWooChannel && (
           <button onClick={() => setMode('oneclick')} className={tab(mode === 'oneclick')}>
             <Zap className="h-3.5 w-3.5" /> Ek click (sab se aasaan)
@@ -169,10 +169,10 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
     return (
       <div className="space-y-3">
         <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/5 p-4 flex flex-wrap items-center gap-4">
-          <span className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-900 shadow flex items-center justify-center text-2xl shrink-0">🟣</span>
+          <span className="h-12 w-12 rounded-2xl bg-white dark:bg-ink-900 shadow flex items-center justify-center text-2xl shrink-0">🟣</span>
           <div className="min-w-0 flex-1">
-            <div className="font-black text-slate-900 dark:text-white">WooCommerce se jura hai ✓</div>
-            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 truncate">
+            <div className="font-black text-slate-900 dark:text-ink-white">WooCommerce se jura hai ✓</div>
+            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 truncate">
               {siteUrl}{woo.connectedAt ? ` · ${new Date(woo.connectedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short' })} se` : ''}
             </div>
           </div>
@@ -187,9 +187,9 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
             ['🔁', 'Status wapas website par', 'Processing → Completed'],
             ['📦', 'Stock har 15 minute', 'Accept/cancel par foran'],
           ].map(([e, t, d]) => (
-            <div key={t} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={t} className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <div className="text-lg">{e}</div>
-              <div className="mt-1 text-xs font-black text-slate-800 dark:text-slate-100">{t}</div>
+              <div className="mt-1 text-xs font-black text-slate-800 dark:text-ink-100">{t}</div>
               <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
             </div>
           ))}
@@ -210,7 +210,7 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
   if (connect.phase === 'waiting') {
     return (
       <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
-        <div className="flex items-center gap-2 font-black text-slate-900 dark:text-white">
+        <div className="flex items-center gap-2 font-black text-slate-900 dark:text-ink-white">
           <Loader2 className="h-4 w-4 animate-spin text-emerald-600" /> WordPress window me "Approve" dabayein…
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -224,11 +224,11 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4">
-        <div className="text-sm font-black text-slate-900 dark:text-white">Site ka address</div>
+      <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4">
+        <div className="text-sm font-black text-slate-900 dark:text-ink-white">Site ka address</div>
         <div className="mt-2 flex flex-wrap gap-2">
           <input value={site} onChange={(e) => setSite(e.target.value)} placeholder="ahmedstore.pk"
-            className="h-11 min-w-[220px] flex-1 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+            className="h-11 min-w-[220px] flex-1 rounded-xl border-2 border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white" />
           <Button variant="success" loading={connect.phase === 'starting'} disabled={!site.trim()}
             onClick={() => connect.start({ siteUrl: site.trim(), channelId, displayName: name })}
             leftIcon={<span>🟣</span>}>
@@ -242,7 +242,7 @@ function WooOneClick({ channelId, woo, siteUrl, name, onChange }: {
         {connect.phase === 'denied' && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">Approve nahi hua — dobara koshish karein.</p>}
         {connect.error && <p className="mt-2 text-[0.75rem] font-bold text-rose-600">{connect.error}</p>}
       </div>
-      <button onClick={() => setShowKeys((v) => !v)} className="text-[0.75rem] font-black text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 inline-flex items-center gap-1">
+      <button onClick={() => setShowKeys((v) => !v)} className="text-[0.75rem] font-black text-slate-500 hover:text-slate-800 dark:hover:text-ink-200 inline-flex items-center gap-1">
         <KeyRound className="h-3.5 w-3.5" /> Popup nahi chalta? Keys khud daalein
       </button>
       {showKeys && <ManualKeysForm channelId={channelId} site={site} onDone={() => onlineOrdersApi.channel(channelId).then(onChange)} />}
@@ -259,7 +259,7 @@ function ShopifyGuide({ hook, channelId, isShopifyChannel, shopify, siteUrl, nam
   return (
     <div className="space-y-4">
       {isShopifyChannel && (
-        <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 dark:bg-neutral-900">
+        <div className="inline-flex flex-wrap rounded-xl bg-slate-100 p-1 dark:bg-ink-900">
           <button onClick={() => setMode('oneclick')} className={tab(mode === 'oneclick')}><Zap className="h-3.5 w-3.5" /> Ek click (sab se aasaan)</button>
           <button onClick={() => setMode('webhook')} className={tab(mode === 'webhook')}>Webhook URL (purana)</button>
         </div>
@@ -302,10 +302,10 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
           </div>
         )}
         <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-lime-50 dark:from-emerald-500/10 dark:to-lime-500/5 p-4 flex flex-wrap items-center gap-4">
-          <span className="h-12 w-12 rounded-2xl bg-white dark:bg-slate-900 shadow flex items-center justify-center text-2xl shrink-0">🟢</span>
+          <span className="h-12 w-12 rounded-2xl bg-white dark:bg-ink-900 shadow flex items-center justify-center text-2xl shrink-0">🟢</span>
           <div className="min-w-0 flex-1">
-            <div className="font-black text-slate-900 dark:text-white">Shopify se jura hai ✓</div>
-            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-300 truncate">
+            <div className="font-black text-slate-900 dark:text-ink-white">Shopify se jura hai ✓</div>
+            <div className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-300 truncate">
               {shopify.shop}{shopify.locationName ? ` · stock location: ${shopify.locationName}` : ''}
             </div>
           </div>
@@ -320,9 +320,9 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
             ['🚚', 'Fulfillment + tracking', 'Customer ko Shopify email'],
             ['📦', 'Stock har 15 minute', 'Accept/cancel par foran'],
           ].map(([e, t, d]) => (
-            <div key={t} className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={t} className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <div className="text-lg">{e}</div>
-              <div className="mt-1 text-xs font-black text-slate-800 dark:text-slate-100">{t}</div>
+              <div className="mt-1 text-xs font-black text-slate-800 dark:text-ink-100">{t}</div>
               <div className="text-[0.6875rem] font-bold text-slate-500">{d}</div>
             </div>
           ))}
@@ -334,7 +334,7 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
   if (connect.phase === 'waiting') {
     return (
       <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50 dark:bg-emerald-500/10 p-4">
-        <div className="flex items-center gap-2 font-black text-slate-900 dark:text-white">
+        <div className="flex items-center gap-2 font-black text-slate-900 dark:text-ink-white">
           <Loader2 className="h-4 w-4 animate-spin text-emerald-600" /> Shopify window me "Install" dabayein…
         </div>
         <Button className="mt-3" size="sm" variant="outline" onClick={() => connect.reopen()} leftIcon={<ExternalLink className="h-4 w-4" />}>Window dobara kholo</Button>
@@ -344,12 +344,12 @@ function ShopifyOneClick({ channelId, shopify, siteUrl, name, onChange }: {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 p-4">
-        <div className="text-sm font-black text-slate-900 dark:text-white">Shopify store ka naam</div>
+      <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 p-4">
+        <div className="text-sm font-black text-slate-900 dark:text-ink-white">Shopify store ka naam</div>
         <div className="mt-2 flex flex-wrap gap-2">
           <div className="relative flex min-w-[220px] flex-1 items-center">
             <input value={store} onChange={(e) => setStore(e.target.value)} placeholder="nafaa-test"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-3 pr-32 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
+              className="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-3 pr-32 text-sm font-semibold outline-none focus:border-emerald-500 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-white" />
             <span className="pointer-events-none absolute right-3 text-xs font-bold text-slate-400">.myshopify.com</span>
           </div>
           <Button variant="success" loading={connect.phase === 'starting'} disabled={!store.trim() || !connect.oneClickReady}
@@ -436,5 +436,5 @@ function CustomGuide({ overview, shopName }: { overview: WebsiteOverview; shopNa
 const tab = (active: boolean) =>
   cn(
     'inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-black transition',
-    active ? 'bg-white text-slate-900 shadow dark:bg-neutral-800 dark:text-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200',
+    active ? 'bg-white text-slate-900 shadow dark:bg-ink-800 dark:text-ink-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-ink-200',
   );

@@ -48,7 +48,7 @@ export default function JewelryDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -204,10 +204,10 @@ export default function JewelryDashboardPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* RECENT SALES */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Gem className="h-5 w-5 text-amber-600" />
                 Recent Sales
               </h3>
@@ -217,7 +217,7 @@ export default function JewelryDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {recentSales.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Gem className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -225,7 +225,7 @@ export default function JewelryDashboardPage() {
               </div>
             ) : (
               recentSales.map((s: any) => (
-                <Link key={s.id} to={'/jewelry/sales/' + s.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={s.id} to={'/jewelry/sales/' + s.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-yellow-600 text-white flex items-center justify-center shrink-0 text-lg">
                     💎
                   </div>
@@ -251,15 +251,15 @@ export default function JewelryDashboardPage() {
         </div>
 
         {/* TOP CATEGORIES */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-yellow-600" />
               Top Selling Categories
             </h3>
             <p className="text-xs text-slate-500 font-semibold">Last 30 days</p>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topCategories.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Package className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -288,10 +288,10 @@ export default function JewelryDashboardPage() {
 
       {/* UPCOMING CUSTOM ORDERS + TOP KARIGARS */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Palette className="h-5 w-5 text-rose-600" />
                 Custom Orders In Progress
               </h3>
@@ -300,7 +300,7 @@ export default function JewelryDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-80 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-80 overflow-y-auto">
             {upcomingOrders.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Palette className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -308,7 +308,7 @@ export default function JewelryDashboardPage() {
               </div>
             ) : (
               upcomingOrders.map((o: any) => (
-                <Link key={o.id} to={'/jewelry/custom-orders/' + o.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={o.id} to={'/jewelry/custom-orders/' + o.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 text-white flex items-center justify-center shrink-0">
                     <Palette className="h-5 w-5" />
                   </div>
@@ -332,10 +332,10 @@ export default function JewelryDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-600" />
                 Top Karigars
               </h3>
@@ -344,7 +344,7 @@ export default function JewelryDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topKarigars.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Users className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -352,7 +352,7 @@ export default function JewelryDashboardPage() {
               </div>
             ) : (
               topKarigars.map((k: any, i: number) => (
-                <Link key={k.id} to={'/jewelry/karigars/' + k.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                <Link key={k.id} to={'/jewelry/karigars/' + k.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center font-extrabold text-sm shadow shrink-0">
                     {i + 1}
                   </div>
@@ -391,12 +391,12 @@ function KpiCard({ label, value, sub, icon: Icon, color }: any) {
     violet: 'from-violet-500 to-purple-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg shrink-0'}>
           <Icon className="h-6 w-6" />
@@ -420,7 +420,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -428,7 +428,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

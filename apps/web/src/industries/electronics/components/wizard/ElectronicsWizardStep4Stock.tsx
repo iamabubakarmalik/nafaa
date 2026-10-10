@@ -51,7 +51,7 @@ const VARIANT_PRESETS = [
   { group: 'Color', items: ['Black', 'White', 'Silver', 'Gold', 'Blue', 'Red'] },
 ];
 
-const IN = 'h-12 sm:h-10 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none transition';
+const IN = 'h-12 sm:h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none transition';
 
 export function ElectronicsWizardStep4Stock({
   basic, hasVariants, onToggleVariants, hasSerials, onToggleSerials,
@@ -193,7 +193,7 @@ export function ElectronicsWizardStep4Stock({
       )}
 
       {/* Header info */}
-      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-slate-900 border-2 border-blue-200 dark:border-blue-500/30 p-4 flex items-start gap-3">
+      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-white dark:from-blue-500/10 dark:to-ink-900 border-2 border-blue-200 dark:border-blue-500/30 p-4 flex items-start gap-3">
         <div className="h-11 w-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shrink-0">
           <Package className="h-5 w-5" />
         </div>
@@ -211,15 +211,15 @@ export function ElectronicsWizardStep4Stock({
           className={['rounded-2xl border-2 p-4 text-left transition active:scale-[0.98]',
             hasVariants
               ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 shadow-md'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 hover:border-violet-300 dark:hover:border-violet-500/50'].join(' ')}>
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900/80 hover:border-violet-300 dark:hover:border-violet-500/50'].join(' ')}>
           <div className="flex items-center gap-3">
             <div className={['h-11 w-11 rounded-xl flex items-center justify-center shrink-0',
               hasVariants ? 'bg-violet-500 text-white' : 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300'].join(' ')}>
               <Boxes className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-extrabold text-slate-900 dark:text-white text-sm">Variants (storage/color)</div>
-              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">128/256GB, Black/White</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Variants (storage/color)</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">128/256GB, Black/White</div>
             </div>
             {hasVariants ? <ToggleRight className="h-6 w-6 text-violet-600 dark:text-violet-400 shrink-0" /> : <ToggleLeft className="h-6 w-6 text-slate-400 shrink-0" />}
           </div>
@@ -229,15 +229,15 @@ export function ElectronicsWizardStep4Stock({
           className={['rounded-2xl border-2 p-4 text-left transition active:scale-[0.98]',
             hasSerials
               ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-md'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/80 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
+              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900/80 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
           <div className="flex items-center gap-3">
             <div className={['h-11 w-11 rounded-xl flex items-center justify-center shrink-0',
               hasSerials ? 'bg-amber-500 text-white' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'].join(' ')}>
               <Barcode className="h-5 w-5" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-extrabold text-slate-900 dark:text-white text-sm">Serial / IMEI Tracking</div>
-              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">Phones, laptops, high-value</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Serial / IMEI Tracking</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">Phones, laptops, high-value</div>
             </div>
             {hasSerials ? <ToggleRight className="h-6 w-6 text-amber-600 dark:text-amber-400 shrink-0" /> : <ToggleLeft className="h-6 w-6 text-slate-400 shrink-0" />}
           </div>
@@ -246,7 +246,7 @@ export function ElectronicsWizardStep4Stock({
 
       {/* ══ SIMPLE STOCK ══ */}
       {!hasVariants && !hasSerials && (
-        <section className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-4 sm:p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900 p-4 sm:p-5 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shrink-0">
               <Package className="h-5 w-5" />
@@ -258,21 +258,21 @@ export function ElectronicsWizardStep4Stock({
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
               Abhi kitne pieces hain?
             </label>
             <input type="number" step="1" inputMode="numeric" value={stock.currentStock}
               onChange={(e) => onUpdateStock({ currentStock: Number(e.target.value || 0) })}
-              className="h-16 w-full rounded-2xl border-2 border-emerald-400 dark:border-emerald-500/50 bg-white dark:bg-slate-800 px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20 transition" />
+              className="h-16 w-full rounded-2xl border-2 border-emerald-400 dark:border-emerald-500/50 bg-white dark:bg-ink-800 px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20 transition" />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {QUICK_STOCK.map((q) => (
                 <button key={q} type="button" onClick={() => onUpdateStock({ currentStock: Number(stock.currentStock || 0) + q })}
-                  className="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition active:scale-95">
+                  className="px-3 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition active:scale-95">
                   +{q}
                 </button>
               ))}
               <button type="button" onClick={() => onUpdateStock({ currentStock: 0 })}
-                className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-extrabold transition active:scale-95">
+                className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-600 dark:text-ink-300 text-xs font-extrabold transition active:scale-95">
                 Reset
               </button>
             </div>
@@ -280,14 +280,14 @@ export function ElectronicsWizardStep4Stock({
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">Low stock alert</label>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">Low stock alert</label>
               <input type="number" step="1" value={stock.lowStockAlert}
                 onChange={(e) => onUpdateStock({ lowStockAlert: Number(e.target.value || 0) })}
                 className={`${IN} font-extrabold tabular-nums focus:border-amber-500`} />
             </div>
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-                Rack / Location <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">(optional)</span>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
+                Rack / Location <span className="text-slate-400 dark:text-ink-500 normal-case font-bold">(optional)</span>
               </label>
               <div className="relative">
                 <MapPin className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -302,7 +302,7 @@ export function ElectronicsWizardStep4Stock({
 
       {/* ══ VARIANTS ══ */}
       {hasVariants && (
-        <section className="rounded-2xl border-2 border-violet-300 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-slate-900 p-4 sm:p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-violet-300 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-ink-900 p-4 sm:p-5 space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="h-11 w-11 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-md shrink-0">
               <Boxes className="h-5 w-5" />
@@ -316,20 +316,20 @@ export function ElectronicsWizardStep4Stock({
             </span>
           </div>
 
-          <div className="rounded-xl bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/30 p-3 space-y-2">
+          <div className="rounded-xl bg-white dark:bg-ink-800 border-2 border-violet-200 dark:border-violet-500/30 p-3 space-y-2">
             <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Common variants — click to add
             </div>
             {VARIANT_PRESETS.map((grp) => (
               <div key={grp.group} className="flex items-center gap-2 flex-wrap">
-                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-slate-400 min-w-[55px]">{grp.group}:</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-ink-400 min-w-[55px]">{grp.group}:</span>
                 {grp.items.map((it) => {
                   const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
                   return (
                     <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
                       className={['px-2.5 py-1.5 rounded-lg border-2 text-[0.6875rem] font-extrabold transition active:scale-95 disabled:cursor-not-allowed',
                         ex ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 opacity-60'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-violet-400 dark:hover:border-violet-500/50'].join(' ')}>
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-violet-400 dark:hover:border-violet-500/50'].join(' ')}>
                       {ex ? '✓ ' : '+ '}{it}
                     </button>
                   );
@@ -352,13 +352,13 @@ export function ElectronicsWizardStep4Stock({
           {variants.length > 0 ? (
             <div className="space-y-2">
               {variants.map((v) => (
-                <div key={v.tempId} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 space-y-2">
+                <div key={v.tempId} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 p-3 space-y-2">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center shrink-0">
                       <Boxes className="h-5 w-5" />
                     </div>
                     <input value={v.name} onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
-                      className="flex-1 min-w-0 text-sm font-extrabold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-800 rounded px-1" />
+                      className="flex-1 min-w-0 text-sm font-extrabold text-slate-900 dark:text-ink-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-ink-800 rounded px-1" />
                     <button type="button" onClick={() => onRemoveVariant(v.tempId)}
                       className="h-10 w-10 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition active:scale-95">
                       <Trash2 className="h-4 w-4" />
@@ -367,7 +367,7 @@ export function ElectronicsWizardStep4Stock({
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Stock (pcs)</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">Stock (pcs)</label>
                       <input type="number" step="1" inputMode="numeric" value={v.stock}
                         onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
                         className={`${IN} font-extrabold tabular-nums focus:border-blue-500`} />
@@ -377,16 +377,16 @@ export function ElectronicsWizardStep4Stock({
                       <input type="number" step="0.01" value={v.priceOverride ?? ''}
                         onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
                         placeholder={String(sale)}
-                        className="h-12 sm:h-10 w-full rounded-xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-slate-800 px-2 text-sm font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition" />
+                        className="h-12 sm:h-10 w-full rounded-xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">SKU</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">SKU</label>
                       <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
                         className={`${IN} font-mono text-xs focus:border-blue-500`} />
                     </div>
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">Barcode</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">Barcode</label>
                       <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
                         className={`${IN} font-mono text-xs focus:border-blue-500`} />
@@ -396,10 +396,10 @@ export function ElectronicsWizardStep4Stock({
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-500/40 bg-white dark:bg-slate-800/60 p-6 text-center">
+            <div className="rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-500/40 bg-white dark:bg-ink-800/60 p-6 text-center">
               <Boxes className="h-10 w-10 text-violet-400 mx-auto mb-2" />
-              <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Koi variant nahi</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Upar se preset click karein</div>
+              <div className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Koi variant nahi</div>
+              <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">Upar se preset click karein</div>
             </div>
           )}
         </section>
@@ -407,7 +407,7 @@ export function ElectronicsWizardStep4Stock({
 
       {/* ══ SERIALS — fast entry zone ══ */}
       {hasSerials && (
-        <section className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900 p-4 sm:p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-ink-900 p-4 sm:p-5 space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="h-11 w-11 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md shrink-0">
               <Barcode className="h-5 w-5" />
@@ -419,14 +419,14 @@ export function ElectronicsWizardStep4Stock({
             <div className="flex gap-2 flex-wrap">
               {/* 🔫 SCAN MODE — yahi asli tez rasta hai */}
               <button type="button" onClick={() => setScanMode(true)}
-                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md transition active:scale-95">
+                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-ink-700 hover:bg-slate-800 text-white text-xs font-extrabold inline-flex items-center gap-1.5 shadow-md transition active:scale-95">
                 <Camera className="h-4 w-4" /> Scan Karo
               </button>
               <button type="button" onClick={() => setShowBulk(!showBulk)}
                 className={['h-11 px-3 rounded-xl border-2 text-xs font-extrabold inline-flex items-center gap-1.5 transition active:scale-95',
                   showBulk
                     ? 'bg-amber-600 border-amber-600 text-white'
-                    : 'bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-800 dark:text-amber-200'].join(' ')}>
+                    : 'bg-white dark:bg-ink-800 border-amber-300 dark:border-amber-500/40 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-800 dark:text-amber-200'].join(' ')}>
                 <Upload className="h-4 w-4" /> Bulk Paste
               </button>
               <button type="button" onClick={() => { onAddSerial(); setTimeout(() => listEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }), 100); }}
@@ -437,7 +437,7 @@ export function ElectronicsWizardStep4Stock({
           </div>
 
           {/* Scan hint strip */}
-          <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3 flex items-center gap-3">
+          <div className="rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3 flex items-center gap-3">
             <div className="h-9 w-9 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
               <ScanLine className="h-4 w-4" />
             </div>
@@ -448,16 +448,16 @@ export function ElectronicsWizardStep4Stock({
           </div>
 
           {showBulk && (
-            <div className="rounded-xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 p-3 space-y-2">
+            <div className="rounded-xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 p-3 space-y-2">
               <div className="text-xs font-extrabold text-amber-800 dark:text-amber-200">
                 Har line par ek serial. IMEI ho to comma laga kar likhein
               </div>
               <textarea rows={6} value={bulkText} onChange={(e) => setBulkText(e.target.value)}
                 placeholder={'SN123456789\nSN987654321, 356938035643809\nSN555000111'}
-                className="w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                className="w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-mono text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
 
               {bulkParsed.length > 0 && (
-                <div className="rounded-lg bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-2.5 space-y-1.5">
+                <div className="rounded-lg bg-slate-50 dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-2.5 space-y-1.5">
                   <div className="flex items-center gap-2 flex-wrap text-[0.6875rem] font-extrabold">
                     <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
                       {bulkFresh.length} naye
@@ -484,7 +484,7 @@ export function ElectronicsWizardStep4Stock({
 
               <div className="flex justify-end gap-2">
                 <button type="button" onClick={() => { setShowBulk(false); setBulkText(''); }}
-                  className="h-10 px-3 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-extrabold text-slate-700 dark:text-slate-200 transition active:scale-95">
+                  className="h-10 px-3 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-xs font-extrabold text-slate-700 dark:text-ink-200 transition active:scale-95">
                   Cancel
                 </button>
                 <button type="button" onClick={bulkImport} disabled={bulkFresh.length === 0}
@@ -513,36 +513,36 @@ export function ElectronicsWizardStep4Stock({
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {serials.map((s, i) => (
                 <div key={s.tempId} className={[
-                  'rounded-xl border-2 bg-white dark:bg-slate-900 p-3 transition',
+                  'rounded-xl border-2 bg-white dark:bg-ink-900 p-3 transition',
                   s.serialNumber.trim() && dupeSerials.has(s.serialNumber.trim().toLowerCase())
                     ? 'border-rose-400 dark:border-rose-500/50 bg-rose-50/40 dark:bg-rose-500/5'
-                    : 'border-slate-200 dark:border-slate-700',
+                    : 'border-slate-200 dark:border-ink-700',
                 ].join(' ')}>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
                     <div className="sm:col-span-1">
-                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400 mb-1">#{i + 1}</div>
+                      <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400 mb-1">#{i + 1}</div>
                       <input value={s.serialNumber} onChange={(e) => onUpdateSerial(s.tempId, { serialNumber: e.target.value })}
                         placeholder="Serial Number" autoFocus={!s.serialNumber && i === serials.length - 1}
-                        className="h-11 sm:h-10 w-full rounded-lg border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-800 px-2 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-600 transition" />
+                        className="h-11 sm:h-10 w-full rounded-lg border-2 border-amber-300 dark:border-amber-500/40 bg-white dark:bg-ink-800 px-2 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-600 transition" />
                     </div>
                     <div>
-                      <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">IMEI</label>
+                      <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">IMEI</label>
                       <input value={s.imei ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { imei: e.target.value })}
                         placeholder="15 digits"
-                        className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                        className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-mono text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">IMEI 2</label>
+                      <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">IMEI 2</label>
                       <input value={s.imei2 ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { imei2: e.target.value })}
                         placeholder="Dual SIM"
-                        className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                        className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-mono text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                     </div>
                     <div className="flex items-end gap-1">
                       <div className="flex-1">
-                        <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-slate-400 uppercase mb-1">MAC</label>
+                        <label className="block text-[0.625rem] font-extrabold text-slate-600 dark:text-ink-400 uppercase mb-1">MAC</label>
                         <input value={s.macAddress ?? ''} onChange={(e) => onUpdateSerial(s.tempId, { macAddress: e.target.value })}
                           placeholder="AA:BB:CC"
-                          className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                          className="h-11 sm:h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-mono text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                       </div>
                       <button type="button" onClick={() => onRemoveSerial(s.tempId)}
                         className="h-11 sm:h-10 w-10 rounded-lg bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition active:scale-95">
@@ -555,10 +555,10 @@ export function ElectronicsWizardStep4Stock({
               <div ref={listEndRef} />
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-800/60 p-6 text-center">
+            <div className="rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-500/40 bg-white dark:bg-ink-800/60 p-6 text-center">
               <Barcode className="h-10 w-10 text-amber-400 mx-auto mb-2" />
-              <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Koi serial nahi</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">"Scan Karo" ya "Bulk Paste" — seconds me saara stock</div>
+              <div className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Koi serial nahi</div>
+              <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">"Scan Karo" ya "Bulk Paste" — seconds me saara stock</div>
             </div>
           )}
         </section>

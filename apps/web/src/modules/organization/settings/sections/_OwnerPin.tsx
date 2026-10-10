@@ -140,17 +140,17 @@ export function OwnerPinCard() {
 
         {hasPin ? (
           <>
-            <div className="rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3.5 flex items-center gap-3 flex-wrap">
+            <div className="rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60 p-3.5 flex items-center gap-3 flex-wrap">
               <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 text-white ${
                 unlocked ? 'bg-emerald-600' : 'bg-slate-900'
               }`}>
                 {unlocked ? <Unlock className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-extrabold text-slate-900 dark:text-white">
+                <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">
                   {unlocked ? 'Is device par abhi khula hai' : 'Is device par lock hai'}
                 </div>
-                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                   PIN {fmtWhen(status?.pinUpdatedAt)} ko set/badla gaya
                 </div>
               </div>
@@ -172,7 +172,7 @@ export function OwnerPinCard() {
                     className={`h-10 px-3.5 rounded-xl text-xs font-extrabold border-2 transition ${
                       mins === m
                         ? 'bg-sky-600 border-sky-600 text-white'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-sky-400'
+                        : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-sky-400'
                     }`}>
                     {m < 60 ? `${m} min` : `${m / 60} ghanta`}
                   </button>
@@ -310,10 +310,10 @@ export function PageLocksCard() {
             <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Safha dhoondein…"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white pl-9 pr-9 text-sm font-bold outline-none focus:border-violet-500 transition" />
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white pl-9 pr-9 text-sm font-bold outline-none focus:border-violet-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-3.5 w-3.5 text-slate-500" />
               </button>
             )}
@@ -322,7 +322,7 @@ export function PageLocksCard() {
           <div className="space-y-3">
             {groups.map((g) => (
               <div key={g.group}>
-                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-1.5">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 mb-1.5">
                   {g.group}
                 </div>
                 <div className="grid sm:grid-cols-2 gap-2">
@@ -333,16 +333,16 @@ export function PageLocksCard() {
                         className={`rounded-2xl border-2 p-3 text-left transition flex items-start gap-2.5 ${
                           on
                             ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10 ring-2 ring-violet-200 dark:ring-violet-500/20'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-violet-400'
+                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-violet-400'
                         }`}>
                         <div className={`h-8 w-8 rounded-xl flex items-center justify-center shrink-0 ${
-                          on ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                          on ? 'bg-violet-600 text-white' : 'bg-slate-100 dark:bg-ink-800 text-slate-400'
                         }`}>
                           {on ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
                         </div>
                         <div className="min-w-0">
-                          <div className="text-sm font-extrabold text-slate-900 dark:text-white truncate">{i.label}</div>
-                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{i.hint}</div>
+                          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white truncate">{i.label}</div>
+                          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{i.hint}</div>
                           <div className="text-[0.6875rem] font-mono text-slate-400 truncate">{i.path}</div>
                         </div>
                       </button>
@@ -359,7 +359,7 @@ export function PageLocksCard() {
               <input value={custom} onChange={(e) => setCustom(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && addCustom()}
                 placeholder="/appliances/profit-report"
-                className="flex-1 h-11 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm font-mono font-bold outline-none focus:border-violet-500 transition" />
+                className="flex-1 h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm font-mono font-bold outline-none focus:border-violet-500 transition" />
               <Button variant="secondary" onClick={addCustom} className="font-extrabold shrink-0">
                 Add
               </Button>

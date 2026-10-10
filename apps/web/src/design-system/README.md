@@ -18,8 +18,12 @@ design-system/
     store.ts               Zustand store holding the layers (personal layer persisted)
     apply.ts               The only code that writes theme state to <html>
     AppearanceProvider.tsx Applies the theme; bridges tenant settings and industry
+  tailwind/
+    palette.cjs            Tailwind palettes with automatic dark-mode values
+    dark-rules.json        Dark-mode rules shared by Tailwind and the runtime brand scale
   styles/
-    tokens.css             CSS variable defaults, print and reduced-motion rules
+    tokens.css             CSS variable defaults (light and dark), print rules
+    base.css               Element defaults layered after Tailwind preflight
 ```
 
 ## How a screen gets its look
@@ -55,13 +59,33 @@ Tailwind is wired to the variables (see `tailwind.config.js`):
 `emerald-*` is mapped to the brand scale as well, because existing screens use
 it as their primary color. New code should write `brand-*`.
 
-Rules for new code:
+## Dark mode
+
+Dark mode is automatic. Every Tailwind color step that needs a different
+value in dark mode reads a CSS variable that `html.dark` overrides, and the
+rule depends on the utility (see `tailwind/palette.cjs`):
+
+| Utility | Light value | In dark mode |
+| --- | --- | --- |
+| `bg-white`, `bg-slate-50…300` | light surfaces | dark surfaces |
+| `bg-slate-700…950` | dark "inverse" surfaces | raised dark surfaces |
+| `bg-blue-50…300` (any hue) | soft tints | low-opacity glows |
+| `text-slate-400…950` | grey text | light text |
+| `text-blue-600…950` (any hue) | deep hue text | light end of the same hue |
+| `border-slate-50…400`, hue `-50…300` | light lines | dark lines |
+| solid hues (`bg-blue-600`), `text-white`, black | unchanged | unchanged |
+
+So a screen written only with light-mode classes is already correct in dark
+mode. Add a `dark:` class only to deliberately change the automatic result,
+and then use the fixed `ink-*` palette (`dark:bg-ink-800`, `dark:text-ink-white`)
+— `ink` never switches, so the override means exactly what it says.
+
+## Rules for new code
 
 - No hex colors and no `rgba(...)` literals for brand colors.
 - Type sizes in rem (`text-sm`, `text-[0.8125rem]`), never `px`, so the
   text-size preference applies. Nothing on screen goes below `0.625rem`.
-- Every surface needs a `dark:` counterpart until the semantic surface tokens
-  land (see the roadmap below).
+- Do not add `dark:` classes for greys or tints; the engine handles them.
 - Read theme state with `useAppearance()`; never toggle the `dark` class or
   write `<html>` attributes yourself.
 
@@ -70,7 +94,5 @@ Rules for new code:
 - **Semantic success color.** Some screens use `emerald` to mean "success"
   (paid, delivered). Because `emerald` now follows the brand, those should move
   to `success-*` so they stay green when a business picks another accent.
-- **Surface tokens for dark mode.** Replace the global dark-mode override layer
-  in `index.css` with `bg-surface` / `text-fg` style tokens.
 - **Right-to-left layout.** `RTL_ENABLED` in `theme/apply.ts` stays `false`
   until screens are translated and use logical spacing (`ms-*`, `me-*`).

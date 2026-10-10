@@ -38,22 +38,22 @@ export default function PrescriptionsPage() {
         {['all', 'ACTIVE', 'DISPENSED', 'EXPIRED', 'CANCELLED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-cyan-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{s === 'all' ? 'All' : s}</button>
         ))}
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : prescriptions.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Pill className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No prescriptions yet</p>
         </div>
       ) : (
         <section className="grid gap-3">
           {prescriptions.map((rx) => (
-            <div key={rx.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+            <div key={rx.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="flex items-start gap-3">
                   <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow">
@@ -78,7 +78,7 @@ export default function PrescriptionsPage() {
               <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
                 {rx.items?.slice(0, 4).map((it) => (
                   <div key={it.id} className="text-xs font-bold text-slate-700">
-                    • <span className="text-slate-900 dark:text-white">{it.drugName}</span> {it.strength} — {it.dose} • {it.frequency} • {it.durationDays}d
+                    • <span className="text-slate-900 dark:text-ink-white">{it.drugName}</span> {it.strength} — {it.dose} • {it.frequency} • {it.durationDays}d
                   </div>
                 ))}
                 {(rx.items?.length || 0) > 4 && (

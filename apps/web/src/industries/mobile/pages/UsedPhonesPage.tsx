@@ -418,7 +418,7 @@ export default function UsedPhonesPage() {
       )}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-slate-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-violet-900 to-fuchsia-700 dark:from-ink-950 dark:via-violet-950 dark:to-fuchsia-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-violet-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-fuchsia-400/20 blur-3xl pointer-events-none" />
 
@@ -544,7 +544,7 @@ export default function UsedPhonesPage() {
                   <button
                     key={p.id}
                     onClick={() => setDetailsPhone(p)}
-                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-slate-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-rose-800 dark:text-rose-300 hover:border-rose-500 transition"
+                    className="inline-flex items-center gap-1 rounded-lg bg-white dark:bg-ink-800 border border-rose-300 dark:border-rose-500/40 px-2 py-1 text-[0.6875rem] font-extrabold text-rose-800 dark:text-rose-300 hover:border-rose-500 transition"
                   >
                     {p.brand} {p.model}
                     <span className="text-rose-500 dark:text-rose-400 font-mono">{p.usedPhoneCode}</span>
@@ -571,7 +571,7 @@ export default function UsedPhonesPage() {
           <section className="flex gap-1.5 overflow-x-auto pb-1 print:hidden">
             <button
               onClick={() => setStatusFilter('ALL')}
-              className={`shrink-0 px-3 h-10 rounded-xl text-xs font-extrabold transition border-2 ${statusFilter === 'ALL' ? 'bg-violet-600 text-white border-violet-600 shadow-md' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-violet-300'}`}
+              className={`shrink-0 px-3 h-10 rounded-xl text-xs font-extrabold transition border-2 ${statusFilter === 'ALL' ? 'bg-violet-600 text-white border-violet-600 shadow-md' : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-violet-300'}`}
             >
               Sab <span className="tabular-nums opacity-70">({phones.length})</span>
             </button>
@@ -585,7 +585,7 @@ export default function UsedPhonesPage() {
                 <button
                   key={status}
                   onClick={() => setStatusFilter(active ? 'ALL' : status)}
-                  className={`shrink-0 inline-flex items-center gap-1 px-3 h-10 rounded-xl text-xs font-extrabold border-2 transition ${active ? `${colors.bg} ${colors.text} border-current shadow-md` : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-violet-300'}`}
+                  className={`shrink-0 inline-flex items-center gap-1 px-3 h-10 rounded-xl text-xs font-extrabold border-2 transition ${active ? `${colors.bg} ${colors.text} border-current shadow-md` : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-violet-300'}`}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {STATUS_LABELS[status]}
@@ -595,7 +595,7 @@ export default function UsedPhonesPage() {
             })}
           </section>
 
-          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
+          <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
             <div className="flex gap-2 flex-wrap items-center">
               <div className="relative flex-1 min-w-[220px]">
                 <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -604,23 +604,23 @@ export default function UsedPhonesPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Code / IMEI / brand / model / customer... (/ shortcut)"
-                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition"
+                  className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30 transition"
                 />
                 {search && (
-                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                     <X className="h-4 w-4 text-slate-400" />
                   </button>
                 )}
               </div>
 
-              <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value as UsedPhoneCondition | 'ALL')} className="h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition">
+              <select value={conditionFilter} onChange={(e) => setConditionFilter(e.target.value as UsedPhoneCondition | 'ALL')} className="h-12 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition">
                 <option value="ALL">⭐ Sab Conditions</option>
                 {(['EXCELLENT', 'VERY_GOOD', 'GOOD', 'FAIR', 'POOR'] as UsedPhoneCondition[]).map((c) => (
                   <option key={c} value={c}>{CONDITION_LABELS[c]}</option>
                 ))}
               </select>
 
-              <select value={ptaFilter} onChange={(e) => setPtaFilter(e.target.value as PtaFilter)} className="h-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-extrabold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition">
+              <select value={ptaFilter} onChange={(e) => setPtaFilter(e.target.value as PtaFilter)} className="h-12 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-extrabold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition">
                 {PTA_FILTER_OPTIONS.map((o) => (
                   <option key={o.v} value={o.v}>{o.l}</option>
                 ))}
@@ -632,26 +632,26 @@ export default function UsedPhonesPage() {
                 </button>
               )}
 
-              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+              <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
                 {filtered.length} phones
               </div>
             </div>
           </section>
 
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
             {isLoading ? (
               <div className="p-4 space-y-2">
-                {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+                {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
               </div>
             ) : filtered.length === 0 ? (
               <div className="p-12 sm:p-16 text-center">
                 <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-violet-500 to-fuchsia-700 mx-auto flex items-center justify-center shadow-lg shadow-violet-500/40">
                   <Smartphone className="h-10 w-10 text-white" />
                 </div>
-                <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+                <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
                   {hasFilters ? 'Is filter mein koi phone nahi' : 'Abhi koi trade-in nahi 📱'}
                 </h3>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+                <p className="mt-1 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
                   {hasFilters ? 'Filters badal ke dekho ya search clear karo' : 'Customer ka purana phone lo, inspect karo, resale price lagao — aur profit kamao'}
                 </p>
                 {hasFilters ? (
@@ -670,7 +670,7 @@ export default function UsedPhonesPage() {
                 )}
               </div>
             ) : (
-              <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
                 {filtered.map((phone) => (
                   <PhoneRow
                     key={phone.id}
@@ -695,26 +695,26 @@ export default function UsedPhonesPage() {
       {/* ══════════════════ ANALYTICS VIEW ══════════════════ */}
       {view === 'analytics' && (
         <div className="space-y-4 print:hidden">
-          <section className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+          <section className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
             <div className="flex items-center gap-2 flex-wrap">
               <Calendar className="h-4 w-4 text-violet-600 dark:text-violet-400" />
-              <span className="text-sm font-extrabold text-slate-900 dark:text-white">Date Range:</span>
+              <span className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Date Range:</span>
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500"
+                className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500"
               />
               <span className="text-slate-400 font-bold">→</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="h-10 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500"
+                className="h-10 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500"
               />
               <div className="flex gap-1 flex-wrap">
                 {([['today', 'Aaj'], ['week', '7 Din'], ['month', 'Mahina'], ['year', 'Saal'], ['all', 'Sab']] as const).map(([p, l]) => (
-                  <button key={p} onClick={() => setDatePreset(p)} className="px-2.5 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-[0.6875rem] font-extrabold text-slate-700 dark:text-slate-300 transition">
+                  <button key={p} onClick={() => setDatePreset(p)} className="px-2.5 h-10 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-violet-100 dark:hover:bg-violet-500/20 text-[0.6875rem] font-extrabold text-slate-700 dark:text-ink-300 transition">
                     {l}
                   </button>
                 ))}
@@ -737,12 +737,12 @@ export default function UsedPhonesPage() {
           )}
 
           <div className="grid lg:grid-cols-2 gap-4">
-            <section className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <section className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
                 <Trophy className="h-4 w-4 text-amber-500" /> Brand Breakdown
               </h3>
               {analytics.byBrand.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Is range mein koi trade-in nahi</p>
+                <p className="text-sm text-slate-500 dark:text-ink-400 font-semibold">Is range mein koi trade-in nahi</p>
               ) : (
                 <div className="space-y-2.5">
                   {analytics.byBrand.map(([brand, d]) => {
@@ -750,12 +750,12 @@ export default function UsedPhonesPage() {
                     return (
                       <div key={brand}>
                         <div className="flex items-center justify-between text-xs font-extrabold mb-1">
-                          <span className="text-slate-900 dark:text-white">{brand}</span>
-                          <span className="text-slate-500 dark:text-slate-400 tabular-nums">
+                          <span className="text-slate-900 dark:text-ink-white">{brand}</span>
+                          <span className="text-slate-500 dark:text-ink-400 tabular-nums">
                             {d.count} phones • {formatPKR(d.spent)} lagaya{d.profit !== 0 && <span className="text-emerald-600 dark:text-emerald-400"> • +{formatPKR(d.profit)}</span>}
                           </span>
                         </div>
-                        <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-2.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                           <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all" style={{ width: `${(d.count / max) * 100}%` }} />
                         </div>
                       </div>
@@ -765,12 +765,12 @@ export default function UsedPhonesPage() {
               )}
             </section>
 
-            <section className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5">
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <section className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-violet-500" /> Status Breakdown
               </h3>
               {analytics.byStatus.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400 font-semibold">Is range mein koi trade-in nahi</p>
+                <p className="text-sm text-slate-500 dark:text-ink-400 font-semibold">Is range mein koi trade-in nahi</p>
               ) : (
                 <div className="space-y-2.5">
                   {analytics.byStatus.map(([status, count]) => {
@@ -779,13 +779,13 @@ export default function UsedPhonesPage() {
                     return (
                       <div key={status}>
                         <div className="flex items-center justify-between text-xs font-extrabold mb-1">
-                          <span className="text-slate-900 dark:text-white inline-flex items-center gap-1.5">
+                          <span className="text-slate-900 dark:text-ink-white inline-flex items-center gap-1.5">
                             <Icon className="h-3.5 w-3.5" style={{ color: STATUS_BAR_COLORS[status] }} />
                             {STATUS_LABELS[status]}
                           </span>
-                          <span className="text-slate-500 dark:text-slate-400 tabular-nums">{count}</span>
+                          <span className="text-slate-500 dark:text-ink-400 tabular-nums">{count}</span>
                         </div>
-                        <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                        <div className="h-2.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
                           <div className="h-full rounded-full transition-all" style={{ width: `${(count / max) * 100}%`, background: STATUS_BAR_COLORS[status] }} />
                         </div>
                       </div>
@@ -796,15 +796,15 @@ export default function UsedPhonesPage() {
             </section>
           </div>
 
-          <section className="rounded-2xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3.5 border-b-2 border-slate-100 dark:border-slate-800">
-              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Is Range ke Trade-Ins ({analytics.inRange.length})</h3>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Kisi bhi row pe click karo — poori details khulegi</p>
+          <section className="rounded-2xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3.5 border-b-2 border-slate-100 dark:border-ink-800">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-ink-white">Is Range ke Trade-Ins ({analytics.inRange.length})</h3>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Kisi bhi row pe click karo — poori details khulegi</p>
             </div>
             {analytics.inRange.length === 0 ? (
-              <p className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 font-semibold">Is date range mein koi record nahi — range badal ke dekho</p>
+              <p className="p-8 text-center text-sm text-slate-500 dark:text-ink-400 font-semibold">Is date range mein koi record nahi — range badal ke dekho</p>
             ) : (
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {analytics.inRange.map((p) => {
                   const profit = (Number(p.finalSoldPrice) || Number(p.resalePrice)) - Number(p.totalCost);
                   const colors = STATUS_COLORS[p.status as UsedPhoneStatus];
@@ -819,14 +819,14 @@ export default function UsedPhonesPage() {
                           <span className="font-mono font-extrabold text-xs text-violet-700 dark:text-violet-300">{p.usedPhoneCode}</span>
                           <span className={`px-1.5 py-0.5 rounded text-[0.625rem] font-extrabold ${colors.bg} ${colors.text}`}>{STATUS_LABELS[p.status as UsedPhoneStatus]}</span>
                         </div>
-                        <div className="text-sm font-extrabold text-slate-900 dark:text-white mt-0.5">{p.brand} {p.model}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white mt-0.5">{p.brand} {p.model}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                           {new Date(p.receivedAt).toLocaleDateString('en-PK', { day: 'numeric', month: 'short', year: 'numeric' })}
                           {p.fromCustomerName && ` • ${p.fromCustomerName}`}
                         </div>
                       </div>
                       <div className="text-right shrink-0">
-                        <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(p.finalSoldPrice || p.resalePrice)}</div>
+                        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(p.finalSoldPrice || p.resalePrice)}</div>
                         <div className={`text-[0.6875rem] font-extrabold tabular-nums ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
                           {profit >= 0 ? '+' : ''}{formatPKR(profit)}
                         </div>
@@ -926,19 +926,19 @@ function PhoneRow({ phone, onDetails, onWhatsApp, onPrintReceipt, onMarkInStock,
               )}
             </div>
 
-            <div className="mt-1 font-extrabold text-slate-900 dark:text-white text-sm">
+            <div className="mt-1 font-extrabold text-slate-900 dark:text-ink-white text-sm">
               {phone.brand} {phone.model}
-              {phone.storage && <span className="text-slate-500 dark:text-slate-400 font-bold"> · {phone.storage}</span>}
+              {phone.storage && <span className="text-slate-500 dark:text-ink-400 font-bold"> · {phone.storage}</span>}
               {phone.color && <span className="text-violet-700 dark:text-violet-400 font-bold"> · {phone.color}</span>}
-              {phone.modelYear && <span className="text-slate-500 dark:text-slate-400 font-bold"> · {phone.modelYear}</span>}
+              {phone.modelYear && <span className="text-slate-500 dark:text-ink-400 font-bold"> · {phone.modelYear}</span>}
             </div>
 
-            <div className="mt-1 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-bold flex-wrap">
+            <div className="mt-1 flex items-center gap-2 text-xs text-slate-500 dark:text-ink-400 font-bold flex-wrap">
               <span className="font-mono">IMEI: {phone.imei1}</span>
               {phone.fromCustomerName && (
                 <>
-                  <span className="text-slate-300 dark:text-slate-600">•</span>
-                  <span>From: <strong className="text-slate-700 dark:text-slate-200">{phone.fromCustomerName}</strong>
+                  <span className="text-slate-300 dark:text-ink-600">•</span>
+                  <span>From: <strong className="text-slate-700 dark:text-ink-200">{phone.fromCustomerName}</strong>
                     {phone.fromCustomerPhone && <span className="font-mono"> {phone.fromCustomerPhone}</span>}
                   </span>
                 </>
@@ -951,7 +951,7 @@ function PhoneRow({ phone, onDetails, onWhatsApp, onPrintReceipt, onMarkInStock,
           <div className="text-lg font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
             {formatPKR(phone.finalSoldPrice || phone.resalePrice)}
           </div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-1 tabular-nums">
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-1 tabular-nums">
             Cost: {formatPKR(phone.totalCost)}
             {phone.refurbishCost > 0 && <span className="text-orange-600 dark:text-orange-400"> (+{formatPKR(phone.refurbishCost)} repair)</span>}
           </div>
@@ -964,7 +964,7 @@ function PhoneRow({ phone, onDetails, onWhatsApp, onPrintReceipt, onMarkInStock,
             <button
               onClick={onDetails}
               title="Details + Edit"
-              className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1 transition"
+              className="h-9 px-2.5 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1 transition"
             >
               <Eye className="h-3.5 w-3.5" />
               <span className="hidden md:inline">Details</span>
@@ -1013,18 +1013,18 @@ function TradeInTeacher({ hasPhones, onClose, onStart }: {
 }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-violet-200 dark:border-violet-500/30 bg-gradient-to-r from-violet-50 to-fuchsia-50 dark:from-violet-500/15 dark:to-fuchsia-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-violet-900 dark:text-violet-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Trade-In Kaise Kaam Karta Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Customer ka <strong>purana phone</strong> khareed lo (buyback), thora <strong>repair</strong> karwao agar zaroorat ho,
             phir <strong>naye daam pe becho</strong> — beech ka farq aap ka <strong>profit</strong>! 💰
           </p>
@@ -1049,7 +1049,7 @@ function TradeInTeacher({ hasPhones, onClose, onStart }: {
             <TeacherStep emoji="💰" title="Becho" desc="Sell karo → receipt print do" />
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TeacherTip><strong>Row pe click</strong> = poori details + edit + WhatsApp + receipt sab ek jagah</TeacherTip>
             <TeacherTip><strong>🖨️ Receipt</strong> button se seedha print overlay khulti hai — kahin navigate nahi hota</TeacherTip>
             <TeacherTip><strong>💬 WhatsApp</strong> button se customer ko confirmation msg jata hai (IMEI proof)</TeacherTip>
@@ -1072,21 +1072,21 @@ function FlowBox({ emoji, label, value, sub, highlight }: {
   emoji: string; label: string; value: string; sub: string; highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-xl border-2 px-3 py-2 text-center min-w-[90px] ${highlight ? 'border-emerald-500 bg-white dark:bg-slate-800 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/60'}`}>
+    <div className={`rounded-xl border-2 px-3 py-2 text-center min-w-[90px] ${highlight ? 'border-emerald-500 bg-white dark:bg-ink-800 shadow-md' : 'border-slate-200 dark:border-ink-700 bg-white/70 dark:bg-ink-800/60'}`}>
       <div className="text-xl">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white uppercase">{label}</div>
-      <div className={`text-xs font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{value}</div>
-      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-slate-400">{sub}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white uppercase">{label}</div>
+      <div className={`text-xs font-extrabold tabular-nums ${highlight ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-ink-300'}`}>{value}</div>
+      <div className="text-[0.625rem] font-bold text-slate-500 dark:text-ink-400">{sub}</div>
     </div>
   );
 }
 
 function TeacherStep({ emoji, title, desc }: { emoji: string; title: string; desc: string }) {
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
       <div className="text-xl">{emoji}</div>
-      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white mt-1">{title}</div>
-      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">{desc}</div>
+      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white mt-1">{title}</div>
+      <div className="text-[0.625rem] font-semibold text-slate-500 dark:text-ink-400 mt-0.5 leading-snug">{desc}</div>
     </div>
   );
 }
@@ -1108,12 +1108,12 @@ function Kpi({ label, value, sub, icon: Icon, tone }: any) {
     amber:   'from-amber-500 to-orange-600 shadow-amber-500/40',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate" title={sub}>{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-lg sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate" title={sub}>{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

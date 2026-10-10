@@ -58,7 +58,7 @@ export function RepairPriorityBadge({
         colors.text,
         colors.border,
         // Dark mode fallback
-        priority === 'NORMAL' && 'dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+        priority === 'NORMAL' && 'dark:bg-ink-800 dark:text-ink-300 dark:border-ink-700',
         priority === 'URGENT' && 'dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-500/40',
         priority === 'EMERGENCY' && 'dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-500/40',
         sizeClasses[size],

@@ -130,8 +130,8 @@ export default function NewAppointmentPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Patient */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-fuchsia-600" />
               Patient *
             </h3>
@@ -178,8 +178,8 @@ export default function NewAppointmentPage() {
           </section>
 
           {/* Doctor */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <UserCog className="h-4 w-4 text-blue-600" />
               Doctor *
             </h3>
@@ -187,7 +187,7 @@ export default function NewAppointmentPage() {
               const doc = doctors.find((d) => d.id === e.target.value);
               setSelectedDoctor(doc);
               setForm({ ...form, doctorId: e.target.value });
-            }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
+            }} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500">
               <option value="">-- Select Doctor --</option>
               {doctors.map((d) => (
                 <option key={d.id} value={d.id}>
@@ -209,8 +209,8 @@ export default function NewAppointmentPage() {
           </section>
 
           {/* Visit Type */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-fuchsia-600" />
               Visit Type
             </h3>
@@ -218,7 +218,7 @@ export default function NewAppointmentPage() {
               {VISIT_TYPES.map((v) => (
                 <button key={v.value} onClick={() => setForm({ ...form, visitType: v.value })} className={
                   'p-2 rounded-xl border-2 text-xs font-extrabold transition ' +
-                  (form.visitType === v.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-blue-300')
+                  (form.visitType === v.value ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-blue-300')
                 }>
                   <div className="text-lg">{v.emoji}</div>
                   <div className="text-[0.6875rem] mt-0.5">{v.label}</div>
@@ -227,17 +227,17 @@ export default function NewAppointmentPage() {
             </div>
 
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100">
-              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isTelemedicine ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isTelemedicine ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40' : 'border-slate-200 dark:border-ink-700')}>
                 <input type="checkbox" checked={form.isTelemedicine} onChange={(e) => setForm({ ...form, isTelemedicine: e.target.checked })} className="h-4 w-4 rounded" />
                 <Video className={'h-4 w-4 ' + (form.isTelemedicine ? 'text-purple-600' : 'text-slate-400')} />
                 <span className="text-xs font-extrabold">Video</span>
               </label>
-              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isHomeVisit ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isHomeVisit ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700')}>
                 <input type="checkbox" checked={form.isHomeVisit} onChange={(e) => setForm({ ...form, isHomeVisit: e.target.checked })} className="h-4 w-4 rounded" />
                 <Home className={'h-4 w-4 ' + (form.isHomeVisit ? 'text-blue-600' : 'text-slate-400')} />
                 <span className="text-xs font-extrabold">Home</span>
               </label>
-              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isEmergency ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-neutral-700')}>
+              <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.isEmergency ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-ink-700')}>
                 <input type="checkbox" checked={form.isEmergency} onChange={(e) => setForm({ ...form, isEmergency: e.target.checked })} className="h-4 w-4 rounded" />
                 <Zap className={'h-4 w-4 ' + (form.isEmergency ? 'text-red-600' : 'text-slate-400')} />
                 <span className="text-xs font-extrabold">Emergency</span>
@@ -246,8 +246,8 @@ export default function NewAppointmentPage() {
           </section>
 
           {/* Date/Time */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Calendar className="h-4 w-4 text-cyan-600" />
               Date & Time *
             </h3>
@@ -256,18 +256,18 @@ export default function NewAppointmentPage() {
               <input type="time" value={form.scheduledTime} onChange={(e) => setForm({ ...form, scheduledTime: e.target.value })} className="h-11 rounded-xl border-2 border-cyan-300 bg-cyan-50 dark:bg-cyan-950/30 px-3 text-sm font-extrabold focus:outline-none focus:border-cyan-500" />
             </div>
             {scheduledStart && scheduledEnd && (
-              <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-3 text-center">
+              <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-3 text-center">
                 <div className="text-xs font-bold text-slate-500">Appointment: {format(scheduledStart, 'HH:mm')} → {format(scheduledEnd, 'HH:mm')}</div>
               </div>
             )}
           </section>
 
           {/* Complaint */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white">Chief Complaint & Notes</h3>
-            <input value={form.chiefComplaint} onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })} placeholder="Chief complaint (main problem)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
-            <textarea rows={2} value={form.reasonForVisit} onChange={(e) => setForm({ ...form, reasonForVisit: e.target.value })} placeholder="Reason for visit / symptoms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
-            <textarea rows={2} value={form.patientNotes} onChange={(e) => setForm({ ...form, patientNotes: e.target.value })} placeholder="Additional patient notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Chief Complaint & Notes</h3>
+            <input value={form.chiefComplaint} onChange={(e) => setForm({ ...form, chiefComplaint: e.target.value })} placeholder="Chief complaint (main problem)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-blue-500" />
+            <textarea rows={2} value={form.reasonForVisit} onChange={(e) => setForm({ ...form, reasonForVisit: e.target.value })} placeholder="Reason for visit / symptoms..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
+            <textarea rows={2} value={form.patientNotes} onChange={(e) => setForm({ ...form, patientNotes: e.target.value })} placeholder="Additional patient notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-blue-500 resize-none" />
           </section>
         </div>
 

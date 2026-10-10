@@ -70,16 +70,16 @@ export default function QurbaniPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search booking #, customer name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search booking #, customer name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {['active', 'all', 'BOOKED', 'CONFIRMED', 'SLAUGHTERED', 'DELIVERED', 'CANCELLED'].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s === 'active' ? '🔥 Active' : s === 'all' ? 'All' : s}</button>
           ))}
         </div>
@@ -94,10 +94,10 @@ export default function QurbaniPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4].map((i) => <div key={i} className="h-48 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Heart className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No bookings yet</p>
         </div>
@@ -115,7 +115,7 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
   const remaining = (booking.finalPrice || 0) - booking.paidAmount;
 
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm hover:shadow-lg transition p-4 space-y-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white flex items-center justify-center shadow shrink-0 text-3xl">
@@ -123,7 +123,7 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white">{booking.bookingNumber}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white">{booking.bookingNumber}</span>
               <span className="px-2 py-0.5 rounded-full bg-fuchsia-500 text-white text-[0.625rem] font-extrabold uppercase">{booking.status}</span>
               <span className="px-2 py-0.5 rounded bg-purple-100 dark:bg-purple-950/40 text-purple-700 text-[0.625rem] font-extrabold uppercase">{booking.occasion}</span>
             </div>
@@ -151,7 +151,7 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
         <div className="text-xs">
           <span className="text-slate-500 font-semibold">Deliver:</span>{' '}
           <span className="font-extrabold">
@@ -172,7 +172,7 @@ function BookingCard({ booking }: { booking: QurbaniBooking }) {
         </div>
       )}
 
-      <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+      <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
         <div>
           <div className="text-[0.6875rem] font-extrabold text-emerald-700">Paid: {formatPKR(booking.paidAmount)}</div>
           {remaining > 0 && (
@@ -232,7 +232,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
   const maxShares = selectedAnimal?.shares ?? 1;
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">🌙 New Qurbani/Aqeeqa Booking</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -242,10 +242,10 @@ function QurbaniForm({ onClose, onSaved }: any) {
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         {/* Customer */}
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
-          <textarea rows={1} value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })} placeholder="Address" className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+          <input value={form.customerCnic} onChange={(e) => setForm({ ...form, customerCnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
+          <textarea rows={1} value={form.customerAddress} onChange={(e) => setForm({ ...form, customerAddress: e.target.value })} placeholder="Address" className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
         </div>
 
         {/* Occasion + Animal */}
@@ -255,7 +255,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
             {OCCASIONS.map((o) => (
               <button key={o.value} onClick={() => setForm({ ...form, occasion: o.value })} className={
                 'p-3 rounded-xl border-2 text-xs font-extrabold transition ' +
-                (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                (form.occasion === o.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
               }>{o.label}</button>
             ))}
           </div>
@@ -267,7 +267,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
             {ANIMAL_TYPES.map((a) => (
               <button key={a.value} onClick={() => setForm({ ...form, animalType: a.value, shareCount: a.shares > 1 ? form.shareCount : 1 })} className={
                 'p-3 rounded-xl border-2 text-center transition ' +
-                (form.animalType === a.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                (form.animalType === a.value ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
               }>
                 <div className="text-3xl mb-1">{a.emoji}</div>
                 <div className="text-[0.6875rem] font-extrabold">{a.label}</div>
@@ -277,7 +277,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
           </div>
         </div>
 
-        <input value={form.animalPreference} onChange={(e) => setForm({ ...form, animalPreference: e.target.value })} placeholder="Animal preference (e.g. white color, healthy, 2-year old)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+        <input value={form.animalPreference} onChange={(e) => setForm({ ...form, animalPreference: e.target.value })} placeholder="Animal preference (e.g. white color, healthy, 2-year old)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
 
         {/* Shares */}
         {maxShares > 1 && (
@@ -308,7 +308,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Slaughter Date</label>
-            <input type="date" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+            <input type="date" value={form.slaughterDate} onChange={(e) => setForm({ ...form, slaughterDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
           </div>
         </div>
 
@@ -327,7 +327,7 @@ function QurbaniForm({ onClose, onSaved }: any) {
                 ].map((d) => (
                   <button key={d.v} onClick={() => setForm({ ...form, deliveryPreference: d.v })} className={
                     'p-2 rounded-lg border-2 text-sm font-extrabold ' +
-                    (form.deliveryPreference === d.v ? 'border-blue-500 bg-white dark:bg-blue-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800')
+                    (form.deliveryPreference === d.v ? 'border-blue-500 bg-white dark:bg-blue-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800')
                   }>{d.label}</button>
                 ))}
               </div>
@@ -354,24 +354,24 @@ function QurbaniForm({ onClose, onSaved }: any) {
 
         {/* Preferences */}
         <div className="grid grid-cols-2 gap-2">
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.wantsSkin ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.wantsSkin ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.wantsSkin} onChange={(e) => setForm({ ...form, wantsSkin: e.target.checked })} className="h-4 w-4 rounded" />
             <span className="text-sm font-extrabold">Wants skin (khaal)</span>
           </label>
-          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.wantsOffal ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-neutral-700')}>
+          <label className={'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer ' + (form.wantsOffal ? 'border-amber-500 bg-amber-50' : 'border-slate-200 dark:border-ink-700')}>
             <input type="checkbox" checked={form.wantsOffal} onChange={(e) => setForm({ ...form, wantsOffal: e.target.checked })} className="h-4 w-4 rounded" />
             <span className="text-sm font-extrabold">Wants offal (kaleji, paye)</span>
           </label>
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
-          <input value={form.cuttingStyle} onChange={(e) => setForm({ ...form, cuttingStyle: e.target.value })} placeholder="Cutting style" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-          <input type="number" value={form.packagingCount} onChange={(e) => setForm({ ...form, packagingCount: e.target.value })} placeholder="Number of packets" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+          <input value={form.cuttingStyle} onChange={(e) => setForm({ ...form, cuttingStyle: e.target.value })} placeholder="Cutting style" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+          <input type="number" value={form.packagingCount} onChange={(e) => setForm({ ...form, packagingCount: e.target.value })} placeholder="Number of packets" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
         </div>
 
-        <textarea rows={2} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
+        <textarea rows={2} value={form.specialInstructions} onChange={(e) => setForm({ ...form, specialInstructions: e.target.value })} placeholder="Special instructions..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-purple-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.customerName || !form.customerPhone}>
             <Save className="h-4 w-4" />

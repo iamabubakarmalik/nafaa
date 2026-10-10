@@ -61,27 +61,27 @@ export default function PatientsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search MRN, name, phone, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search MRN, name, phone, CNIC..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
         </div>
         <div className="flex gap-1.5 flex-wrap">
           {['all', 'MALE', 'FEMALE', 'OTHER'].map((g) => (
             <button key={g} onClick={() => setGenderFilter(g)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (genderFilter === g ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (genderFilter === g ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{g === 'all' ? 'All Gender' : g === 'MALE' ? '👨 Male' : g === 'FEMALE' ? '👩 Female' : '🧑 Other'}</button>
           ))}
           <div className="w-px bg-slate-200 mx-1" />
           <button onClick={() => setBloodFilter('all')} className={
             'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (bloodFilter === 'all' ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (bloodFilter === 'all' ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Blood</button>
           {BLOOD_GROUPS.map((b) => (
             <button key={b.value} onClick={() => setBloodFilter(b.value)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (bloodFilter === b.value ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (bloodFilter === b.value ? 'bg-red-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>🩸 {b.label}</button>
           ))}
         </div>
@@ -96,10 +96,10 @@ export default function PatientsPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-56 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : patients.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Users className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No patients yet</p>
         </div>
@@ -119,8 +119,8 @@ function PatientCard({ patient }: { patient: Patient }) {
 
   return (
     <Link to={'/clinic/patients/' + patient.id} className={
-      'group block rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-4 space-y-3 ' +
-      (hasAlerts ? 'border-rose-200 dark:border-rose-800' : 'border-slate-200 dark:border-neutral-800')
+      'group block rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all p-4 space-y-3 ' +
+      (hasAlerts ? 'border-rose-200 dark:border-rose-800' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-start gap-3">
         {patient.photoUrl ? (
@@ -137,7 +137,7 @@ function PatientCard({ patient }: { patient: Patient }) {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-white truncate">{patient.fullName}</span>
+            <span className="font-extrabold text-slate-900 dark:text-ink-white truncate">{patient.fullName}</span>
             {hasAlerts && (
               <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-0.5">
                 <AlertCircle className="h-2 w-2" /> ALERT
@@ -156,12 +156,12 @@ function PatientCard({ patient }: { patient: Patient }) {
 
       <div className="flex flex-wrap gap-1">
         {age !== null && (
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-extrabold text-slate-700">
+          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-700">
             {age}y
           </span>
         )}
         {patient.gender && (
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-[0.6875rem] font-extrabold text-slate-700">
+          <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-extrabold text-slate-700">
             {patient.gender === 'MALE' ? '♂️' : patient.gender === 'FEMALE' ? '♀️' : '⚧'}
           </span>
         )}
@@ -193,10 +193,10 @@ function PatientCard({ patient }: { patient: Patient }) {
         </div>
       )}
 
-      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-neutral-800 text-xs">
+      <div className="grid grid-cols-3 gap-1 pt-2 border-t border-slate-100 dark:border-ink-800 text-xs">
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Visits</div>
-          <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{patient.totalVisits}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{patient.totalVisits}</div>
         </div>
         <div className="text-center">
           <div className="text-[0.625rem] uppercase font-extrabold text-emerald-700">Spent</div>
@@ -208,7 +208,7 @@ function PatientCard({ patient }: { patient: Patient }) {
         </div>
       </div>
 
-      <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+      <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
         <div className="text-[0.6875rem] font-bold text-slate-500">
           {patient.lastVisitAt ? 'Last: ' + format(new Date(patient.lastVisitAt), 'dd MMM yyyy') : 'Never visited'}
         </div>
@@ -255,7 +255,7 @@ function PatientForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">🧑‍🤝‍🧑 Register New Patient</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -292,17 +292,17 @@ function PatientForm({ onClose, onSaved }: any) {
           <>
             {/* Identity */}
             <div className="grid sm:grid-cols-2 gap-3">
-              <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input value={form.fatherOrHusbandName} onChange={(e) => setForm({ ...form, fatherOrHusbandName: e.target.value })} placeholder="Father/Husband Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+              <input value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Full Name *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+              <input value={form.fatherOrHusbandName} onChange={(e) => setForm({ ...form, fatherOrHusbandName: e.target.value })} placeholder="Father/Husband Name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+              <input value={form.cnic} onChange={(e) => setForm({ ...form, cnic: e.target.value })} placeholder="CNIC" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
+              <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+              <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
                 <option value="">-- Gender --</option>
                 <option value="MALE">Male</option>
                 <option value="FEMALE">Female</option>
                 <option value="OTHER">Other</option>
               </select>
-              <select value={form.bloodGroup} onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+              <select value={form.bloodGroup} onChange={(e) => setForm({ ...form, bloodGroup: e.target.value })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
                 <option value="">-- Blood Group --</option>
                 {BLOOD_GROUPS.map((b) => <option key={b.value} value={b.value}>🩸 {b.label}</option>)}
               </select>
@@ -310,10 +310,10 @@ function PatientForm({ onClose, onSaved }: any) {
 
             {/* Contact */}
             <div className="grid sm:grid-cols-2 gap-3">
-              <input value={form.phonePrimary} onChange={(e) => setForm({ ...form, phonePrimary: e.target.value })} placeholder="Primary Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
-              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+              <input value={form.phonePrimary} onChange={(e) => setForm({ ...form, phonePrimary: e.target.value })} placeholder="Primary Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
             </div>
-            <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
+            <textarea rows={2} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
 
             {/* Emergency */}
             <div className="rounded-xl border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-4 space-y-2">
@@ -327,8 +327,8 @@ function PatientForm({ onClose, onSaved }: any) {
 
             {/* Physical */}
             <div className="grid grid-cols-2 gap-3">
-              <input type="number" step="0.1" value={form.heightCm} onChange={(e) => setForm({ ...form, heightCm: e.target.value })} placeholder="Height (cm)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
-              <input type="number" step="0.1" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })} placeholder="Weight (kg)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+              <input type="number" step="0.1" value={form.heightCm} onChange={(e) => setForm({ ...form, heightCm: e.target.value })} placeholder="Height (cm)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+              <input type="number" step="0.1" value={form.weightKg} onChange={(e) => setForm({ ...form, weightKg: e.target.value })} placeholder="Weight (kg)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold tabular-nums focus:outline-none focus:border-fuchsia-500" />
             </div>
 
             {/* Medical */}
@@ -353,9 +353,9 @@ function PatientForm({ onClose, onSaved }: any) {
               )}
             </div>
 
-            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
+            <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
 
-            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+            <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
               <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
               <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.fullName}>
                 <Save className="h-4 w-4" />

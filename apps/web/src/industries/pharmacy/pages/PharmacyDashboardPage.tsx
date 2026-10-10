@@ -29,7 +29,7 @@ export default function PharmacyDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -116,10 +116,10 @@ export default function PharmacyDashboardPage() {
       </section>
 
       {/* PRESCRIPTIONS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <FileText className="h-5 w-5 text-violet-600" />
               Prescriptions Workflow
             </h3>
@@ -179,14 +179,14 @@ export default function PharmacyDashboardPage() {
       {/* TWO COLUMN */}
       <section className="grid lg:grid-cols-2 gap-6">
         {/* TOP SELLING */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">🏆 Top Selling Today</h3>
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white">🏆 Top Selling Today</h3>
               <p className="text-xs text-slate-500 font-semibold">Best sellers by revenue</p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topSelling.length === 0 ? (
               <div className="p-12 text-center text-sm text-slate-500 font-semibold">No sales yet today</div>
             ) : (
@@ -195,7 +195,7 @@ export default function PharmacyDashboardPage() {
                   <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-teal-500 to-cyan-600 text-white flex items-center justify-center font-extrabold text-sm shadow shrink-0">
                     {i + 1}
                   </div>
-                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
                     {s.product?.images?.[0]?.url ? (
                       <img src={s.product.images[0].url} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -203,7 +203,7 @@ export default function PharmacyDashboardPage() {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{s.product?.name}</div>
+                    <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">{s.product?.name}</div>
                     {s.product?.productSalts?.[0] && (
                       <div className="text-[0.6875rem] text-slate-500 font-semibold truncate">
                         {s.product.productSalts[0].salt?.name} {s.product.productSalts[0].strength}
@@ -221,10 +221,10 @@ export default function PharmacyDashboardPage() {
         </div>
 
         {/* EXPIRING SOON */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Clock className="h-5 w-5 text-amber-600" />
                 Expiring Batches
               </h3>
@@ -234,7 +234,7 @@ export default function PharmacyDashboardPage() {
               Full List <ArrowRight className="h-3 w-3" />
             </RLink>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-[400px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[400px] overflow-y-auto">
             {expiringList.length === 0 ? (
               <div className="p-12 text-center text-sm text-emerald-700 font-extrabold">
                 <CheckCircle2 className="h-8 w-8 mx-auto mb-2" />
@@ -246,8 +246,8 @@ export default function PharmacyDashboardPage() {
                 const critical = daysLeft <= 7;
                 const warn = daysLeft <= 15;
                 return (
-                  <div key={b.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50">
-                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-neutral-800 overflow-hidden flex items-center justify-center shrink-0">
+                  <div key={b.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50">
+                    <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0">
                       {b.product?.images?.[0]?.url ? (
                         <img src={b.product.images[0].url} alt="" className="h-full w-full object-cover" />
                       ) : (
@@ -255,7 +255,7 @@ export default function PharmacyDashboardPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm truncate text-slate-900 dark:text-white">{b.product?.name}</div>
+                      <div className="font-extrabold text-sm truncate text-slate-900 dark:text-ink-white">{b.product?.name}</div>
                       <div className="text-[0.6875rem] text-slate-500 font-mono font-bold">
                         Batch: {b.batchNumber} • Qty: {b.quantity}
                       </div>
@@ -294,13 +294,13 @@ function KpiCard({ label, value, sub, icon: Icon, color, highlight }: any) {
       'rounded-2xl border-2 p-5 shadow-sm hover:shadow-md transition ' +
       (highlight
         ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/40 border-amber-300 dark:border-amber-800 animate-pulse'
-        : 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800')
+        : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800')
     }>
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={
           'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] +
@@ -327,7 +327,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <RLink
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -335,7 +335,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </RLink>
   );
 }

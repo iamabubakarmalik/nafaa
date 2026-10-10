@@ -169,8 +169,8 @@ export default function NewTailoringOrderPage() {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div className="space-y-6">
           {/* Customer section */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <User className="h-4 w-4 text-purple-600" />
               Customer Information
             </h3>
@@ -179,7 +179,7 @@ export default function NewTailoringOrderPage() {
               <div className="rounded-xl bg-purple-50 dark:bg-purple-950/30 border-2 border-purple-200 dark:border-purple-800 p-3 flex items-center gap-3">
                 <User className="h-5 w-5 text-purple-600" />
                 <div className="flex-1">
-                  <div className="font-extrabold text-slate-900 dark:text-white">{form.customerName}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white">{form.customerName}</div>
                   {form.customerPhone && <div className="text-xs text-slate-600 font-bold">{form.customerPhone}</div>}
                 </div>
                 <button
@@ -193,7 +193,7 @@ export default function NewTailoringOrderPage() {
               <>
                 <button
                   onClick={() => setShowCustomerPicker(!showCustomerPicker)}
-                  className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-neutral-600 bg-slate-50 dark:bg-neutral-800 text-sm font-extrabold text-slate-600 hover:border-purple-400"
+                  className="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 dark:border-ink-600 bg-slate-50 dark:bg-ink-800 text-sm font-extrabold text-slate-600 hover:border-purple-400"
                 >
                   <Search className="h-4 w-4 inline mr-1" />
                   Search Existing Customer
@@ -206,7 +206,7 @@ export default function NewTailoringOrderPage() {
                       value={customerSearch}
                       onChange={(e) => setCustomerSearch(e.target.value)}
                       placeholder="Search customer name or phone..."
-                      className="h-10 w-full rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
+                      className="h-10 w-full rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
                     />
                     <div className="max-h-52 overflow-y-auto space-y-1">
                       {(customersData?.items ?? []).map((c) => (
@@ -217,7 +217,7 @@ export default function NewTailoringOrderPage() {
                             setShowCustomerPicker(false);
                             setCustomerSearch('');
                           }}
-                          className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-neutral-800 text-left"
+                          className="w-full px-3 py-2 flex items-center gap-2 rounded hover:bg-white dark:hover:bg-ink-800 text-left"
                         >
                           <User className="h-3.5 w-3.5 text-slate-400" />
                           <span className="text-sm font-extrabold flex-1 truncate">{c.name}</span>
@@ -233,13 +233,13 @@ export default function NewTailoringOrderPage() {
                     value={form.customerName}
                     onChange={(e) => setForm({ ...form, customerName: e.target.value })}
                     placeholder="Customer name (or walk-in)"
-                    className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
+                    className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
                   />
                   <input
                     value={form.customerPhone}
                     onChange={(e) => setForm({ ...form, customerPhone: e.target.value })}
                     placeholder="Phone"
-                    className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
+                    className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </>
@@ -252,7 +252,7 @@ export default function NewTailoringOrderPage() {
                 <select
                   value={form.measurementProfileId}
                   onChange={(e) => setForm({ ...form, measurementProfileId: e.target.value })}
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
                 >
                   <option value="">-- No measurement --</option>
                   {customerMeasurements.map((m) => (
@@ -269,12 +269,12 @@ export default function NewTailoringOrderPage() {
               value={form.customerNotes}
               onChange={(e) => setForm({ ...form, customerNotes: e.target.value })}
               placeholder="Customer's notes or special requests..."
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none"
             />
           </section>
 
           {/* Priority + Delivery */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-2 block">Priority</label>
               <div className="grid grid-cols-4 gap-2">
@@ -284,7 +284,7 @@ export default function NewTailoringOrderPage() {
                     onClick={() => setForm({ ...form, priority: p.value })}
                     className={
                       'p-2 rounded-xl border-2 text-center transition ' +
-                      (form.priority === p.value ? p.color + ' border-transparent text-white shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-700 hover:border-purple-300')
+                      (form.priority === p.value ? p.color + ' border-transparent text-white shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 hover:border-purple-300')
                     }
                   >
                     <div className="text-xl">{p.emoji}</div>
@@ -300,15 +300,15 @@ export default function NewTailoringOrderPage() {
                 type="date"
                 value={form.promisedDate}
                 onChange={(e) => setForm({ ...form, promisedDate: e.target.value })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-purple-500"
               />
             </div>
           </section>
 
           {/* Items */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Scissors className="h-4 w-4 text-purple-600" />
                 Garments ({items.length})
               </h3>
@@ -320,7 +320,7 @@ export default function NewTailoringOrderPage() {
 
             <div className="space-y-3">
               {items.map((item, i) => (
-                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-slate-50/50 dark:bg-neutral-800/30 p-3 space-y-2">
+                <div key={i} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-slate-50/50 dark:bg-ink-800/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[0.6875rem] uppercase font-extrabold text-slate-600">Garment #{i + 1}</span>
                     {items.length > 1 && (
@@ -340,7 +340,7 @@ export default function NewTailoringOrderPage() {
                           onClick={() => updateItem(i, { categoryType: c.value, garmentName: item.garmentName || c.label })}
                           className={
                             'px-2 py-1 rounded-lg text-xs font-extrabold border-2 transition ' +
-                            (item.categoryType === c.value ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 hover:border-purple-300')
+                            (item.categoryType === c.value ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/40 text-purple-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-purple-300')
                           }
                         >
                           {c.emoji} {c.label}
@@ -356,7 +356,7 @@ export default function NewTailoringOrderPage() {
                         value={item.garmentName}
                         onChange={(e) => updateItem(i, { garmentName: e.target.value })}
                         placeholder="e.g. Chikankari Kurta"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-purple-500"
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-purple-500"
                       />
                     </div>
                     <div>
@@ -374,7 +374,7 @@ export default function NewTailoringOrderPage() {
                         value={item.size}
                         onChange={(e) => updateItem(i, { size: e.target.value })}
                         placeholder="M / 40"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-purple-500"
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-purple-500"
                       />
                     </div>
                     <div>
@@ -383,7 +383,7 @@ export default function NewTailoringOrderPage() {
                         value={item.colorName}
                         onChange={(e) => updateItem(i, { colorName: e.target.value })}
                         placeholder="Pink"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 text-sm font-bold focus:outline-none focus:border-purple-500"
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold focus:outline-none focus:border-purple-500"
                       />
                     </div>
                   </div>
@@ -401,10 +401,10 @@ export default function NewTailoringOrderPage() {
                     value={item.designNotes}
                     onChange={(e) => updateItem(i, { designNotes: e.target.value })}
                     placeholder="Design details, embroidery pattern, special requests..."
-                    className="w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none"
+                    className="w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-purple-500 resize-none"
                   />
 
-                  <div className="pt-1 border-t border-slate-200 dark:border-neutral-700 flex justify-between text-sm">
+                  <div className="pt-1 border-t border-slate-200 dark:border-ink-700 flex justify-between text-sm">
                     <span className="text-slate-600 font-bold">Line Total:</span>
                     <span className="font-extrabold text-emerald-700 tabular-nums">
                       {formatPKR(((item.stitchingCost || 0) + (item.embroideryCost || 0) + (item.accessoryCost || 0)) * (item.quantity || 1) + (item.fabricCost || 0))}
@@ -416,8 +416,8 @@ export default function NewTailoringOrderPage() {
           </section>
 
           {/* Design references */}
-          <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+          <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
+            <h3 className="font-extrabold text-slate-900 dark:text-ink-white flex items-center gap-2">
               <Camera className="h-4 w-4 text-fuchsia-600" />
               Design References
             </h3>
@@ -449,14 +449,14 @@ export default function NewTailoringOrderPage() {
               value={form.designInstructions}
               onChange={(e) => setForm({ ...form, designInstructions: e.target.value })}
               placeholder="Overall design instructions..."
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none"
             />
             <textarea
               rows={2}
               value={form.internalNotes}
               onChange={(e) => setForm({ ...form, internalNotes: e.target.value })}
               placeholder="Internal notes (only visible to staff)..."
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-slate-500 resize-none"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-slate-500 resize-none"
             />
           </section>
         </div>

@@ -111,7 +111,7 @@ export function ProductDeleteButton({
           onClick={() => !busy && setDangerOpen(false)}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+            className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="bg-gradient-to-br from-rose-600 to-red-700 text-white p-5">
@@ -144,14 +144,14 @@ export function ProductDeleteButton({
                       <li>• Empty ho jane wali sale receipts</li>
                     </ul>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold text-center">
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold text-center">
                     Sirf demo/test products ke liye. Ye action{' '}
                     <strong>undo nahi</strong> ho sakta.
                   </p>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setDangerOpen(false)}
-                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200"
+                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200"
                     >
                       Cancel — Rehne Do
                     </button>
@@ -165,7 +165,7 @@ export function ProductDeleteButton({
                 </>
               ) : (
                 <>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 text-center leading-relaxed">
+                  <p className="text-sm font-bold text-slate-700 dark:text-ink-200 text-center leading-relaxed">
                     Final confirmation:
                     <br />
                     <span className="text-rose-600 font-extrabold">"{name}"</span> aur
@@ -175,7 +175,7 @@ export function ProductDeleteButton({
                     <button
                       onClick={() => setStep(1)}
                       disabled={busy}
-                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-sm font-extrabold text-slate-700 dark:text-slate-200 disabled:opacity-50"
+                      className="flex-1 h-11 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sm font-extrabold text-slate-700 dark:text-ink-200 disabled:opacity-50"
                     >
                       ← Wapas
                     </button>

@@ -59,11 +59,11 @@ const FeatureRow = ({ enabled, label }: FeatureRowProps) => (
         <Check className="h-3 w-3 text-emerald-700 dark:text-emerald-400" strokeWidth={3} />
       </div>
     ) : (
-      <div className="h-4 w-4 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
-        <X className="h-3 w-3 text-slate-400 dark:text-slate-600" strokeWidth={3} />
+      <div className="h-4 w-4 rounded-full bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0 mt-0.5">
+        <X className="h-3 w-3 text-slate-400 dark:text-ink-600" strokeWidth={3} />
       </div>
     )}
-    <span className={`${enabled ? 'text-slate-700 dark:text-slate-200 font-semibold' : 'text-slate-400 dark:text-slate-600 line-through'} leading-tight`}>
+    <span className={`${enabled ? 'text-slate-700 dark:text-ink-200 font-semibold' : 'text-slate-400 dark:text-ink-600 line-through'} leading-tight`}>
       {label}
     </span>
   </div>
@@ -93,7 +93,7 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, currentSu
 
   return (
     <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in" onClick={onClose}>
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border-2 border-slate-200 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white dark:bg-ink-900 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border-2 border-slate-200 dark:border-ink-800" onClick={(e) => e.stopPropagation()}>
         <div className={`relative overflow-hidden bg-gradient-to-br ${planGradients[plan.slug] || 'from-slate-700 to-slate-900'} text-white p-6`}>
           <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl pointer-events-none" />
           <div className="relative">
@@ -162,15 +162,15 @@ function ConfirmUpgradeModal({ plan, interval, price, existingPending, currentSu
           )}
 
           <ul className="space-y-2 text-sm">
-            <li className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+            <li className="flex items-center gap-2 text-slate-700 dark:text-ink-200 font-semibold">
               <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
               <span>{plan.maxProducts >= 999999 ? 'Unlimited' : plan.maxProducts.toLocaleString()} Products</span>
             </li>
-            <li className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+            <li className="flex items-center gap-2 text-slate-700 dark:text-ink-200 font-semibold">
               <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
               <span>{plan.maxUsers >= 999 ? 'Unlimited' : plan.maxUsers} Team Users</span>
             </li>
-            <li className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold">
+            <li className="flex items-center gap-2 text-slate-700 dark:text-ink-200 font-semibold">
               <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
               <span>{plan.maxShops >= 999 ? 'Unlimited' : plan.maxShops} Shop{plan.maxShops > 1 ? 's' : ''}</span>
             </li>
@@ -398,7 +398,7 @@ export default function PlansPage() {
       {showTeacher && <PlansTeacher onClose={() => setShowTeacher(false)} maxSavings={maxYearlySavings} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-emerald-700 dark:from-slate-950 dark:via-brand-950 dark:to-emerald-900 text-white p-6 sm:p-12 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-emerald-700 dark:from-ink-950 dark:via-brand-950 dark:to-emerald-900 text-white p-6 sm:p-12 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-96 w-96 rounded-full bg-brand-500/10 blur-3xl pointer-events-none" />
@@ -581,7 +581,7 @@ export default function PlansPage() {
                 variant="secondary"
                 onClick={() => cleanupMutation.mutate()}
                 loading={cleanupMutation.isPending}
-                className="bg-white dark:bg-slate-900 border-amber-300 dark:border-amber-500/40 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-800 dark:text-amber-300"
+                className="bg-white dark:bg-ink-900 border-amber-300 dark:border-amber-500/40 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-800 dark:text-amber-300"
               >
                 <RefreshCw className="h-4 w-4" />
                 Cleanup
@@ -620,12 +620,12 @@ export default function PlansPage() {
           return (
             <div
               key={plan.id}
-              className={`group relative rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 shadow-md overflow-hidden transition-all hover:shadow-2xl hover:-translate-y-2 ${
+              className={`group relative rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 shadow-md overflow-hidden transition-all hover:shadow-2xl hover:-translate-y-2 ${
                 isPro
                   ? 'border-brand-500 dark:border-brand-400 lg:scale-105 ring-4 ring-brand-100 dark:ring-brand-500/20'
                   : isEnterprise
                     ? 'border-amber-400 dark:border-amber-500/50'
-                    : 'border-slate-200 dark:border-slate-800'
+                    : 'border-slate-200 dark:border-ink-800'
               }`}
             >
               {isPro && (
@@ -681,7 +681,7 @@ export default function PlansPage() {
 
               <div className="p-5 sm:p-6 space-y-4">
                 <div>
-                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                     <BarChart3 className="h-3 w-3" /> Limits
                   </div>
                   <div className="space-y-2">
@@ -692,8 +692,8 @@ export default function PlansPage() {
                   </div>
                 </div>
 
-                <div className="pt-4 border-t-2 border-slate-100 dark:border-slate-800">
-                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+                <div className="pt-4 border-t-2 border-slate-100 dark:border-ink-800">
+                  <div className="text-[0.6875rem] font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                     <Sparkles className="h-3 w-3" /> Features
                   </div>
                   <div className="space-y-2">
@@ -716,7 +716,7 @@ export default function PlansPage() {
                   </div>
                 </div>
 
-                <div className="pt-5 border-t-2 border-slate-100 dark:border-slate-800">
+                <div className="pt-5 border-t-2 border-slate-100 dark:border-ink-800">
                   {'disabled' in cta ? (
                     <Button className="w-full" variant="secondary" disabled>
                       <Check className="h-4 w-4" />
@@ -741,7 +741,7 @@ export default function PlansPage() {
                   )}
 
                   {isCurrent && current?.status !== 'TRIAL' && current?.interval !== interval && (
-                    <p className="mt-2 text-center text-[0.6875rem] font-semibold text-slate-500 dark:text-slate-400">
+                    <p className="mt-2 text-center text-[0.6875rem] font-semibold text-slate-500 dark:text-ink-400">
                       Abhi {intervalWord[current!.interval]} par hain — baqi din naye period mein add ho jayenge.
                     </p>
                   )}
@@ -753,10 +753,10 @@ export default function PlansPage() {
       </section>
 
       {/* Trust badges */}
-      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-900/60 dark:to-slate-900/40 border-2 border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-900/60 dark:to-ink-900/40 border-2 border-slate-200 dark:border-ink-800 p-5 sm:p-6 shadow-sm">
         <div className="text-center mb-5">
-          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">Why Choose Nafaa?</h3>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 font-semibold">Trusted by Pakistani shopkeepers since 2024</p>
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-ink-white">Why Choose Nafaa?</h3>
+          <p className="text-sm text-slate-600 dark:text-ink-400 mt-1 font-semibold">Trusted by Pakistani shopkeepers since 2024</p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <TrustCard icon={Shield} title="Secure" desc="Bank-level security & encryption" tone="emerald" />
@@ -767,10 +767,10 @@ export default function PlansPage() {
       </section>
 
       {/* FAQ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-5 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <HelpCircle className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white">Common Questions</h3>
+          <h3 className="text-2xl font-extrabold text-slate-900 dark:text-ink-white">Common Questions</h3>
         </div>
         <div className="space-y-3">
           <FAQ q="Free trial mein kya milta hai?" a="7 din full access of Pro plan — POS, inventory, reports, khata, cash register, sab kuch. Koi credit card nahi chahiye, koi hidden charges nahi." />
@@ -806,18 +806,18 @@ export default function PlansPage() {
 function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings: number }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-brand-200 dark:border-brand-500/30 bg-gradient-to-r from-brand-50 to-emerald-50 dark:from-brand-500/15 dark:to-emerald-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-brand-900 dark:text-brand-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Plan Kaise Choose Karein?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>4 plans hain</strong> — chhote dukan se leke bade multi-shop business tak. Sahi plan choose karna paise bachata hai aur features unnecessary bhi nahi lete.
           </p>
 
@@ -826,17 +826,17 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Star className="h-3 w-3" /> Kis Ke Liye Kaunsa Plan?
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 ✨ <strong>Free Trial (7 din):</strong> Pehli baar try kar rahe? Pro plan ka full access. Card nahi chahiye. Perfect for testing.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 ⚡ <strong>Basic:</strong> Chhota dukan (1 shop, kam products, 1-2 staff). Basic POS + inventory + reports. Under Rs 15k monthly revenue.
               </div>
               <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border-2 border-emerald-300 dark:border-emerald-500/50 p-2">
                 🚀 <strong>Pro (Recommended):</strong> Growing business (1-3 shops, khata/udhaar, WhatsApp receipts, loyalty). 90% users ke liye best. Multi-shop support included.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 👑 <strong>Enterprise:</strong> Multi-shop chain (5+ shops, unlimited users, custom branding, 24/7 priority support). Established brands.
               </div>
             </div>
@@ -847,12 +847,12 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 flex items-center gap-1">
               <Wallet className="h-3 w-3" /> Billing Interval — Kitna Save?
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-500/30 p-2 flex items-center justify-between">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-amber-200 dark:border-amber-500/30 p-2 flex items-center justify-between">
                 <span><strong>Monthly:</strong> Base price. Flexibility max.</span>
-                <span className="text-slate-500 dark:text-slate-400 font-extrabold">0%</span>
+                <span className="text-slate-500 dark:text-ink-400 font-extrabold">0%</span>
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-500/30 p-2 flex items-center justify-between">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-amber-200 dark:border-amber-500/30 p-2 flex items-center justify-between">
                 <span><strong>Quarterly (3 mahine):</strong> Thoda commit karo.</span>
                 <span className="text-amber-700 dark:text-amber-400 font-extrabold">-5%</span>
               </div>
@@ -869,8 +869,8 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
           </div>
 
           {/* Upgrade/downgrade rules */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-1 flex items-center gap-1">
               <RefreshCw className="h-3 w-3" /> Upgrade/Downgrade Rules
             </div>
             <TipRow><strong>⬆️ Upgrade:</strong> Anytime. Naya invoice ban jayega, pay karte hi features unlock. Pichla pending automatic cancel.</TipRow>
@@ -881,8 +881,8 @@ function PlansTeacher({ onClose, maxSavings }: { onClose: () => void; maxSavings
           </div>
 
           {/* Pro tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400 mb-1 flex items-center gap-1">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+            <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400 mb-1 flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> Pro Tips
             </div>
             <TipRow><strong>🎯 Trial complete karo:</strong> 7 din me sab features test karo — usage pattern samajh me aayega.</TipRow>
@@ -932,12 +932,12 @@ function TrustCard({ icon: Icon, title, desc, tone }: any) {
     rose: 'from-rose-500 to-red-600 shadow-rose-500/30',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900/60 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-md transition group">
+    <div className="rounded-2xl bg-white dark:bg-ink-900/60 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-brand-300 dark:hover:border-brand-500/50 hover:shadow-md transition group">
       <div className={`h-11 w-11 rounded-xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
         <Icon className="h-5 w-5" />
       </div>
-      <h4 className="mt-3 font-extrabold text-slate-900 dark:text-white">{title}</h4>
-      <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1 leading-snug">{desc}</p>
+      <h4 className="mt-3 font-extrabold text-slate-900 dark:text-ink-white">{title}</h4>
+      <p className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1 leading-snug">{desc}</p>
     </div>
   );
 }
@@ -948,17 +948,17 @@ function FAQ({ q, a }: { q: string; a: string }) {
     <div className={`rounded-2xl border-2 overflow-hidden transition ${
       open
         ? 'border-brand-300 dark:border-brand-500/50 bg-brand-50/30 dark:bg-brand-500/5'
-        : 'border-slate-200 dark:border-slate-800 hover:border-brand-300 dark:hover:border-brand-500/40'
+        : 'border-slate-200 dark:border-ink-800 hover:border-brand-300 dark:hover:border-brand-500/40'
     }`}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
+        className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left hover:bg-slate-50 dark:hover:bg-ink-800/50 transition"
       >
-        <span className="font-extrabold text-slate-900 dark:text-white">{q}</span>
-        <ChevronRight className={`h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0 transition-transform ${open ? 'rotate-90 text-brand-600 dark:text-brand-400' : ''}`} />
+        <span className="font-extrabold text-slate-900 dark:text-ink-white">{q}</span>
+        <ChevronRight className={`h-4 w-4 text-slate-400 dark:text-ink-500 shrink-0 transition-transform ${open ? 'rotate-90 text-brand-600 dark:text-brand-400' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-3 text-sm text-slate-600 dark:text-slate-300 font-semibold leading-relaxed animate-in slide-in-from-top-1 duration-150">
+        <div className="px-4 pb-3 text-sm text-slate-600 dark:text-ink-300 font-semibold leading-relaxed animate-in slide-in-from-top-1 duration-150">
           {a}
         </div>
       )}

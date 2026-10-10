@@ -60,13 +60,13 @@ export function BusinessSpendPanels({ money, hideCost }: { money: any; hideCost?
   </DashCard>
 
   <DashCard noPad>
-    <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-3">
+    <div className="px-4 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-3">
       <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/40">
         <ShoppingBag className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">Maal Ki Kharidari</h3>
-        <p className="text-xs text-slate-600 dark:text-slate-400 font-bold">
+        <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-ink-white">Maal Ki Kharidari</h3>
+        <p className="text-xs text-slate-600 dark:text-ink-400 font-bold">
           Aaj {formatPKR(money.purchases.todayTotal)} • mahine {formatPKR(money.purchases.monthTotal)}
         </p>
       </div>
@@ -74,27 +74,27 @@ export function BusinessSpendPanels({ money, hideCost }: { money: any; hideCost?
         Sab <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>
-    <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[340px] overflow-y-auto">
+    <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[340px] overflow-y-auto">
       {money.purchases.recent?.length ? (
         money.purchases.recent.map((pu: any) => {
           const due = Number(pu.total) - Number(pu.paidAmount);
           return (
             <Link key={pu.id} to={`/purchases/${pu.id}`}
-              className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition"
+              className="px-4 sm:px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/60 transition"
             >
               <div className="h-9 w-9 rounded-xl bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center shrink-0">
                 <Package className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-extrabold text-slate-900 dark:text-white truncate text-sm">
+                <div className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">
                   {pu.supplier?.name || 'Supplier'}
                 </div>
-                <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold truncate font-mono">
+                <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold truncate font-mono">
                   {pu.purchaseNumber} • {formatDate(pu.purchasedAt)}
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <div className="font-extrabold text-slate-900 dark:text-white text-sm tabular-nums">
+                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm tabular-nums">
                   {formatPKR(pu.total)}
                 </div>
                 {due > 0 && (
@@ -133,21 +133,21 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
             <div className="flex items-baseline justify-between gap-2 mb-1">
               <div className="flex items-center gap-1.5 min-w-0">
                 <span className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: color }} />
-                <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 truncate">
+                <span className="text-xs font-extrabold text-slate-800 dark:text-ink-100 truncate">
                   {r.name}
                 </span>
-                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 shrink-0">
                   ×{r.count}
                 </span>
               </div>
-              <div className="text-xs font-extrabold text-slate-900 dark:text-white tabular-nums shrink-0">
+              <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white tabular-nums shrink-0">
                 {formatPKR(r.amount)}
-                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                <span className="ml-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                   {pctOfTotal.toFixed(0)}%
                 </span>
               </div>
             </div>
-            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="h-2.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{ width: `${Math.max((r.amount / max) * 100, 2)}%`, backgroundColor: color }}
@@ -156,8 +156,8 @@ function ExpenseBars({ rows, total }: { rows: any[]; total: number }) {
           </div>
         );
       })}
-      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-slate-800 flex items-baseline justify-between">
-        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+      <div className="pt-2 mt-1 border-t-2 border-slate-100 dark:border-ink-800 flex items-baseline justify-between">
+        <span className="text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400">
           Kul kharcha
         </span>
         <span className="text-sm font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">

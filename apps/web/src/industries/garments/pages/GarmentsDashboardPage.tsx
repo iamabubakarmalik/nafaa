@@ -39,7 +39,7 @@ export default function GarmentsDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -151,10 +151,10 @@ export default function GarmentsDashboardPage() {
 
       {/* TWO COLUMN — Upcoming */}
       <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Scissors className="h-5 w-5 text-pink-600" />
                 Upcoming Tailoring Deliveries
               </h3>
@@ -164,7 +164,7 @@ export default function GarmentsDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {upcomingDeliveries.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
@@ -174,13 +174,13 @@ export default function GarmentsDashboardPage() {
               upcomingDeliveries.map((o: any) => {
                 const daysLeft = o.promisedDate ? differenceInDays(new Date(o.promisedDate), new Date()) : null;
                 return (
-                  <Link key={o.id} to={'/garments/tailoring/' + o.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                  <Link key={o.id} to={'/garments/tailoring/' + o.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white flex items-center justify-center shrink-0">
                       <Scissors className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-sm text-slate-900 dark:text-white">{o.orderNumber}</span>
+                        <span className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{o.orderNumber}</span>
                         <span className={
                           'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' +
                           (o.priority === 'URGENT' ? 'bg-red-600 animate-pulse' : o.priority === 'HIGH' ? 'bg-amber-500' : 'bg-slate-500')
@@ -208,10 +208,10 @@ export default function GarmentsDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Ruler className="h-5 w-5 text-amber-600" />
                 Upcoming Alterations
               </h3>
@@ -221,7 +221,7 @@ export default function GarmentsDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {upcomingAlterations.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
@@ -231,12 +231,12 @@ export default function GarmentsDashboardPage() {
               upcomingAlterations.map((a: any) => {
                 const daysLeft = a.promisedDate ? differenceInDays(new Date(a.promisedDate), new Date()) : null;
                 return (
-                  <Link key={a.id} to={'/garments/alterations/' + a.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                  <Link key={a.id} to={'/garments/alterations/' + a.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shrink-0">
                       <Ruler className="h-5 w-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-sm text-slate-900 dark:text-white">{a.ticketNumber}</div>
+                      <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">{a.ticketNumber}</div>
                       <div className="text-xs text-slate-500 font-semibold truncate">{a.garmentDescription}</div>
                     </div>
                     <div className="text-right shrink-0">
@@ -259,8 +259,8 @@ export default function GarmentsDashboardPage() {
 
       {/* BY SEASON + BY GENDER */}
       <section className="grid lg:grid-cols-2 gap-6">
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-fuchsia-600" />
             Products by Season
           </h3>
@@ -269,22 +269,22 @@ export default function GarmentsDashboardPage() {
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {bySeason.map((s: any) => (
-                <div key={s.season} className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 p-3 flex items-center justify-between">
+                <div key={s.season} className="rounded-xl bg-slate-50 dark:bg-ink-800/50 p-3 flex items-center justify-between">
                   <div>
                     <div className="text-2xl">{SEASON_EMOJI[s.season] || '👗'}</div>
-                    <div className="text-xs font-extrabold text-slate-700 dark:text-slate-300 mt-1">
+                    <div className="text-xs font-extrabold text-slate-700 dark:text-ink-300 mt-1">
                       {s.season.replace('_', ' ')}
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{s._count._all}</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{s._count._all}</div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
             <Users className="h-5 w-5 text-pink-600" />
             Products by Gender
           </h3>
@@ -293,14 +293,14 @@ export default function GarmentsDashboardPage() {
           ) : (
             <div className="grid grid-cols-2 gap-2">
               {byGender.map((g: any) => (
-                <div key={g.gender ?? 'unknown'} className="rounded-xl bg-slate-50 dark:bg-neutral-800/50 p-3 flex items-center justify-between">
+                <div key={g.gender ?? 'unknown'} className="rounded-xl bg-slate-50 dark:bg-ink-800/50 p-3 flex items-center justify-between">
                   <div>
                     <div className="text-2xl">{GENDER_EMOJI[g.gender] || '👤'}</div>
-                    <div className="text-xs font-extrabold text-slate-700 dark:text-slate-300 mt-1">
+                    <div className="text-xs font-extrabold text-slate-700 dark:text-ink-300 mt-1">
                       {g.gender || 'Unknown'}
                     </div>
                   </div>
-                  <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{g._count._all}</div>
+                  <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{g._count._all}</div>
                 </div>
               ))}
             </div>
@@ -319,12 +319,12 @@ function KpiCard({ label, value, sub, icon: Icon, color }: any) {
     emerald: 'from-emerald-500 to-green-600 shadow-emerald-500/30',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm hover:shadow-md transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={
           'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] +
@@ -347,12 +347,12 @@ function PendingCard({ label, value, sub, icon: Icon, to, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
           <div className="text-xs text-slate-500 font-semibold">{sub}</div>
         </div>
         <div className={
@@ -380,7 +380,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -388,7 +388,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

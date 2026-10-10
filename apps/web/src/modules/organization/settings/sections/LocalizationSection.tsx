@@ -140,7 +140,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
                 { value: 'UTC', label: 'UTC' },
               ]}
             />
-            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Dukaan ka din yahin se tay hota hai — report aur "peak hours"
               isi waqt par bante hain.
             </p>
@@ -151,7 +151,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
               onChange={(v) => set('businessDayStartHour', Number(v) as any)}
               options={DAY_START_HOURS}
             />
-            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               {Number(draft.businessDayStartHour ?? 0) === 0
                 ? 'Aam hisab — din raat 12 baje badalta hai.'
                 : `Din ${hourLabel(Number(draft.businessDayStartHour))} se agle din ${hourLabel(Number(draft.businessDayStartHour))} tak chalta hai. Is se pehle ki bikri pichhle din me girti hai.`}
@@ -173,7 +173,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
 
         <div className="mt-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3 flex items-center justify-between gap-3 flex-wrap">
           <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">Live Preview</div>
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white tabular-nums">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white tabular-nums">
             {draft.currencySymbol} 1,234.50 <span className="opacity-40 mx-1">•</span> {previewDate}
           </div>
         </div>
@@ -215,7 +215,7 @@ export function LocalizationSection({ settings }: { settings: TenantSettings }) 
                     'h-11 min-w-[52px] px-3 rounded-xl border-2 text-sm font-extrabold transition active:scale-95',
                     active
                       ? 'bg-gradient-to-r from-sky-500 to-cyan-600 border-sky-600 text-white shadow-md shadow-sky-500/30'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-300',
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-sky-300',
                   ].join(' ')}
                 >
                   {d.label}

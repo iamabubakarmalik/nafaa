@@ -124,7 +124,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
       onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col border-2 border-amber-200 dark:border-amber-500/40">
+        className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col border-2 border-amber-200 dark:border-amber-500/40">
 
         {/* ── Header ── */}
         <div className="shrink-0 relative bg-gradient-to-br from-amber-600 to-orange-700 text-white px-5 py-4 overflow-hidden">
@@ -150,14 +150,14 @@ export function ReturnModal({ sale, onClose, onDone }: {
           {!anyReturnable ? (
             <div className="py-10 text-center">
               <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-2" />
-              <p className="font-black text-slate-800 dark:text-slate-200">Is bill ka saara maal pehle hi wapas ho chuka</p>
+              <p className="font-black text-slate-800 dark:text-ink-200">Is bill ka saara maal pehle hi wapas ho chuka</p>
             </div>
           ) : (
             <>
               {/* ── Kitna wapas ── */}
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
-                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400">
                     Kya kya wapas aaya
                   </div>
                   <button onClick={takeAll}
@@ -173,17 +173,17 @@ export function ReturnModal({ sale, onClose, onDone }: {
                     return (
                       <div key={l.id}
                         className={`rounded-2xl border-2 p-3 transition ${
-                          done ? 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 opacity-60'
+                          done ? 'border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/40 opacity-60'
                                : v > 0 ? 'border-amber-400 bg-amber-50 dark:bg-amber-500/10'
-                                       : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                                       : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900'
                         }`}>
                         <div className="flex items-center gap-3 flex-wrap">
-                          <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                          <div className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0">
                             <Package className="h-4 w-4 text-slate-500" />
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-black text-sm text-slate-900 dark:text-white truncate">{l.name}</div>
-                            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+                            <div className="font-black text-sm text-slate-900 dark:text-ink-white truncate">{l.name}</div>
+                            <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                               {l.sold} {l.unit} becha · {formatPKR(l.unitPrice)} fi {l.unit}
                               {l.already > 0 && (
                                 <span className="text-amber-600 dark:text-amber-400"> · {l.already} pehle wapas</span>
@@ -192,22 +192,22 @@ export function ReturnModal({ sale, onClose, onDone }: {
                           </div>
 
                           {done ? (
-                            <span className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-500 text-[0.6875rem] font-black shrink-0">
+                            <span className="px-2.5 py-1 rounded-lg bg-slate-200 dark:bg-ink-700 text-slate-500 text-[0.6875rem] font-black shrink-0">
                               Poora wapas ho chuka
                             </span>
                           ) : (
                             <div className="flex items-center gap-1 shrink-0">
                               <button onClick={() => setLineQty(l.id, v - 1, l.remaining)}
-                                className="h-9 w-9 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:border-amber-400 transition">
-                                <Minus className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+                                className="h-9 w-9 rounded-lg bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:border-amber-400 transition">
+                                <Minus className="h-3.5 w-3.5 text-slate-600 dark:text-ink-300" />
                               </button>
                               <input type="number" min={0} max={l.remaining} step="any" value={v || ''}
                                 onChange={(e) => setLineQty(l.id, Number(e.target.value) || 0, l.remaining)}
                                 placeholder="0"
-                                className="h-9 w-16 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-center text-sm font-black tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-amber-500" />
+                                className="h-9 w-16 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 text-center text-sm font-black tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500" />
                               <button onClick={() => setLineQty(l.id, v + 1, l.remaining)}
-                                className="h-9 w-9 rounded-lg bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:border-amber-400 transition">
-                                <Plus className="h-3.5 w-3.5 text-slate-600 dark:text-slate-300" />
+                                className="h-9 w-9 rounded-lg bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:border-amber-400 transition">
+                                <Plus className="h-3.5 w-3.5 text-slate-600 dark:text-ink-300" />
                               </button>
                               <span className="text-[0.6875rem] font-black text-slate-400 w-14 text-right">
                                 / {l.remaining}
@@ -223,7 +223,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
 
               {/* ── Paisa kaise wapas ── */}
               <div>
-                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 mb-2">
                   Paisa kaise wapas karein
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -232,11 +232,11 @@ export function ReturnModal({ sale, onClose, onDone }: {
                       className={`rounded-2xl border-2 p-2.5 text-left transition ${
                         refundMethod === m.v
                           ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/10 ring-2 ring-amber-200 dark:ring-amber-500/20'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-amber-400'
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-amber-400'
                       }`}>
                       <m.icon className={`h-4 w-4 ${refundMethod === m.v ? 'text-amber-600' : 'text-slate-400'}`} />
-                      <div className="text-xs font-black text-slate-900 dark:text-white mt-1">{m.label}</div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{m.hint}</div>
+                      <div className="text-xs font-black text-slate-900 dark:text-ink-white mt-1">{m.label}</div>
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{m.hint}</div>
                     </button>
                   ))}
                 </div>
@@ -253,7 +253,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
 
               {/* ── Wajah ── */}
               <div>
-                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 dark:text-ink-400 mb-2">
                   Wapas kyun aaya
                 </div>
                 <div className="flex gap-1.5 flex-wrap mb-2">
@@ -261,13 +261,13 @@ export function ReturnModal({ sale, onClose, onDone }: {
                     <button key={r} onClick={() => setReason(r)}
                       className={`px-2.5 py-1.5 rounded-xl text-[0.6875rem] font-black border-2 transition ${
                         reason === r ? 'bg-amber-600 border-amber-600 text-white'
-                                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-amber-400'
+                                     : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-amber-400'
                       }`}>{r}</button>
                   ))}
                 </div>
                 <input value={reason} onChange={(e) => setReason(e.target.value)}
                   placeholder="Ya apne alfaaz me likhein…"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500 transition" />
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 text-sm font-bold focus:outline-none focus:border-amber-500 transition" />
               </div>
             </>
           )}
@@ -275,20 +275,20 @@ export function ReturnModal({ sale, onClose, onDone }: {
 
         {/* ── Footer ── */}
         {anyReturnable && (
-          <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 space-y-3">
+          <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4 space-y-3">
             <div className={`rounded-2xl p-3 flex items-center justify-between gap-3 border-2 ${
               refundAmount > 0 ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-300 dark:border-amber-500/40'
-                               : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                               : 'bg-slate-100 dark:bg-ink-800 border-slate-200 dark:border-ink-700'
             }`}>
               <div>
                 <div className="text-[0.6875rem] font-black uppercase tracking-wider text-slate-500">
                   Wapas karna hai
                 </div>
-                <div className="text-2xl font-black tabular-nums text-slate-900 dark:text-white">
+                <div className="text-2xl font-black tabular-nums text-slate-900 dark:text-ink-white">
                   {formatPKR(refundAmount)}
                 </div>
               </div>
-              <div className="text-right text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <div className="text-right text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 {selected.length > 0
                   ? <>{selected.length} cheez{selected.length > 1 ? 'ein' : ''} wapas</>
                   : 'Abhi kuch nahi chuna'}
@@ -296,7 +296,7 @@ export function ReturnModal({ sale, onClose, onDone }: {
             </div>
 
             {refundAmount > 0 && (
-              <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 flex items-start gap-2">
+              <div className="rounded-xl bg-slate-100 dark:bg-ink-800 p-2.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 flex items-start gap-2">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-600" />
                 Maal stock me wapas aa jayega aur ye raqam din ki bikri me se kam ho jayegi.
               </div>

@@ -20,12 +20,12 @@ export default function PaymentsPage() {
   return (
     <Page back={{ to: '/online-orders', label: 'Online orders' }} title="Online payments"
       subtitle="Customer se advance ya poori raqam online lein — COD ka RTO khatra kam. Paisa seedha aap ke account me.">
-      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Payments nahi khule">{apiErrorMessage(error)}</EmptyState></Card>
         : (
           <>
             <Card title="Kaise kaam karta hai">
-              <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-slate-200 sm:grid-cols-3">
+              <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-3">
                 <li><b>1.</b> Neeche apna gateway jorein (sirf ek dafa)</li>
                 <li><b>2.</b> Order par "Payment link" → poori raqam ya advance (jaise delivery charges) → WhatsApp</li>
                 <li><b>3.</b> Customer pay kare → Nafaa gateway se pakki tasdeeq → order par paisa, courier ka COD utna kam</li>
@@ -63,7 +63,7 @@ function GatewayCard({ g }: { g: PayGatewayAccount }) {
       description={`${g.methods.join(' · ')} — ${g.fees}`}
       actions={g.connected ? <Toggle checked={g.active} onChange={(v) => active.mutate(v)} disabled={active.isPending} /> : undefined}>
       {g.connected && (
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-slate-300">
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-[0.8125rem] text-slate-600 dark:text-ink-300">
           <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Key <span className="font-mono">{g.maskedKey}</span> · jura {g.connectedAt ? whenText(g.connectedAt) : ''}
           <span className="flex-1" />
           <Btn size="sm" variant="plain" onClick={() => setOpen((v) => !v)}>{open ? 'Rehne dein' : 'Nayi key'}</Btn>
@@ -78,7 +78,7 @@ function GatewayCard({ g }: { g: PayGatewayAccount }) {
       )}
       {open && (
         <div className="space-y-3">
-          <ol className="space-y-1 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-slate-800/40 dark:text-slate-200">
+          <ol className="space-y-1 rounded-lg bg-slate-50 p-3 text-[0.8125rem] text-slate-700 dark:bg-ink-800/40 dark:text-ink-200">
             {g.steps.map((s, i) => <li key={i}><b>{i + 1}.</b> {s}</li>)}
             <li className="flex flex-wrap gap-3 pt-1">
               <a href={g.portalUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-emerald-700 hover:underline">{g.name} kholein <ExternalLink className="h-3.5 w-3.5" /></a>

@@ -26,7 +26,7 @@ export function PosCustomerAddModal({
   const addCustomerMutation = { isPending: saving, mutate: onSubmit };
   return (
 <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-  <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden">
+  <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
     <div className="px-5 py-4 bg-gradient-to-br from-violet-600 to-purple-700 text-white flex items-center justify-between">
       <div className="flex items-center gap-2">
         <UserPlus className="h-6 w-6" />
@@ -39,10 +39,10 @@ export function PosCustomerAddModal({
     <div className="p-5 space-y-3">
       <input autoFocus value={newCustomer.name} onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
         placeholder="Customer ka naam"
-        className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+        className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-xl font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
       <input value={newCustomer.phone} onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
         placeholder="03XX XXXXXXX"
-        className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500" />
+        className="h-16 w-full rounded-2xl border-4 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-xl font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500" />
       <button onClick={() => {
         if (!newCustomer.name.trim()) return toast.error('Naam likhein');
         addCustomerMutation.mutate({ name: newCustomer.name.trim(), phone: newCustomer.phone.trim() || undefined });

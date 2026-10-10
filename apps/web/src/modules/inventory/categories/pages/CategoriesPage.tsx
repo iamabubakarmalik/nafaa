@@ -248,7 +248,7 @@ export default function CategoriesPage() {
       {showTeacher && <CategoriesTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 dark:from-slate-950 dark:via-emerald-950 dark:to-green-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 dark:from-ink-950 dark:via-emerald-950 dark:to-green-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-green-400/20 blur-3xl pointer-events-none" />
 
@@ -356,7 +356,7 @@ export default function CategoriesPage() {
             </div>
             <button
               onClick={() => setShowBulkImport(true)}
-              className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border-2 border-emerald-300 dark:border-emerald-500/40 hover:border-emerald-400 transition"
+              className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-ink-800 border-2 border-emerald-300 dark:border-emerald-500/40 hover:border-emerald-400 transition"
             >
               <Import className="h-3 w-3" /> Bulk Import <ChevronRight className="h-3 w-3" />
             </button>
@@ -366,7 +366,7 @@ export default function CategoriesPage() {
               <button
                 key={s.name}
                 onClick={() => quickAdd(s)}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800/80 border-2 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-ink-800/80 border-2 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
                 style={{ borderColor: `${s.color}50` }}
               >
                 <div
@@ -376,8 +376,8 @@ export default function CategoriesPage() {
                   <Tag className="h-4 w-4" />
                 </div>
                 <div className="text-left min-w-0 flex-1">
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{s.name}</div>
-                  <div className="text-[0.625rem] text-slate-500 dark:text-slate-400 font-bold inline-flex items-center gap-0.5">
+                  <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{s.name}</div>
+                  <div className="text-[0.625rem] text-slate-500 dark:text-ink-400 font-bold inline-flex items-center gap-0.5">
                     <Plus className="h-2.5 w-2.5" /> Click to add
                   </div>
                 </div>
@@ -387,7 +387,7 @@ export default function CategoriesPage() {
           {availablePresets.length > 12 && (
             <button
               onClick={() => setShowBulkImport(true)}
-              className="mt-3 w-full py-2 rounded-xl bg-white/80 dark:bg-slate-800/60 hover:bg-white dark:hover:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 text-xs font-extrabold text-emerald-700 dark:text-emerald-300 transition"
+              className="mt-3 w-full py-2 rounded-xl bg-white/80 dark:bg-ink-800/60 hover:bg-white dark:hover:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/30 text-xs font-extrabold text-emerald-700 dark:text-emerald-300 transition"
             >
               + {availablePresets.length - 12} aur categories — Bulk Import kholo
             </button>
@@ -397,7 +397,7 @@ export default function CategoriesPage() {
 
       {/* ═══ TOP CATEGORIES ═══ */}
       {topCategories.length > 0 && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm overflow-hidden">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-emerald-200 dark:border-emerald-500/30 shadow-sm overflow-hidden">
           <div className="px-5 py-4 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-b-2 border-emerald-200 dark:border-emerald-500/30">
             <div className="flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" />
@@ -407,7 +407,7 @@ export default function CategoriesPage() {
               </div>
             </div>
           </div>
-          <div className="divide-y divide-emerald-100 dark:divide-slate-800">
+          <div className="divide-y divide-emerald-100 dark:divide-ink-800">
             {topCategories.map((c: any, idx: number) => {
               const rankColors = ['bg-amber-500', 'bg-slate-400', 'bg-orange-600', 'bg-emerald-500', 'bg-green-500'];
               return (
@@ -422,12 +422,12 @@ export default function CategoriesPage() {
                     <Tag className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="font-extrabold text-slate-900 dark:text-white truncate">{c.name}</div>
-                    <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 uppercase">{c.color}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{c.name}</div>
+                    <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-ink-400 uppercase">{c.color}</div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-extrabold text-emerald-700 dark:text-emerald-400 text-lg tabular-nums">{c._count?.products ?? 0}</div>
-                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">products</div>
                   </div>
                 </div>
               );
@@ -437,7 +437,7 @@ export default function CategoriesPage() {
       )}
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[240px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -446,27 +446,27 @@ export default function CategoriesPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Category dhundo... (/ shortcut)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
           </div>
 
-          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden">
+          <div className="inline-flex rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 overflow-hidden">
             <button
               onClick={() => setViewMode('grid')}
               title="Card view"
-              className={`px-4 h-12 transition ${viewMode === 'grid' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              className={`px-4 h-12 transition ${viewMode === 'grid' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
             >
               <Grid3x3 className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
               title="List view"
-              className={`px-4 h-12 border-l-2 border-slate-200 dark:border-slate-700 transition ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+              className={`px-4 h-12 border-l-2 border-slate-200 dark:border-ink-700 transition ${viewMode === 'list' ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-ink-300 hover:bg-slate-50 dark:hover:bg-ink-700'}`}
             >
               <List className="h-4 w-4" />
             </button>
@@ -474,14 +474,14 @@ export default function CategoriesPage() {
 
           <button
             onClick={exportCSV}
-            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 transition"
+            className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 hover:border-emerald-300 dark:hover:border-emerald-500/50 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 transition"
           >
             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
           </button>
         </div>
 
         <div className="flex gap-2 flex-wrap items-center">
-          <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+          <div className="flex gap-1 bg-slate-100 dark:bg-ink-800 rounded-xl p-1">
             {([
               { v: 'all' as FilterMode, l: 'Sab', c: stats.total },
               { v: 'used' as FilterMode, l: 'In Use', c: stats.used },
@@ -491,10 +491,10 @@ export default function CategoriesPage() {
                 key={o.v}
                 onClick={() => setFilter(o.v)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition ${
-                  filter === o.v ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  filter === o.v ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 dark:text-ink-400 hover:text-slate-900 dark:hover:text-ink-white'
                 }`}
               >
-                {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{o.c}</span>
+                {o.l} <span className={`ml-0.5 tabular-nums ${filter === o.v ? 'text-white/70' : 'text-slate-400 dark:text-ink-500'}`}>{o.c}</span>
               </button>
             ))}
           </div>
@@ -505,7 +505,7 @@ export default function CategoriesPage() {
             </button>
           )}
 
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} categories
           </div>
         </div>
@@ -513,14 +513,14 @@ export default function CategoriesPage() {
 
       {/* ═══ EMPTY ═══ */}
       {filtered.length === 0 ? (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 sm:p-16 text-center">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-dashed border-slate-300 dark:border-ink-700 p-12 sm:p-16 text-center">
           <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-100 to-green-200 dark:from-emerald-500/20 dark:to-green-500/20 flex items-center justify-center">
             <Tag className="h-9 w-9 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
             {hasFilters ? 'Kuch nahi mila' : 'Abhi koi category nahi'}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+          <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
             {hasFilters
               ? 'Filter change kar ke dekho'
               : 'Categories products ko groups me bandhti hain — phir "Dairy me kitna maal?" ek click pe. Ready-made list se shuru karo!'}
@@ -554,7 +554,7 @@ export default function CategoriesPage() {
           {filtered.map((cat: any) => (
             <div
               key={cat.id}
-              className="group rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 p-4 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-xl dark:hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all"
+              className="group rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-emerald-300 dark:hover:border-emerald-500/50 hover:shadow-xl dark:hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all"
             >
               <div className="flex items-start gap-3">
                 <div
@@ -564,33 +564,33 @@ export default function CategoriesPage() {
                   <Tag className="h-6 w-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-extrabold text-slate-900 dark:text-white truncate text-sm">{cat.name}</h3>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 inline-flex items-center gap-1 font-semibold">
+                  <h3 className="font-extrabold text-slate-900 dark:text-ink-white truncate text-sm">{cat.name}</h3>
+                  <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 inline-flex items-center gap-1 font-semibold">
                     <Package className="h-3 w-3" />
                     {cat._count?.products ?? 0} products
                   </div>
-                  <div className="text-[0.6875rem] font-mono text-slate-400 dark:text-slate-500 mt-1 uppercase">{cat.color}</div>
+                  <div className="text-[0.6875rem] font-mono text-slate-400 dark:text-ink-500 mt-1 uppercase">{cat.color}</div>
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="mt-3 pt-3 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between">
                 <span className={[
                   'text-[0.6875rem] font-extrabold',
-                  (cat._count?.products ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500',
+                  (cat._count?.products ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400 dark:text-ink-500',
                 ].join(' ')}>
                   {(cat._count?.products ?? 0) > 0 ? '✓ In use' : 'Khaali'}
                 </span>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
                   <button
                     onClick={() => openEdit(cat)}
-                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center transition"
+                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center transition"
                     title="Edit"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => confirmDelete(cat)}
-                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
+                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
                     title="Delete"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -602,8 +602,8 @@ export default function CategoriesPage() {
         </section>
       ) : (
         /* ═══ LIST ═══ */
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {filtered.map((cat: any) => (
               <div key={cat.id} className="px-4 sm:px-5 py-3 hover:bg-emerald-50/40 dark:hover:bg-emerald-500/5 transition flex items-center gap-3">
                 <div
@@ -613,23 +613,23 @@ export default function CategoriesPage() {
                   <Tag className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-extrabold text-slate-900 dark:text-white truncate">{cat.name}</div>
-                  <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-slate-400 uppercase">{cat.color}</div>
+                  <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{cat.name}</div>
+                  <div className="text-[0.6875rem] font-mono text-slate-500 dark:text-ink-400 uppercase">{cat.color}</div>
                 </div>
                 <div className="text-right shrink-0">
                   <div className="font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">{cat._count?.products ?? 0}</div>
-                  <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">products</div>
+                  <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">products</div>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <button
                     onClick={() => openEdit(cat)}
-                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center transition"
+                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center justify-center transition"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => confirmDelete(cat)}
-                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
+                    className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -647,38 +647,38 @@ export default function CategoriesPage() {
           onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl max-h-[92vh] flex flex-col"
+            className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-3xl max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 flex items-center justify-between gap-3">
+            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-lg shrink-0">
                   <Import className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white truncate">
+                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-ink-white truncate">
                     {industryPresets.industryEmoji} Bulk Import — {industryPresets.industryName}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">
+                  <p className="text-xs text-slate-600 dark:text-ink-400 font-semibold">
                     {selectedPresets.size} of {availablePresets.length} selected
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}
-                className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center shrink-0 transition"
+                className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center shrink-0 transition"
               >
-                <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+                <X className="h-5 w-5 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
 
-            <div className="shrink-0 px-5 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+            <div className="shrink-0 px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between gap-2 flex-wrap">
               <div className="flex gap-2">
                 <button onClick={() => setSelectedPresets(new Set(availablePresets.map((p) => p.name)))} className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline">Sab select</button>
-                <span className="text-slate-300 dark:text-slate-600">•</span>
-                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-slate-400 hover:underline">Kuch nahi</button>
+                <span className="text-slate-300 dark:text-ink-600">•</span>
+                <button onClick={() => setSelectedPresets(new Set())} className="text-xs font-extrabold text-slate-600 dark:text-ink-400 hover:underline">Kuch nahi</button>
               </div>
-              <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
+              <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">Jo pehle se hain, woh chhupe hain</div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-5">
@@ -692,7 +692,7 @@ export default function CategoriesPage() {
                       className={`flex items-center gap-2 p-3 rounded-xl border-2 transition text-left ${
                         selected
                           ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-500/30'
-                          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-emerald-300 dark:hover:border-emerald-500/50'
+                          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 hover:border-emerald-300 dark:hover:border-emerald-500/50'
                       }`}
                       style={selected ? { borderColor: p.color, backgroundColor: `${p.color}15` } : {}}
                     >
@@ -703,8 +703,8 @@ export default function CategoriesPage() {
                         <Tag className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">{p.name}</div>
-                        <div className="text-[0.625rem] font-mono text-slate-500 dark:text-slate-400 uppercase">{p.color}</div>
+                        <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+                        <div className="text-[0.625rem] font-mono text-slate-500 dark:text-ink-400 uppercase">{p.color}</div>
                       </div>
                       {selected && <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />}
                     </button>
@@ -713,10 +713,10 @@ export default function CategoriesPage() {
               </div>
             </div>
 
-            <div className="shrink-0 px-5 py-4 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 flex items-center justify-between gap-2 flex-wrap">
+            <div className="shrink-0 px-5 py-4 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 flex items-center justify-between gap-2 flex-wrap">
               <div className="text-sm">
-                <div className="font-extrabold text-slate-900 dark:text-white">{selectedPresets.size} categories selected</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Duplicate auto skip ho jayenge</div>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white">{selectedPresets.size} categories selected</div>
+                <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Duplicate auto skip ho jayenge</div>
               </div>
               <div className="flex gap-2">
                 <Button variant="secondary" onClick={() => { setShowBulkImport(false); setSelectedPresets(new Set()); }}>Cancel</Button>
@@ -741,22 +741,22 @@ export default function CategoriesPage() {
           onClick={closeForm}
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-md max-h-[92vh] flex flex-col"
+            className="bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-md max-h-[92vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={formEnter}
           >
-            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="shrink-0 px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/30 shrink-0">
                   {editing ? <Edit3 className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                 </div>
                 <div className="min-w-0">
-                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-white truncate">{editing ? 'Category Edit Karo' : 'Nayi Category'}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Naam + color, bas!</p>
+                  <h3 className="font-extrabold text-lg text-slate-900 dark:text-ink-white truncate">{editing ? 'Category Edit Karo' : 'Nayi Category'}</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Naam + color, bas!</p>
                 </div>
               </div>
-              <button onClick={closeForm} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center shrink-0 transition">
-                <X className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+              <button onClick={closeForm} className="h-9 w-9 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center shrink-0 transition">
+                <X className="h-5 w-5 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
 
@@ -769,8 +769,8 @@ export default function CategoriesPage() {
               />
 
               <div>
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-                  <Palette className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                <label className="text-sm font-bold text-slate-700 dark:text-ink-300 mb-2 flex items-center gap-1.5">
+                  <Palette className="h-3.5 w-3.5 text-slate-500 dark:text-ink-400" />
                   Color
                 </label>
                 <div className="grid grid-cols-5 gap-2">
@@ -781,7 +781,7 @@ export default function CategoriesPage() {
                       onClick={() => setColor(c)}
                       className={`h-11 rounded-xl border-2 transition shadow-sm ${
                         color === c
-                          ? 'border-slate-900 dark:border-white scale-110 shadow-lg ring-2 ring-slate-300 dark:ring-slate-600'
+                          ? 'border-slate-900 dark:border-ink-white scale-110 shadow-lg ring-2 ring-slate-300 dark:ring-ink-600'
                           : 'border-transparent hover:scale-105'
                       }`}
                       style={{ backgroundColor: c }}
@@ -793,21 +793,21 @@ export default function CategoriesPage() {
                     type="color"
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
-                    className="h-10 w-16 rounded-xl border-2 border-slate-200 dark:border-slate-700 cursor-pointer bg-white dark:bg-slate-800"
+                    className="h-10 w-16 rounded-xl border-2 border-slate-200 dark:border-ink-700 cursor-pointer bg-white dark:bg-ink-800"
                   />
                   <input
                     type="text"
                     value={color}
                     onChange={(e) => setColor(e.target.value)}
-                    className="h-10 flex-1 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition"
+                    className="h-10 flex-1 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition"
                     placeholder="#2c9466"
                   />
                 </div>
               </div>
 
               {/* Live preview */}
-              <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-800/30 border-2 border-slate-200 dark:border-slate-700 p-4">
-                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold mb-3 flex items-center gap-1">
+              <div className="rounded-xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-800/30 border-2 border-slate-200 dark:border-ink-700 p-4">
+                <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold mb-3 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Live Preview
                 </div>
                 <div className="flex items-center gap-3">
@@ -818,14 +818,14 @@ export default function CategoriesPage() {
                     <Tag className="h-6 w-6" />
                   </div>
                   <div className="min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white truncate">{name || 'Category name'}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold">0 products</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{name || 'Category name'}</div>
+                    <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold">0 products</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="shrink-0 border-t-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80 p-4 flex gap-2">
+            <div className="shrink-0 border-t-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/80 p-4 flex gap-2">
               <Button variant="secondary" onClick={closeForm} className="flex-1">Cancel</Button>
               <Button
                 onClick={() => {
@@ -871,25 +871,25 @@ function CategoriesTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-500/15 dark:to-green-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Categories — Complete Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Category = products ka group.</strong> Dukaan ke shelf ki tarah — Dairy wali cheezein ek taraf,
             Shoes ek taraf. Phir har group ka hisaab alag alag milta hai.
           </p>
 
-          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-2xl border-2 border-emerald-200 dark:border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-500/5 p-4 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>Category kyun banayein?</strong> — "Footwear me kitna maal para?" "Dairy ka stock kitne ka?" — foran jawab</TipRow>
             <TipRow><strong>🎨 Color ka faida</strong> — har category ka apna color, POS aur reports me ek nazar pehchan</TipRow>
             <TipRow><strong>⚡ Ready-made list</strong> — tumhari industry ki categories pehle se hain, click karo bas</TipRow>
@@ -898,7 +898,7 @@ function CategoriesTeacher({ onClose }: { onClose: () => void }) {
             <TipRow><strong>⌨️ N dabao</strong> — nayi category &nbsp;•&nbsp; <strong>Enter</strong> — form me save</TipRow>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 text-xs font-semibold text-slate-700 dark:text-ink-200">
             💡 <strong>Category vs Brand:</strong> Category = cheez <em>kya</em> hai (Dairy, Shoes, Spare Parts).
             Brand = <em>kis company</em> ki hai (Nestlé, Bata, Honda). Ek product ka dono ho sakte hain —
             "Nestlé (brand) ka Doodh (category)".
@@ -945,18 +945,18 @@ function Kpi({ icon: Icon, label, value, sub, tone, onClick, active }: any) {
     <Comp
       onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
+        'rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-md cursor-pointer' : '',
         active
           ? 'border-emerald-500 dark:border-emerald-500/60 ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-          : 'border-slate-200 dark:border-slate-800',
+          : 'border-slate-200 dark:border-ink-800',
       ].join(' ')}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />

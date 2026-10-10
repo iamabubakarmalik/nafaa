@@ -74,7 +74,7 @@ export default function AmcPage() {
         {['ACTIVE', 'all', 'RENEWAL_DUE', 'EXPIRED', 'CANCELLED', 'SUSPENDED'].map((s) => (
           <button key={s} onClick={() => setStatusFilter(s)} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (statusFilter === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (statusFilter === s ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>{s === 'all' ? 'All' : s.replace('_', ' ')}</button>
         ))}
       </div>
@@ -87,9 +87,9 @@ export default function AmcPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : contracts.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Shield className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No AMC contracts</p>
         </div>
@@ -109,7 +109,7 @@ function ContractCard({ contract }: { contract: AmcContract }) {
   const visitsPct = contract.numberOfVisits > 0 ? (contract.visitsUsed / contract.numberOfVisits) * 100 : 0;
 
   return (
-    <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
+    <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
       <div className={'p-5 text-white bg-gradient-to-br ' + (tier?.color ?? 'from-slate-500 to-slate-700')}>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
@@ -144,17 +144,17 @@ function ContractCard({ contract }: { contract: AmcContract }) {
             <span className="text-slate-600">Visit Progress</span>
             <span>{contract.visitsUsed} / {contract.numberOfVisits} used</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-100 dark:bg-neutral-800 overflow-hidden">
+          <div className="h-2 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden">
             <div className="h-full bg-gradient-to-r from-emerald-500 to-green-600" style={{ width: visitsPct + '%' }} />
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-xs">
-          <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+          <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
             <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">Start</div>
             <div className="text-xs font-extrabold">{format(new Date(contract.startDate), 'dd MMM yyyy')}</div>
           </div>
-          <div className="rounded-lg bg-slate-50 dark:bg-neutral-800/50 p-2 text-center">
+          <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 p-2 text-center">
             <div className="text-[0.625rem] uppercase font-extrabold text-slate-500">End</div>
             <div className="text-xs font-extrabold">{format(new Date(contract.endDate), 'dd MMM yyyy')}</div>
           </div>
@@ -179,13 +179,13 @@ function ContractCard({ contract }: { contract: AmcContract }) {
                 <div key={v.id} className={
                   'rounded-lg p-2 border-2 text-xs ' +
                   (v.status === 'COMPLETED' ? 'border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30' :
-                   'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900')
+                   'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900')
                 }>
                   <div className="flex items-center justify-between">
                     <span className="text-[0.625rem] font-extrabold text-slate-500">Visit #{v.visitNumber}</span>
                     {v.status === 'COMPLETED' && <CheckCircle2 className="h-3 w-3 text-emerald-600" />}
                   </div>
-                  <div className="text-xs font-extrabold text-slate-900 dark:text-white">{format(new Date(v.scheduledDate), 'dd MMM')}</div>
+                  <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{format(new Date(v.scheduledDate), 'dd MMM')}</div>
                   <div className="text-[0.625rem] font-bold text-slate-500 uppercase">{v.status}</div>
                 </div>
               ))}
@@ -241,7 +241,7 @@ function AmcForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-800 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b bg-emerald-50 dark:bg-emerald-950/30 flex items-center justify-between">
         <h3 className="font-extrabold">🛡️ New AMC Contract</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -250,9 +250,9 @@ function AmcForm({ onClose, onSaved }: any) {
       </div>
       <div className="p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <div className="grid sm:grid-cols-3 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
-          <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone *" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+          <input value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} placeholder="Email" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
         </div>
 
         <div>
@@ -261,7 +261,7 @@ function AmcForm({ onClose, onSaved }: any) {
             {TIERS.map((t) => (
               <button key={t.value} onClick={() => setForm({ ...form, type: t.value })} className={
                 'p-4 rounded-xl border-2 text-center transition ' +
-                (form.type === t.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-emerald-300')
+                (form.type === t.value ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 shadow' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300')
               }>
                 <div className="text-3xl mb-1">{t.emoji}</div>
                 <div className="text-sm font-extrabold">{t.label}</div>
@@ -277,11 +277,11 @@ function AmcForm({ onClose, onSaved }: any) {
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Start Date</label>
-            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+            <input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">End Date</label>
-            <input type="date" value={form.endDate || computedEndDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
+            <input type="date" value={form.endDate || computedEndDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-emerald-500" />
           </div>
         </div>
 
@@ -318,7 +318,7 @@ function AmcForm({ onClose, onSaved }: any) {
           </div>
         </div>
 
-        <textarea rows={2} value={form.serviceAddress} onChange={(e) => setForm({ ...form, serviceAddress: e.target.value })} placeholder="Service address *" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.serviceAddress} onChange={(e) => setForm({ ...form, serviceAddress: e.target.value })} placeholder="Service address *" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
         <label className="flex items-center gap-2 p-3 rounded-xl border-2 border-violet-200 bg-violet-50 cursor-pointer">
           <input type="checkbox" checked={form.autoScheduleVisits} onChange={(e) => setForm({ ...form, autoScheduleVisits: e.target.checked })} className="h-5 w-5 rounded" />
@@ -328,7 +328,7 @@ function AmcForm({ onClose, onSaved }: any) {
           </div>
         </label>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-emerald-500 resize-none" />
 
         <div className="flex gap-2 pt-2 border-t">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>

@@ -142,9 +142,9 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-ink-800 bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg">
               <Package className="h-5 w-5" />
@@ -153,32 +153,32 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
               <div className="text-[0.6875rem] uppercase tracking-wider text-emerald-700 dark:text-emerald-300 font-bold">
                 Add Part / Spare
               </div>
-              <h3 className="font-bold text-slate-900 dark:text-white">{ticketNumber}</h3>
+              <h3 className="font-bold text-slate-900 dark:text-ink-white">{ticketNumber}</h3>
             </div>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowShortcuts((v) => !v)}
-              className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"
+              className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"
               title="Shortcuts (Shift+?)"
             >
-              <Keyboard className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              <Keyboard className="h-4 w-4 text-slate-600 dark:text-ink-300" />
             </button>
             <button
               onClick={onClose}
-              className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"
+              className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"
             >
-              <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+              <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
             </button>
           </div>
         </div>
 
         {showShortcuts && (
-          <div className="px-5 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300">
+          <div className="px-5 py-3 bg-slate-50 dark:bg-ink-800/50 border-b border-slate-200 dark:border-ink-800 text-xs text-slate-700 dark:text-ink-300">
             <div className="flex items-center gap-4 flex-wrap">
-              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border font-mono">Esc</kbd> Close</span>
-              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border font-mono">Shift+?</kbd> Toggle help</span>
-              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border font-mono">Ctrl+Enter</kbd> Save</span>
+              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">Esc</kbd> Close</span>
+              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">Shift+?</kbd> Toggle help</span>
+              <span><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border font-mono">Ctrl+Enter</kbd> Save</span>
             </div>
           </div>
         )}
@@ -187,7 +187,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Source */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+            <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-2">
               Part Source
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -212,7 +212,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                     className={`p-3 rounded-xl border-2 text-xs font-bold transition ${
                       active
                         ? `bg-${s.color}-50 dark:bg-${s.color}-950/40 border-${s.color}-400 text-${s.color}-800 dark:text-${s.color}-200 shadow`
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                        : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-300'
                     }`}
                   >
                     <Icon className="h-4 w-4 mx-auto mb-1" />
@@ -227,7 +227,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
           {/* Product link */}
           {source === 'OWN_STOCK' && (
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1">
                 Link to Inventory Product
               </label>
               <div className="relative">
@@ -239,12 +239,12 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                     setSelectedProductId('');
                   }}
                   placeholder="Naam, SKU, ya barcode se search karo..."
-                  className="h-10 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white pl-9 pr-10 text-sm focus:outline-none focus:border-emerald-500"
+                  className="h-10 w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white pl-9 pr-10 text-sm focus:outline-none focus:border-emerald-500"
                 />
                 <ScanLine className="h-4 w-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
               </div>
               {productSearch && !selectedProductId && filteredProducts.length > 0 && (
-                <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 divide-y divide-slate-100 dark:divide-slate-700 shadow-lg">
+                <div className="mt-1 max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 divide-y divide-slate-100 dark:divide-ink-700 shadow-lg">
                   {filteredProducts.map((p) => {
                     const threshold = (p as any).lowStockThreshold ?? (p as any).minStock ?? 5;
                     const low = (p.stock || 0) <= threshold;
@@ -261,7 +261,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                         }}
                         className="w-full px-3 py-2 text-left hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-sm transition"
                       >
-                        <div className="font-bold text-slate-900 dark:text-white text-xs flex items-center justify-between">
+                        <div className="font-bold text-slate-900 dark:text-ink-white text-xs flex items-center justify-between">
                           {p.name}
                           {low && (
                             <span className="text-[0.625rem] px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-bold">
@@ -269,7 +269,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
                             </span>
                           )}
                         </div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400">
                           Stock: <strong>{p.stock} {p.unit}</strong> · Cost:{' '}
                           {formatPKR(p.costPrice || 0)} · Price: {formatPKR(p.price || 0)}
                         </div>
@@ -347,7 +347,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
           {/* Quick margin buttons */}
           {costN > 0 && (
             <div>
-              <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 uppercase mb-1.5 flex items-center gap-1">
                 <Percent className="h-3 w-3" /> Quick Margin
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -398,7 +398,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
             placeholder="Optional"
           />
 
-          <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-2.5 text-[0.6875rem] text-slate-600 dark:text-slate-400 flex items-start gap-2">
+          <div className="rounded-lg bg-slate-50 dark:bg-ink-800/50 border border-slate-200 dark:border-ink-700 p-2.5 text-[0.6875rem] text-slate-600 dark:text-ink-400 flex items-start gap-2">
             <Info className="h-3 w-3 flex-shrink-0 mt-0.5 text-blue-600" />
             <span>
               <strong>Tip:</strong> "Own Stock" par inventory automatically ghatega. "Customer Provided"
@@ -408,7 +408,7 @@ export function AddPartModal({ ticketId, ticketNumber, onClose }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-2">
+        <div className="px-5 py-4 border-t border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button
             onClick={submit}

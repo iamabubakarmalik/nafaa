@@ -96,14 +96,14 @@ export default function ModifiersPage() {
       {/* GROUPS LIST */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : groups.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <div className="h-20 w-20 rounded-3xl bg-pink-100 dark:bg-pink-950/40 mx-auto flex items-center justify-center">
             <Sparkles className="h-10 w-10 text-pink-600" />
           </div>
-          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">No modifier groups</h3>
+          <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">No modifier groups</h3>
           <p className="mt-1 text-sm text-slate-500 font-semibold">Add modifiers to customize menu items</p>
           <Button
             className="mt-4 bg-gradient-to-r from-pink-600 to-rose-700"
@@ -143,7 +143,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
   return (
     <div className={
       'rounded-2xl border-2 shadow-sm hover:shadow-lg transition p-4 ' +
-      (group.isActive ? 'bg-white dark:bg-neutral-900 border-slate-200 dark:border-neutral-800' : 'bg-slate-50 dark:bg-neutral-900/50 border-slate-200 dark:border-neutral-800 opacity-70')
+      (group.isActive ? 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-800' : 'bg-slate-50 dark:bg-ink-900/50 border-slate-200 dark:border-ink-800 opacity-70')
     }>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -153,7 +153,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">{group.name}</h3>
+              <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">{group.name}</h3>
               <span className="px-2 py-0.5 rounded-md bg-pink-100 dark:bg-pink-950/40 text-pink-700 text-[0.625rem] font-extrabold uppercase">
                 {typeCfg?.label || group.type}
               </span>
@@ -162,7 +162,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
                   Required
                 </span>
               )}
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-neutral-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 text-[0.625rem] font-extrabold uppercase">
                 Choose {group.minSelections}–{group.maxSelections}
               </span>
               {group._count?.menuItems ? (
@@ -184,7 +184,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
                   key={opt.id}
                   className={
                     'px-2.5 py-1 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 border-2 ' +
-                    (opt.isDefault ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300' : 'border-slate-200 dark:border-neutral-700 bg-slate-50 dark:bg-neutral-800 text-slate-700 dark:text-slate-300')
+                    (opt.isDefault ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300' : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800 text-slate-700 dark:text-ink-300')
                   }
                 >
                   {opt.emoji && <span>{opt.emoji}</span>}
@@ -206,7 +206,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
             onClick={onToggle}
             className={
               'h-9 w-9 rounded-lg flex items-center justify-center transition ' +
-              (group.isActive ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700' : 'bg-slate-100 dark:bg-neutral-800 text-slate-500')
+              (group.isActive ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700' : 'bg-slate-100 dark:bg-ink-800 text-slate-500')
             }
             title={group.isActive ? 'Active' : 'Inactive'}
           >
@@ -214,7 +214,7 @@ function ModifierGroupCard({ group, onEdit, onToggle, onDelete }: {
           </button>
           <button
             onClick={onEdit}
-            className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
+            className="h-9 w-9 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 text-slate-700 flex items-center justify-center"
           >
             <Edit3 className="h-4 w-4" />
           </button>
@@ -280,12 +280,12 @@ function ModifierForm({ editing, onClose, onSaved }: {
   const validOptions = options.filter((o) => o.name.trim()).length;
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-pink-300 dark:border-pink-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-pink-300 dark:border-pink-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-pink-50 dark:bg-pink-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
           {editing ? 'Edit Modifier Group' : 'New Modifier Group'}
         </h3>
-        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-neutral-800 flex items-center justify-center">
+        <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
@@ -300,7 +300,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="e.g. Size, Toppings, Spice Level"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
             />
           </div>
           <div>
@@ -308,7 +308,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value as ModifierType })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
             >
               {MODIFIER_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.emoji} {t.label} — {t.description}</option>
@@ -323,13 +323,13 @@ function ModifierForm({ editing, onClose, onSaved }: {
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="Optional description shown to customer"
-            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
+            className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
           />
         </div>
 
         {/* Selection Rules */}
-        <div className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 p-4 space-y-3">
-          <div className="text-sm font-extrabold text-slate-900 dark:text-white">Selection Rules</div>
+        <div className="rounded-xl border-2 border-slate-200 dark:border-ink-700 p-4 space-y-3">
+          <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Selection Rules</div>
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.isRequired} onChange={(e) => setForm({ ...form, isRequired: e.target.checked })} className="h-4 w-4 rounded" />
@@ -344,7 +344,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
                 min="0"
                 value={form.minSelections}
                 onChange={(e) => setForm({ ...form, minSelections: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
               />
             </div>
             <div>
@@ -354,7 +354,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
                 min="1"
                 value={form.maxSelections}
                 onChange={(e) => setForm({ ...form, maxSelections: Number(e.target.value) })}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
               />
             </div>
           </div>
@@ -367,7 +367,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
         <div>
           <div className="flex items-center justify-between mb-2">
             <div>
-              <label className="text-sm font-extrabold text-slate-900 dark:text-white">Options ({validOptions})</label>
+              <label className="text-sm font-extrabold text-slate-900 dark:text-ink-white">Options ({validOptions})</label>
               <p className="text-xs text-slate-500 font-semibold">Individual choices for customer</p>
             </div>
             <Button size="sm" onClick={addOption} className="bg-gradient-to-r from-pink-600 to-rose-700">
@@ -378,7 +378,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
 
           <div className="space-y-2">
             {options.map((opt, idx) => (
-              <div key={idx} className="rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-3 grid grid-cols-12 gap-2 items-center">
+              <div key={idx} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 p-3 grid grid-cols-12 gap-2 items-center">
                 <div className="col-span-1 flex flex-col gap-1">
                   <button
                     onClick={() => moveOption(idx, 'up')}
@@ -401,14 +401,14 @@ function ModifierForm({ editing, onClose, onSaved }: {
                   onChange={(e) => updateOption(idx, { emoji: e.target.value })}
                   placeholder="🧀"
                   maxLength={4}
-                  className="col-span-1 h-10 text-center rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-lg font-bold focus:outline-none focus:border-pink-500"
+                  className="col-span-1 h-10 text-center rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-lg font-bold focus:outline-none focus:border-pink-500"
                 />
 
                 <input
                   value={opt.name}
                   onChange={(e) => updateOption(idx, { name: e.target.value })}
                   placeholder="Option name (e.g. Small, Extra Cheese)"
-                  className="col-span-5 h-10 rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
+                  className="col-span-5 h-10 rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-pink-500"
                 />
 
                 <div className="col-span-3 relative">
@@ -419,7 +419,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
                     value={opt.priceAdjustment ?? 0}
                     onChange={(e) => updateOption(idx, { priceAdjustment: Number(e.target.value) })}
                     placeholder="0"
-                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-8 pr-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
+                    className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-8 pr-2 text-sm font-extrabold tabular-nums focus:outline-none focus:border-pink-500"
                   />
                 </div>
 
@@ -453,7 +453,7 @@ function ModifierForm({ editing, onClose, onSaved }: {
           </div>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button
             className="flex-1 bg-gradient-to-r from-pink-600 to-rose-700"

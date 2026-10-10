@@ -98,9 +98,9 @@ export function DiagnoseModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full sm:max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="w-full sm:max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 dark:border-slate-800 bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-ink-800 bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
               <Stethoscope className="h-5 w-5" />
@@ -109,21 +109,21 @@ export function DiagnoseModal({
               <div className="text-[0.6875rem] uppercase tracking-wider text-indigo-700 dark:text-indigo-300 font-bold">
                 {initialDiagnosed ? 'Edit Diagnosis' : 'New Diagnosis'}
               </div>
-              <h3 className="font-bold text-slate-900 dark:text-white">{ticketNumber}</h3>
+              <h3 className="font-bold text-slate-900 dark:text-ink-white">{ticketNumber}</h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center"
+            className="h-9 w-9 rounded-xl hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center"
           >
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Quick suggestions */}
           <div>
-            <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1.5 flex items-center gap-1">
+            <div className="text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 uppercase mb-1.5 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Quick Diagnosis Presets
             </div>
             <div className="flex flex-wrap gap-1.5">
@@ -141,7 +141,7 @@ export function DiagnoseModal({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1">
               Diagnosed Issue * (Technical finding)
             </label>
             <textarea
@@ -150,12 +150,12 @@ export function DiagnoseModal({
               value={diagnosedIssue}
               onChange={(e) => setDiagnosedIssue(e.target.value)}
               placeholder="LCD damaged, IC issue, battery swollen..."
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1">
               Diagnosis Notes
             </label>
             <textarea
@@ -163,12 +163,12 @@ export function DiagnoseModal({
               value={diagnosisNotes}
               onChange={(e) => setDiagnosisNotes(e.target.value)}
               placeholder="Additional technical details..."
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 items-center gap-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-ink-300 mb-1 items-center gap-1">
               <Lightbulb className="h-3 w-3 text-amber-500" /> Recommended Actions
             </label>
             <textarea
@@ -176,12 +176,12 @@ export function DiagnoseModal({
               value={recommendedActions}
               onChange={(e) => setRecommendedActions(e.target.value)}
               placeholder="Screen replace, battery change, software flash..."
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white px-3 py-2 text-sm focus:outline-none focus:border-indigo-500"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-ink-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={autoCalc}
@@ -244,7 +244,7 @@ export function DiagnoseModal({
           )}
         </div>
 
-        <div className="px-5 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-2">
+        <div className="px-5 py-4 border-t border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex justify-end gap-2">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button
             onClick={submit}

@@ -65,9 +65,9 @@ export default function QualityTestsPage() {
       )}
 
       {isLoading ? (
-        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}</div>
+        <div className="grid gap-3">{[1, 2].map((i) => <div key={i} className="h-24 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}</div>
       ) : tests.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Beaker className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No quality tests recorded</p>
         </div>
@@ -75,7 +75,7 @@ export default function QualityTestsPage() {
         <section className="grid gap-2">
           {tests.map((t) => (
             <div key={t.id} className={
-              'rounded-xl bg-white dark:bg-neutral-900 border-2 shadow-sm p-3 ' +
+              'rounded-xl bg-white dark:bg-ink-900 border-2 shadow-sm p-3 ' +
               (t.passed ? 'border-emerald-200' : 'border-rose-300')
             }>
               <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -140,11 +140,11 @@ function StatCard({ label, value, icon: Icon, color }: any) {
     amber: 'from-amber-500 to-orange-600', red: 'from-red-600 to-red-800',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
         </div>
         <div className={'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] + ' text-white flex items-center justify-center shadow-lg'}>
           <Icon className="h-6 w-6" />
@@ -194,7 +194,7 @@ function TestForm({ onClose, onSaved }: any) {
   };
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-rose-300 shadow-lg overflow-hidden">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-rose-300 shadow-lg overflow-hidden">
       <div className="px-5 py-3 border-b border-slate-100 bg-rose-50 flex items-center justify-between">
         <h3 className="font-extrabold">New Quality Test</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
@@ -205,11 +205,11 @@ function TestForm({ onClose, onSaved }: any) {
         <div className="grid sm:grid-cols-2 gap-3">
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Source Type *</label>
-            <select value={form.sourceType} onChange={(e) => setForm({ ...form, sourceType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
+            <select value={form.sourceType} onChange={(e) => setForm({ ...form, sourceType: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500">
               {SOURCE_TYPES.map((s) => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}
             </select>
           </div>
-          <input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} placeholder="Source name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+          <input value={form.sourceName} onChange={(e) => setForm({ ...form, sourceName: e.target.value })} placeholder="Source name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -263,9 +263,9 @@ function TestForm({ onClose, onSaved }: any) {
           </div>
         </div>
 
-        <input value={form.actionTaken} onChange={(e) => setForm({ ...form, actionTaken: e.target.value })} placeholder="Action taken (rejected, accepted with warning...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <input value={form.testMethod} onChange={(e) => setForm({ ...form, testMethod: e.target.value })} placeholder="Test method (Lactometer, Gerber, Milk Analyzer)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
+        <input value={form.actionTaken} onChange={(e) => setForm({ ...form, actionTaken: e.target.value })} placeholder="Action taken (rejected, accepted with warning...)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+        <input value={form.testMethod} onChange={(e) => setForm({ ...form, testMethod: e.target.value })} placeholder="Test method (Lactometer, Gerber, Milk Analyzer)" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-rose-500" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-rose-500 resize-none" />
 
         <div className="flex gap-2 pt-2 border-t border-slate-100">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>

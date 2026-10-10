@@ -642,7 +642,7 @@ export default function AgriSalesPage() {
           </div>
           <div className="flex gap-1.5 shrink-0">
             <button onClick={() => { setCreditOnly(true); setTab('list'); }}
-              className="h-10 px-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black transition">
+              className="h-10 px-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-amber-300 dark:border-amber-500/40 hover:border-amber-500 text-amber-800 dark:text-amber-200 text-xs font-black transition">
               Sirf udhaar wale
             </button>
             <Link to="/khata"
@@ -674,12 +674,12 @@ export default function AgriSalesPage() {
               <button key={k.v} onClick={() => { setKindFilter(on ? 'all' : k.v); setTab('list'); }}
                 className={`rounded-2xl border-2 p-3 text-left transition active:scale-[0.98] ${
                   on ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-400'
+                    : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 hover:border-emerald-400'
                 }`}>
                 <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">
                   {k.e} {k.l}
                 </div>
-                <div className="mt-1 text-base font-black text-slate-900 dark:text-white tabular-nums truncate">
+                <div className="mt-1 text-base font-black text-slate-900 dark:text-ink-white tabular-nums truncate">
                   {showValue(formatPKR(row?.value ?? 0))}
                 </div>
               </button>
@@ -698,12 +698,12 @@ export default function AgriSalesPage() {
             className={`h-14 rounded-2xl border-2 font-black text-sm inline-flex items-center justify-center gap-2 transition ${
               tab === id
                 ? 'bg-gradient-to-r from-emerald-600 to-lime-700 text-white border-transparent shadow-lg'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-emerald-400'
+                : 'bg-white dark:bg-ink-900 text-slate-600 dark:text-ink-300 border-slate-200 dark:border-ink-800 hover:border-emerald-400'
             }`}>
             <Icon className="h-4 w-4" /> {label}
             {count !== undefined && (
               <span className={`text-[0.6875rem] px-1.5 py-0.5 rounded-lg tabular-nums ${
-                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-slate-800'
+                tab === id ? 'bg-white/25' : 'bg-slate-100 dark:bg-ink-800'
               }`}>{count}</span>
             )}
           </button>
@@ -711,16 +711,16 @@ export default function AgriSalesPage() {
       </div>
 
       {/* ═══ TOOLBAR ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-3 sm:p-4 space-y-3 print:hidden">
         <div className="flex gap-2 flex-wrap">
           <div className="relative flex-1 min-w-[220px]">
             <Search className="h-5 w-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input ref={searchRef} value={search} onChange={(e) => setSearch(e.target.value)}
               placeholder="Bill number, farmer, phone, cheez, fasal… (/ dabao)"
-              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+              className="h-12 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-11 pr-10 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
             {search && (
               <button onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center">
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-700 flex items-center justify-center">
                 <X className="h-4 w-4 text-slate-400" />
               </button>
             )}
@@ -728,24 +728,24 @@ export default function AgriSalesPage() {
 
           <div className="relative">
             <button onClick={() => setShowDate((v) => !v)}
-              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5 hover:border-emerald-400 transition">
+              className="h-12 px-4 rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-sm font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center gap-1.5 hover:border-emerald-400 transition">
               <Calendar className="h-4 w-4" /> {DATE_OPTS.find(([v]) => v === dateFilter)?.[1]}
               <ChevronDown className="h-3.5 w-3.5" />
             </button>
             {showDate && (
-              <div className="absolute z-30 mt-1 right-0 w-56 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-2 space-y-1">
+              <div className="absolute z-30 mt-1 right-0 w-56 rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-2 space-y-1">
                 {DATE_OPTS.map(([v, l]) => (
                   <button key={v} onClick={() => { setDateFilter(v); if (v !== 'custom') setShowDate(false); }}
                     className={`w-full h-10 px-3 rounded-xl text-left text-xs font-extrabold transition ${
-                      dateFilter === v ? 'bg-emerald-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200'
+                      dateFilter === v ? 'bg-emerald-600 text-white' : 'hover:bg-slate-100 dark:hover:bg-ink-800 text-slate-700 dark:text-ink-200'
                     }`}>{l}</button>
                 ))}
                 {dateFilter === 'custom' && (
-                  <div className="pt-2 space-y-1.5 border-t-2 border-slate-100 dark:border-slate-800">
+                  <div className="pt-2 space-y-1.5 border-t-2 border-slate-100 dark:border-ink-800">
                     <input type="date" value={customStart} onChange={(e) => setCustomStart(e.target.value)}
-                      className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+                      className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
                     <input type="date" value={customEnd} onChange={(e) => setCustomEnd(e.target.value)}
-                      className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500" />
+                      className="h-10 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500" />
                     <Button className="w-full h-9" onClick={() => setShowDate(false)}>Laga do</Button>
                   </div>
                 )}
@@ -758,13 +758,13 @@ export default function AgriSalesPage() {
           <button onClick={() => setPayFilter('all')}
             className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black transition ${
               payFilter === 'all' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
             }`}>Har tareeqa</button>
           {Object.entries(PAY).map(([k, v]) => (
             <button key={k} onClick={() => setPayFilter(payFilter === k ? 'all' : (k as PaymentMethod))}
               className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
                 payFilter === k ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                  : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-emerald-400'
+                  : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-emerald-400'
               }`}>
               <v.icon className="h-3 w-3" /> {v.label}
             </button>
@@ -772,7 +772,7 @@ export default function AgriSalesPage() {
           <button onClick={() => setCreditOnly(!creditOnly)}
             className={`h-9 px-3 rounded-xl border-2 text-[0.6875rem] font-black inline-flex items-center gap-1 transition ${
               creditOnly ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300'
-                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-amber-400'
+                : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300 hover:border-amber-400'
             }`}>
             <Wallet className="h-3 w-3" /> Sirf udhaar
           </button>
@@ -783,7 +783,7 @@ export default function AgriSalesPage() {
               <X className="h-3 w-3" /> Chaant hatao
             </button>
           )}
-          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-slate-400 tabular-nums">
+          <div className="ml-auto text-xs font-extrabold text-slate-500 dark:text-ink-400 tabular-nums">
             {filtered.length} bill · {showValue(formatPKR(stats.amount))}
           </div>
         </div>
@@ -797,7 +797,7 @@ export default function AgriSalesPage() {
           showValue={showValue} hideAmounts={hideAmounts} rangeLabel={rangeLabel} />
       ) : salesQ.isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-28 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
         <Empty hasFilters={hasFilters} onClear={clearFilters} onGuide={() => setShowTeacher(true)} />
@@ -813,7 +813,7 @@ export default function AgriSalesPage() {
           {visible < filtered.length && (
             <div className="flex justify-center print:hidden">
               <button onClick={() => setVisible((v) => v + 50)}
-                className="px-6 py-3.5 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-400 text-sm font-extrabold text-slate-700 dark:text-slate-200 shadow-sm transition active:scale-[0.98]">
+                className="px-6 py-3.5 rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-emerald-400 text-sm font-extrabold text-slate-700 dark:text-ink-200 shadow-sm transition active:scale-[0.98]">
                 Aur {Math.min(50, filtered.length - visible)} dikhao
                 <span className="text-slate-400 font-bold ml-1">({visible}/{filtered.length})</span>
               </button>
@@ -857,14 +857,14 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
   return (
     <div className={`rounded-2xl border-2 shadow-sm overflow-hidden avoid-break transition hover:shadow-md ${
       voided ? 'border-rose-200 dark:border-rose-500/40 bg-rose-50/40 dark:bg-rose-500/5 opacity-75'
-        : credit > 0 ? 'border-amber-200 dark:border-amber-500/40 bg-white dark:bg-slate-900'
-        : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-emerald-300'
+        : credit > 0 ? 'border-amber-200 dark:border-amber-500/40 bg-white dark:bg-ink-900'
+        : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 hover:border-emerald-300'
     }`}>
       <Link to={receiptLink(s.id, false)} className="block p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
+              <span className="font-mono font-extrabold text-sm text-slate-900 dark:text-ink-white">{s.saleNumber}</span> <SaleSourceBadge sale={s as any} className="ml-1 align-middle" />
               <span className={`px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase inline-flex items-center gap-1 ${pay.chip}`}>
                 <PayIcon className="h-2.5 w-2.5" /> {pay.label}
               </span>
@@ -880,14 +880,14 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
                 const k = KINDS.find((x) => x.v === g);
                 if (!k) return null;
                 return (
-                  <span key={g} className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  <span key={g} className="px-1.5 py-0.5 rounded-md text-[0.625rem] font-extrabold bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300">
                     {k.e} {k.l}
                   </span>
                 );
               })}
             </div>
 
-            <div className="mt-1 flex items-center gap-3 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-400 flex-wrap">
+            <div className="mt-1 flex items-center gap-3 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-400 flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <User className="h-3 w-3" />{s.customer?.name ?? 'Walk-in'}
               </span>
@@ -899,13 +899,13 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
 
             <div className="mt-2 flex flex-wrap gap-1">
               {items.slice(0, 4).map((i: any, n: number) => (
-                <span key={n} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[0.6875rem] font-extrabold">
+                <span key={n} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 text-[0.6875rem] font-extrabold">
                   {AGRI_KIND_EMOJI[infoOf(i).kind as AgriKind]} {i.product?.name ?? 'Cheez'} ·{' '}
                   {fmtQty(i.quantity)} {agriUnitLabel(i.product?.unit ?? '')}
                 </span>
               ))}
               {items.length > 4 && (
-                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[0.6875rem] font-extrabold">
+                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-slate-500 text-[0.6875rem] font-extrabold">
                   +{items.length - 4} aur
                 </span>
               )}
@@ -913,7 +913,7 @@ function SaleRow({ s, infoOf, receiptLink, showValue, waHref, onVoid, onReturn }
           </div>
 
           <div className="text-right shrink-0">
-            <div className={`text-xl font-black tabular-nums leading-none ${voided ? 'line-through text-slate-400' : 'text-slate-900 dark:text-white'}`}>
+            <div className={`text-xl font-black tabular-nums leading-none ${voided ? 'line-through text-slate-400' : 'text-slate-900 dark:text-ink-white'}`}>
               {showValue(formatPKR(s.total))}
             </div>
             {credit > 0 ? (
@@ -1120,13 +1120,13 @@ function Analytics({
           <div key={p.key} className={`rounded-2xl border-2 p-4 ${
             p.key === topPart.key
               ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-500/10'
-              : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'
+              : 'border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900'
           }`}>
             <div className="flex items-center gap-1.5">
               <p.icon className="h-4 w-4 text-emerald-600" />
               <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">{p.label}</span>
             </div>
-            <div className="mt-1 text-lg font-black text-slate-900 dark:text-white tabular-nums">
+            <div className="mt-1 text-lg font-black text-slate-900 dark:text-ink-white tabular-nums">
               {showValue(formatPKR(p.bikri))}
             </div>
             <div className="text-[0.6875rem] font-bold text-slate-400">{p.range} · {p.bill} bill · {p.pct.toFixed(0)}%</div>
@@ -1152,7 +1152,7 @@ function Analytics({
       </div>
 
       {creditList.length > 0 && !hideAmounts && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-200 dark:border-amber-500/30 shadow-sm overflow-hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-200 dark:border-amber-500/30 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b-2 border-amber-100 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/10 flex items-center gap-2">
             <Wallet className="h-4 w-4 text-amber-600" />
             <h3 className="font-black text-amber-900 dark:text-amber-200">Jin se paisa lena hai — purana pehle</h3>
@@ -1160,14 +1160,14 @@ function Analytics({
               {formatPKR(creditList.reduce((x: number, s: any) => x + Number(s.creditAmount || 0), 0))}
             </span>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[420px] overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-[420px] overflow-y-auto">
             {creditList.slice(0, 20).map((s: any) => (
               <div key={s.id} className="p-3 flex items-center gap-3">
                 <span className="h-9 w-9 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center shrink-0">
                   <User className="h-4 w-4 text-amber-700 dark:text-amber-300" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                  <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">
                     {s.customer?.name ?? 'Walk-in'}
                   </div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -1209,7 +1209,7 @@ function VoidModal({ sale, onClose, onConfirm, saving }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-rose-600 to-red-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -1237,13 +1237,13 @@ function VoidModal({ sale, onClose, onConfirm, saving }: any) {
             </label>
             <textarea rows={2} autoFocus value={reason} onChange={(e) => setReason(e.target.value)}
               placeholder="Kyun void kar rahe hain…"
-              className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500 resize-none transition" />
+              className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-rose-500 resize-none transition" />
           </div>
 
           <div className="flex flex-wrap gap-1.5">
             {VOID_REASONS.map((r) => (
               <button key={r} type="button" onClick={() => setReason(r)}
-                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 transition">
+                className="px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-ink-800 hover:bg-rose-50 dark:hover:bg-rose-500/15 text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 transition">
                 {r}
               </button>
             ))}
@@ -1292,11 +1292,11 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
   return createPortal(
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
-      <div className="absolute z-50 w-[280px] rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-3 space-y-3"
+      <div className="absolute z-50 w-[280px] rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-3 space-y-3"
         style={{ top: pos.top, left: pos.left }}>
         <div className="flex items-center justify-between">
           <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500">Receipt ki settings</span>
-          <button onClick={onClose} className="h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center">
+          <button onClick={onClose} className="h-6 w-6 rounded-lg hover:bg-slate-100 dark:hover:bg-ink-800 flex items-center justify-center">
             <X className="h-3.5 w-3.5 text-slate-400" />
           </button>
         </div>
@@ -1308,7 +1308,7 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
               <button key={w} onClick={() => onChange({ paperWidth: w })}
                 className={`h-9 rounded-xl border-2 text-xs font-black transition ${
                   prefs.paperWidth === w ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                 }`}>{w}mm</button>
             ))}
           </div>
@@ -1321,7 +1321,7 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
               <button key={m} onClick={() => onChange({ mode: m })}
                 className={`h-9 rounded-xl border-2 text-xs font-black transition ${
                   prefs.mode === m ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 dark:text-ink-300'
                 }`}>{l}</button>
             ))}
           </div>
@@ -1329,9 +1329,9 @@ function ReceiptPrefsPopover({ anchorRef, prefs, onChange, onClose }: any) {
 
         {([['autoPrint', 'Kholte hi print ho jaye'], ['showLogo', 'Logo dikhayein']] as const).map(([k, l]) => (
           <button key={k} onClick={() => onChange({ [k]: !prefs[k] })}
-            className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-            <span className="text-[0.75rem] font-extrabold text-slate-700 dark:text-slate-200">{l}</span>
-            <span className={`h-5 w-9 rounded-full transition relative ${prefs[k] ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-600'}`}>
+            className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 transition">
+            <span className="text-[0.75rem] font-extrabold text-slate-700 dark:text-ink-200">{l}</span>
+            <span className={`h-5 w-9 rounded-full transition relative ${prefs[k] ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-ink-600'}`}>
               <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${prefs[k] ? 'left-[1.15rem]' : 'left-0.5'}`} />
             </span>
           </button>
@@ -1357,16 +1357,16 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight, onClick, active }
   return (
     <Comp onClick={onClick}
       className={[
-        'rounded-2xl bg-white dark:bg-slate-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
+        'rounded-2xl bg-white dark:bg-ink-900/80 border-2 p-3 sm:p-4 shadow-sm text-left w-full transition-all duration-200',
         onClick ? 'hover:-translate-y-0.5 hover:shadow-lg cursor-pointer active:scale-[0.98]' : '',
         active || highlight ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-500/20'
-          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700',
+          : 'border-slate-200 dark:border-ink-800 hover:border-slate-300 dark:hover:border-ink-700',
       ].join(' ')}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums truncate">{value}</div>
-          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate">{value}</div>
+          {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${tones[tone]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1383,12 +1383,12 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
     sky: 'text-sky-600 dark:text-sky-400',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4">
       <div className="flex items-center gap-1.5">
         <Icon className={`h-4 w-4 ${tones[tone] ?? tones.emerald}`} />
         <span className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 truncate">{label}</span>
       </div>
-      <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-white tabular-nums break-words">{value}</div>
+      <div className="mt-1.5 text-lg font-black text-slate-900 dark:text-ink-white tabular-nums break-words">{value}</div>
       {sub && <div className="text-[0.6875rem] font-bold text-slate-400 mt-0.5 truncate">{sub}</div>}
     </div>
   );
@@ -1396,8 +1396,8 @@ function MiniStat({ icon: Icon, label, value, sub, tone }: any) {
 
 function ChartCard({ icon: Icon, title, wide, children }: any) {
   return (
-    <section className={`rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
-      <h3 className="font-black text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+    <section className={`rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 ${wide ? 'lg:col-span-2' : ''}`}>
+      <h3 className="font-black text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" /> {title}
       </h3>
       <div className="h-64">{children}</div>
@@ -1407,30 +1407,30 @@ function ChartCard({ icon: Icon, title, wide, children }: any) {
 
 function ListCard({ icon: Icon, title, rows, emptyText }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2">
         <Icon className="h-4 w-4 text-emerald-600" />
-        <h3 className="font-black text-slate-900 dark:text-white">{title}</h3>
+        <h3 className="font-black text-slate-900 dark:text-ink-white">{title}</h3>
       </div>
       {rows.length === 0 ? (
         <div className="p-8 text-center text-sm font-bold text-slate-400">{emptyText}</div>
       ) : (
-        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+        <div className="divide-y divide-slate-100 dark:divide-ink-800">
           {rows.map((r: any, i: number) => {
             const body = (
               <>
-                <span className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
+                <span className="h-8 w-8 rounded-xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center text-xs font-black text-slate-500 shrink-0">
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block font-extrabold text-sm text-slate-900 dark:text-white truncate">{r.title}</span>
+                  <span className="block font-extrabold text-sm text-slate-900 dark:text-ink-white truncate">{r.title}</span>
                   <span className="block text-[0.6875rem] font-bold text-slate-400 truncate">{r.sub}</span>
                 </span>
-                <span className="text-sm font-black tabular-nums text-slate-900 dark:text-white shrink-0">{r.value}</span>
+                <span className="text-sm font-black tabular-nums text-slate-900 dark:text-ink-white shrink-0">{r.value}</span>
               </>
             );
             return r.to ? (
-              <Link key={r.key} to={r.to} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+              <Link key={r.key} to={r.to} className="p-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                 {body}
               </Link>
             ) : (
@@ -1449,14 +1449,14 @@ function EmptyBox({ text }: { text: string }) {
 
 function Empty({ hasFilters, onClear, onGuide }: any) {
   return (
-    <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 p-10 sm:p-16 text-center">
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-300 dark:border-ink-700 p-10 sm:p-16 text-center">
       <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-lime-700 flex items-center justify-center shadow-lg shadow-emerald-500/40">
         <Receipt className="h-10 w-10 text-white" />
       </div>
-      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+      <h3 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
         {hasFilters ? 'Is chaant par koi bill nahi' : 'Is muddat me koi bikri nahi'}
       </h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 font-semibold max-w-md mx-auto">
+      <p className="text-sm text-slate-500 dark:text-ink-400 mt-1.5 font-semibold max-w-md mx-auto">
         {hasFilters ? 'Tareekh ya chaant badal kar dekhein' : 'POS se bikri karein, bill yahan aa jayega'}
       </p>
       <div className="mt-5 flex gap-2 justify-center flex-wrap">
@@ -1482,14 +1482,14 @@ function Empty({ hasFilters, onClear, onGuide }: any) {
 function Teacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-emerald-300 dark:border-emerald-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-emerald-200 dark:border-emerald-500/30 bg-gradient-to-r from-emerald-50 to-lime-50 dark:from-emerald-500/15 dark:to-lime-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye safha kya batata hai
           </h3>
-          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-9 w-9 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
         <div className="p-5 space-y-3 text-sm">
@@ -1520,13 +1520,13 @@ function Teacher({ onClose }: { onClose: () => void }) {
             B dabayein aur bill ka barcode scan karein — seedha wohi bill khul jata hai. Ya search
             me farmer ka naam, phone, ya fasal likh dein.
           </Tip>
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800 p-3">
             <div className="text-[0.6875rem] font-black uppercase tracking-widest text-slate-500 mb-2">Shortcuts</div>
-            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">/</kbd> dhoondo</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">B</kbd> bill scan</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">A</kbd> analytics</div>
-              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border">P</kbd> print</div>
+            <div className="grid grid-cols-2 gap-1.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">/</kbd> dhoondo</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">B</kbd> bill scan</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">A</kbd> analytics</div>
+              <div><kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-ink-900 border">P</kbd> print</div>
             </div>
           </div>
           <Button className="w-full" onClick={onClose}>Samajh gaya</Button>
@@ -1543,8 +1543,8 @@ function Tip({ icon: Icon, title, children }: any) {
         <Icon className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
       </div>
       <div className="min-w-0">
-        <div className="font-extrabold text-slate-900 dark:text-white text-[0.8125rem]">{title}</div>
-        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-slate-300 leading-snug">{children}</p>
+        <div className="font-extrabold text-slate-900 dark:text-ink-white text-[0.8125rem]">{title}</div>
+        <p className="text-[0.75rem] font-semibold text-slate-600 dark:text-ink-300 leading-snug">{children}</p>
       </div>
     </div>
   );

@@ -40,19 +40,19 @@ export function PosTabBtn({ active, onClick, icon: Icon, label, count, color, sh
   return (
     <button onClick={onClick}
       className={['flex-1 h-12 rounded-xl text-xs sm:text-sm font-extrabold inline-flex items-center justify-center gap-1.5 transition active:scale-95 relative',
-        active ? colors[color] : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'].join(' ')}>
+        active ? colors[color] : 'bg-transparent text-slate-600 dark:text-ink-300 hover:bg-slate-100 dark:hover:bg-ink-700'].join(' ')}>
       {highlight && !active && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-500 animate-pulse" />}
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {count !== undefined && count > 0 && (
         <span className={['px-1.5 rounded-md text-[0.6875rem] tabular-nums',
-          active ? 'bg-white/25' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'].join(' ')}>
+          active ? 'bg-white/25' : 'bg-slate-200 dark:bg-ink-700 text-slate-700 dark:text-ink-300'].join(' ')}>
           {count}
         </span>
       )}
       {shortcut && (
         <span className={['hidden lg:inline text-[0.625rem] font-mono px-1 rounded',
-          active ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'].join(' ')}>
+          active ? 'bg-white/20' : 'bg-slate-200 dark:bg-ink-700 text-slate-500 dark:text-ink-400'].join(' ')}>
           {shortcut}
         </span>
       )}
@@ -90,7 +90,7 @@ export function SerialTab({ search, hidePrices, onPick }: {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
-        {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-36 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
+        {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-36 rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -106,13 +106,13 @@ export function SerialTab({ search, hidePrices, onPick }: {
     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3">
       {rows.map((s) => (
         <button key={s.id} onClick={() => onPick(s)}
-          className="text-left rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-violet-400 hover:shadow-lg active:scale-[0.98] transition p-3">
+          className="text-left rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-violet-400 hover:shadow-lg active:scale-[0.98] transition p-3">
           <div className="flex items-start gap-2">
             <div className="h-10 w-10 rounded-xl bg-violet-100 dark:bg-violet-500/15 flex items-center justify-center text-lg shrink-0">
               {catEmoji(s.product?.categoryType)}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-extrabold text-slate-900 dark:text-white truncate">
+              <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white truncate">
                 {s.product?.name ?? 'Product'}
               </div>
               <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
@@ -183,7 +183,7 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
   if (isLoading) {
     return (
       <div className="space-y-2">
-        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-slate-200 dark:bg-slate-800 animate-pulse" />)}
+        {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-slate-200 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -221,7 +221,7 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
           const due = Math.max(r.totalCharge - r.paidAmount, 0);
           return (
             <button key={r.id} onClick={() => setCollecting(r)}
-              className="w-full text-left rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-amber-400 hover:shadow-lg active:scale-[0.99] transition p-3">
+              className="w-full text-left rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 hover:border-amber-400 hover:shadow-lg active:scale-[0.99] transition p-3">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center text-lg shrink-0">
                   {svcTypeMeta(r.serviceType).emoji}
@@ -233,7 +233,7 @@ export function RepairTab({ search, onPaid }: { search: string; onPaid: () => vo
                       <span className="font-mono text-[0.625rem] font-bold text-slate-400">🔖 {r.serialNumber}</span>
                     )}
                   </div>
-                  <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-white truncate">{r.customerName}</div>
+                  <div className="text-[0.8125rem] font-extrabold text-slate-900 dark:text-ink-white truncate">{r.customerName}</div>
                   <div className="text-[0.6875rem] font-bold text-slate-400 truncate">
                     {r.productName}{r.technicianName ? ` • ${r.technicianName}` : ''}
                   </div>
@@ -324,14 +324,14 @@ export function AmcTab({ customer, onSold }: {
             <button key={p.type} onClick={() => { setPlan(p); if (!price) setPrice(String(p.price)); }}
               className={`text-left rounded-2xl border-2 p-3 transition active:scale-[0.98] ${
                 on ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/15 shadow-lg'
-                   : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:border-violet-300'
+                   : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 hover:border-violet-300'
               }`}>
               <div className="flex items-center justify-between">
                 <span className="text-lg">{m.emoji}</span>
                 {on && <CheckCircle2 className="h-4 w-4 text-violet-600" />}
               </div>
-              <div className="mt-1 text-sm font-extrabold text-slate-900 dark:text-white">{m.label}</div>
-              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">{m.hint}</div>
+              <div className="mt-1 text-sm font-extrabold text-slate-900 dark:text-ink-white">{m.label}</div>
+              <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">{m.hint}</div>
               <div className="mt-2 text-lg font-extrabold tabular-nums text-violet-700 dark:text-violet-400">
                 {formatPKR(p.price)}
               </div>
@@ -344,7 +344,7 @@ export function AmcTab({ customer, onSold }: {
       </div>
 
       {plan && (
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-3">
+        <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 p-3 space-y-3">
           <div className="grid sm:grid-cols-2 gap-2">
             <Field label="Customer ka naam" required>
               <input className={amcInput} placeholder="Ali Raza" value={name} onChange={(e) => setName(e.target.value)} />
@@ -373,7 +373,7 @@ export function AmcTab({ customer, onSold }: {
             </Field>
           </div>
 
-          <div className="rounded-xl bg-slate-900 dark:bg-slate-950 text-white p-3 text-[0.6875rem] font-bold space-y-0.5">
+          <div className="rounded-xl bg-slate-900 dark:bg-ink-950 text-white p-3 text-[0.6875rem] font-bold space-y-0.5">
             <div className="flex justify-between"><span>Free visits</span><span>{plan.visits}</span></div>
             <div className="flex justify-between"><span>Labor free</span><span>{plan.labor ? 'Haan ✓' : 'Nahi'}</span></div>
             <div className="flex justify-between"><span>Parts free</span><span>{plan.parts ? 'Haan ✓' : 'Nahi'}</span></div>
@@ -392,12 +392,12 @@ export function AmcTab({ customer, onSold }: {
 }
 
 const amcInput =
-  'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition';
+  'h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-violet-500 transition';
 
 function Field({ label, required, hint, children }: any) {
   return (
     <div>
-      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">
         {label}{required && <span className="text-rose-500 ml-0.5">*</span>}
         {hint && <span className="text-slate-400 normal-case font-bold ml-1">({hint})</span>}
       </label>
@@ -418,7 +418,7 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
-      <div className="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+      <div className="w-full sm:max-w-md bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}>
         <div className="relative bg-gradient-to-br from-amber-600 via-orange-600 to-rose-600 text-white px-5 py-4">
           <div className="flex items-start justify-between gap-3">
@@ -437,12 +437,12 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
 
         <div className="p-5 space-y-3">
           <div className="text-center">
-            <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-slate-400">Baqi raqam</div>
+            <div className="text-[0.6875rem] font-extrabold uppercase tracking-widest text-slate-500 dark:text-ink-400">Baqi raqam</div>
             <div className="text-4xl font-extrabold tabular-nums text-rose-600 dark:text-rose-400">{formatPKR(due)}</div>
           </div>
 
           <div>
-            <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+            <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 mb-1">
               Kitna mila
             </label>
             <input type="number" min={1} max={due} autoFocus
@@ -457,7 +457,7 @@ function CollectModal({ title, subtitle, due, pending, onClose, onConfirm }: {
           <div className="grid grid-cols-4 gap-1.5">
             {quick.map((v) => (
               <button key={v} onClick={() => setAmount(String(v))}
-                className="h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-sm font-extrabold text-slate-800 dark:text-slate-200 tabular-nums transition active:scale-95">
+                className="h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-sm font-extrabold text-slate-800 dark:text-ink-200 tabular-nums transition active:scale-95">
                 {v === due ? 'Poora' : v >= 1000 ? `${v / 1000}k` : v}
               </button>
             ))}
@@ -478,12 +478,12 @@ function TabEmpty({ icon: Icon, title, hint, tone = 'slate' }: any) {
   return (
     <div className="flex flex-col items-center justify-center py-14 px-6">
       <div className={`h-20 w-20 rounded-3xl flex items-center justify-center ${
-        tone === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-slate-200 dark:bg-slate-800'
+        tone === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-500/20' : 'bg-slate-200 dark:bg-ink-800'
       }`}>
-        <Icon className={`h-10 w-10 ${tone === 'emerald' ? 'text-emerald-500' : 'text-slate-400 dark:text-slate-500'}`} />
+        <Icon className={`h-10 w-10 ${tone === 'emerald' ? 'text-emerald-500' : 'text-slate-400 dark:text-ink-500'}`} />
       </div>
-      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-white text-lg text-center">{title}</h3>
-      <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 text-center font-semibold max-w-sm">{hint}</p>
+      <h3 className="mt-4 font-extrabold text-slate-900 dark:text-ink-white text-lg text-center">{title}</h3>
+      <p className="mt-2 text-sm text-slate-500 dark:text-ink-400 text-center font-semibold max-w-sm">{hint}</p>
     </div>
   );
 }

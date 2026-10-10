@@ -121,7 +121,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
       <div className="fixed inset-0 z-40 bg-slate-950/70 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[520px] bg-white dark:bg-slate-900 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
+      <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-[520px] bg-white dark:bg-ink-900 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
         {/* Head */}
         <div className="shrink-0 px-5 py-4 bg-gradient-to-br from-sky-600 to-cyan-700 text-white flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -140,7 +140,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
               Product ka naam *
             </label>
             <input
@@ -148,26 +148,26 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Colgate Toothpaste 100g"
-              className="h-14 w-full rounded-2xl border-2 border-sky-300 dark:border-sky-500/40 bg-white dark:bg-slate-800 px-4 text-lg font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-sky-600 focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-500/20 transition"
+              className="h-14 w-full rounded-2xl border-2 border-sky-300 dark:border-sky-500/40 bg-white dark:bg-ink-800 px-4 text-lg font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-sky-600 focus:ring-4 focus:ring-sky-200 dark:focus:ring-sky-500/20 transition"
             />
           </div>
 
           {/* Barcode */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
-              Barcode <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">(optional)</span>
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
+              Barcode <span className="text-slate-400 dark:text-ink-500 normal-case font-bold">(optional)</span>
             </label>
             <div className="flex gap-2">
               <input
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 placeholder="8901234567890"
-                className="h-11 flex-1 min-w-0 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+                className="h-11 flex-1 min-w-0 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
               />
               <button
                 type="button"
                 onClick={() => setScan(true)}
-                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white text-xs font-extrabold inline-flex items-center gap-1 shrink-0 transition"
+                className="h-11 px-4 rounded-xl bg-slate-900 dark:bg-ink-700 hover:bg-slate-800 dark:hover:bg-ink-600 text-white text-xs font-extrabold inline-flex items-center gap-1 shrink-0 transition"
               >
                 <Camera className="h-4 w-4" /> Scan
               </button>
@@ -176,7 +176,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
           {/* Unit */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
               Unit
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -189,7 +189,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
                     'h-14 rounded-xl border-2 transition flex flex-col items-center justify-center gap-0.5',
                     unit === u.v
                       ? 'border-sky-600 bg-sky-600 text-white shadow-md'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-sky-400 dark:hover:border-sky-500/50',
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-sky-400 dark:hover:border-sky-500/50',
                   ].join(' ')}
                 >
                   <span className="text-lg">{u.e}</span>
@@ -202,14 +202,14 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           {/* Rates */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
                 Kharid rate
               </label>
               <input
                 type="number" step="0.01" inputMode="decimal" value={cost}
                 onChange={(e) => setCost(e.target.value === '' ? '' : Number(e.target.value))}
                 placeholder="0"
-                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-slate-400 transition"
+                className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-slate-500 dark:focus:border-ink-400 transition"
               />
             </div>
             <div>
@@ -228,7 +228,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           {/* Quick markup */}
           {Number(cost) > 0 && (
             <div>
-              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+              <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-slate-600 dark:text-ink-400 mb-1.5 flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-amber-500" /> Fatafat rate
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -237,9 +237,9 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
                     key={m}
                     type="button"
                     onClick={() => applyMarkup(m)}
-                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition"
+                    className="px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/40 hover:border-emerald-400 dark:hover:border-emerald-500/60 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition"
                   >
-                    +{m}% <span className="text-slate-500 dark:text-slate-400 font-bold">= {formatPKRFull(Math.round(Number(cost) * (1 + m / 100)))}</span>
+                    +{m}% <span className="text-slate-500 dark:text-ink-400 font-bold">= {formatPKRFull(Math.round(Number(cost) * (1 + m / 100)))}</span>
                   </button>
                 ))}
               </div>
@@ -268,7 +268,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
                   ].join(' ')}>
                     {profit < 0 ? 'Nuqsaan!' : 'Faida'}
                   </div>
-                  <div className="text-base font-extrabold tabular-nums text-slate-900 dark:text-white">{formatPKRFull(profit)}</div>
+                  <div className="text-base font-extrabold tabular-nums text-slate-900 dark:text-ink-white">{formatPKRFull(profit)}</div>
                 </div>
               </div>
               <div className={[
@@ -282,14 +282,14 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
           {/* Stock */}
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5">
               Abhi kitna maal hai? ({unit})
             </label>
             <input
               type="number" step="0.01" inputMode="decimal" value={stock}
               onChange={(e) => setStock(e.target.value === '' ? '' : Number(e.target.value))}
               placeholder="0"
-              className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+              className="h-14 w-full rounded-2xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-xl font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
             />
           </div>
 
@@ -297,7 +297,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           <button
             type="button"
             onClick={() => setAdvanced((v) => !v)}
-            className="w-full py-2.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-xs font-extrabold text-slate-700 dark:text-slate-200 inline-flex items-center justify-center gap-1.5 transition"
+            className="w-full py-2.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-xs font-extrabold text-slate-700 dark:text-ink-200 inline-flex items-center justify-center gap-1.5 transition"
           >
             {advanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             {advanced ? 'Chhupao' : 'Category (optional)'}
@@ -305,13 +305,13 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
 
           {advanced && (
             <div>
-              <label className="flex text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5 items-center gap-1">
+              <label className="flex text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 mb-1.5 items-center gap-1">
                 <Tag className="h-3 w-3" /> Category
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition"
               >
                 <option value="">Koi nahi</option>
                 {(cats as any[]).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
@@ -321,7 +321,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
         </div>
 
         {/* Footer */}
-        <div className="shrink-0 border-t-2 border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/80 space-y-2">
+        <div className="shrink-0 border-t-2 border-slate-200 dark:border-ink-700 p-4 bg-slate-50 dark:bg-ink-900/80 space-y-2">
           <Button
             onClick={() => create.mutate()}
             loading={create.isPending}
@@ -334,7 +334,7 @@ export function QuickAddProductDrawer({ open, onClose, onCreated, initialBarcode
           <Link
             to="/retail-products/new"
             onClick={onClose}
-            className="w-full inline-flex items-center justify-center gap-1 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-xs font-extrabold text-slate-700 dark:text-slate-200 transition"
+            className="w-full inline-flex items-center justify-center gap-1 py-2 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 hover:border-sky-300 dark:hover:border-sky-500/50 text-xs font-extrabold text-slate-700 dark:text-ink-200 transition"
           >
             Poora wizard chahiye (variants, units, batches) <ArrowRight className="h-3 w-3" />
           </Link>

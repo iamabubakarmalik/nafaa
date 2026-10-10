@@ -56,16 +56,16 @@ export default function BlocklistPage() {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Number ya naam…" className={cn(inputCls, 'pl-8')} />
           </div>
         </div>
-        <div className="mt-3 border-t border-slate-100 dark:border-slate-800">
-          {isLoading ? <div className="p-5"><div className="h-16 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" /></div>
+        <div className="mt-3 border-t border-slate-100 dark:border-ink-800">
+          {isLoading ? <div className="p-5"><div className="h-16 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" /></div>
             : error ? <EmptyState title="List nahi khuli">{apiErrorMessage(error)}</EmptyState>
             : rows.length === 0 ? <EmptyState icon={<ShieldBan className="h-5 w-5" />} title="Koi number block nahi">Order ke andar "Number block" se bhi block kar sakte hain.</EmptyState>
             : (
-              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+              <ul className="divide-y divide-slate-100 dark:divide-ink-800">
                 {rows.map((b) => (
                   <li key={b.key} className="flex items-center gap-3 px-4 py-2.5 sm:px-5">
                     <div className="min-w-0 flex-1">
-                      <div className="font-mono text-[0.8125rem] font-semibold text-slate-900 dark:text-white">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
+                      <div className="font-mono text-[0.8125rem] font-semibold text-slate-900 dark:text-ink-white">{b.phone}{b.name ? <span className="ml-2 font-sans font-normal text-slate-500">{b.name}</span> : null}</div>
                       <div className="text-[0.75rem] text-slate-500">{b.reason ?? 'Wajah nahi likhi'} · {whenText(b.at)}</div>
                     </div>
                     <Btn size="sm" variant="plain" loading={remove.isPending && remove.variables === b.phone} onClick={() => remove.mutate(b.phone)} icon={<Trash2 className="h-3.5 w-3.5" />}>Unblock</Btn>

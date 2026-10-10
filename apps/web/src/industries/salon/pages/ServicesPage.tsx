@@ -91,22 +91,22 @@ export default function ServicesPage() {
       </section>
 
       {/* FILTERS */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search services..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-fuchsia-500" />
         </div>
 
         {/* Category filter */}
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           <button onClick={() => setCategoryFilter('all')} className={
             'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-            (categoryFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+            (categoryFilter === 'all' ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
           }>All Categories</button>
           {CATEGORIES.map((c) => (
             <button key={c.value} onClick={() => setCategoryFilter(c.value)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (categoryFilter === c.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (categoryFilter === c.value ? 'bg-fuchsia-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {c.emoji} {c.label}
             </button>
@@ -123,7 +123,7 @@ export default function ServicesPage() {
           ].map((g) => (
             <button key={g.v} onClick={() => setGenderFilter(g.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (genderFilter === g.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (genderFilter === g.v ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{g.label}</button>
           ))}
           <div className="w-px bg-slate-200 mx-1" />
@@ -134,7 +134,7 @@ export default function ServicesPage() {
           ].map((t) => (
             <button key={t.v} onClick={() => setTagFilter(t.v)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (tagFilter === t.v ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (tagFilter === t.v ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{t.label}</button>
           ))}
         </div>
@@ -154,10 +154,10 @@ export default function ServicesPage() {
 
       {isLoading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3, 4, 5, 6].map((i) => <div key={i} className="h-64 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : services.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Scissors className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No services yet</p>
           <Button className="mt-4 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => { setEditing(null); setShowForm(true); }}>
@@ -187,8 +187,8 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
   return (
     <div className={
-      'group rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
-      (service.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-neutral-800')
+      'group rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all overflow-hidden ' +
+      (service.isFeatured ? 'border-amber-400 ring-2 ring-amber-100 dark:ring-amber-950/40' : 'border-slate-200 dark:border-ink-800')
     }>
       <div className="relative aspect-video bg-gradient-to-br from-fuchsia-500 via-pink-600 to-rose-600 overflow-hidden">
         {service.imageUrl ? (
@@ -235,14 +235,14 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
 
       <div className="p-4 space-y-2">
         <div>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-base leading-tight line-clamp-1">{service.name}</h3>
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-base leading-tight line-clamp-1">{service.name}</h3>
           {category && (
             <span className="text-[0.6875rem] font-extrabold uppercase text-fuchsia-600">{category.label}</span>
           )}
         </div>
 
         {service.description && (
-          <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold line-clamp-2">{service.description}</p>
+          <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold line-clamp-2">{service.description}</p>
         )}
 
         <div className="flex items-center gap-3 text-xs text-slate-500 font-bold">
@@ -261,7 +261,7 @@ function ServiceCard({ service, onEdit, onDelete }: any) {
           )}
         </div>
 
-        <div className="pt-2 border-t border-slate-100 dark:border-neutral-800 flex items-end justify-between">
+        <div className="pt-2 border-t border-slate-100 dark:border-ink-800 flex items-end justify-between">
           <div>
             {hasDiscount && <div className="text-xs text-slate-400 line-through">{formatPKR(service.price)}</div>}
             <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums leading-none">
@@ -325,9 +325,9 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">{editing ? 'Edit Service' : 'New Service'}</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-fuchsia-300 dark:border-fuchsia-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-fuchsia-50 dark:bg-fuchsia-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">{editing ? 'Edit Service' : 'New Service'}</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
@@ -336,17 +336,17 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
         <div className="grid sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Service Name *</label>
-            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Deep Conditioning Treatment" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
+            <input autoFocus value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Deep Conditioning Treatment" className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500" />
           </div>
 
-          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
+          <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Code (optional)" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-mono font-bold focus:outline-none focus:border-fuchsia-500" />
 
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ServiceCategory })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ServiceCategory })} className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-fuchsia-500">
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
           </select>
         </div>
 
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
+        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-fuchsia-500 resize-none" />
 
         {/* Pricing */}
         <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4 space-y-3">
@@ -365,7 +365,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Cost Price</label>
-              <input type="number" step="0.01" value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} placeholder="Materials/products" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
+              <input type="number" step="0.01" value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: e.target.value })} placeholder="Materials/products" className="h-14 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-xl font-extrabold tabular-nums focus:outline-none focus:border-fuchsia-500" />
             </div>
           </div>
         </div>
@@ -383,11 +383,11 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer Before</label>
-              <input type="number" value={form.bufferBefore} onChange={(e) => setForm({ ...form, bufferBefore: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
+              <input type="number" value={form.bufferBefore} onChange={(e) => setForm({ ...form, bufferBefore: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
             <div>
               <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Buffer After</label>
-              <input type="number" value={form.bufferAfter} onChange={(e) => setForm({ ...form, bufferAfter: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
+              <input type="number" value={form.bufferAfter} onChange={(e) => setForm({ ...form, bufferAfter: Number(e.target.value) })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums focus:outline-none focus:border-blue-500" />
             </div>
           </div>
         </div>
@@ -403,7 +403,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
             ].map((g) => (
               <label key={g.key} className={
                 'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-                ((form as any)[g.key] ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-fuchsia-300')
+                ((form as any)[g.key] ? 'border-fuchsia-500 bg-fuchsia-50 dark:bg-fuchsia-950/40' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-fuchsia-300')
               }>
                 <input type="checkbox" checked={(form as any)[g.key]} onChange={(e) => setForm({ ...form, [g.key]: e.target.checked })} className="h-4 w-4 rounded" />
                 <span className="text-lg">{g.emoji}</span>
@@ -454,7 +454,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
         <div className="grid grid-cols-2 gap-2">
           <label className={
             'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-            (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-neutral-700')
+            (form.isFeatured ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'border-slate-200 dark:border-ink-700')
           }>
             <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded" />
             <Star className={'h-4 w-4 ' + (form.isFeatured ? 'text-amber-500 fill-amber-500' : 'text-slate-400')} />
@@ -462,7 +462,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
           </label>
           <label className={
             'flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition ' +
-            (form.isPopular ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-neutral-700')
+            (form.isPopular ? 'border-red-500 bg-red-50 dark:bg-red-950/40' : 'border-slate-200 dark:border-ink-700')
           }>
             <input type="checkbox" checked={form.isPopular} onChange={(e) => setForm({ ...form, isPopular: e.target.checked })} className="h-4 w-4 rounded" />
             <TrendingUp className={'h-4 w-4 ' + (form.isPopular ? 'text-red-600' : 'text-slate-400')} />
@@ -470,7 +470,7 @@ function ServiceForm({ editing, onClose, onSaved }: { editing: SalonService | nu
           </label>
         </div>
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-fuchsia-600 to-pink-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.name.trim() || !form.price}>
             <Save className="h-4 w-4" />

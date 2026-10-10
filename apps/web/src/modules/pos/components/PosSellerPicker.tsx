@@ -58,7 +58,7 @@ export function PosSellerPicker({
 
   return (
     <div className={compact ? '' : 'mt-2'}>
-      <label className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <label className="block mb-1 text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400">
         Bikri kis ke naam
       </label>
       <div className="relative">
@@ -68,9 +68,9 @@ export function PosSellerPicker({
         <select
           value={current}
           onChange={(e) => onChange(e.target.value || undefined)}
-          className={`h-11 w-full rounded-xl border-2 bg-white dark:bg-slate-800 pl-9 pr-8 text-sm font-bold text-slate-900 dark:text-white appearance-none focus:outline-none transition ${
+          className={`h-11 w-full rounded-xl border-2 bg-white dark:bg-ink-800 pl-9 pr-8 text-sm font-bold text-slate-900 dark:text-ink-white appearance-none focus:outline-none transition ${
             isMe
-              ? 'border-slate-200 dark:border-slate-700 focus:border-sky-500'
+              ? 'border-slate-200 dark:border-ink-700 focus:border-sky-500'
               : 'border-emerald-400 dark:border-emerald-500/60 focus:border-emerald-500'
           }`}
         >
@@ -96,7 +96,7 @@ export function PosSellerPicker({
         </p>
       )}
       {isMe && !meSeller && (
-        <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+        <p className="mt-1 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
           Aap par commission chaalu nahi — is bill ki koi commission nahi banegi
         </p>
       )}

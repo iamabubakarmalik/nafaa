@@ -138,7 +138,7 @@ export default function LoyaltyPage() {
       {showTeacher && <LoyaltyTeacher onClose={() => setShowTeacher(false)} />}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-yellow-900 to-amber-700 dark:from-slate-950 dark:via-amber-950 dark:to-yellow-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-yellow-900 to-amber-700 dark:from-ink-950 dark:via-amber-950 dark:to-yellow-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-amber-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-yellow-400/20 blur-3xl pointer-events-none" />
 
@@ -205,15 +205,15 @@ export default function LoyaltyPage() {
       </section>
 
       {/* ═══ TIER DISTRIBUTION ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-6">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-6">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow-md">
               <Trophy className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Tier Distribution</h3>
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold">Click karo → us tier ke customers filter honge</p>
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Tier Distribution</h3>
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold">Click karo → us tier ke customers filter honge</p>
             </div>
           </div>
           {tierFilter !== 'all' && (
@@ -233,7 +233,7 @@ export default function LoyaltyPage() {
                 key={tier.name}
                 onClick={() => setTierFilter(active ? 'all' : tier.name)}
                 className={`rounded-2xl bg-gradient-to-br ${tier.color} text-white p-3 sm:p-4 shadow-lg ${tier.darkGlow} text-left transition-all hover:-translate-y-0.5 hover:shadow-xl ${
-                  active ? 'ring-4 ring-white dark:ring-slate-100 scale-105' : ''
+                  active ? 'ring-4 ring-white dark:ring-ink-100 scale-105' : ''
                 }`}
               >
                 <div className="text-2xl sm:text-3xl mb-1">{tier.icon}</div>
@@ -247,15 +247,15 @@ export default function LoyaltyPage() {
       </section>
 
       {/* ═══ LEADERBOARD ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+      <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
             <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
             <div className="min-w-0">
-              <h3 className="text-lg font-extrabold text-slate-900 dark:text-white truncate">
+              <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white truncate">
                 Top Loyalty Customers ({filteredCustomers.length})
               </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Points ke hisaab se sorted</p>
+              <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Points ke hisaab se sorted</p>
             </div>
           </div>
           <div className="relative">
@@ -265,7 +265,7 @@ export default function LoyaltyPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Customer dhundo... (/)"
-              className="h-9 w-56 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-9 pr-3 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+              className="h-9 w-56 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-9 pr-3 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-amber-500 transition"
             />
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function LoyaltyPage() {
         {isLoading ? (
           <div className="p-5 sm:p-6 space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />
             ))}
           </div>
         ) : filteredCustomers.length === 0 ? (
@@ -281,10 +281,10 @@ export default function LoyaltyPage() {
             <div className="mx-auto h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-100 to-yellow-200 dark:from-amber-500/20 dark:to-yellow-500/20 flex items-center justify-center">
               <Award className="h-9 w-9 text-amber-600 dark:text-amber-400" />
             </div>
-            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+            <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
               {hasFilters ? 'Kuch nahi mila' : 'Abhi koi loyalty member nahi'}
             </h4>
-            <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400 font-semibold max-w-md mx-auto">
+            <p className="mt-1.5 text-sm text-slate-500 dark:text-ink-400 font-semibold max-w-md mx-auto">
               {hasFilters
                 ? 'Filter change kar ke dekho'
                 : 'Settings me loyalty enable karo — POS sales par customers ko automatically points milenge.'}
@@ -303,7 +303,7 @@ export default function LoyaltyPage() {
             )}
           </div>
         ) : (
-          <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
             {filteredCustomers.map((customer, idx) => {
               const position = idx + 1;
               const tier = getTier(customer.loyaltyPoints);
@@ -313,7 +313,7 @@ export default function LoyaltyPage() {
               return (
                 <div
                   key={customer.id}
-                  className={`px-5 sm:px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition ${
+                  className={`px-5 sm:px-6 py-4 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition ${
                     position === 1 ? 'bg-gradient-to-r from-amber-50/60 to-transparent dark:from-amber-500/10 dark:to-transparent' : ''
                   }`}
                 >
@@ -323,7 +323,7 @@ export default function LoyaltyPage() {
                         position === 1 ? 'bg-gradient-to-br from-amber-400 to-yellow-600 text-white shadow-lg shadow-amber-500/40' :
                         position === 2 ? 'bg-gradient-to-br from-slate-300 to-slate-500 text-white shadow-lg' :
                         position === 3 ? 'bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg' :
-                        'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300'
                       }`}>
                         {position === 1 ? <Crown className="h-6 w-6" /> : isTop3 ? <Medal className="h-6 w-6" /> : `#${position}`}
                         {position === 1 && (
@@ -334,22 +334,22 @@ export default function LoyaltyPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <div className="font-extrabold text-slate-900 dark:text-white truncate">{customer.name}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white truncate">{customer.name}</div>
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r ${tier.color} text-white text-[0.6875rem] font-extrabold shadow shrink-0`}>
                             <span>{tier.icon}</span>
                             {tier.name}
                           </span>
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
-                          {customer.phone || 'No phone'} <span className="opacity-50 mx-1">•</span> Spent: <strong className="text-slate-700 dark:text-slate-300">{formatPKR(customer.totalSpent)}</strong>
+                        <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-semibold">
+                          {customer.phone || 'No phone'} <span className="opacity-50 mx-1">•</span> Spent: <strong className="text-slate-700 dark:text-ink-300">{formatPKR(customer.totalSpent)}</strong>
                         </div>
                         {nextTier && (
                           <div className="mt-1.5 max-w-xs">
-                            <div className="flex items-center justify-between text-[0.6875rem] text-slate-500 dark:text-slate-400 mb-0.5">
+                            <div className="flex items-center justify-between text-[0.6875rem] text-slate-500 dark:text-ink-400 mb-0.5">
                               <span className="font-bold">→ {nextTier.name}</span>
                               <span className="font-extrabold text-amber-700 dark:text-amber-400">{(nextTier.min - customer.loyaltyPoints).toLocaleString()} pts to go</span>
                             </div>
-                            <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-1.5 bg-slate-200 dark:bg-ink-700 rounded-full overflow-hidden">
                               <div className={`h-full bg-gradient-to-r ${nextTier.color} transition-all`} style={{ width: `${progress}%` }} />
                             </div>
                           </div>
@@ -361,7 +361,7 @@ export default function LoyaltyPage() {
                         <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
                         <span className="text-2xl font-extrabold text-amber-700 dark:text-amber-400 tabular-nums">{customer.loyaltyPoints.toLocaleString()}</span>
                       </div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-extrabold uppercase tracking-wider mt-0.5">loyalty points</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-extrabold uppercase tracking-wider mt-0.5">loyalty points</div>
                     </div>
                   </div>
                 </div>
@@ -372,11 +372,11 @@ export default function LoyaltyPage() {
       </section>
 
       {/* ═══ HOW IT WORKS ═══ */}
-      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 via-white to-yellow-50 dark:from-amber-500/10 dark:via-slate-900/60 dark:to-yellow-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-4 sm:p-6 print:hidden">
+      <section className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-amber-50 via-white to-yellow-50 dark:from-amber-500/10 dark:via-ink-900/60 dark:to-yellow-500/10 border-2 border-amber-200 dark:border-amber-500/40 p-4 sm:p-6 print:hidden">
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Gift className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Loyalty Kaise Kaam Karta Hai</h3>
+            <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Loyalty Kaise Kaam Karta Hai</h3>
           </div>
           <button
             onClick={() => setShowTeacher(true)}
@@ -398,21 +398,21 @@ export default function LoyaltyPage() {
               amber: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
             };
             return (
-              <div key={step.num} className="rounded-2xl bg-white dark:bg-slate-900/70 border-2 border-amber-200 dark:border-amber-500/30 p-4 shadow-sm">
+              <div key={step.num} className="rounded-2xl bg-white dark:bg-ink-900/70 border-2 border-amber-200 dark:border-amber-500/30 p-4 shadow-sm">
                 <div className={`h-10 w-10 rounded-xl ${tones[step.tone]} flex items-center justify-center mb-3`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="text-[0.6875rem] font-extrabold text-amber-700 dark:text-amber-400 uppercase tracking-widest">Step {step.num}</div>
-                <div className="font-extrabold text-slate-900 dark:text-white mt-0.5">{step.title}</div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 mt-1.5 leading-relaxed font-semibold">{step.desc}</p>
+                <div className="font-extrabold text-slate-900 dark:text-ink-white mt-0.5">{step.title}</div>
+                <p className="text-xs text-slate-600 dark:text-ink-400 mt-1.5 leading-relaxed font-semibold">{step.desc}</p>
               </div>
             );
           })}
         </div>
-        <div className="mt-4 flex items-center justify-between bg-white dark:bg-slate-900/70 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 p-3 flex-wrap gap-2">
+        <div className="mt-4 flex items-center justify-between bg-white dark:bg-ink-900/70 rounded-xl border-2 border-amber-200 dark:border-amber-500/30 p-3 flex-wrap gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
-            <span className="text-sm text-slate-700 dark:text-slate-300 font-semibold truncate">
+            <span className="text-sm text-slate-700 dark:text-ink-300 font-semibold truncate">
               Earn/burn rate aur program enable karo →
             </span>
           </div>
@@ -451,20 +451,20 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-amber-200 dark:border-amber-500/30 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-500/15 dark:to-yellow-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Loyalty Program — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Loyalty program = repeat customer machine.</strong> Naya customer lana 5× mehnga hai purane ko wapas laane se.
             Points → tier upgrades → customer wapas aata hai. Simple.
           </p>
@@ -474,9 +474,9 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300">
               🏆 6-Tier System
             </div>
-            <div className="space-y-1 text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <div className="space-y-1 text-xs font-semibold text-slate-700 dark:text-ink-200">
               {TIERS.slice().reverse().map((t) => (
-                <div key={t.name} className="flex items-center justify-between rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5">
+                <div key={t.name} className="flex items-center justify-between rounded-lg bg-white dark:bg-ink-800 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5">
                   <span className="flex items-center gap-1.5">
                     <span className="text-lg">{t.icon}</span>
                     <strong>{t.name}</strong>
@@ -485,7 +485,7 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
                 </div>
               ))}
             </div>
-            <p className="text-[0.6875rem] text-slate-600 dark:text-slate-300 font-semibold pt-1">
+            <p className="text-[0.6875rem] text-slate-600 dark:text-ink-300 font-semibold pt-1">
               Customer jitna kharche, tier upar. Higher tier = zyada perks (VIP treatment, exclusive discounts).
             </p>
           </div>
@@ -495,11 +495,11 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <Percent className="h-3 w-3" /> Earn / Burn Ratio — Kaise Set Karein
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 💰 <strong>Earn:</strong> Standard = <strong>Rs 100 = 1 point</strong>. Retail me safe. Restaurant me Rs 50 = 1 point bhi chalta hai.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 🎁 <strong>Burn:</strong> Standard = <strong>100 points = Rs 100 discount</strong>. Yani 1% cashback. Zyada karo → margins gum.
               </div>
               <div className="rounded-lg bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-300 dark:border-emerald-500/40 p-2 font-extrabold">
@@ -508,7 +508,7 @@ function LoyaltyTeacher({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>📊 Redemption rate</strong> — 30-60% healthy. {'<'}20% = customers ko yaad nahi. {'>'}80% = giveaway bahut hai.</TipRow>
             <TipRow><strong>👑 Top 3</strong> — inko VIP treatment do. Personal thank-you WhatsApp, birthday discount, priority service.</TipRow>
             <TipRow><strong>💎 Diamond members</strong> — total customer base ke 5-10% honge, but revenue ke 40-50% laate hain (Pareto rule).</TipRow>
@@ -562,19 +562,19 @@ function Kpi({ icon: Icon, label, value, sub, tone, highlight }: any) {
       className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm transition-all ${
         highlight
           ? `bg-gradient-to-br ${tones[tone]} text-white border-transparent shadow-lg`
-          : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800'
+          : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800'
       }`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <div className={`text-[0.6875rem] uppercase tracking-widest font-extrabold ${
-            highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
+            highlight ? 'text-white/80' : 'text-slate-500 dark:text-ink-400'
           }`}>{label}</div>
           <div className={`mt-1.5 text-xl sm:text-2xl font-extrabold tabular-nums truncate ${
-            highlight ? 'text-white' : 'text-slate-900 dark:text-white'
+            highlight ? 'text-white' : 'text-slate-900 dark:text-ink-white'
           }`}>{value}</div>
           {sub && <div className={`text-[0.6875rem] font-bold mt-0.5 truncate ${
-            highlight ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
+            highlight ? 'text-white/80' : 'text-slate-500 dark:text-ink-400'
           }`}>{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ${

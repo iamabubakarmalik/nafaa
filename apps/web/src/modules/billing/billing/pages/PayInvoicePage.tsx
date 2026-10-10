@@ -236,18 +236,18 @@ export default function PayInvoicePage() {
   if (loadingInvoice) {
     return (
       <div className="space-y-6">
-        <div className="h-12 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
-        <div className="h-48 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
-        <div className="h-96 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+        <div className="h-12 bg-slate-100 dark:bg-ink-800 rounded-xl animate-pulse" />
+        <div className="h-48 bg-slate-100 dark:bg-ink-800 rounded-3xl animate-pulse" />
+        <div className="h-96 bg-slate-100 dark:bg-ink-800 rounded-3xl animate-pulse" />
       </div>
     );
   }
 
   if (!invoice) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-12 text-center">
+      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-12 text-center">
         <AlertCircle className="h-12 w-12 text-rose-400 mx-auto mb-3" />
-        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Invoice not found</h3>
+        <h3 className="text-xl font-extrabold text-slate-900 dark:text-ink-white">Invoice not found</h3>
         <Link to="/billing" className="mt-4 inline-flex items-center gap-1 text-brand-700 dark:text-brand-400 hover:underline font-bold">
           <ArrowLeft className="h-4 w-4" /> Back to Billing
         </Link>
@@ -318,7 +318,7 @@ export default function PayInvoicePage() {
 
       {/* Back nav */}
       <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
-        <Link to="/billing" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-brand-700 dark:hover:text-brand-400 font-extrabold transition">
+        <Link to="/billing" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-ink-400 hover:text-brand-700 dark:hover:text-brand-400 font-extrabold transition">
           <ArrowLeft className="h-4 w-4" /> Back to Billing
         </Link>
         <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export default function PayInvoicePage() {
           </button>
           <button
             onClick={printInvoice}
-            className="h-10 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-sm transition"
+            className="h-10 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 shadow-sm transition"
           >
             <Printer className="h-4 w-4" /> Print
           </button>
@@ -338,7 +338,7 @@ export default function PayInvoicePage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-slate-950 dark:via-brand-950 dark:to-brand-900 text-white p-5 sm:p-8 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-ink-950 dark:via-brand-950 dark:to-brand-900 text-white p-5 sm:p-8 shadow-2xl">
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-brand-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
 
@@ -425,10 +425,10 @@ export default function PayInvoicePage() {
 
       {/* Cancelled */}
       {isCancelled && (
-        <div className="rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-300 dark:border-slate-700 p-8 text-center">
-          <X className="h-16 w-16 text-slate-400 dark:text-slate-500 mx-auto" />
-          <h3 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-white">Invoice Cancelled</h3>
-          <p className="mt-2 text-slate-600 dark:text-slate-400 font-semibold">Ye invoice cancel kar di gayi hai.</p>
+        <div className="rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-300 dark:border-ink-700 p-8 text-center">
+          <X className="h-16 w-16 text-slate-400 dark:text-ink-500 mx-auto" />
+          <h3 className="mt-4 text-xl font-extrabold text-slate-900 dark:text-ink-white">Invoice Cancelled</h3>
+          <p className="mt-2 text-slate-600 dark:text-ink-400 font-semibold">Ye invoice cancel kar di gayi hai.</p>
         </div>
       )}
 
@@ -457,7 +457,7 @@ export default function PayInvoicePage() {
                 href={pendingPayment.upload.url}
                 target="_blank"
                 rel="noreferrer"
-                className="h-11 px-4 rounded-xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-sm font-extrabold inline-flex items-center gap-1.5 shadow-sm transition hover:bg-amber-100 dark:hover:bg-amber-500/20"
+                className="h-11 px-4 rounded-xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-300 text-sm font-extrabold inline-flex items-center gap-1.5 shadow-sm transition hover:bg-amber-100 dark:hover:bg-amber-500/20"
               >
                 <ImageIcon className="h-4 w-4" /> Receipt Dekhein
               </a>
@@ -531,11 +531,11 @@ export default function PayInvoicePage() {
 
           {/* Divider */}
           <div className="relative flex items-center gap-3 my-2">
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+            <div className="flex-1 h-px bg-slate-200 dark:bg-ink-700" />
+            <span className="text-xs font-extrabold text-slate-500 dark:text-ink-400 uppercase tracking-widest">
               {stripeConfig?.enabled ? '— Or Manual Payment —' : 'Manual Payment'}
             </span>
-            <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+            <div className="flex-1 h-px bg-slate-200 dark:bg-ink-700" />
           </div>
 
           {/* ═══ MANUAL PAYMENT GRID ═══ */}
@@ -543,8 +543,8 @@ export default function PayInvoicePage() {
             {/* LEFT */}
             <div className="space-y-4">
               {/* Method picker */}
-              <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6">
-                <h3 className="font-extrabold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
                   <Wallet className="h-5 w-5 text-brand-600 dark:text-brand-400" />
                   Step 1 — Payment Method Chuno
                 </h3>
@@ -560,15 +560,15 @@ export default function PayInvoicePage() {
                         className={`group relative flex items-center gap-3 p-3 rounded-2xl border-2 transition text-left ${
                           active
                             ? 'border-brand-500 dark:border-brand-400 bg-brand-50 dark:bg-brand-500/15 ring-2 ring-brand-200 dark:ring-brand-500/30 shadow-md'
-                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow'
+                            : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/50 hover:border-slate-300 dark:hover:border-ink-600 hover:shadow'
                         }`}
                       >
-                        <div className={`h-11 w-11 rounded-xl ${active ? m.bgClass : 'bg-slate-100 dark:bg-slate-700'} ${active ? 'text-white' : 'text-slate-600 dark:text-slate-300'} flex items-center justify-center shadow shrink-0 transition`}>
+                        <div className={`h-11 w-11 rounded-xl ${active ? m.bgClass : 'bg-slate-100 dark:bg-ink-700'} ${active ? 'text-white' : 'text-slate-600 dark:text-ink-300'} flex items-center justify-center shadow shrink-0 transition`}>
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-extrabold text-slate-900 dark:text-white text-sm">{m.label}</div>
-                          <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold truncate">{m.description}</div>
+                          <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{m.label}</div>
+                          <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold truncate">{m.description}</div>
                         </div>
                         {active && (
                           <div className="h-5 w-5 rounded-full bg-brand-600 text-white flex items-center justify-center shrink-0">
@@ -609,14 +609,14 @@ export default function PayInvoicePage() {
             </div>
 
             {/* RIGHT */}
-            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-6 space-y-4 h-fit">
+            <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 sm:p-6 space-y-4 h-fit">
               <div className="flex items-center gap-2 mb-2">
                 <FileImage className="h-5 w-5 text-brand-600 dark:text-brand-400" />
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Step 3 — Transaction Details</h3>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Step 3 — Transaction Details</h3>
               </div>
 
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-1.5">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1.5">
                   <UserIcon className="h-3.5 w-3.5" />
                   Aap ka Naam (Payer) *
                 </label>
@@ -625,12 +625,12 @@ export default function PayInvoicePage() {
                   value={payerName}
                   onChange={(e) => setPayerName(e.target.value)}
                   placeholder="Ahmad Ali"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-1.5">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1.5">
                   <Phone className="h-3.5 w-3.5" />
                   Phone Number
                 </label>
@@ -638,12 +638,12 @@ export default function PayInvoicePage() {
                   value={payerPhone}
                   onChange={(e) => setPayerPhone(e.target.value)}
                   placeholder="+923001234567"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 -center gap-1.5">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 -center gap-1.5">
                   <Hash className="h-3.5 w-3.5" />
                   Transaction / TID Number
                 </label>
@@ -651,9 +651,9 @@ export default function PayInvoicePage() {
                   value={transactionId}
                   onChange={(e) => setTransactionId(e.target.value)}
                   placeholder="TX-12345678"
-                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 text-sm font-mono font-extrabold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
+                  className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 text-sm font-mono font-extrabold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition"
                 />
-                <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                   Bank/wallet ka reference number
                 </div>
               </div>
@@ -677,7 +677,7 @@ export default function PayInvoicePage() {
 
               {/* File upload with drag-drop */}
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-2 items-center justify-between gap-2">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-2 items-center justify-between gap-2">
                   <span className="flex items-center gap-1.5">
                     <FileImage className="h-3.5 w-3.5" />
                     Payment Screenshot / Receipt <span className="text-rose-600">*</span>
@@ -701,7 +701,7 @@ export default function PayInvoicePage() {
                         ? 'border-blue-300 dark:border-blue-500/40 bg-blue-50 dark:bg-blue-500/10'
                         : dragOver
                           ? 'border-brand-500 dark:border-brand-400 bg-brand-50 dark:bg-brand-500/15 scale-[1.01]'
-                          : 'border-slate-300 dark:border-slate-600 hover:border-brand-400 hover:bg-brand-50/30 dark:hover:bg-brand-500/5'
+                          : 'border-slate-300 dark:border-ink-600 hover:border-brand-400 hover:bg-brand-50/30 dark:hover:bg-brand-500/5'
                   }`}
                 >
                   {uploadUrl ? (
@@ -717,7 +717,7 @@ export default function PayInvoicePage() {
                         <Check className="h-4 w-4" />
                         Upload Successful
                       </div>
-                      <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-semibold truncate">{file?.name}</div>
+                      <div className="text-xs text-slate-600 dark:text-ink-400 mt-1 font-semibold truncate">{file?.name}</div>
                       <div className="flex items-center justify-center gap-2 mt-2">
                         <a
                           href={uploadUrl}
@@ -746,11 +746,11 @@ export default function PayInvoicePage() {
                         </>
                       ) : (
                         <>
-                          <Upload className="h-12 w-12 text-slate-400 dark:text-slate-500 mx-auto" />
-                          <div className="mt-2 text-sm font-extrabold text-slate-700 dark:text-slate-200">
+                          <Upload className="h-12 w-12 text-slate-400 dark:text-ink-500 mx-auto" />
+                          <div className="mt-2 text-sm font-extrabold text-slate-700 dark:text-ink-200">
                             {dragOver ? '🎯 Drop here!' : 'Screenshot upload karo'}
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                          <div className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                             Click ya drag-drop • PNG, JPG ya PDF • Max 10MB
                           </div>
                         </>
@@ -772,7 +772,7 @@ export default function PayInvoicePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-1.5 items-center gap-1.5">
+                <label className="block text-sm font-extrabold text-slate-700 dark:text-ink-300 mb-1.5 items-center gap-1.5">
                   <FileText className="h-3.5 w-3.5" />
                   Notes (optional)
                 </label>
@@ -781,7 +781,7 @@ export default function PayInvoicePage() {
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
                   placeholder="Additional info..."
-                  className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition resize-none"
+                  className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-brand-500 transition resize-none"
                 />
               </div>
 
@@ -817,18 +817,18 @@ export default function PayInvoicePage() {
 function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-brand-200 dark:border-brand-500/30 bg-gradient-to-r from-brand-50 to-emerald-50 dark:from-brand-500/15 dark:to-emerald-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-brand-900 dark:text-brand-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Pay Invoice — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Payment 2 tareeqon se ho sakti hai:</strong> Instant card payment (Stripe) ya manual bank transfer/wallet (JazzCash/EasyPaisa/NayaPay/Bank). Dono verified aur safe.
           </p>
 
@@ -837,14 +837,14 @@ function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Globe className="h-3 w-3" /> Kaunsa Method Choose Karein?
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 ⚡ <strong>Instant (Stripe Card):</strong> Visa/Master card use karo → payment turant hoti hai, plan seedha activate. Best for urgency.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 🏦 <strong>Manual Bank:</strong> Bank transfer / online banking. Fees kam, but review time 24hrs. IBAN copy karo, app se transfer karo.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 📱 <strong>JazzCash / EasyPaisa / NayaPay:</strong> Mobile wallet — Pakistan me sabse popular. Number copy karo, app se send karo.
               </div>
             </div>
@@ -855,14 +855,14 @@ function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
               <CheckCircle2 className="h-3 w-3" /> Manual Payment — 3 Steps
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 <strong>1️⃣ Method Chuno:</strong> JazzCash/EasyPaisa/NayaPay/Bank me se ek pick karo. Account details show ho jayenge.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 <strong>2️⃣ Paisay Bhejo:</strong> Account number/IBAN copy karo. Apne bank/wallet app se <strong className="text-emerald-700 dark:text-emerald-400">{formatPKR(amount)}</strong> transfer karo.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-emerald-200 dark:border-emerald-500/30 p-2">
                 <strong>3️⃣ Screenshot Upload:</strong> Payment ka screenshot lo, upload karo. Apna naam + phone likho. Submit dabao.
               </div>
             </div>
@@ -880,7 +880,7 @@ function PayTeacher({ onClose, amount }: { onClose: () => void; amount: number }
           </div>
 
           {/* Pro tips */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>📸 Full screenshot lo</strong> — TID, amount, date, recipient sab dikhna chahiye.</TipRow>
             <TipRow><strong>🔢 TID zaroor likho</strong> — verification me sabse important hota hai.</TipRow>
             <TipRow><strong>📱 Phone number sahi do</strong> — approval/rejection notification aayegi.</TipRow>

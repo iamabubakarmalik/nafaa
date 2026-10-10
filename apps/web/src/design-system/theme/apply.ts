@@ -10,7 +10,8 @@
  * script in index.html can paint the right colors before React loads.
  */
 
-import { buildScale, readableOn, SCALE_STEPS } from '../tokens/color';
+import { buildScale, readableOn, SCALE_STEPS, type ColorScale, type ScaleStep } from '../tokens/color';
+import DARK_RULES from '../tailwind/dark-rules.json';
 import { DENSITIES, RADII } from '../tokens/layout';
 import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES } from '../tokens/typography';
 import type { ResolvedAppearance } from './appearance';
@@ -34,11 +35,38 @@ export interface BootCache {
   dir: 'ltr' | 'rtl';
 }
 
+type Rgb = [number, number, number];
+const toRgb = (ch: string) => ch.split(' ').map(Number) as Rgb;
+const mix = (rgb: Rgb, over: Rgb, amount: number) => rgb.map((v, i) => Math.round(v * amount + over[i] * (1 - amount))).join(' ');
+
+/**
+ * Brand values that differ in dark mode, following the same rules Tailwind
+ * applies to every other hue (tailwind/dark-rules.json): light tints become
+ * glows over the dark surface, deep text steps borrow lighter steps. In light
+ * mode the variables simply repeat the normal scale.
+ */
+function brandUsageVariables(scale: ColorScale, dark: boolean): Record<string, string> {
+  const vars: Record<string, string> = {};
+  const surface = DARK_RULES.surface as Rgb;
+  const base = toRgb(scale[500]);
+  for (const [step, amount] of Object.entries(DARK_RULES.bgTint)) {
+    vars[`--bg-brand-${step}`] = dark ? mix(base, surface, amount) : scale[Number(step) as ScaleStep];
+  }
+  for (const [step, amount] of Object.entries(DARK_RULES.borderTint)) {
+    vars[`--bd-brand-${step}`] = dark ? mix(base, surface, amount) : scale[Number(step) as ScaleStep];
+  }
+  for (const [step, borrowed] of Object.entries(DARK_RULES.textStep)) {
+    vars[`--tx-brand-${step}`] = scale[(dark ? borrowed : Number(step)) as ScaleStep];
+  }
+  return vars;
+}
+
 /** Builds every CSS variable the theme controls. Pure; safe to unit test. */
-export function themeVariables(a: ResolvedAppearance): Record<string, string> {
+export function themeVariables(a: ResolvedAppearance, dark = false): Record<string, string> {
   const vars: Record<string, string> = {};
   const scale = buildScale(a.accentHex);
   for (const step of SCALE_STEPS) vars[`--brand-${step}`] = scale[step];
+  Object.assign(vars, brandUsageVariables(scale, dark));
   vars['--brand-fg'] = readableOn(a.accentHex);
   vars['--brand-hex'] = a.accentHex;
   vars['--ring-color'] = scale[500];
@@ -75,7 +103,7 @@ export function applyAppearance(a: ResolvedAppearance, systemPrefersDark: boolea
   if (typeof document === 'undefined') return;
   const root = document.documentElement;
   const dark = isDarkMode(a, systemPrefersDark);
-  const vars = themeVariables(a);
+  const vars = themeVariables(a, dark);
 
   root.classList.toggle('dark', dark);
   root.style.colorScheme = dark ? 'dark' : 'light';

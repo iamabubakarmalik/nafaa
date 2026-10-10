@@ -24,23 +24,23 @@ export default function ChannelsListPage() {
       actions={<Link to="/online-store/connect"><Btn variant="primary" icon={<Plus className="h-4 w-4" />}>Channel jorein</Btn></Link>}>
       <Card flush>
         {isLoading ? (
-          <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />)}</div>
+          <div className="space-y-2 p-4">{[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100 dark:bg-ink-800" />)}</div>
         ) : channels.length === 0 ? (
           <EmptyState icon={<Globe className="h-5 w-5" />} title="Abhi koi channel nahi jura"
             action={<Link to="/online-store/connect"><Btn variant="primary">Pehla channel jorein</Btn></Link>}>
             Apni website jorein — orders khud Nafaa me aayenge, ghanti bajegi, aur stock dono jagah ek rahega.
           </EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+          <ul className="divide-y divide-slate-100 dark:divide-ink-800">
             {channels.map((c) => {
               const m = channelMeta(c.type);
               return (
                 <li key={c.id}>
-                  <Link to={channelPath(c)} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/40 sm:px-5">
+                  <Link to={channelPath(c)} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-ink-800/40 sm:px-5">
                     <ChannelAvatar emoji={m.emoji} color={m.color} size={36} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-white">{c.displayName}</span>
+                        <span className="truncate text-[0.875rem] font-semibold text-slate-900 dark:text-ink-white">{c.displayName}</span>
                         <Badge tone={c.live ? 'success' : 'neutral'} dot>{c.live ? 'Live' : 'Band'}</Badge>
                         {c.oneClick && <Badge tone="info">Automatic</Badge>}
                         {c.pendingOrders > 0 && <Badge tone="warning">{c.pendingOrders} naye</Badge>}
@@ -63,10 +63,10 @@ export default function ChannelsListPage() {
           {ADD.map((a) => {
             const m = channelMeta(a.type);
             return (
-              <Link key={a.key} to={a.to} className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 transition hover:border-slate-400 dark:border-slate-700">
+              <Link key={a.key} to={a.to} className="flex items-start gap-3 rounded-lg border border-slate-200 p-3 transition hover:border-slate-400 dark:border-ink-700">
                 <span className="text-xl">{a.key === 'custom' ? '💻' : m.emoji}</span>
                 <span className="min-w-0">
-                  <span className="block text-[0.84375rem] font-semibold text-slate-900 dark:text-white">{a.name}</span>
+                  <span className="block text-[0.84375rem] font-semibold text-slate-900 dark:text-ink-white">{a.name}</span>
                   <span className="block text-[0.75rem] text-slate-500">{a.desc}</span>
                 </span>
               </Link>

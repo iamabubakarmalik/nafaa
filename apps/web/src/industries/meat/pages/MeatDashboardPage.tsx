@@ -34,7 +34,7 @@ export default function MeatDashboardPage() {
   if (isLoading) {
     return (
       <div className="grid gap-4">
-        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+        {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
       </div>
     );
   }
@@ -163,10 +163,10 @@ export default function MeatDashboardPage() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* TOP SELLING */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Flame className="h-5 w-5 text-red-600" />
                 Top Selling Cuts
               </h3>
@@ -176,7 +176,7 @@ export default function MeatDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800">
             {topSelling.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Package className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -203,10 +203,10 @@ export default function MeatDashboardPage() {
         </div>
 
         {/* UPCOMING SUBSCRIPTIONS */}
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white flex items-center gap-2">
                 <Truck className="h-5 w-5 text-blue-600" />
                 Upcoming Deliveries
               </h3>
@@ -216,7 +216,7 @@ export default function MeatDashboardPage() {
               All <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-          <div className="divide-y divide-slate-100 dark:divide-neutral-800 max-h-96 overflow-y-auto">
+          <div className="divide-y divide-slate-100 dark:divide-ink-800 max-h-96 overflow-y-auto">
             {upcomingSubs.length === 0 ? (
               <div className="py-12 text-center text-sm text-slate-500 font-semibold">
                 <Truck className="h-8 w-8 text-slate-300 mx-auto mb-2" />
@@ -227,7 +227,7 @@ export default function MeatDashboardPage() {
                 const daysLeft = sub.nextDeliveryDate ? differenceInDays(new Date(sub.nextDeliveryDate), new Date()) : null;
                 const isToday = daysLeft === 0;
                 return (
-                  <Link key={sub.id} to={'/meat/subscriptions/' + sub.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-neutral-800/50 transition">
+                  <Link key={sub.id} to={'/meat/subscriptions/' + sub.id} className="px-6 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 text-white flex items-center justify-center shrink-0">
                       <Truck className="h-5 w-5" />
                     </div>
@@ -255,8 +255,8 @@ export default function MeatDashboardPage() {
       </div>
 
       {/* BY ANIMAL BREAKDOWN */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-6">
-        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-6">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-ink-white mb-4 flex items-center gap-2">
           <Beef className="h-5 w-5 text-red-600" />
           Products by Animal Type
         </h3>
@@ -265,12 +265,12 @@ export default function MeatDashboardPage() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {byAnimal.map((a: any) => (
-              <div key={a.animalType} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-neutral-800 dark:to-neutral-800/50 p-4 border-2 border-slate-200 dark:border-neutral-700 text-center">
+              <div key={a.animalType} className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-ink-800 dark:to-ink-800/50 p-4 border-2 border-slate-200 dark:border-ink-700 text-center">
                 <div className="text-4xl mb-2">{ANIMAL_EMOJI[a.animalType] || '🥩'}</div>
-                <div className="text-xs font-extrabold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                <div className="text-xs font-extrabold uppercase text-slate-700 dark:text-ink-300 mb-1">
                   {a.animalType.replace('_', ' ')}
                 </div>
-                <div className="text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{a._count._all}</div>
+                <div className="text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{a._count._all}</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500">products</div>
                 {a._sum.totalRevenue > 0 && (
                   <div className="mt-1 text-xs font-extrabold text-emerald-700 tabular-nums">
@@ -294,12 +294,12 @@ function KpiCard({ label, value, sub, icon: Icon, color }: any) {
     emerald: 'from-emerald-500 to-green-600',
   };
   return (
-    <div className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-5 shadow-sm hover:shadow-md transition">
+    <div className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-5 shadow-sm hover:shadow-md transition">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-wider text-slate-500 font-bold">{label}</div>
-          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
-          {sub && <div className="text-xs text-slate-600 dark:text-slate-400 font-semibold mt-1">{sub}</div>}
+          <div className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
+          {sub && <div className="text-xs text-slate-600 dark:text-ink-400 font-semibold mt-1">{sub}</div>}
         </div>
         <div className={
           'h-12 w-12 rounded-2xl bg-gradient-to-br ' + colors[color] +
@@ -323,7 +323,7 @@ function MiniKpi({ label, value, icon: Icon, color, to }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition text-center"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:shadow-lg hover:-translate-y-0.5 transition text-center"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -331,7 +331,7 @@ function MiniKpi({ label, value, icon: Icon, color, to }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xl font-extrabold text-slate-900 dark:text-white tabular-nums">{value}</div>
+      <div className="text-xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{value}</div>
       <div className="text-[0.6875rem] font-extrabold uppercase text-slate-500 mt-0.5">{label}</div>
     </Link>
   );
@@ -351,7 +351,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
   return (
     <Link
       to={to}
-      className="group rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
+      className="group rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-4 hover:border-slate-300 hover:shadow-lg hover:-translate-y-0.5 transition"
     >
       <div className={
         'h-11 w-11 rounded-xl bg-gradient-to-br ' + colors[color] +
@@ -359,7 +359,7 @@ function QuickLink({ to, icon: Icon, label, color }: any) {
       }>
         <Icon className="h-5 w-5" />
       </div>
-      <div className="text-xs font-extrabold text-slate-900 dark:text-white">{label}</div>
+      <div className="text-xs font-extrabold text-slate-900 dark:text-ink-white">{label}</div>
     </Link>
   );
 }

@@ -72,10 +72,10 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
       {shopifyConnected && <WooDirect channelId={channelId} kind="shopify" />}
     <div className="grid gap-4 lg:grid-cols-2">
       {/* ─── POS → Website ─── */}
-      <div className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+      <div className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
         <div className="flex items-center gap-2">
           <ArrowUpFromLine className="h-5 w-5 text-emerald-600" />
-          <div className="text-sm font-black text-slate-900 dark:text-white">POS ke products → Website</div>
+          <div className="text-sm font-black text-slate-900 dark:text-ink-white">POS ke products → Website</div>
         </div>
         <p className="mt-1 text-xs text-slate-500">
           Sab products, qeemat, tasveerein aur asli stock ki file. Website ke "Import products" me daal dein.
@@ -97,10 +97,10 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
       </div>
 
       {/* ─── Website → POS ─── */}
-      <div className="rounded-2xl border border-slate-200 p-4 dark:border-neutral-800">
+      <div className="rounded-2xl border border-slate-200 p-4 dark:border-ink-800">
         <div className="flex items-center gap-2">
           <ArrowDownToLine className="h-5 w-5 text-sky-600" />
-          <div className="text-sm font-black text-slate-900 dark:text-white">Website ke products → POS</div>
+          <div className="text-sm font-black text-slate-900 dark:text-ink-white">Website ke products → POS</div>
         </div>
         <p className="mt-1 text-xs text-slate-500">
           Website se export ki hui CSV (WooCommerce, Shopify ya apni) yahan daalein. Naye products ban jayenge, jo pehle hain unse jud jayenge.
@@ -113,20 +113,20 @@ export function ProductSyncCard({ channelId, productLinks, platform, wooConnecte
             onClick={() => fileRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
-            className="mt-3 flex w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 p-5 text-center hover:border-sky-400 hover:bg-sky-50/50 dark:border-neutral-700 dark:hover:bg-sky-500/5"
+            className="mt-3 flex w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-slate-300 p-5 text-center hover:border-sky-400 hover:bg-sky-50/50 dark:border-ink-700 dark:hover:bg-sky-500/5"
           >
             <Upload className="h-6 w-6 text-slate-400" />
-            <span className="text-sm font-bold text-slate-700 dark:text-slate-200">CSV file chunein ya yahan chhorein</span>
+            <span className="text-sm font-bold text-slate-700 dark:text-ink-200">CSV file chunein ya yahan chhorein</span>
             <span className="text-[0.6875rem] text-slate-500">WooCommerce / Shopify / Excel se "Save as CSV"</span>
           </button>
         ) : (
-          <div className="mt-3 space-y-3 rounded-xl bg-slate-50 p-3 dark:bg-neutral-900">
-            <div className="text-sm font-black text-slate-900 dark:text-white">
+          <div className="mt-3 space-y-3 rounded-xl bg-slate-50 p-3 dark:bg-ink-900">
+            <div className="text-sm font-black text-slate-900 dark:text-ink-white">
               {parsed.products.length} products mile <span className="font-semibold text-slate-500">· {FORMAT_LABEL[parsed.format]} · {parsed.file}</span>
             </div>
-            <div className="max-h-32 overflow-y-auto rounded-lg bg-white text-xs dark:bg-neutral-950">
+            <div className="max-h-32 overflow-y-auto rounded-lg bg-white text-xs dark:bg-ink-950">
               {parsed.products.slice(0, 6).map((p, i) => (
-                <div key={i} className="flex justify-between gap-2 border-b border-slate-100 px-2 py-1 last:border-0 dark:border-neutral-800">
+                <div key={i} className="flex justify-between gap-2 border-b border-slate-100 px-2 py-1 last:border-0 dark:border-ink-800">
                   <span className="truncate">{p.name}{p.sku ? ` · ${p.sku}` : ''}</span>
                   <span className="shrink-0 font-bold">{p.price !== undefined ? rs(p.price) : '—'}{p.stock !== undefined ? ` · ${p.stock}` : ''}</span>
                 </div>
@@ -202,9 +202,9 @@ function WooDirect({ channelId, kind }: { channelId: string; kind: 'woocommerce'
       : 'border-violet-200 dark:border-violet-500/30 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-500/10 dark:to-fuchsia-500/5')}>
       <div className="flex items-center gap-2">
         <span className="text-xl">{shopify ? '🟢' : '🟣'}</span>
-        <div className="text-sm font-black text-slate-900 dark:text-white">{shopify ? 'Shopify' : 'WooCommerce'} se seedha — ek click</div>
+        <div className="text-sm font-black text-slate-900 dark:text-ink-white">{shopify ? 'Shopify' : 'WooCommerce'} se seedha — ek click</div>
       </div>
-      <p className="mt-1 text-[0.75rem] font-bold text-slate-600 dark:text-slate-300">
+      <p className="mt-1 text-[0.75rem] font-bold text-slate-600 dark:text-ink-300">
         Products SKU se jurte hain. Stock har 15 minute khud jata hai — abhi chahiye to "Stock sync" dabayein.
       </p>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">

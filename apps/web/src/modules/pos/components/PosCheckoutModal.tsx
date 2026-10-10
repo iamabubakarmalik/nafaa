@@ -91,7 +91,7 @@ export function PosCheckoutModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+      <div className="w-full max-w-2xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
         <div className="shrink-0 relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-900 to-green-700 text-white px-5 py-4">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
           <div className="relative flex items-center justify-between gap-3">
@@ -122,23 +122,23 @@ export function PosCheckoutModal({
             <div className="grid grid-cols-3 gap-2">
               <button onClick={() => setMode('full')}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
-                  mode === 'full' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-lg ring-2 ring-emerald-200 dark:ring-emerald-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-emerald-300'].join(' ')}>
+                  mode === 'full' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/15 shadow-lg ring-2 ring-emerald-200 dark:ring-emerald-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-emerald-300'].join(' ')}>
                 <Wallet className={`h-6 w-6 mx-auto ${mode === 'full' ? 'text-emerald-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>Pura Paisa</div>
+                <div className={`text-sm font-extrabold mt-1 ${mode === 'full' ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-ink-200'}`}>Pura Paisa</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">100% payment</div>
               </button>
               <button onClick={() => { setMode('partial'); setPaidStr(''); }}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95',
-                  mode === 'partial' ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-lg ring-2 ring-amber-200 dark:ring-amber-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-amber-300'].join(' ')}>
+                  mode === 'partial' ? 'border-amber-500 bg-amber-50 dark:bg-amber-500/15 shadow-lg ring-2 ring-amber-200 dark:ring-amber-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-amber-300'].join(' ')}>
                 <Calculator className={`h-6 w-6 mx-auto ${mode === 'partial' ? 'text-amber-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-slate-200'}`}>Kuch Cash</div>
+                <div className={`text-sm font-extrabold mt-1 ${mode === 'partial' ? 'text-amber-800 dark:text-amber-300' : 'text-slate-700 dark:text-ink-200'}`}>Kuch Cash</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">Baqi udhaar</div>
               </button>
               <button onClick={() => setMode('credit')} disabled={!hasCustomer}
                 className={['p-3 rounded-2xl border-4 text-center transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed',
-                  mode === 'credit' ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-lg ring-2 ring-rose-200 dark:ring-rose-500/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-rose-300'].join(' ')}>
+                  mode === 'credit' ? 'border-rose-500 bg-rose-50 dark:bg-rose-500/15 shadow-lg ring-2 ring-rose-200 dark:ring-rose-500/30' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-rose-300'].join(' ')}>
                 <BookOpen className={`h-6 w-6 mx-auto ${mode === 'credit' ? 'text-rose-600' : 'text-slate-500'}`} />
-                <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-700 dark:text-slate-200'}`}>Pura Udhaar</div>
+                <div className={`text-sm font-extrabold mt-1 ${mode === 'credit' ? 'text-rose-800 dark:text-rose-300' : 'text-slate-700 dark:text-ink-200'}`}>Pura Udhaar</div>
                 <div className="text-[0.6875rem] font-bold text-slate-500 mt-0.5">{hasCustomer ? 'Khaate mein' : 'Customer chunein'}</div>
               </button>
             </div>
@@ -161,7 +161,7 @@ export function PosCheckoutModal({
 
           {mode !== 'credit' && (
             <div className="px-4 sm:px-5 pt-4">
-              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-slate-400 tracking-wider mb-2">Payment Method</div>
+              <div className="text-[0.6875rem] uppercase font-extrabold text-slate-600 dark:text-ink-400 tracking-wider mb-2">Payment Method</div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {POS_PAYMENT_METHODS.map((m) => {
                   const active = paymentMethod === m.id;
@@ -169,7 +169,7 @@ export function PosCheckoutModal({
                   return (
                     <button key={m.id} onClick={() => setPaymentMethod(m.id)}
                       className={['p-2.5 rounded-2xl border-4 transition active:scale-95 flex flex-col items-center gap-1',
-                        active ? `border-transparent shadow-lg text-white bg-gradient-to-br ${m.bg}` : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-200'].join(' ')}>
+                        active ? `border-transparent shadow-lg text-white bg-gradient-to-br ${m.bg}` : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300 text-slate-700 dark:text-ink-200'].join(' ')}>
                       <Icon className="h-5 w-5" />
                       <span className="text-[0.6875rem] font-extrabold">{m.label}</span>
                     </button>
@@ -195,7 +195,7 @@ export function PosCheckoutModal({
                   placeholder="Kitna paisa diya?"
                   className="h-16 sm:h-20 w-full rounded-2xl border-4 border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/10 px-4 pr-14 text-3xl sm:text-4xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/20" />
                 {paidStr && (
-                  <button onClick={() => setPaidStr('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 active:scale-95 flex items-center justify-center transition">
+                  <button onClick={() => setPaidStr('')} className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 active:scale-95 flex items-center justify-center transition">
                     <X className="h-5 w-5 text-slate-500" />
                   </button>
                 )}
@@ -203,7 +203,7 @@ export function PosCheckoutModal({
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
                 {POS_QUICK_AMOUNTS.map((amt) => (
                   <button key={amt} onClick={() => addAmount(amt)}
-                    className="h-11 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-sm font-extrabold text-slate-800 dark:text-slate-200 transition tabular-nums">
+                    className="h-11 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 active:scale-95 text-sm font-extrabold text-slate-800 dark:text-ink-200 transition tabular-nums">
                     +{amt}
                   </button>
                 ))}
@@ -224,7 +224,7 @@ export function PosCheckoutModal({
                     className={['h-12 rounded-xl font-extrabold text-lg transition active:scale-95 tabular-nums',
                       k === 'C' ? 'bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300'
                       : k === '⌫' ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300'
-                      : 'bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white hover:border-emerald-400'].join(' ')}>
+                      : 'bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white hover:border-emerald-400'].join(' ')}>
                     {k === '⌫' ? <Delete className="h-5 w-5 mx-auto" /> : k}
                   </button>
                 ))}
@@ -233,14 +233,14 @@ export function PosCheckoutModal({
           )}
 
           <div className="px-4 sm:px-5 py-4">
-            <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 border-4 border-slate-200 dark:border-slate-700 p-4 space-y-2">
+            <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-white dark:from-ink-800/60 dark:to-ink-900 border-4 border-slate-200 dark:border-ink-700 p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Total Bill</span>
-                <span className="text-lg font-extrabold tabular-nums text-slate-800 dark:text-white">{formatPKR(total)}</span>
+                <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Total Bill</span>
+                <span className="text-lg font-extrabold tabular-nums text-slate-800 dark:text-ink-white">{formatPKR(total)}</span>
               </div>
               {mode !== 'credit' && paid > 0 && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Diya</span>
+                  <span className="text-sm font-bold text-slate-600 dark:text-ink-300">Diya</span>
                   <span className="text-lg font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">{formatPKR(paid)}</span>
                 </div>
               )}
@@ -286,7 +286,7 @@ export function PosCheckoutModal({
           </div>
         </div>
 
-        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="shrink-0 p-4 border-t-4 border-slate-100 dark:border-ink-800 bg-white dark:bg-ink-900">
           <button onClick={submit} disabled={loading || (isCredit && !hasCustomer)}
             className={['w-full h-16 sm:h-20 rounded-3xl font-extrabold text-white shadow-2xl transition-all active:scale-[0.98]',
               isCredit ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700'
@@ -307,7 +307,7 @@ export function PosCheckoutModal({
               <ArrowRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </div>
           </button>
-          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-slate-500">
+          <div className="mt-2 text-center text-[0.6875rem] font-bold text-slate-400 dark:text-ink-500">
             Enter = confirm • Esc = cancel • F1/F3/F4/F5 = payment • F6 = udhaar
           </div>
         </div>

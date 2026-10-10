@@ -292,7 +292,7 @@ export function VoiceSaleButton({
       {open && (
         <div className="fixed inset-0 z-[60] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4" onClick={close}>
           <div
-            className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden"
+            className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -333,7 +333,7 @@ export function VoiceSaleButton({
               <div className="text-center">
                 <div className={[
                   'text-xs font-extrabold uppercase tracking-widest',
-                  listening ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400',
+                  listening ? 'text-rose-600 dark:text-rose-400' : 'text-slate-500 dark:text-ink-400',
                 ].join(' ')}>
                   {listening ? '🔴 Sun raha hoon... bolo!' : error ? '⚠️ Masla hua' : result ? '✓ Samajh gaya!' : 'Mic dabao aur bolo'}
                 </div>
@@ -344,11 +344,11 @@ export function VoiceSaleButton({
                     'mt-3 rounded-2xl border-2 p-4 min-h-[60px] flex items-center justify-center',
                     error
                       ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-300 dark:border-rose-500/40'
-                      : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700',
+                      : 'bg-slate-50 dark:bg-ink-800/60 border-slate-200 dark:border-ink-700',
                   ].join(' ')}>
                     <p className={[
                       'text-lg font-extrabold',
-                      error ? 'text-rose-700 dark:text-rose-300' : 'text-slate-900 dark:text-white',
+                      error ? 'text-rose-700 dark:text-rose-300' : 'text-slate-900 dark:text-ink-white',
                     ].join(' ')}>
                       {error || transcript}
                     </p>
@@ -381,12 +381,12 @@ export function VoiceSaleButton({
 
               {/* Examples */}
               <div>
-                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-slate-400 mb-2 flex items-center gap-1">
+                <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-500 dark:text-ink-400 mb-2 flex items-center gap-1">
                   <CheckCircle2 className="h-3 w-3" /> Aise bolo
                 </div>
                 <div className="flex flex-wrap gap-1.5 justify-center">
                   {EXAMPLES.map((ex) => (
-                    <span key={ex} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+                    <span key={ex} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-ink-800 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
                       {ex}
                     </span>
                   ))}

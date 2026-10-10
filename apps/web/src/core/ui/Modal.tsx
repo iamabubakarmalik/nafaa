@@ -53,31 +53,31 @@ export function Modal({
       <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" />
       <div
         className={cn(
-          'relative w-full bg-white dark:bg-neutral-900 rounded-2xl shadow-soft-xl border border-slate-200 dark:border-neutral-800 flex flex-col max-h-[90vh] animate-slide-up',
+          'relative w-full bg-white dark:bg-ink-900 rounded-2xl shadow-soft-xl border border-slate-200 dark:border-ink-800 flex flex-col max-h-[90vh] animate-slide-up',
           sizeClasses[size],
           className,
         )}
       >
         {(title || !hideClose) && (
-          <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-neutral-800">
+          <div className="flex items-start justify-between p-5 border-b border-slate-100 dark:border-ink-800">
             <div className="flex-1 min-w-0">
-              {title && <h2 className="text-lg font-extrabold text-slate-900 dark:text-white leading-tight">{title}</h2>}
-              {description && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{description}</p>}
+              {title && <h2 className="text-lg font-extrabold text-slate-900 dark:text-ink-white leading-tight">{title}</h2>}
+              {description && <p className="text-sm text-slate-500 dark:text-ink-400 mt-1">{description}</p>}
             </div>
             {!hideClose && (
               <button
                 onClick={onClose}
-                className="ml-4 h-9 w-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 flex items-center justify-center transition"
+                className="ml-4 h-9 w-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-ink-800 dark:hover:bg-ink-700 flex items-center justify-center transition"
                 aria-label="Close"
               >
-                <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
               </button>
             )}
           </div>
         )}
         <div className="flex-1 min-h-0 overflow-y-auto p-5">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-2 p-4 border-t border-slate-100 dark:border-neutral-800 bg-slate-50 dark:bg-neutral-900/50 rounded-b-2xl">
+          <div className="flex items-center justify-end gap-2 p-4 border-t border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/50 rounded-b-2xl">
             {footer}
           </div>
         )}

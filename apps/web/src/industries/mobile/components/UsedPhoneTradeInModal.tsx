@@ -325,9 +325,9 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
   return (
     <>
       <div className="fixed inset-0 z-[100] bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="w-full sm:max-w-4xl bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
+        <div className="w-full sm:max-w-4xl bg-white dark:bg-ink-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col">
           {/* ═══ HEADER ═══ */}
-          <div className="px-5 py-4 border-b-2 border-slate-200 dark:border-slate-800 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-500/15 dark:to-fuchsia-500/15 flex items-center justify-between gap-3 shrink-0">
+          <div className="px-5 py-4 border-b-2 border-slate-200 dark:border-ink-800 bg-gradient-to-br from-violet-50 to-fuchsia-50 dark:from-violet-500/15 dark:to-fuchsia-500/15 flex items-center justify-between gap-3 shrink-0">
             <div className="flex items-center gap-3 min-w-0">
               <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/40">
                 <RefreshCw className="h-5 w-5 text-white" />
@@ -336,7 +336,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                 <div className="text-[0.6875rem] uppercase tracking-widest text-violet-700 dark:text-violet-300 font-extrabold">
                   Used Phone Trade-In
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base truncate">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm sm:text-base truncate">
                   {imei1.length === 15 && brand ? `${brand} ${model || '...'}` : 'Naya Trade-In Entry'}
                 </h3>
               </div>
@@ -352,22 +352,22 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
               </button>
               <button
                 onClick={resetForm}
-                className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-600 dark:text-slate-300 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
+                className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-slate-600 dark:text-ink-300 hover:text-rose-700 dark:hover:text-rose-300 flex items-center justify-center transition"
                 title="Form clear"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
               <button
                 onClick={onClose}
-                className="h-9 w-9 rounded-xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center transition"
+                className="h-9 w-9 rounded-xl bg-white dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center transition"
               >
-                <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
               </button>
             </div>
           </div>
 
           {/* ═══ STEP INDICATOR ═══ */}
-          <div className="px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2 shrink-0">
+          <div className="px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 bg-slate-50 dark:bg-ink-800/50 flex items-center gap-2 shrink-0">
             {[
               { n: 1, label: 'Device Info', icon: Smartphone },
               { n: 2, label: 'Condition', icon: Star },
@@ -385,7 +385,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       ? 'bg-violet-600 text-white border-violet-700 shadow-md shadow-violet-500/30'
                       : done
                       ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40'
-                      : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                      : 'bg-white dark:bg-ink-800 text-slate-500 dark:text-ink-400 border-slate-200 dark:border-ink-700'
                   }`}
                 >
                   <div className="flex items-center justify-center gap-2">
@@ -399,19 +399,19 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
           </div>
 
           {/* ═══ CONTENT ═══ */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-slate-50/30 dark:bg-slate-900/50">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-slate-50/30 dark:bg-ink-900/50">
             {/* ─── STEP 1: DEVICE INFO ─── */}
             {step === 1 && (
               <div className="space-y-4">
                 {/* IMEI Row */}
-                <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-8 w-8 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center">
                       <ScanLine className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">IMEI Number</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">IMEI Number</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                         Phone dial pad me *#06# dabaao — ya scanner use karo
                       </div>
                     </div>
@@ -419,7 +419,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                   <div className="grid sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                         IMEI 1 * (15 digits)
                       </label>
                       <div className="relative">
@@ -431,8 +431,8 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           maxLength={15}
                           className={`h-12 w-full rounded-xl border-2 pl-3 pr-11 text-sm font-mono font-bold focus:outline-none transition ${
                             imei1.length === 15
-                              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-slate-900 dark:text-white'
-                              : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-violet-500'
+                              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 text-slate-900 dark:text-ink-white'
+                              : 'border-slate-300 dark:border-ink-600 bg-white dark:bg-ink-900 text-slate-900 dark:text-ink-white focus:border-violet-500'
                           }`}
                         />
                         <button
@@ -459,8 +459,8 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     </div>
 
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                        IMEI 2 <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(Dual SIM)</span>
+                      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
+                        IMEI 2 <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">(Dual SIM)</span>
                       </label>
                       <div className="relative">
                         <input
@@ -468,13 +468,13 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           onChange={(e) => setImei2(e.target.value.replace(/\D/g, '').slice(0, 15))}
                           placeholder="Optional"
                           maxLength={15}
-                          className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 pl-3 pr-11 text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                          className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-900 pl-3 pr-11 text-sm font-mono font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                         />
                         <button
                           type="button"
                           onClick={() => { setScannerTarget('imei2'); setShowScanner(true); }}
                           title="Scan IMEI 2"
-                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-violet-600 hover:text-white text-slate-600 dark:text-slate-300 flex items-center justify-center transition"
+                          className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-lg bg-slate-200 dark:bg-ink-700 hover:bg-violet-600 hover:text-white text-slate-600 dark:text-ink-300 flex items-center justify-center transition"
                         >
                           <Camera className="h-4 w-4" />
                         </button>
@@ -485,8 +485,8 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                 {/* Brand — quick chips */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                    Brand * <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">— select ya likho</span>
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-2">
+                    Brand * <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">— select ya likho</span>
                   </label>
                   <div className="flex gap-1.5 flex-wrap mb-2">
                     {TOP_BRANDS.map((b) => (
@@ -497,7 +497,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         className={`px-3 h-9 rounded-lg text-xs font-extrabold inline-flex items-center gap-1.5 border-2 transition ${
                           brand === b.name
                             ? 'bg-violet-600 text-white border-violet-700 shadow-md'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-violet-400'
+                            : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 hover:border-violet-400'
                         }`}
                       >
                         <span>{b.emoji}</span> {b.name}
@@ -508,20 +508,20 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     value={brand}
                     onChange={(e) => setBrand(e.target.value)}
                     placeholder="Ya custom brand likho..."
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                   />
                 </div>
 
                 {/* Model */}
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                     Model *
                   </label>
                   <input
                     value={model}
                     onChange={(e) => setModel(e.target.value)}
                     placeholder="iPhone 13 Pro, Galaxy S22, Redmi Note 12..."
-                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                    className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                   />
                 </div>
 
@@ -534,14 +534,14 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                 </div>
 
                 {/* PTA Status */}
-                <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 flex items-center justify-center">
                       <Shield className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">PTA Status</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">PTA Status</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                         Pakistan me lazmi — non-approved phone mushkil se bikta hai
                       </div>
                     </div>
@@ -558,7 +558,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           className={`px-2 py-2 rounded-lg text-[0.6875rem] font-extrabold border-2 transition ${
                             active
                               ? `${colors.bg} ${colors.text} ${colors.border} shadow-md scale-105`
-                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-400'
+                              : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-400'
                           }`}
                         >
                           {PTA_STATUS_LABELS[s]}
@@ -584,17 +584,17 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
             {/* ─── STEP 2: CONDITION ─── */}
             {step === 2 && (
               <div className="space-y-4">
-                <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4">
                   <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center">
                         <Star className="h-4 w-4 fill-current" />
                       </div>
                       <div>
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm">
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
                           Condition Rating *
                         </div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                           Honestly mark karo — resale price isi pe hai
                         </div>
                       </div>
@@ -619,7 +619,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           className={`p-3 rounded-xl border-2 transition ${
                             active
                               ? `${colors.bg} ${colors.text} ${colors.border} shadow-lg scale-105`
-                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-400'
+                              : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 text-slate-500 dark:text-ink-400 hover:border-slate-400'
                           }`}
                         >
                           <div className="text-2xl mb-1">{CONDITION_EMOJIS[c]}</div>
@@ -632,7 +632,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     })}
                   </div>
 
-                  <div className="mt-3 rounded-lg bg-slate-100 dark:bg-slate-900 p-2.5 text-xs text-slate-700 dark:text-slate-200 font-semibold flex items-start gap-2">
+                  <div className="mt-3 rounded-lg bg-slate-100 dark:bg-ink-900 p-2.5 text-xs text-slate-700 dark:text-ink-200 font-semibold flex items-start gap-2">
                     <Info className="h-3.5 w-3.5 text-violet-600 dark:text-violet-400 shrink-0 mt-0.5" />
                     {CONDITION_HINTS[condition]}
                   </div>
@@ -640,7 +640,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
 
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                       Condition Notes
                     </label>
                     <textarea
@@ -648,12 +648,12 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       value={conditionNotes}
                       onChange={(e) => setConditionNotes(e.target.value)}
                       placeholder="Light scratch left side, screen protector already lagaya hua..."
-                      className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                      className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 py-2 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                      Battery Health % <span className="text-slate-400 dark:text-slate-500 normal-case font-semibold">(agar pata ho)</span>
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
+                      Battery Health % <span className="text-slate-400 dark:text-ink-500 normal-case font-semibold">(agar pata ho)</span>
                     </label>
                     <div className="relative">
                       <input
@@ -663,9 +663,9 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         value={batteryHealth}
                         onChange={(e) => setBatteryHealth(e.target.value)}
                         placeholder="85"
-                        className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 pl-3 pr-8 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                        className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 pl-3 pr-8 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-slate-500 dark:text-slate-400">%</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-extrabold text-slate-500 dark:text-ink-400">%</span>
                     </div>
                     {batteryHealth && Number(batteryHealth) < 80 && (
                       <div className="text-[0.6875rem] text-amber-600 dark:text-amber-400 font-bold mt-1 flex items-center gap-1">
@@ -676,14 +676,14 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-center">
                       <Package className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">Accessories</div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Accessories</div>
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                         Original items = zyada resale value
                       </div>
                     </div>
@@ -702,7 +702,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         className={`flex items-center gap-2 p-2.5 rounded-xl border-2 cursor-pointer transition ${
                           item.val
                             ? 'bg-emerald-50 dark:bg-emerald-500/15 border-emerald-400 dark:border-emerald-500/50 shadow-sm'
-                            : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-400'
+                            : 'bg-white dark:bg-ink-900 border-slate-200 dark:border-ink-700 hover:border-slate-400'
                         }`}
                       >
                         <input
@@ -712,7 +712,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           className="h-4 w-4 rounded accent-emerald-600"
                         />
                         <span className="text-lg">{item.emoji}</span>
-                        <span className={`text-xs font-extrabold ${item.val ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200'}`}>
+                        <span className={`text-xs font-extrabold ${item.val ? 'text-emerald-800 dark:text-emerald-300' : 'text-slate-700 dark:text-ink-200'}`}>
                           {item.label}
                         </span>
                       </label>
@@ -726,7 +726,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
             {step === 3 && (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-2">
                     Trade-In Type
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -742,7 +742,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                         className={`p-2.5 rounded-xl border-2 text-xs font-extrabold transition text-left ${
                           source === s.val
                             ? 'bg-violet-50 dark:bg-violet-500/15 border-violet-400 dark:border-violet-500/50 text-violet-800 dark:text-violet-300 shadow-md'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-400'
+                            : 'bg-white dark:bg-ink-800 border-slate-200 dark:border-ink-700 text-slate-600 dark:text-ink-300 hover:border-slate-400'
                         }`}
                       >
                         <div className="text-lg mb-0.5">{s.emoji}</div>
@@ -773,7 +773,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                       value={referencePrice}
                       onChange={(e) => setReferencePrice(e.target.value)}
                       placeholder="Naye phone ki market price (e.g. 150000)"
-                      className="h-11 flex-1 min-w-[180px] rounded-xl border-2 border-violet-300 dark:border-violet-500/40 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                      className="h-11 flex-1 min-w-[180px] rounded-xl border-2 border-violet-300 dark:border-violet-500/40 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                     />
                     <button
                       onClick={triggerEstimate}
@@ -789,18 +789,18 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     </button>
                   </div>
                   {valuationMutation.data && (
-                    <div className="mt-3 p-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-violet-200 dark:border-violet-500/40">
+                    <div className="mt-3 p-3 rounded-xl bg-white dark:bg-ink-800 border-2 border-violet-200 dark:border-violet-500/40">
                       <div className="text-sm font-extrabold flex items-center gap-2 flex-wrap">
                         <span className="text-violet-800 dark:text-violet-200">💡 Suggested:</span>
                         <span className="text-emerald-700 dark:text-emerald-400 text-lg tabular-nums">
                           {formatPKR(valuationMutation.data.suggestedBuyback)}
                         </span>
-                        <span className="text-slate-500 dark:text-slate-400 text-xs">
+                        <span className="text-slate-500 dark:text-ink-400 text-xs">
                           ({(valuationMutation.data.multiplier * 100).toFixed(0)}% of market)
                         </span>
                       </div>
                       {valuationMutation.data.reasoning?.length > 0 && (
-                        <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold leading-relaxed">
+                        <div className="mt-1.5 text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold leading-relaxed">
                           {valuationMutation.data.reasoning.join(' · ')}
                         </div>
                       )}
@@ -815,7 +815,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                 </div>
 
                 {(buybackPrice || resalePrice) && (
-                  <div className="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-slate-900/60 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-4">
+                  <div className="rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-500/10 dark:via-ink-900/60 dark:to-blue-500/10 border-2 border-emerald-200 dark:border-emerald-500/30 p-4">
                     <div className="grid grid-cols-4 gap-3 text-center">
                       <ProfitStat label="Total Cost" value={formatPKR(totalCost)} tone="slate" />
                       <ProfitStat label="Resale" value={formatPKR(Number(resalePrice) || 0)} tone="blue" />
@@ -843,23 +843,23 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                   </div>
                 )}
 
-                <div className="rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-4">
+                <div className="rounded-2xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="h-8 w-8 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 flex items-center justify-center">
                       <User className="h-4 w-4" />
                     </div>
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white text-sm">
-                        Customer <span className="text-slate-400 dark:text-slate-500 font-semibold">(jinse phone khareeda)</span>
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">
+                        Customer <span className="text-slate-400 dark:text-ink-500 font-semibold">(jinse phone khareeda)</span>
                       </div>
-                      <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-semibold">
+                      <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-semibold">
                         CNIC record rakho — chori ke phone se bachne ke liye
                       </div>
                     </div>
                   </div>
 
                   <div className="mb-3">
-                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                       Existing Customer
                     </label>
                     <select
@@ -876,7 +876,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                           }
                         }
                       }}
-                      className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                      className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-900 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                     >
                       <option value="">— Walk-in (neeche details bharo) —</option>
                       {customersData?.items.map((c: any) => (
@@ -900,7 +900,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                 </div>
 
                 <div>
-                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
                     Internal Notes
                   </label>
                   <textarea
@@ -908,7 +908,7 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Additional info, deal terms, kya customer ne kuch bataya..."
-                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 py-2 text-sm text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
                   />
                 </div>
               </div>
@@ -916,9 +916,9 @@ export function UsedPhoneTradeInModal({ onSuccess, onClose }: Props) {
           </div>
 
           {/* ═══ FOOTER ═══ */}
-          <div className="px-4 sm:px-5 py-3 border-t-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+          <div className="px-4 sm:px-5 py-3 border-t-2 border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 shrink-0">
             <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-3 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 <span className="hidden md:inline-flex items-center gap-1">
                   <Kbd>Ctrl</Kbd>+<Kbd>↵</Kbd> next
                 </span>
@@ -1027,7 +1027,7 @@ function TradeInFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () =>
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className={`px-5 py-4 bg-gradient-to-br ${c.color} text-white flex items-center justify-between sticky top-0 z-10`}>
@@ -1048,11 +1048,11 @@ function TradeInFormTeacher({ step, onClose }: { step: 1 | 2 | 3; onClose: () =>
 
         <div className="p-5 space-y-2.5">
           {c.tips.map((tip, i) => (
-            <div key={i} className="flex items-start gap-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3">
+            <div key={i} className="flex items-start gap-3 rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3">
               <span className="text-xl shrink-0">{tip.emoji}</span>
               <div
-                className="text-xs font-semibold text-slate-700 dark:text-slate-200 leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: tip.text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 dark:text-white">$1</strong>') }}
+                className="text-xs font-semibold text-slate-700 dark:text-ink-200 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: tip.text.replace(/\*\*(.+?)\*\*/g, '<strong class="text-slate-900 dark:text-ink-white">$1</strong>') }}
               />
             </div>
           ))}
@@ -1084,7 +1084,7 @@ function InputCompact({
 }) {
   return (
     <div>
-      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+      <label className="block text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-700 dark:text-ink-300 mb-1">
         {label}
       </label>
       <input
@@ -1092,7 +1092,7 @@ function InputCompact({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-violet-500 transition"
+        className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-600 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-violet-500 transition"
       />
     </div>
   );
@@ -1147,7 +1147,7 @@ function ProfitStat({
   big?: boolean;
 }) {
   const tones = {
-    slate: 'text-slate-700 dark:text-slate-300',
+    slate: 'text-slate-700 dark:text-ink-300',
     blue: 'text-blue-700 dark:text-blue-400',
     emerald: 'text-emerald-700 dark:text-emerald-400',
     rose: 'text-rose-700 dark:text-rose-400',
@@ -1155,7 +1155,7 @@ function ProfitStat({
   };
   return (
     <div>
-      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-slate-400">{label}</div>
+      <div className="text-[0.625rem] uppercase tracking-wider font-extrabold text-slate-500 dark:text-ink-400">{label}</div>
       <div className={`font-extrabold tabular-nums ${tones[tone]} ${big ? 'text-lg' : 'text-sm'} mt-0.5`}>
         {value}
       </div>
@@ -1165,7 +1165,7 @@ function ProfitStat({
 
 function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-mono font-bold text-[0.625rem]">
+    <kbd className="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-ink-700 border border-slate-300 dark:border-ink-600 text-slate-700 dark:text-ink-200 font-mono font-bold text-[0.625rem]">
       {children}
     </kbd>
   );

@@ -59,10 +59,10 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
             scoreColor === 'amber' ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-amber-300 dark:border-amber-500/40' :
             'bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-500/10 dark:to-pink-500/10 border-rose-300 dark:border-rose-500/40',
           ].join(' ')}>
-            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-white/30 dark:bg-white/5 blur-3xl pointer-events-none" />
+            <div className="absolute -top-16 -right-16 h-40 w-40 rounded-full bg-white/30 dark:bg-ink-white/5 blur-3xl pointer-events-none" />
             <div className="relative">
               <div className="flex items-center gap-4 mb-4">
-                <div className={`h-16 w-16 rounded-3xl bg-gradient-to-br ${scoreGradient} text-white flex items-center justify-center shadow-xl ring-4 ring-white/50 dark:ring-white/10`}>
+                <div className={`h-16 w-16 rounded-3xl bg-gradient-to-br ${scoreGradient} text-white flex items-center justify-center shadow-xl ring-4 ring-white/50 dark:ring-ink-white/10`}>
                   <Award className="h-8 w-8" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -74,16 +74,16 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                   ].join(' ')}>
                     Security Score
                   </div>
-                  <div className="text-4xl font-extrabold text-slate-900 dark:text-white tabular-nums leading-none mt-0.5">
-                    {score.score}<span className="text-2xl text-slate-500 dark:text-slate-400">%</span>
+                  <div className="text-4xl font-extrabold text-slate-900 dark:text-ink-white tabular-nums leading-none mt-0.5">
+                    {score.score}<span className="text-2xl text-slate-500 dark:text-ink-400">%</span>
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 font-extrabold mt-1">
+                  <div className="text-xs text-slate-600 dark:text-ink-400 font-extrabold mt-1">
                     Level: <span className="uppercase tracking-wider">{score.level}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="h-3 bg-white/70 dark:bg-slate-800/60 rounded-full overflow-hidden shadow-inner mb-4">
+              <div className="h-3 bg-white/70 dark:bg-ink-800/60 rounded-full overflow-hidden shadow-inner mb-4">
                 <div
                   className={`h-full bg-gradient-to-r ${scoreGradient} transition-all duration-700`}
                   style={{ width: `${score.score}%` }}
@@ -96,7 +96,7 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                     key={c.key}
                     className={[
                       'flex items-center gap-2 rounded-xl px-3 py-2 backdrop-blur',
-                      c.done ? 'bg-white/80 dark:bg-slate-800/60' : 'bg-white/40 dark:bg-slate-800/30',
+                      c.done ? 'bg-white/80 dark:bg-ink-800/60' : 'bg-white/40 dark:bg-ink-800/30',
                     ].join(' ')}
                   >
                     {c.done ? (
@@ -106,13 +106,13 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
                     )}
                     <span className={[
                       'text-xs font-extrabold flex-1',
-                      c.done ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500 dark:text-slate-400',
+                      c.done ? 'text-slate-800 dark:text-ink-100' : 'text-slate-500 dark:text-ink-400',
                     ].join(' ')}>
                       {c.label}
                     </span>
                     <span className={[
                       'text-[0.6875rem] font-extrabold',
-                      c.done ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500',
+                      c.done ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-ink-500',
                     ].join(' ')}>
                       +{c.weight}%
                     </span>
@@ -177,10 +177,10 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
             action={
               <button
                 onClick={() => refetchSessions()}
-                className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center transition"
+                className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 flex items-center justify-center transition"
                 title="Refresh"
               >
-                <RefreshCw className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+                <RefreshCw className="h-4 w-4 text-slate-600 dark:text-ink-300" />
               </button>
             }
           >
@@ -188,20 +188,20 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
               {sessions.map((sess: any) => (
                 <div
                   key={sess.id}
-                  className="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800 transition"
+                  className="flex items-center gap-3 p-3 rounded-xl border-2 border-slate-100 dark:border-ink-800 bg-slate-50/50 dark:bg-ink-800/40 hover:bg-slate-50 dark:hover:bg-ink-800 transition"
                 >
-                  <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0">
+                  <div className="h-10 w-10 rounded-xl bg-slate-200 dark:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center shrink-0">
                     <Smartphone className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-900 dark:text-white text-sm truncate">
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm truncate">
                       {sess.deviceName || 'Unknown device'}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold truncate">
+                    <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold truncate">
                       {sess.user?.fullName || 'User'} · {sess.location || sess.ipAddress || 'Unknown location'}
                     </div>
                     {sess.lastActiveAt && (
-                      <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 font-bold mt-0.5">
+                      <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 font-bold mt-0.5">
                         Last active: {new Date(sess.lastActiveAt).toLocaleString()}
                       </div>
                     )}
@@ -230,17 +230,17 @@ export function SecuritySection({ settings }: { settings: TenantSettings }) {
               {activity.map((a: any) => (
                 <div
                   key={a.id}
-                  className="flex items-start gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition text-xs"
+                  className="flex items-start gap-3 p-2.5 rounded-xl border border-slate-100 dark:border-ink-800 hover:bg-slate-50 dark:hover:bg-ink-800/40 transition text-xs"
                 >
-                  <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                    <Lock className="h-3.5 w-3.5 text-slate-500 dark:text-slate-400" />
+                  <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-800 flex items-center justify-center shrink-0">
+                    <Lock className="h-3.5 w-3.5 text-slate-500 dark:text-ink-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-slate-800 dark:text-slate-100 truncate">{a.action}</div>
+                    <div className="font-extrabold text-slate-800 dark:text-ink-100 truncate">{a.action}</div>
                     {a.description && (
-                      <div className="text-slate-500 dark:text-slate-400 truncate font-semibold">{a.description}</div>
+                      <div className="text-slate-500 dark:text-ink-400 truncate font-semibold">{a.description}</div>
                     )}
-                    <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+                    <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-0.5 font-bold">
                       {a.user?.fullName || 'System'} · {new Date(a.createdAt).toLocaleString()}
                     </div>
                   </div>

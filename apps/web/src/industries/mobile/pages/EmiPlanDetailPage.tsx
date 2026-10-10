@@ -101,18 +101,18 @@ export default function EmiPlanDetailPage() {
     return (
       <div className="min-h-[400px] flex flex-col items-center justify-center gap-3">
         <div className="inline-block h-10 w-10 rounded-full border-4 border-indigo-200 dark:border-indigo-500/30 border-t-indigo-600 dark:border-t-indigo-400 animate-spin" />
-        <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400">Plan load ho raha hai...</p>
+        <p className="text-xs font-extrabold text-slate-500 dark:text-ink-400">Plan load ho raha hai...</p>
       </div>
     );
   }
 
   if (!plan) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-16 text-center">
+      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-16 text-center">
         <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center mb-3">
           <AlertCircle className="h-8 w-8 text-rose-500" />
         </div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Plan nahi mila</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Plan nahi mila</h3>
         <Link to="/emi-plans" className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline">
           <ArrowLeft className="h-4 w-4" /> Wapis EMI Plans
         </Link>
@@ -152,7 +152,7 @@ export default function EmiPlanDetailPage() {
       <div className="flex items-center justify-between flex-wrap gap-2 print:hidden">
         <Link
           to="/emi-plans"
-          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition"
+          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800 shadow-sm transition"
         >
           <ArrowLeft className="h-4 w-4" /> Wapis EMI Plans
         </Link>
@@ -160,10 +160,10 @@ export default function EmiPlanDetailPage() {
           <button
             onClick={() => refetch()}
             disabled={isRefetching}
-            className="h-10 w-10 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50"
+            className="h-10 w-10 rounded-xl bg-white dark:bg-ink-800 border-2 border-slate-200 dark:border-ink-700 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-ink-700 transition disabled:opacity-50"
             title="Refresh (R)"
           >
-            <RefreshCw className={`h-4 w-4 text-slate-600 dark:text-slate-300 ${isRefetching ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 text-slate-600 dark:text-ink-300 ${isRefetching ? 'animate-spin' : ''}`} />
           </button>
           <button
             onClick={() => setShowGuide(true)}
@@ -189,7 +189,7 @@ export default function EmiPlanDetailPage() {
       </div>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-purple-700 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-900 text-white p-4 sm:p-6 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-indigo-900 to-purple-700 dark:from-ink-950 dark:via-indigo-950 dark:to-purple-900 text-white p-4 sm:p-6 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-indigo-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-purple-400/20 blur-3xl pointer-events-none" />
 
@@ -257,8 +257,8 @@ export default function EmiPlanDetailPage() {
 
       {/* ═══ QUICK ACTIONS (ACTIVE plan) ═══ */}
       {plan.status === 'ACTIVE' && (
-        <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
-          <div className="text-xs font-extrabold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+        <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
+          <div className="text-xs font-extrabold text-slate-600 dark:text-ink-400 uppercase tracking-wider mb-2.5 flex items-center gap-2">
             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> Plan Actions
           </div>
           <div className="flex flex-wrap gap-2">
@@ -278,7 +278,7 @@ export default function EmiPlanDetailPage() {
                 if (reason !== null) cancelMutation.mutate(reason || undefined);
               }}
               disabled={cancelMutation.isPending}
-              className="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50"
+              className="px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-ink-800 hover:bg-slate-100 dark:hover:bg-ink-700 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-200 text-xs font-extrabold inline-flex items-center gap-1.5 transition disabled:opacity-50"
             >
               <Ban className="h-3.5 w-3.5" /> Plan Cancel Karo
             </button>
@@ -290,14 +290,14 @@ export default function EmiPlanDetailPage() {
       <div className="grid xl:grid-cols-[1fr_400px] gap-4 items-start">
         {/* ── Installments ── */}
         <div className="space-y-4">
-          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
               <div className="flex items-center gap-2">
                 <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
                   <Calendar className="h-5 w-5" />
                 </div>
-                <h3 className="font-extrabold text-slate-900 dark:text-white">
-                  Installments <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({plan.paidInstallmentCount}/{plan.installmentCount})</span>
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
+                  Installments <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({plan.paidInstallmentCount}/{plan.installmentCount})</span>
                 </h3>
               </div>
             </div>
@@ -325,15 +325,15 @@ export default function EmiPlanDetailPage() {
                               ? 'bg-slate-400 text-white'
                               : isOverdue
                                 ? 'bg-rose-600 text-white'
-                                : 'bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300'
+                                : 'bg-white dark:bg-ink-800 border-2 border-slate-300 dark:border-ink-600 text-slate-700 dark:text-ink-300'
                         }`}>
                           {isPaid || isWaived ? <CheckCircle2 className="h-4 w-4" /> : inst.installmentNumber}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-extrabold text-sm text-slate-900 dark:text-white">
+                          <div className="font-extrabold text-sm text-slate-900 dark:text-ink-white">
                             Installment #{inst.installmentNumber}
                           </div>
-                          <div className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-semibold">
+                          <div className="text-xs text-slate-600 dark:text-ink-300 mt-0.5 font-semibold">
                             Due: <strong>{formatDate(inst.dueDate)}</strong>
                             {inst.paidDate && isPaid && (
                               <span className="ml-2 text-emerald-700 dark:text-emerald-400">
@@ -342,14 +342,14 @@ export default function EmiPlanDetailPage() {
                             )}
                           </div>
                           {inst.notes && (
-                            <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-0.5 italic">{inst.notes}</div>
+                            <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-0.5 italic">{inst.notes}</div>
                           )}
                         </div>
                       </div>
 
                       <div className="text-right shrink-0">
-                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-slate-400">Amount</div>
-                        <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(inst.amount)}</div>
+                        <div className="text-[0.625rem] uppercase font-extrabold text-slate-500 dark:text-ink-400">Amount</div>
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(inst.amount)}</div>
                         {Number(inst.paidAmount) > 0 && !isPaid && (
                           <div className="text-[0.6875rem] text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
                             Paid: {formatPKR(inst.paidAmount)} · Bal: {formatPKR(balance)}
@@ -362,7 +362,7 @@ export default function EmiPlanDetailPage() {
                     </div>
 
                     {plan.status === 'ACTIVE' && !isPaid && !isWaived && (
-                      <div className="mt-2.5 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex gap-1.5 print:hidden">
+                      <div className="mt-2.5 pt-2.5 border-t border-slate-200/60 dark:border-ink-700/60 flex gap-1.5 print:hidden">
                         <button
                           onClick={() => setPaymentInstallment({
                             id: inst.id,
@@ -380,7 +380,7 @@ export default function EmiPlanDetailPage() {
                             if (reason !== null) waiveMutation.mutate({ installmentId: inst.id, reason: reason || undefined });
                           }}
                           disabled={waiveMutation.isPending}
-                          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border-2 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition disabled:opacity-50"
+                          className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-ink-800 hover:bg-slate-200 dark:hover:bg-ink-700 border-2 border-slate-200 dark:border-ink-700 text-slate-700 dark:text-ink-300 text-xs font-extrabold inline-flex items-center justify-center gap-1 transition disabled:opacity-50"
                           title="Ye installment maaf karo"
                         >
                           <Ban className="h-3.5 w-3.5" /> Waive
@@ -406,7 +406,7 @@ export default function EmiPlanDetailPage() {
         {/* ── Sidebar ── */}
         <aside className="space-y-4">
           {/* Financial summary */}
-          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-500/10 dark:via-slate-900/80 dark:to-purple-500/10 border-2 border-indigo-200 dark:border-indigo-500/30 shadow-sm p-4 sm:p-5">
+          <div className="rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-indigo-500/10 dark:via-ink-900/80 dark:to-purple-500/10 border-2 border-indigo-200 dark:border-indigo-500/30 shadow-sm p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <div className="h-9 w-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 flex items-center justify-center">
                 <DollarSign className="h-5 w-5" />
@@ -416,8 +416,8 @@ export default function EmiPlanDetailPage() {
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-slate-300">Total Amount</span>
-                <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(plan.totalAmount)}</span>
+                <span className="font-semibold text-slate-600 dark:text-ink-300">Total Amount</span>
+                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(plan.totalAmount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-semibold text-emerald-700 dark:text-emerald-400">Down Payment</span>
@@ -428,12 +428,12 @@ export default function EmiPlanDetailPage() {
                 <span className="font-extrabold text-indigo-700 dark:text-indigo-300 tabular-nums">{formatPKR(plan.financedAmount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-slate-300">Per Month</span>
-                <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(plan.installmentAmount)}</span>
+                <span className="font-semibold text-slate-600 dark:text-ink-300">Per Month</span>
+                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(plan.installmentAmount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="font-semibold text-slate-600 dark:text-slate-300">Tenure</span>
-                <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{plan.installmentCount} months</span>
+                <span className="font-semibold text-slate-600 dark:text-ink-300">Tenure</span>
+                <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{plan.installmentCount} months</span>
               </div>
               <div className="flex justify-between pt-2 border-t-2 border-indigo-200 dark:border-indigo-500/30">
                 <span className="text-emerald-700 dark:text-emerald-400 font-bold">Total Paid</span>
@@ -456,9 +456,9 @@ export default function EmiPlanDetailPage() {
 
           {/* Customer */}
           {plan.customer && (
-            <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4">
+            <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
               <div className="flex items-center justify-between mb-2.5">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm flex items-center gap-2">
+                <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-sm flex items-center gap-2">
                   <User className="h-4 w-4 text-violet-600 dark:text-violet-400" /> Customer
                 </h3>
                 <Link
@@ -469,10 +469,10 @@ export default function EmiPlanDetailPage() {
                 </Link>
               </div>
               <div className="space-y-1.5 text-xs">
-                <div className="font-extrabold text-slate-900 dark:text-white text-sm">{plan.customer.name}</div>
-                {plan.customer.phone && <div className="font-semibold text-slate-600 dark:text-slate-300 font-mono">📞 {plan.customer.phone}</div>}
-                {plan.customer.cnic && <div className="font-semibold text-slate-600 dark:text-slate-300 font-mono">CNIC: {plan.customer.cnic}</div>}
-                {plan.customer.address && <div className="font-semibold text-slate-600 dark:text-slate-300">📍 {plan.customer.address}</div>}
+                <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{plan.customer.name}</div>
+                {plan.customer.phone && <div className="font-semibold text-slate-600 dark:text-ink-300 font-mono">📞 {plan.customer.phone}</div>}
+                {plan.customer.cnic && <div className="font-semibold text-slate-600 dark:text-ink-300 font-mono">CNIC: {plan.customer.cnic}</div>}
+                {plan.customer.address && <div className="font-semibold text-slate-600 dark:text-ink-300">📍 {plan.customer.address}</div>}
                 {(plan.customer.balance ?? 0) > 0 && (
                   <div className="mt-2 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 px-2.5 py-1.5 text-amber-700 dark:text-amber-300 font-extrabold tabular-nums">
                     Aur udhaar: {formatPKR(plan.customer.balance ?? 0)}
@@ -535,16 +535,16 @@ export default function EmiPlanDetailPage() {
 function DetailGuide({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-indigo-300 dark:border-indigo-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-indigo-300 dark:border-indigo-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3.5 border-b-2 border-indigo-200 dark:border-indigo-500/30 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-500/15 dark:to-purple-500/15 flex items-center justify-between">
           <h3 className="font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye Page Kya Karta Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
-        <div className="p-5 space-y-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+        <div className="p-5 space-y-2 text-xs font-semibold text-slate-700 dark:text-ink-200">
           <Tip><strong>Payment Record Karo</strong> — customer paisa de to installment pe click karo, method chuno, done</Tip>
           <Tip><strong>Waive</strong> — installment maaf karni ho to reason ke sath (record rehta hai)</Tip>
           <Tip><strong>💬 Reminder</strong> — customer ko WhatsApp pe remaining + next due chala jata hai</Tip>
@@ -561,7 +561,7 @@ function DetailGuide({ onClose }: { onClose: () => void }) {
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-2.5">
+    <div className="flex items-start gap-2 rounded-lg bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-2.5">
       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
       <span className="leading-relaxed">{children}</span>
     </div>

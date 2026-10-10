@@ -24,7 +24,7 @@ export default function FoodpandaPage() {
   return (
     <Page back={{ to: '/online-store/channels', label: 'Sales channels' }} title="Foodpanda"
       subtitle="Foodpanda ke orders seedha Nafaa me — accept, reject, ready, sab yahin se.">
-      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+      {isLoading ? <div className="h-40 animate-pulse rounded-xl bg-slate-100 dark:bg-ink-800" />
         : error || !data ? <Card><EmptyState title="Safha nahi khula">{apiErrorMessage(error)}</EmptyState></Card>
         : <Body data={data} />}
     </Page>
@@ -40,7 +40,7 @@ function Body({ data }: { data: FoodpandaOverview }) {
         </Banner>
       )}
       <Card title="Kaise kaam karta hai">
-        <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-slate-200 sm:grid-cols-3">
+        <ol className="grid gap-2 text-[0.8125rem] text-slate-700 dark:text-ink-200 sm:grid-cols-3">
           <li><b>1.</b> Foodpanda account manager se apna <b>chain code</b> aur har branch ka <b>vendor code</b> lein</li>
           <li><b>2.</b> Neeche daal kar save — har branch ka Nafaa <b>Remote ID</b> banega, wo Foodpanda ko bhej dein</li>
           <li><b>3.</b> Order aaye → Online orders me ghanti → <b>Accept</b> (bill khud) → <b>Ready</b> → rider le jaye</li>
@@ -102,7 +102,7 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
           {vendors.map((v, i) => {
             const closed = v.remoteId ? channel?.availability?.[v.remoteId]?.closures?.length : 0;
             return (
-              <div key={i} className="flex flex-wrap items-end gap-2 rounded-xl border border-slate-200 p-3 dark:border-slate-800">
+              <div key={i} className="flex flex-wrap items-end gap-2 rounded-xl border border-slate-200 p-3 dark:border-ink-800">
                 <Field label="Vendor code"><input value={v.vendorCode ?? ''} onChange={(e) => setV(i, { vendorCode: e.target.value })} className={cn(inputCls, 'w-40 font-mono')} /></Field>
                 <Field label="Nafaa branch">
                   <select value={v.shopId ?? ''} onChange={(e) => setV(i, { shopId: e.target.value || null })} className={cn(inputCls, 'w-48')}>
@@ -113,7 +113,7 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
                 {v.remoteId && (
                   <div className="text-[0.75rem]">
                     <div className="text-slate-500">Remote ID (Foodpanda ko dein)</div>
-                    <button type="button" onClick={() => copy(v.remoteId!)} className="font-mono font-semibold text-slate-900 hover:underline dark:text-white">{v.remoteId}</button>
+                    <button type="button" onClick={() => copy(v.remoteId!)} className="font-mono font-semibold text-slate-900 hover:underline dark:text-ink-white">{v.remoteId}</button>
                     {closed ? <Badge tone="warning">Foodpanda par band</Badge> : null}
                   </div>
                 )}
@@ -123,7 +123,7 @@ function ChannelForm({ data, channel }: { data: FoodpandaOverview; channel?: Foo
           })}
           <Btn size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={() => setVendors((x) => [...x, { vendorCode: '', shopId: null }])}>Aur branch</Btn>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 dark:border-ink-800">
           <div className="flex flex-wrap gap-2">
             {channel && <Btn size="sm" icon={<Copy className="h-3.5 w-3.5" />} onClick={() => copy(shareText)}>Foodpanda ke liye details copy</Btn>}
             {channel && <Link to={`/online-orders?channel=${channel.id}`}><Btn size="sm" variant="plain">Is ke orders</Btn></Link>}

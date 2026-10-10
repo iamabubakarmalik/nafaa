@@ -53,7 +53,7 @@ export default function BookingDetailPage() {
   });
 
   if (isLoading || !booking) {
-    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />;
+    return <div className="h-64 rounded-3xl bg-slate-100 dark:bg-ink-800 animate-pulse" />;
   }
 
   return (
@@ -122,8 +122,8 @@ export default function BookingDetailPage() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-6">
         <section className="space-y-4">
           {/* Guest info */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-5">
-            <h3 className="text-sm font-extrabold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-5">
+            <h3 className="text-sm font-extrabold text-slate-900 dark:text-ink-white mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-blue-600" />
               Guest Information
             </h3>
@@ -160,20 +160,20 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Rooms */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
               <h3 className="text-lg font-bold flex items-center gap-2">
                 <Bed className="h-5 w-5 text-indigo-600" />
                 Rooms
               </h3>
               <span className="px-2 py-0.5 rounded-full bg-slate-100 text-xs font-extrabold">{booking.bookedRooms.length}</span>
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {booking.bookedRooms.map((br: any) => (
                 <div key={br.id} className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="font-extrabold text-slate-900 dark:text-white">
+                      <div className="font-extrabold text-slate-900 dark:text-ink-white">
                         {br.roomType?.name} {br.room?.roomNumber && '• Room ' + br.room.roomNumber}
                       </div>
                       <div className="text-xs text-slate-600 font-bold">
@@ -196,8 +196,8 @@ export default function BookingDetailPage() {
           </div>
 
           {/* Folio */}
-          <div className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 flex items-center justify-between">
+          <div className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-bold flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-emerald-600" />
@@ -212,7 +212,7 @@ export default function BookingDetailPage() {
                 </Button>
               )}
             </div>
-            <div className="divide-y divide-slate-100 dark:divide-neutral-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {(!booking.folioCharges || booking.folioCharges.length === 0) ? (
                 <div className="py-8 text-center text-sm text-slate-500 font-semibold">No extra charges</div>
               ) : (
@@ -221,7 +221,7 @@ export default function BookingDetailPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold">{c.description}</span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-neutral-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{c.chargeType}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-ink-800 text-slate-700 text-[0.625rem] font-extrabold uppercase">{c.chargeType}</span>
                       </div>
                       <div className="text-[0.6875rem] font-mono font-bold text-slate-500">{c.chargeNumber} • {format(new Date(c.chargeDate), 'dd MMM HH:mm')}</div>
                     </div>
@@ -303,7 +303,7 @@ function PaymentModal({ bookingId, balance, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-emerald-50 flex items-center justify-between">
           <h3 className="font-extrabold">Collect Payment</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
@@ -346,7 +346,7 @@ function FolioModal({ bookingId, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-blue-50 flex items-center justify-between">
           <h3 className="font-extrabold">Add Folio Charge</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>
@@ -387,7 +387,7 @@ function ExtendModal({ bookingId, currentCheckOut, onClose, onDone }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-white dark:bg-ink-900 rounded-3xl shadow-2xl overflow-hidden">
         <div className="px-5 py-3 border-b bg-violet-50 flex items-center justify-between">
           <h3 className="font-extrabold">Extend Stay</h3>
           <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center"><X className="h-4 w-4" /></button>

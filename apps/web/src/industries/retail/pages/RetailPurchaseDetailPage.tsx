@@ -82,19 +82,19 @@ export default function RetailPurchaseDetailPage() {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
         <div className="inline-block h-10 w-10 rounded-full border-4 border-sky-200 dark:border-sky-500/30 border-t-sky-600 dark:border-t-sky-400 animate-spin" />
-        <p className="text-xs font-extrabold text-slate-500 dark:text-slate-400">Purchase load ho rahi hai...</p>
+        <p className="text-xs font-extrabold text-slate-500 dark:text-ink-400">Purchase load ho rahi hai...</p>
       </div>
     );
   }
 
   if (!purchase) {
     return (
-      <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-16 text-center">
+      <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-16 text-center">
         <div className="mx-auto h-16 w-16 rounded-3xl bg-rose-100 dark:bg-rose-500/15 flex items-center justify-center mb-3">
           <AlertTriangle className="h-8 w-8 text-rose-500" />
         </div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg">Purchase nahi mili</h3>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg">Purchase nahi mili</h3>
+        <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
           Shayad delete ho gayi ho ya link galat hai
         </p>
         <Link to="/purchases" className="mt-4 inline-flex items-center gap-1.5 text-sm font-extrabold text-sky-600 dark:text-sky-400 hover:underline">
@@ -118,7 +118,7 @@ export default function RetailPurchaseDetailPage() {
       <div className="flex items-center justify-between gap-2 flex-wrap print:hidden">
         <Link
           to="/purchases"
-          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition"
+          className="inline-flex items-center gap-2 rounded-xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-700 px-4 py-2.5 text-sm font-extrabold text-slate-700 dark:text-ink-200 hover:bg-slate-50 dark:hover:bg-ink-800 shadow-sm transition"
         >
           <ArrowLeft className="h-4 w-4" /> Wapas Purchases
         </Link>
@@ -139,7 +139,7 @@ export default function RetailPurchaseDetailPage() {
       </div>
 
       {/* ═══ HEADER ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-slate-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 print:bg-white print:text-slate-900 print:border-b-4 print:border-double print:border-slate-700 shadow-2xl">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-sky-900 to-cyan-700 dark:from-ink-950 dark:via-sky-950 dark:to-cyan-900 text-white p-4 sm:p-6 print:bg-white print:text-slate-900 print:border-b-4 print:border-double print:border-slate-700 shadow-2xl">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-sky-400/25 blur-3xl pointer-events-none print:hidden" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none print:hidden" />
 
@@ -200,18 +200,18 @@ export default function RetailPurchaseDetailPage() {
       </div>
 
       {/* ═══ PAYMENT PROGRESS ═══ */}
-      <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 sm:p-5">
+      <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 sm:p-5">
         <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
-          <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <div className="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-ink-400 flex items-center gap-1.5">
             <PayIcon className="h-3.5 w-3.5" /> Payment Ka Hisaab
           </div>
           <div className="text-xs font-extrabold tabular-nums">
             <span className="text-emerald-700 dark:text-emerald-400">{formatPKR(purchase.paidAmount)} diya</span>
-            <span className="text-slate-400 dark:text-slate-500"> / </span>
-            <span className="text-slate-900 dark:text-white">{formatPKR(purchase.total)}</span>
+            <span className="text-slate-400 dark:text-ink-500"> / </span>
+            <span className="text-slate-900 dark:text-ink-white">{formatPKR(purchase.total)}</span>
           </div>
         </div>
-        <div className="h-3.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div className="h-3.5 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden border border-slate-200 dark:border-ink-700">
           <div
             className={`h-full rounded-full transition-all ${
               balance > 0
@@ -236,35 +236,35 @@ export default function RetailPurchaseDetailPage() {
       </div>
 
       {/* ═══ SUPPLIER CARD ═══ */}
-      <div className="rounded-2xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-violet-200 dark:border-violet-500/30 p-4 sm:p-5 shadow-sm">
+      <div className="rounded-2xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-violet-200 dark:border-violet-500/30 p-4 sm:p-5 shadow-sm">
         <div className="flex items-start gap-4 flex-wrap">
           <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-violet-500/30 shrink-0">
             <Building2 className="h-6 w-6" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-extrabold">Supplier</div>
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white mt-0.5">{purchase.supplier?.name}</h3>
+            <div className="text-[0.6875rem] uppercase tracking-wider text-slate-500 dark:text-ink-400 font-extrabold">Supplier</div>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-ink-white mt-0.5">{purchase.supplier?.name}</h3>
             <div className="mt-2 grid sm:grid-cols-2 gap-2 text-xs">
               {purchase.supplier?.phone && (
-                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-ink-300">
                   <Phone className="h-3 w-3 shrink-0" />
                   <span className="font-bold">{purchase.supplier.phone}</span>
                 </div>
               )}
               {purchase.supplier?.email && (
-                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300 min-w-0">
+                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-ink-300 min-w-0">
                   <Mail className="h-3 w-3 shrink-0" />
                   <span className="font-bold truncate">{purchase.supplier.email}</span>
                 </div>
               )}
               {purchase.supplier?.address && (
-                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-ink-300">
                   <MapPin className="h-3 w-3 shrink-0" />
                   <span className="font-semibold">{purchase.supplier.address}</span>
                 </div>
               )}
               {purchase.supplier?.contactPerson && (
-                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
+                <div className="inline-flex items-center gap-1.5 text-slate-600 dark:text-ink-300">
                   <User className="h-3 w-3 shrink-0" />
                   <span className="font-semibold">Contact: <span className="font-bold">{purchase.supplier.contactPerson}</span></span>
                 </div>
@@ -281,31 +281,31 @@ export default function RetailPurchaseDetailPage() {
       </div>
 
       {/* ═══ ITEMS TABLE ═══ */}
-      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <div className="px-4 sm:px-5 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2 flex-wrap">
-          <Package className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-          <h3 className="font-extrabold text-slate-900 dark:text-white">
-            Items <span className="text-slate-500 dark:text-slate-400 font-bold tabular-nums">({purchase.items.length} items • {formatQty(totalItems)} total qty)</span>
+      <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <div className="px-4 sm:px-5 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2 flex-wrap">
+          <Package className="h-5 w-5 text-slate-600 dark:text-ink-300" />
+          <h3 className="font-extrabold text-slate-900 dark:text-ink-white">
+            Items <span className="text-slate-500 dark:text-ink-400 font-bold tabular-nums">({purchase.items.length} items • {formatQty(totalItems)} total qty)</span>
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[560px]">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-slate-200 dark:border-slate-700">
+            <thead className="bg-slate-50 dark:bg-ink-800/60 border-b-2 border-slate-200 dark:border-ink-700">
               <tr>
-                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 w-12">#</th>
-                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Product</th>
-                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Qty</th>
-                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Cost</th>
-                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400">Total</th>
+                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400 w-12">#</th>
+                <th className="px-4 py-3 text-left text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400">Product</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400">Qty</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400">Cost</th>
+                <th className="px-4 py-3 text-right text-[0.6875rem] font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-400">Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y divide-slate-100 dark:divide-ink-800">
               {purchase.items.map((item: any, idx: number) => (
-                <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition">
-                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400 font-mono text-xs">{idx + 1}</td>
+                <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-ink-800/40 transition">
+                  <td className="px-4 py-3 text-slate-500 dark:text-ink-400 font-mono text-xs">{idx + 1}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-slate-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700">
+                      <div className="h-11 w-11 rounded-xl bg-slate-100 dark:bg-ink-800 overflow-hidden flex items-center justify-center shrink-0 border border-slate-200 dark:border-ink-700">
                         {item.product.images?.[0]?.url ? (
                           <img src={item.product.images[0].url} alt="" loading="lazy" className="h-full w-full object-cover" />
                         ) : (
@@ -313,16 +313,16 @@ export default function RetailPurchaseDetailPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-extrabold text-slate-900 dark:text-white text-sm">{item.product.name}</div>
-                        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-mono uppercase">{item.product.unit}</div>
+                        <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{item.product.name}</div>
+                        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-mono uppercase">{item.product.unit}</div>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatQty(item.quantity)}</div>
-                    <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold uppercase">{item.product.unit}</div>
+                    <div className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatQty(item.quantity)}</div>
+                    <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold uppercase">{item.product.unit}</div>
                   </td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-700 dark:text-slate-200 tabular-nums">
+                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-700 dark:text-ink-200 tabular-nums">
                     {formatPKR(item.costPrice)}
                   </td>
                   <td className="px-4 py-3 text-right font-extrabold text-sky-700 dark:text-sky-300 text-base tabular-nums">
@@ -331,10 +331,10 @@ export default function RetailPurchaseDetailPage() {
                 </tr>
               ))}
             </tbody>
-            <tfoot className="border-t-2 border-slate-300 dark:border-slate-700">
-              <tr className="bg-slate-50 dark:bg-slate-800/40">
-                <td colSpan={4} className="px-4 py-3 text-right text-sm font-bold text-slate-700 dark:text-slate-200">Subtotal</td>
-                <td className="px-4 py-3 text-right font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKRFull(purchase.subtotal)}</td>
+            <tfoot className="border-t-2 border-slate-300 dark:border-ink-700">
+              <tr className="bg-slate-50 dark:bg-ink-800/40">
+                <td colSpan={4} className="px-4 py-3 text-right text-sm font-bold text-slate-700 dark:text-ink-200">Subtotal</td>
+                <td className="px-4 py-3 text-right font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKRFull(purchase.subtotal)}</td>
               </tr>
               {purchase.discount > 0 && (
                 <tr>
@@ -343,7 +343,7 @@ export default function RetailPurchaseDetailPage() {
                 </tr>
               )}
               <tr className="bg-sky-50 dark:bg-sky-500/10 border-t-2 border-sky-300 dark:border-sky-500/40">
-                <td colSpan={4} className="px-4 py-3 text-right text-base font-extrabold text-slate-900 dark:text-white">GRAND TOTAL</td>
+                <td colSpan={4} className="px-4 py-3 text-right text-base font-extrabold text-slate-900 dark:text-ink-white">GRAND TOTAL</td>
                 <td className="px-4 py-3 text-right text-2xl font-extrabold text-sky-700 dark:text-sky-300 tabular-nums">{formatPKRFull(purchase.total)}</td>
               </tr>
               <tr>
@@ -378,12 +378,12 @@ export default function RetailPurchaseDetailPage() {
 
       {/* ═══ FOOTER ═══ */}
       <div className="rounded-2xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border border-emerald-200 dark:border-emerald-500/30 p-4 text-center print:bg-white">
-        <div className="text-sm font-extrabold text-slate-900 dark:text-white inline-flex items-center gap-2 flex-wrap justify-center">
+        <div className="text-sm font-extrabold text-slate-900 dark:text-ink-white inline-flex items-center gap-2 flex-wrap justify-center">
           <Award className="h-4 w-4 text-amber-500" />
           Stock Receive Ho Kar Update Ho Gaya
           <Award className="h-4 w-4 text-amber-500" />
         </div>
-        <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 mt-2 inline-flex items-center gap-1 font-semibold">
+        <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 mt-2 inline-flex items-center gap-1 font-semibold">
           <Sparkles className="h-2.5 w-2.5" />
           Powered by Nafaa POS • Generated {formatDate(new Date().toISOString())}
         </div>
@@ -422,25 +422,25 @@ function PurchaseDetailTeacher({ onClose }: { onClose: () => void }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-sky-300 dark:border-sky-500/40 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-5 py-3 border-b-2 border-sky-200 dark:border-sky-500/30 bg-gradient-to-r from-sky-50 to-cyan-50 dark:from-sky-500/15 dark:to-cyan-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-sky-900 dark:text-sky-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Ye Page Kya Batata Hai?
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             Ye ek purchase ka <strong>poora invoice</strong> hai — kya aaya, kitne ka aaya,
             kitna diya, kitna <strong>udhaar baqi</strong> hai. Sab kuch ek nazar me.
           </p>
 
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>💰 Payment bar</strong> — green hissa jitna diya, baqi udhaar red me dikhta hai</TipRow>
             <TipRow><strong>🏪 Supplier card</strong> — phone/address ek jagah, profile par jump bhi</TipRow>
             <TipRow><strong>🖨️ Print</strong> — A4 invoice ban jata hai, supplier ko dene ya file me rakhne ke liye</TipRow>
@@ -495,7 +495,7 @@ function StatBox({
   highlight?: boolean;
 }) {
   const toneMap = {
-    slate: 'from-slate-50 to-slate-100 dark:from-slate-800/60 dark:to-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white',
+    slate: 'from-slate-50 to-slate-100 dark:from-ink-800/60 dark:to-ink-800/40 border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white',
     sky: 'from-sky-50 to-cyan-50 dark:from-sky-500/10 dark:to-cyan-500/10 border-sky-300 dark:border-sky-500/40 text-sky-900 dark:text-sky-200',
     emerald: 'from-emerald-50 to-green-50 dark:from-emerald-500/10 dark:to-green-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200',
     amber: 'from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-amber-200 dark:border-amber-500/30 text-amber-900 dark:text-amber-200',

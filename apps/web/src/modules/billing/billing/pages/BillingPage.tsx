@@ -364,7 +364,7 @@ export default function BillingPage() {
       )}
 
       {/* ═══ HERO ═══ */}
-      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-slate-950 dark:via-brand-950 dark:to-brand-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
+      <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-slate-950 via-brand-900 to-brand-700 dark:from-ink-950 dark:via-brand-950 dark:to-brand-900 text-white p-4 sm:p-6 shadow-2xl print:hidden">
         <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full bg-brand-400/25 blur-3xl pointer-events-none animate-pulse" />
         <div className="absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-emerald-400/15 blur-3xl pointer-events-none" />
 
@@ -451,14 +451,14 @@ export default function BillingPage() {
               className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-extrabold whitespace-nowrap transition border-2 ${
                 active
                   ? 'bg-brand-600 text-white border-brand-600 shadow-lg shadow-brand-500/30'
-                  : 'bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-500/50'
+                  : 'bg-white dark:bg-ink-900/80 text-slate-700 dark:text-ink-300 border-slate-200 dark:border-ink-700 hover:border-brand-300 dark:hover:border-brand-500/50'
               }`}
             >
               <Icon className="h-4 w-4" />
               {t.label}
               {t.count !== undefined && (
                 <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
-                  active ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  active ? 'bg-white/20' : 'bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-400'
                 }`}>
                   {t.count}
                 </span>
@@ -511,9 +511,9 @@ export default function BillingPage() {
         <>
           {/* Current subscription */}
           {loadingCurrent ? (
-            <div className="rounded-3xl bg-white dark:bg-slate-900/80 border-2 border-slate-200 dark:border-slate-800 p-6 animate-pulse h-48" />
+            <div className="rounded-3xl bg-white dark:bg-ink-900/80 border-2 border-slate-200 dark:border-ink-800 p-6 animate-pulse h-48" />
           ) : current && current.plan && currentCfg ? (
-            <section className={`relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800/50 border-2 ${currentCfg.borderTone} dark:border-brand-500/40 shadow-lg`}>
+            <section className={`relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-ink-900 dark:to-ink-800/50 border-2 ${currentCfg.borderTone} dark:border-brand-500/40 shadow-lg`}>
               <div
                 className="absolute -top-12 -right-12 h-48 w-48 rounded-full opacity-10 dark:opacity-20 blur-3xl"
                 style={{ backgroundColor: currentCfg.hex }}
@@ -531,10 +531,10 @@ export default function BillingPage() {
                       <Award className="h-8 w-8 text-white" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">
+                      <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">
                         Current Subscription
                       </div>
-                      <h3 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+                      <h3 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-ink-white">
                         {current.plan.name}
                       </h3>
                       <div className="mt-2 flex items-center gap-2 flex-wrap">
@@ -543,13 +543,13 @@ export default function BillingPage() {
                           {currentCfg.label}
                         </span>
                         {current.amount > 0 && (
-                          <span className="text-sm font-extrabold text-slate-700 dark:text-slate-200">
+                          <span className="text-sm font-extrabold text-slate-700 dark:text-ink-200">
                             {formatPKR(current.amount)}
-                            <span className="text-slate-500 dark:text-slate-400 font-semibold"> / {current.interval?.toLowerCase()}</span>
+                            <span className="text-slate-500 dark:text-ink-400 font-semibold"> / {current.interval?.toLowerCase()}</span>
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 font-semibold">
+                      <p className="text-sm text-slate-600 dark:text-ink-400 mt-2 font-semibold">
                         {currentCfg.description}
                       </p>
                     </div>
@@ -628,8 +628,8 @@ export default function BillingPage() {
 
                 {/* Cancel / resume — the endpoints existed but had no UI */}
                 {(current.status === 'ACTIVE' || current.status === 'TRIAL') && (
-                  <div className="mt-4 pt-4 border-t-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                  <div className="mt-4 pt-4 border-t-2 border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3 flex-wrap">
+                    <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                       {current.cancelAtPeriodEnd
                         ? `Ye plan ${formatDate(current.currentPeriodEnd)} ko band ho jayega — data safe rahega.`
                         : 'Kabhi bhi band kar sakte hain — period end tak access chalta rahega.'}
@@ -703,15 +703,15 @@ export default function BillingPage() {
 
           {/* Recent Invoices */}
           {invoices.length > 0 && (
-            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-md">
                     <Receipt className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-slate-900 dark:text-white">Recent Invoices</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Latest 5 entries</p>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Recent Invoices</h3>
+                    <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Latest 5 entries</p>
                   </div>
                 </div>
                 <button
@@ -721,7 +721,7 @@ export default function BillingPage() {
                   View All <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {invoices.slice(0, 5).map((inv) => (
                   <InvoiceRow key={inv.id} invoice={inv} onView={() => setDetailInvoice(inv)} />
                 ))}
@@ -731,15 +731,15 @@ export default function BillingPage() {
 
           {/* Recent Payments */}
           {payments.length > 0 && (
-            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-              <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+              <div className="px-5 sm:px-6 py-4 border-b-2 border-slate-100 dark:border-ink-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-md">
                     <FileText className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-slate-900 dark:text-white">Recent Payments</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">Latest 5 entries</p>
+                    <h3 className="font-extrabold text-slate-900 dark:text-ink-white">Recent Payments</h3>
+                    <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">Latest 5 entries</p>
                   </div>
                 </div>
                 <button
@@ -749,7 +749,7 @@ export default function BillingPage() {
                   View All <ChevronRight className="h-3 w-3" />
                 </button>
               </div>
-              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="divide-y divide-slate-100 dark:divide-ink-800">
                 {payments.slice(0, 5).map((p) => (
                   <PaymentRow key={p.id} payment={p} onView={() => setDetailPayment(p)} />
                 ))}
@@ -761,16 +761,16 @@ export default function BillingPage() {
 
       {/* ═══ INVOICES TAB ═══ */}
       {tab === 'invoices' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
                   <Receipt className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">All Invoices</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">All Invoices</h3>
+                  <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                     {filteredInvoices.length} of {invoices.length}
                   </p>
                 </div>
@@ -784,7 +784,7 @@ export default function BillingPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Invoice #, description, plan dhundo... (/)"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-10 text-sm font-semibold text-slate-900 dark:text-ink-white placeholder:text-slate-400 dark:placeholder:text-ink-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition"
               />
               {search && (
                 <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -795,7 +795,7 @@ export default function BillingPage() {
 
             <div className="flex gap-1 flex-wrap">
               {[
-                { v: 'all' as InvoiceFilter, l: 'All', count: invoices.length, c: 'bg-slate-900 dark:bg-white dark:text-slate-900' },
+                { v: 'all' as InvoiceFilter, l: 'All', count: invoices.length, c: 'bg-slate-900 dark:bg-ink-white dark:text-ink-900' },
                 { v: 'pending' as InvoiceFilter, l: 'Pending', count: invoices.filter(i => i.status === 'PENDING').length, c: 'bg-amber-600' },
                 { v: 'paid' as InvoiceFilter, l: 'Paid', count: invoices.filter(i => i.status === 'PAID').length, c: 'bg-emerald-600' },
                 { v: 'overdue' as InvoiceFilter, l: 'Overdue', count: invoices.filter(i => i.status === 'OVERDUE').length, c: 'bg-rose-600' },
@@ -804,12 +804,12 @@ export default function BillingPage() {
                   key={opt.v}
                   onClick={() => setInvoiceFilter(opt.v)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1.5 ${
-                    invoiceFilter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    invoiceFilter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                   }`}
                 >
                   {opt.l}
                   <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
-                    invoiceFilter === opt.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'
+                    invoiceFilter === opt.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-ink-700'
                   }`}>
                     {opt.count}
                   </span>
@@ -820,18 +820,18 @@ export default function BillingPage() {
 
           {filteredInvoices.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="mx-auto h-20 w-20 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                <Receipt className="h-10 w-10 text-slate-400 dark:text-slate-500" />
+              <div className="mx-auto h-20 w-20 rounded-3xl bg-slate-100 dark:bg-ink-800 flex items-center justify-center">
+                <Receipt className="h-10 w-10 text-slate-400 dark:text-ink-500" />
               </div>
-              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-white">
+              <h4 className="mt-4 text-lg font-extrabold text-slate-900 dark:text-ink-white">
                 {search || invoiceFilter !== 'all' ? 'Kuch nahi mila' : 'Abhi koi invoice nahi'}
               </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+              <p className="text-xs text-slate-500 dark:text-ink-400 mt-1 font-semibold">
                 {search ? 'Filter change karo' : 'Plan subscribe karo — invoices milna shuru hongi'}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {filteredInvoices.map((inv) => (
                 <InvoiceRow key={inv.id} invoice={inv} onView={() => setDetailInvoice(inv)} />
               ))}
@@ -842,15 +842,15 @@ export default function BillingPage() {
 
       {/* ═══ PAYMENTS TAB ═══ */}
       {tab === 'payments' && (
-        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-slate-800 space-y-3">
+        <section className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+          <div className="px-5 sm:px-6 py-5 border-b-2 border-slate-100 dark:border-ink-800 space-y-3">
             <div className="flex items-center gap-3">
               <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-700 text-white flex items-center justify-center shadow-lg shadow-violet-500/30">
                 <FileText className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">Payment History</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold">
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-ink-white">Payment History</h3>
+                <p className="text-xs text-slate-500 dark:text-ink-400 font-semibold">
                   {filteredPayments.length} of {payments.length}
                 </p>
               </div>
@@ -858,7 +858,7 @@ export default function BillingPage() {
 
             <div className="flex gap-1 flex-wrap">
               {[
-                { v: 'all' as PaymentFilter, l: 'All', count: payments.length, c: 'bg-slate-900 dark:bg-white dark:text-slate-900' },
+                { v: 'all' as PaymentFilter, l: 'All', count: payments.length, c: 'bg-slate-900 dark:bg-ink-white dark:text-ink-900' },
                 { v: 'pending' as PaymentFilter, l: 'Pending', count: payments.filter(p => p.status === 'PENDING').length, c: 'bg-amber-600' },
                 { v: 'approved' as PaymentFilter, l: 'Approved', count: payments.filter(p => p.status === 'APPROVED').length, c: 'bg-emerald-600' },
                 { v: 'rejected' as PaymentFilter, l: 'Rejected', count: payments.filter(p => p.status === 'REJECTED').length, c: 'bg-rose-600' },
@@ -867,12 +867,12 @@ export default function BillingPage() {
                   key={opt.v}
                   onClick={() => setPaymentFilter(opt.v)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition inline-flex items-center gap-1.5 ${
-                    paymentFilter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    paymentFilter === opt.v ? `${opt.c} text-white shadow-sm` : 'bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-300 hover:bg-slate-200 dark:hover:bg-ink-700'
                   }`}
                 >
                   {opt.l}
                   <span className={`px-1.5 rounded-full text-[0.6875rem] font-extrabold ${
-                    paymentFilter === opt.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'
+                    paymentFilter === opt.v ? 'bg-white/20' : 'bg-slate-200 dark:bg-ink-700'
                   }`}>
                     {opt.count}
                   </span>
@@ -883,13 +883,13 @@ export default function BillingPage() {
 
           {filteredPayments.length === 0 ? (
             <div className="p-12 text-center">
-              <FileText className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-              <h4 className="font-extrabold text-slate-900 dark:text-white">
+              <FileText className="h-16 w-16 text-slate-300 dark:text-ink-600 mx-auto mb-2" />
+              <h4 className="font-extrabold text-slate-900 dark:text-ink-white">
                 {paymentFilter !== 'all' ? 'Kuch nahi mila' : 'Abhi koi payment nahi'}
               </h4>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+            <div className="divide-y divide-slate-100 dark:divide-ink-800">
               {filteredPayments.map((p) => (
                 <PaymentRow key={p.id} payment={p} onView={() => setDetailPayment(p)} />
               ))}
@@ -924,7 +924,7 @@ function InvoiceDetailModal({ invoice, onClose, onPrint }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-blue-300 dark:border-blue-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-blue-600 to-indigo-700 text-white relative overflow-hidden top-0 z-10">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl pointer-events-none" />
           <div className="relative flex items-start justify-between gap-3">
@@ -977,7 +977,7 @@ function InvoiceDetailModal({ invoice, onClose, onPrint }: any) {
             )}
           </div>
 
-          <div className="rounded-xl bg-white dark:bg-slate-800/40 border-2 border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
+          <div className="rounded-xl bg-white dark:bg-ink-800/40 border-2 border-slate-200 dark:border-ink-700 divide-y divide-slate-100 dark:divide-ink-700">
             <DetailRow icon={Hash} label="Invoice #" value={invoice.invoiceNumber} mono />
             <DetailRow icon={Calendar} label="Issue Date" value={formatDate(invoice.createdAt)} />
             {invoice.dueDate && <DetailRow icon={Clock} label="Due Date" value={formatDate(invoice.dueDate)} />}
@@ -987,18 +987,18 @@ function InvoiceDetailModal({ invoice, onClose, onPrint }: any) {
           </div>
 
           {(invoice.subtotal || invoice.tax || invoice.discount) && (
-            <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-sm font-semibold">
-              {invoice.subtotal && <div className="flex justify-between text-slate-700 dark:text-slate-200"><span>Subtotal</span><span className="tabular-nums">{formatPKR(invoice.subtotal)}</span></div>}
-              {invoice.tax > 0 && <div className="flex justify-between text-slate-700 dark:text-slate-200"><span>Tax</span><span className="tabular-nums">+{formatPKR(invoice.tax)}</span></div>}
+            <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-sm font-semibold">
+              {invoice.subtotal && <div className="flex justify-between text-slate-700 dark:text-ink-200"><span>Subtotal</span><span className="tabular-nums">{formatPKR(invoice.subtotal)}</span></div>}
+              {invoice.tax > 0 && <div className="flex justify-between text-slate-700 dark:text-ink-200"><span>Tax</span><span className="tabular-nums">+{formatPKR(invoice.tax)}</span></div>}
               {invoice.discount > 0 && <div className="flex justify-between text-emerald-700 dark:text-emerald-400"><span>Discount</span><span className="tabular-nums">−{formatPKR(invoice.discount)}</span></div>}
-              <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-extrabold text-base"><span>Total</span><span className="tabular-nums">{formatPKR(invoice.total)}</span></div>
+              <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-ink-700 text-slate-900 dark:text-ink-white font-extrabold text-base"><span>Total</span><span className="tabular-nums">{formatPKR(invoice.total)}</span></div>
             </div>
           )}
 
           {invoice.description && (
             <div className="rounded-xl bg-blue-50 dark:bg-blue-500/10 border-2 border-blue-200 dark:border-blue-500/30 p-3">
               <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 mb-1">📝 Description</div>
-              <p className="text-sm text-slate-700 dark:text-slate-200 font-semibold">{invoice.description}</p>
+              <p className="text-sm text-slate-700 dark:text-ink-200 font-semibold">{invoice.description}</p>
             </div>
           )}
 
@@ -1041,7 +1041,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-violet-300 dark:border-violet-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 bg-gradient-to-br from-violet-600 to-purple-700 text-white relative overflow-hidden top-0 z-10">
           <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-white/20 blur-2xl pointer-events-none" />
           <div className="relative flex items-start justify-between gap-3">
@@ -1070,7 +1070,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
             </div>
           </div>
 
-          <div className="rounded-xl bg-white dark:bg-slate-800/40 border-2 border-slate-200 dark:border-slate-700 divide-y divide-slate-100 dark:divide-slate-700">
+          <div className="rounded-xl bg-white dark:bg-ink-800/40 border-2 border-slate-200 dark:border-ink-700 divide-y divide-slate-100 dark:divide-ink-700">
             <DetailRow icon={Clock} label="Date & Time" value={formatDateTime(payment.createdAt)} />
             <DetailRow icon={ProviderIcon} label="Provider" value={providerCfg?.label || payment.provider} />
             {payment.transactionId && <DetailRow icon={Hash} label="Transaction ID" value={payment.transactionId} mono />}
@@ -1091,7 +1091,7 @@ function PaymentDetailModal({ payment, onClose }: any) {
           {payment.notes && (
             <div className="rounded-xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 p-3">
               <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-amber-700 dark:text-amber-300 mb-1">📝 Notes</div>
-              <p className="text-sm text-slate-700 dark:text-slate-200 font-semibold whitespace-pre-wrap">{payment.notes}</p>
+              <p className="text-sm text-slate-700 dark:text-ink-200 font-semibold whitespace-pre-wrap">{payment.notes}</p>
             </div>
           )}
 
@@ -1124,11 +1124,11 @@ function PaymentDetailModal({ payment, onClose }: any) {
 function DetailRow({ icon: Icon, label, value, mono }: any) {
   return (
     <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+      <div className="flex items-center gap-2 text-slate-500 dark:text-ink-400">
         <Icon className="h-3.5 w-3.5" />
         <span className="text-xs font-extrabold uppercase tracking-wider">{label}</span>
       </div>
-      <div className={`text-sm font-extrabold text-slate-900 dark:text-white text-right break-words min-w-0 ${mono ? 'font-mono text-xs' : ''}`}>
+      <div className={`text-sm font-extrabold text-slate-900 dark:text-ink-white text-right break-words min-w-0 ${mono ? 'font-mono text-xs' : ''}`}>
         {value}
       </div>
     </div>
@@ -1141,18 +1141,18 @@ function DetailRow({ icon: Icon, label, value, mono }: any) {
 function BillingTeacher({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-ink-900 border-2 border-brand-300 dark:border-brand-500/40 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-3 border-b-2 border-brand-200 dark:border-brand-500/30 bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-500/15 dark:to-indigo-500/15 flex items-center justify-between sticky top-0 z-10">
           <h3 className="font-extrabold text-brand-900 dark:text-brand-200 flex items-center gap-2">
             <GraduationCap className="h-5 w-5" /> Billing — Guide
           </h3>
-          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-slate-800 flex items-center justify-center transition">
-            <X className="h-4 w-4 text-slate-600 dark:text-slate-300" />
+          <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white dark:hover:bg-ink-800 flex items-center justify-center transition">
+            <X className="h-4 w-4 text-slate-600 dark:text-ink-300" />
           </button>
         </div>
 
         <div className="p-5 space-y-4">
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed">
+          <p className="text-sm font-semibold text-slate-700 dark:text-ink-200 leading-relaxed">
             <strong>Billing center = tumhari subscription ka control panel.</strong> Plans, invoices, payments — sab yahan. Transparent, tracked, auditable.
           </p>
 
@@ -1161,17 +1161,17 @@ function BillingTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-blue-700 dark:text-blue-300 flex items-center gap-1">
               <Receipt className="h-3 w-3" /> Invoice Lifecycle
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 🟡 <strong>PENDING:</strong> Invoice ban gaya, payment ka intezaar. Due date se pehle pay kar do.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 🔴 <strong>OVERDUE:</strong> Due date guzar gaya. Warning aayegi. Foran pay karo warna service band ho sakti hai.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 🟢 <strong>PAID:</strong> Payment approve ho gaya. Print karke record rakh lo.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-blue-200 dark:border-blue-500/30 p-2">
                 ⚫ <strong>CANCELLED:</strong> Invoice cancel ho gaya (upgrade/downgrade ki wajah se). No action needed.
               </div>
             </div>
@@ -1182,21 +1182,21 @@ function BillingTeacher({ onClose }: { onClose: () => void }) {
             <div className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <FileText className="h-3 w-3" /> Payment Lifecycle
             </div>
-            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+            <div className="space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 p-2">
                 🟡 <strong>PENDING:</strong> Payment submit ho gayi, review me hai (usually 1-24 hrs manual review).
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 p-2">
                 🟢 <strong>APPROVED:</strong> Payment verify ho gayi. Invoice auto-mark ho gayi paid.
               </div>
-              <div className="rounded-lg bg-white dark:bg-slate-800 border border-violet-200 dark:border-violet-500/30 p-2">
+              <div className="rounded-lg bg-white dark:bg-ink-800 border border-violet-200 dark:border-violet-500/30 p-2">
                 🔴 <strong>REJECTED:</strong> Ghalat proof/transaction ID. Rejection reason padho, dobara submit karo.
               </div>
             </div>
           </div>
 
           {/* Features */}
-          <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border border-slate-200 dark:border-ink-700 p-3 space-y-1.5 text-xs font-semibold text-slate-700 dark:text-ink-200">
             <TipRow><strong>🔍 Detail View:</strong> Kisi bhi row pe click karo → full details modal (invoice + payment dono).</TipRow>
             <TipRow><strong>🧾 Print Receipt:</strong> Invoice detail me "Print Receipt" — 80mm thermal POS printer format.</TipRow>
             <TipRow><strong>📄 Full PDF:</strong> Hero me "Full PDF" — poori billing history ka A4 professional report.</TipRow>
@@ -1252,15 +1252,15 @@ function StatCard({ label, value, sub, icon: Icon, color, isAlert, isText }: any
     <div className={`rounded-2xl border-2 p-3 sm:p-4 shadow-sm hover:shadow-md transition ${
       isAlert
         ? 'bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-500/10 dark:to-orange-500/10 border-amber-300 dark:border-amber-500/40'
-        : 'bg-white dark:bg-slate-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-slate-800'
+        : 'bg-white dark:bg-ink-900/80 dark:backdrop-blur-sm border-slate-200 dark:border-ink-800'
     }`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-slate-400 font-extrabold">{label}</div>
-          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-white tabular-nums truncate ${isText ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
+          <div className="text-[0.6875rem] uppercase tracking-widest text-slate-500 dark:text-ink-400 font-extrabold">{label}</div>
+          <div className={`mt-1.5 font-extrabold text-slate-900 dark:text-ink-white tabular-nums truncate ${isText ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>
             {value}
           </div>
-          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-bold mt-0.5 truncate">{sub}</div>}
+          {sub && <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-bold mt-0.5 truncate">{sub}</div>}
         </div>
         <div className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors[color]} text-white flex items-center justify-center shadow-lg shrink-0`}>
           <Icon className="h-5 w-5" />
@@ -1272,22 +1272,22 @@ function StatCard({ label, value, sub, icon: Icon, color, isAlert, isText }: any
 
 function InfoBox({ icon: Icon, label, value, color, sub }: any) {
   const colors: any = {
-    slate: 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300',
+    slate: 'bg-slate-100 dark:bg-ink-700 text-slate-700 dark:text-ink-300',
     blue: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300',
     emerald: 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300',
     amber: 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300',
     violet: 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300',
   };
   return (
-    <div className="rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3">
+    <div className="rounded-xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3">
       <div className="flex items-center gap-2 mb-1">
         <div className={`h-7 w-7 rounded-lg ${colors[color]} flex items-center justify-center`}>
           <Icon className="h-3.5 w-3.5" />
         </div>
-        <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-slate-400">{label}</span>
+        <span className="text-[0.6875rem] uppercase tracking-widest font-extrabold text-slate-600 dark:text-ink-400">{label}</span>
       </div>
-      <div className="font-extrabold text-slate-900 dark:text-white text-sm">{value}</div>
-      {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-0.5">{sub}</div>}
+      <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">{value}</div>
+      {sub && <div className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-0.5">{sub}</div>}
     </div>
   );
 }
@@ -1301,7 +1301,7 @@ function InvoiceRow({ invoice, onView }: { invoice: any; onView: () => void }) {
   return (
     <div
       onClick={onView}
-      className="px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition group cursor-pointer"
+      className="px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition group cursor-pointer"
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <div className={`h-11 w-11 rounded-xl ${cfg.tone} flex items-center justify-center shrink-0`}>
@@ -1309,7 +1309,7 @@ function InvoiceRow({ invoice, onView }: { invoice: any; onView: () => void }) {
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-extrabold text-slate-900 dark:text-white font-mono text-sm">{invoice.invoiceNumber}</span>
+            <span className="font-extrabold text-slate-900 dark:text-ink-white font-mono text-sm">{invoice.invoiceNumber}</span>
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold ${cfg.tone}`}>
               {cfg.label}
             </span>
@@ -1320,17 +1320,17 @@ function InvoiceRow({ invoice, onView }: { invoice: any; onView: () => void }) {
               <span className="text-[0.6875rem] text-rose-700 dark:text-rose-400 font-extrabold">⚠️ {Math.abs(daysUntilDue)}d overdue</span>
             )}
           </div>
-          <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate font-semibold">
+          <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 truncate font-semibold">
             {invoice.subscription?.plan?.name || invoice.description || 'Subscription'}
           </div>
-          <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-bold">
+          <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-0.5 font-bold">
             {formatDate(invoice.createdAt)}
           </div>
         </div>
       </div>
       <div className="text-right shrink-0 flex items-center gap-2">
         <div>
-          <div className="font-extrabold text-slate-900 dark:text-white text-lg tabular-nums">{formatPKR(invoice.total)}</div>
+          <div className="font-extrabold text-slate-900 dark:text-ink-white text-lg tabular-nums">{formatPKR(invoice.total)}</div>
           {isPayable && (
             <div className="text-[0.6875rem] text-amber-700 dark:text-amber-400 font-extrabold mt-0.5">
               Due: {formatPKR(invoice.amountDue)}
@@ -1369,31 +1369,31 @@ function PaymentRow({ payment, onView }: { payment: any; onView: () => void }) {
   return (
     <div
       onClick={onView}
-      className="px-5 sm:px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition cursor-pointer"
+      className="px-5 sm:px-6 py-4 hover:bg-slate-50 dark:hover:bg-ink-800/50 transition cursor-pointer"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0 flex-1">
-          <div className={`h-11 w-11 rounded-xl ${providerCfg?.bgClass || 'bg-slate-100 dark:bg-slate-700'} text-white flex items-center justify-center shrink-0 shadow-md`}>
+          <div className={`h-11 w-11 rounded-xl ${providerCfg?.bgClass || 'bg-slate-100 dark:bg-ink-700'} text-white flex items-center justify-center shrink-0 shadow-md`}>
             <ProviderIcon className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-extrabold text-slate-900 dark:text-white tabular-nums">{formatPKR(payment.amount)}</span>
+              <span className="font-extrabold text-slate-900 dark:text-ink-white tabular-nums">{formatPKR(payment.amount)}</span>
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6875rem] font-extrabold border ${cfg.tone}`}>
                 <Icon className="h-2.5 w-2.5" />
                 {cfg.label}
               </span>
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
+            <div className="text-xs text-slate-500 dark:text-ink-400 mt-0.5 font-semibold">
               {providerCfg?.label || payment.provider} • {formatDateTime(payment.createdAt)}
             </div>
             {payment.invoice?.invoiceNumber && (
-              <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-mono font-bold">
+              <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-0.5 font-mono font-bold">
                 Invoice: {payment.invoice.invoiceNumber}
               </div>
             )}
             {payment.transactionId && (
-              <div className="text-[0.6875rem] text-slate-400 dark:text-slate-500 mt-0.5 font-mono">
+              <div className="text-[0.6875rem] text-slate-400 dark:text-ink-500 mt-0.5 font-mono">
                 TXN: {payment.transactionId}
               </div>
             )}

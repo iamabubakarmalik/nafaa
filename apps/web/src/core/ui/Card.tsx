@@ -11,11 +11,11 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  default:  'bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800',
-  elevated: 'bg-white dark:bg-neutral-900 shadow-soft-lg border border-slate-100 dark:border-neutral-800',
-  outlined: 'bg-transparent border-2 border-slate-200 dark:border-neutral-700',
-  ghost:    'bg-slate-50 dark:bg-neutral-900/50 border border-transparent',
-  gradient: 'bg-gradient-to-br from-white via-white to-brand-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-brand-950/20 border border-slate-200 dark:border-neutral-800 shadow-soft',
+  default:  'bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800',
+  elevated: 'bg-white dark:bg-ink-900 shadow-soft-lg border border-slate-100 dark:border-ink-800',
+  outlined: 'bg-transparent border-2 border-slate-200 dark:border-ink-700',
+  ghost:    'bg-slate-50 dark:bg-ink-900/50 border border-transparent',
+  gradient: 'bg-gradient-to-br from-white via-white to-brand-50 dark:from-ink-900 dark:via-ink-900 dark:to-brand-950/20 border border-slate-200 dark:border-ink-800 shadow-soft',
 };
 
 const paddingClasses: Record<Padding, string> = {
@@ -53,14 +53,14 @@ CardHeader.displayName = 'CardHeader';
 
 export const CardTitle = forwardRef<HTMLHeadingElement, HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
-    <h3 ref={ref} className={cn('text-lg font-extrabold text-slate-900 dark:text-white leading-tight', className)} {...props} />
+    <h3 ref={ref} className={cn('text-lg font-extrabold text-slate-900 dark:text-ink-white leading-tight', className)} {...props} />
   ),
 );
 CardTitle.displayName = 'CardTitle';
 
 export const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-slate-500 dark:text-slate-400 mt-1', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-slate-500 dark:text-ink-400 mt-1', className)} {...props} />
   ),
 );
 CardDescription.displayName = 'CardDescription';
@@ -72,7 +72,7 @@ CardContent.displayName = 'CardContent';
 
 export const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('mt-5 pt-4 border-t border-slate-100 dark:border-neutral-800 flex items-center justify-between gap-3', className)} {...props} />
+    <div ref={ref} className={cn('mt-5 pt-4 border-t border-slate-100 dark:border-ink-800 flex items-center justify-between gap-3', className)} {...props} />
   ),
 );
 CardFooter.displayName = 'CardFooter';

@@ -72,10 +72,10 @@ export default function WorkshopJobsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by job #, registration, customer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by job #, registration, customer..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-orange-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {[
@@ -85,7 +85,7 @@ export default function WorkshopJobsPage() {
           ].map((s) => (
             <button key={s.v} onClick={() => setStatusFilter(s.v)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s.v ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s.v ? 'bg-orange-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{s.label}</button>
           ))}
         </div>
@@ -93,7 +93,7 @@ export default function WorkshopJobsPage() {
           {['all', 'LOW', 'NORMAL', 'HIGH', 'URGENT', 'EMERGENCY'].map((p) => (
             <button key={p} onClick={() => setPriorityFilter(p)} className={
               'px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (priorityFilter === p ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (priorityFilter === p ? 'bg-slate-900 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>{p === 'all' ? 'All Priority' : p}</button>
           ))}
         </div>
@@ -101,10 +101,10 @@ export default function WorkshopJobsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed p-12 text-center">
           <Wrench className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No jobs found</p>
           <Link to="/autoparts/jobs/new">
@@ -123,8 +123,8 @@ export default function WorkshopJobsPage() {
             const remaining = job.total - job.paidAmount;
             return (
               <Link key={job.id} to={'/autoparts/jobs/' + job.id} className={
-                'block rounded-2xl bg-white dark:bg-neutral-900 border-2 shadow-sm hover:shadow-lg transition p-4 ' +
-                (isOverdue ? 'border-rose-400 ring-2 ring-rose-100' : 'border-slate-200 dark:border-neutral-800 hover:border-orange-300')
+                'block rounded-2xl bg-white dark:bg-ink-900 border-2 shadow-sm hover:shadow-lg transition p-4 ' +
+                (isOverdue ? 'border-rose-400 ring-2 ring-rose-100' : 'border-slate-200 dark:border-ink-800 hover:border-orange-300')
               }>
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -133,7 +133,7 @@ export default function WorkshopJobsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white">{job.jobNumber}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{job.jobNumber}</span>
                         <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>{cfg.label}</span>
                         <span className={
                           'px-2 py-0.5 rounded text-[0.625rem] font-extrabold uppercase text-white ' +

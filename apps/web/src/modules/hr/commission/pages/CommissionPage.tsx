@@ -226,14 +226,14 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
           poochta hai ke "is mahine mujhe kitna milega". Is liye pakki
           tankhwah aur commission ek hi jagah jor kar dikhate hain. */}
       {c.baseTotal > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm p-4 print:hidden">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4 print:hidden">
           <div className="flex items-center gap-2.5 mb-3">
             <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
               <Wallet className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-slate-900 dark:text-white">Is mahine kul kitna dena hai</h2>
-              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+              <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Is mahine kul kitna dena hai</h2>
+              <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
                 Pakki tankhwah Staff ke record se, commission bikri se — dono jor kar
               </p>
             </div>
@@ -243,7 +243,7 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
             <PayCell label="+ Commission" value={money(c.total)} sub="Is mahine ki bikri par" tone={t.text} />
             <PayCell label="= Kul" value={money(c.payTotal)} sub={`${c.enabledCount} bandon ka`} big />
           </div>
-          <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="mt-2 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Tankhwah yahan se ada nahi hoti — wo Payroll se hoti hai. Yahan sirf poora
             naqsha hai, taake pata rahe ke mahine ka kul bojh kitna hai.
           </p>
@@ -298,18 +298,18 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
 
       {/* ═══ KIS PAR CHAALU ═══ */}
       {!c.onlyMine && (
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
-        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5 flex-wrap">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
+        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5 flex-wrap">
           <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
             <UserCheck className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-black text-slate-900 dark:text-white">Kis par commission chaalu hai</h2>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Kis par commission chaalu hai</h2>
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Har bande ko alag se chaalu karna parta hai — jis ka switch band hai uski commission nahi banti
             </p>
           </div>
-          <span className={`px-2.5 py-1 rounded-xl text-[0.6875rem] font-black ${t.text} bg-slate-100 dark:bg-slate-800`}>
+          <span className={`px-2.5 py-1 rounded-xl text-[0.6875rem] font-black ${t.text} bg-slate-100 dark:bg-ink-800`}>
             {c.enabledCount}/{c.people.length} chaalu
           </span>
         </header>
@@ -328,25 +328,25 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
             ))}
             {c.withoutLogin.map((p, i) => (
               <div key={`nl-${i}`}
-                className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 p-3">
+                className="rounded-2xl border-2 border-dashed border-slate-300 dark:border-ink-700 bg-slate-50 dark:bg-ink-900/60 p-3">
                 <div className="flex items-start gap-2.5">
-                  <span className="h-10 w-10 rounded-2xl bg-slate-300 dark:bg-slate-600 text-white text-sm font-black flex items-center justify-center shrink-0">
+                  <span className="h-10 w-10 rounded-2xl bg-slate-300 dark:bg-ink-600 text-white text-sm font-black flex items-center justify-center shrink-0">
                     {(p.name || '?').charAt(0).toUpperCase()}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-black text-slate-900 dark:text-white truncate">{p.name}</div>
-                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+                    <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+                    <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
                       {p.staff?.designation ?? 'Employee'}
                       {p.staff?.staffNumber && ` · ${p.staff.staffNumber}`}
                     </div>
                   </div>
                 </div>
-                <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+                <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
                   Is ka apna login nahi — bikri is ke naam darj hi nahi hoti. Team me is ka login
                   banayein (wohi email ya phone), to ye apne aap yahan aa jayega.
                 </p>
                 <a href="/team"
-                  className="mt-2 inline-flex h-9 px-3 rounded-xl bg-slate-900 dark:bg-slate-700 text-white text-[0.6875rem] font-black items-center gap-1.5 transition">
+                  className="mt-2 inline-flex h-9 px-3 rounded-xl bg-slate-900 dark:bg-ink-700 text-white text-[0.6875rem] font-black items-center gap-1.5 transition">
                   <Link2 className="h-3.5 w-3.5" /> Login banayein
                 </a>
               </div>
@@ -359,14 +359,14 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
 
       {/* ═══ RULES ═══ */}
       {!c.onlyMine && (
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden print:hidden">
-        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5 flex-wrap">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden print:hidden">
+        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5 flex-wrap">
           <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
             <Gauge className="h-4 w-4" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-black text-slate-900 dark:text-white">Rules</h2>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">Rules</h2>
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Kisi bande ka apna rule ho to us par wohi chalta hai, "sab wala" nahi
             </p>
           </div>
@@ -388,12 +388,12 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
                 <div key={r.id}
                   className={`rounded-2xl border-2 p-3 transition ${
                     r.isActive
-                      ? 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 opacity-60'
+                      ? 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
+                      : 'border-slate-200 dark:border-ink-800 bg-slate-50 dark:bg-ink-900/60 opacity-60'
                   }`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="text-sm font-black text-slate-900 dark:text-white truncate">
+                      <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">
                         {r.name || `${m.emoji} ${m.label}`}
                       </div>
                       <div className={`text-sm font-black ${t.text}`}>
@@ -402,12 +402,12 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
                           <span className="text-[0.6875rem] font-bold text-slate-400"> / cheez</span>
                         )}
                       </div>
-                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate inline-flex items-center gap-1">
+                      <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate inline-flex items-center gap-1">
                         <Users className="h-2.5 w-2.5" /> {who}
                       </div>
                     </div>
                     <button onClick={() => setRuleModal({ rule: r })} title="Badlein"
-                      className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 transition">
+                      className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300 flex items-center justify-center shrink-0 transition">
                       <Pencil className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -418,13 +418,13 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
                     {r.targetAmount ? <Tag tone="amber">🎯 {formatPKR(r.targetAmount)} → {formatPKR(r.targetBonus ?? 0)}</Tag> : null}
                   </div>
 
-                  {r.note && <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">{r.note}</p>}
+                  {r.note && <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">{r.note}</p>}
 
                   <button onClick={() => c.updateRule(r.id, { ...r, isActive: !r.isActive })} disabled={c.busy}
                     className={`mt-2 w-full h-9 rounded-xl text-[0.6875rem] font-black disabled:opacity-50 transition ${
                       r.isActive
                         ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                        : 'bg-slate-100 dark:bg-ink-800 text-slate-500'
                     }`}>
                     {r.isActive ? '✓ Chaalu hai' : 'Band hai — chalayein'}
                   </button>
@@ -438,14 +438,14 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
       )}
 
       {/* ═══ BANDON KA HISAB ═══ */}
-      <section className="rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm overflow-hidden">
+        <header className="px-4 sm:px-5 py-3 border-b-2 border-slate-100 dark:border-ink-800 flex items-center gap-2.5">
           <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${t.grad} text-white flex items-center justify-center shrink-0`}>
             <Users className="h-4 w-4" />
           </span>
           <div className="min-w-0">
-            <h2 className="text-sm font-black text-slate-900 dark:text-white">{periodLabel(period)} ka hisab</h2>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+            <h2 className="text-sm font-black text-slate-900 dark:text-ink-white">{periodLabel(period)} ka hisab</h2>
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
               Kisi line par dabayein — poora khata khul jayega
             </p>
           </div>
@@ -453,12 +453,12 @@ export default function CommissionPage({ tone = 'violet' }: { tone?: string }) {
 
         {c.isLoading ? (
           <div className="p-4 space-y-2">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="h-16 rounded-xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
           </div>
         ) : c.rows.length === 0 ? (
           <Empty icon={Receipt} title="Is mahine koi bikri nahi" />
         ) : (
-          <div className="divide-y-2 divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y-2 divide-slate-100 dark:divide-ink-800">
             {c.rows.map((r, i) => (
               <RowCard key={r.userId} r={r} i={i} tone={t} money={money} busy={c.busy}
                 onOpen={() => setDetailUser(r)}
@@ -527,7 +527,7 @@ function PeriodPicker({ period, open, tone, onToggle, onPick, onClose }: any) {
         <>
           <div className="fixed inset-0 z-[90]" onClick={onClose} />
           <div style={{ top: pos.top, right: pos.right }}
-            className="fixed z-[91] w-56 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 shadow-2xl p-2">
+            className="fixed z-[91] w-56 max-h-80 overflow-y-auto rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-700 shadow-2xl p-2">
             <div className="px-2 py-1 text-[0.6875rem] font-black uppercase tracking-widest text-slate-400">
               Mahina chunein
             </div>
@@ -536,7 +536,7 @@ function PeriodPicker({ period, open, tone, onToggle, onPick, onClose }: any) {
                 className={`w-full h-10 px-3 rounded-xl text-left text-xs font-black transition ${
                   p === period
                     ? `bg-gradient-to-r ${tone.grad} text-white`
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    : 'text-slate-700 dark:text-ink-200 hover:bg-slate-100 dark:hover:bg-ink-800'
                 }`}>{periodLabel(p)}</button>
             ))}
           </div>
@@ -549,14 +549,14 @@ function PeriodPicker({ period, open, tone, onToggle, onPick, onClose }: any) {
 
 function Kpi({ icon: Icon, label, value, sub, tone }: any) {
   return (
-    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-3 sm:p-4 shadow-sm">
+    <div className="rounded-2xl sm:rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 p-3 sm:p-4 shadow-sm">
       <div className="flex items-center gap-2 mb-1.5">
         <span className={`h-8 w-8 rounded-xl bg-gradient-to-br ${tone} text-white flex items-center justify-center shrink-0`}>
           <Icon className="h-4 w-4" />
         </span>
-        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</span>
+        <span className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</span>
       </div>
-      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tabular-nums leading-none truncate">
+      <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-ink-white tabular-nums leading-none truncate">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>
       {sub && <p className="mt-0.5 text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</p>}
@@ -568,11 +568,11 @@ function PayCell({ label, value, sub, tone, big }: any) {
   return (
     <div className={`rounded-2xl border-2 p-3 ${
       big
-        ? 'border-slate-900 dark:border-white bg-slate-50 dark:bg-slate-800'
-        : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60'
+        ? 'border-slate-900 dark:border-ink-white bg-slate-50 dark:bg-ink-800'
+        : 'border-slate-200 dark:border-ink-700 bg-slate-50 dark:bg-ink-800/60'
     }`}>
-      <div className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-slate-400 truncate">{label}</div>
-      <div className={`font-black tabular-nums truncate ${big ? 'text-xl sm:text-2xl text-slate-900 dark:text-white' : `text-lg ${tone ?? 'text-slate-700 dark:text-slate-200'}`}`}>
+      <div className="text-[0.6875rem] font-black uppercase tracking-wide text-slate-500 dark:text-ink-400 truncate">{label}</div>
+      <div className={`font-black tabular-nums truncate ${big ? 'text-xl sm:text-2xl text-slate-900 dark:text-ink-white' : `text-lg ${tone ?? 'text-slate-700 dark:text-ink-200'}`}`}>
         {value}
       </div>
       <div className="text-[0.6875rem] font-bold text-slate-400 truncate">{sub}</div>
@@ -594,7 +594,7 @@ function Tag({ children, tone }: any) {
     <span className={`px-1.5 py-0.5 rounded-md text-[0.625rem] font-black ${
       tone === 'amber'
         ? 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'
-        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+        : 'bg-slate-100 dark:bg-ink-700 text-slate-600 dark:text-ink-300'
     }`}>{children}</span>
   );
 }
@@ -603,8 +603,8 @@ function Empty({ icon: Icon, title, sub }: any) {
   return (
     <div className="p-8 text-center">
       <Icon className="h-10 w-10 text-slate-300 mx-auto mb-2" />
-      <p className="text-sm font-black text-slate-700 dark:text-slate-200">{title}</p>
-      {sub && <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-slate-400 max-w-md mx-auto">{sub}</p>}
+      <p className="text-sm font-black text-slate-700 dark:text-ink-200">{title}</p>
+      {sub && <p className="mt-1 text-[0.75rem] font-bold text-slate-500 dark:text-ink-400 max-w-md mx-auto">{sub}</p>}
     </div>
   );
 }
@@ -622,19 +622,19 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
         ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-500/10'
         : hrSays
           ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50/40 dark:bg-amber-500/5'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800'
     }`}>
       <div className="flex items-start gap-2.5">
         <span className={`h-10 w-10 rounded-2xl text-white text-sm font-black flex items-center justify-center shrink-0 overflow-hidden ${
-          on ? 'bg-gradient-to-br from-emerald-500 to-teal-700' : 'bg-slate-300 dark:bg-slate-600'
+          on ? 'bg-gradient-to-br from-emerald-500 to-teal-700' : 'bg-slate-300 dark:bg-ink-600'
         }`}>
           {st?.avatarUrl
             ? <img src={st.avatarUrl} alt="" className="h-full w-full object-cover" />
             : (p.name || '?').charAt(0).toUpperCase()}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-black text-slate-900 dark:text-white truncate">{p.name}</div>
-          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+          <div className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{p.name}</div>
+          <div className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
             {st?.designation ?? p.role ?? '—'}
             {st?.staffNumber && ` · ${st.staffNumber}`}
           </div>
@@ -642,7 +642,7 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
         <button onClick={onToggle} disabled={busy}
           role="switch" aria-checked={on} aria-label={`${p.name} ki commission`}
           className={`relative h-6 w-11 rounded-full shrink-0 disabled:opacity-50 transition ${
-            on ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-600'
+            on ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-ink-600'
           }`}>
           <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${
             on ? 'left-[22px]' : 'left-0.5'
@@ -651,7 +651,7 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
       </div>
 
       {row && row.bills > 0 && (
-        <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300">
+        <p className="mt-2 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300">
           Is mahine {row.bills} bill · {money(row.sale)}
           {on && row.earned > 0 && <span className={`ml-1 font-black ${tone.text}`}>→ {money(row.earned)}</span>}
         </p>
@@ -664,7 +664,7 @@ function PersonCard({ p, tone, money, row, busy, onToggle, onMakeStaff }: any) {
         </p>
       )}
       {!on && !hrSays && row && row.bills > 0 && (
-        <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+        <p className="mt-1.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
           Band hai — is ki bikri par koi commission nahi ban rahi
         </p>
       )}
@@ -696,7 +696,7 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
       !r.enrolled ? 'opacity-60' : r.paid ? 'bg-emerald-50/40 dark:bg-emerald-500/5' : ''
     }`}>
       <span className={`h-10 w-10 rounded-2xl text-white text-sm font-black flex items-center justify-center shrink-0 ${
-        !r.enrolled ? 'bg-slate-300 dark:bg-slate-600'
+        !r.enrolled ? 'bg-slate-300 dark:bg-ink-600'
           : i === 0 && r.earned > 0
             ? 'bg-gradient-to-br from-amber-400 to-orange-600'
             : `bg-gradient-to-br ${tone.grad}`
@@ -706,33 +706,33 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-sm font-black text-slate-900 dark:text-white truncate">{r.name}</span>
+          <span className="text-sm font-black text-slate-900 dark:text-ink-white truncate">{r.name}</span>
           {r.staff?.designation && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[0.625rem] font-black text-slate-500 dark:text-slate-400">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-ink-800 text-[0.625rem] font-black text-slate-500 dark:text-ink-400">
               {r.staff.designation}
             </span>
           )}
           {r.paid && <span className="px-1.5 py-0.5 rounded-md bg-emerald-600 text-white text-[0.625rem] font-black">Ada ho gayi</span>}
           {r.bonus > 0 && <span className="px-1.5 py-0.5 rounded-md bg-amber-500 text-white text-[0.625rem] font-black">🎯 Target</span>}
           {!r.enrolled && (
-            <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-slate-700 text-[0.625rem] font-black text-slate-600 dark:text-slate-300">
+            <span className="px-1.5 py-0.5 rounded-md bg-slate-200 dark:bg-ink-700 text-[0.625rem] font-black text-slate-600 dark:text-ink-300">
               Band
             </span>
           )}
         </div>
-        <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+        <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
           {r.bills} bill · bikri {money(r.sale)} · munafa {money(r.profit)}
           {r.blockedByMin && ` · hadd se ${money(r.blockedByMin.short)} kam`}
         </div>
         {r.enrolled && r.baseSalary > 0 && (
-          <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-600 dark:text-slate-300 truncate">
+          <div className="mt-0.5 text-[0.6875rem] font-bold text-slate-600 dark:text-ink-300 truncate">
             Tankhwah {money(r.baseSalary)} + commission {money(r.earned)} ={' '}
-            <strong className="text-slate-900 dark:text-white">{money(r.totalPay)}</strong>
+            <strong className="text-slate-900 dark:text-ink-white">{money(r.totalPay)}</strong>
           </div>
         )}
         {r.targetPct !== undefined && r.targetPct < 100 && (
           <div className="mt-1.5 flex items-center gap-2">
-            <div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden max-w-[160px]">
+            <div className="h-1.5 flex-1 rounded-full bg-slate-100 dark:bg-ink-800 overflow-hidden max-w-[160px]">
               <div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-600"
                 style={{ width: `${Math.min(r.targetPct, 100)}%` }} />
             </div>
@@ -755,7 +755,7 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
       <div className="flex gap-1.5 shrink-0 print:hidden">
         {!canManage ? (
           <button onClick={onOpen} title="Poora khata"
-            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
+            className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
             <Eye className="h-3.5 w-3.5" /> Tafseel
           </button>
         ) : !r.enrolled ? (
@@ -766,12 +766,12 @@ function RowCard({ r, i, tone, money, busy, canManage = true, onOpen, onPay, onE
         ) : (
           <>
             <button onClick={onOpen} title="Poora khata"
-              className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
+              className="h-10 px-3 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-[0.6875rem] font-black inline-flex items-center gap-1.5 transition">
               <Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Tafseel</span>
             </button>
             {r.paid ? (
               <button onClick={onUndo} disabled={busy} title="Adaigi wapas lein"
-                className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center disabled:opacity-50 transition">
+                className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-600 dark:text-ink-300 flex items-center justify-center disabled:opacity-50 transition">
                 <Undo2 className="h-3.5 w-3.5" />
               </button>
             ) : (
@@ -793,19 +793,19 @@ function PayModal({ row, period, money, saving, onClose, onConfirm }: any) {
   return (
     <div className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-3xl bg-white dark:bg-slate-900 shadow-2xl overflow-hidden">
+        className="w-full max-w-sm rounded-3xl bg-white dark:bg-ink-900 shadow-2xl overflow-hidden">
         <div className="p-5 bg-gradient-to-br from-emerald-600 to-teal-700 text-white text-center">
           <CheckCircle2 className="h-10 w-10 mx-auto mb-2" />
           <h3 className="text-lg font-black">Commission ada kar di?</h3>
           <p className="text-xs font-bold text-white/80 mt-0.5">{periodLabel(period)}</p>
         </div>
         <div className="p-5 space-y-3">
-          <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-slate-200 dark:border-slate-700 p-3 text-center">
-            <p className="text-sm font-black text-slate-900 dark:text-white">{row.name}</p>
+          <div className="rounded-2xl bg-slate-50 dark:bg-ink-800/60 border-2 border-slate-200 dark:border-ink-700 p-3 text-center">
+            <p className="text-sm font-black text-slate-900 dark:text-ink-white">{row.name}</p>
             <p className="mt-1 text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
               {money(row.earned)}
             </p>
-            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 mt-0.5">
               {row.bills} bill · {money(row.sale)} ki bikri par
             </p>
           </div>
@@ -816,17 +816,17 @@ function PayModal({ row, period, money, saving, onClose, onConfirm }: any) {
             </span>
             <input value={note} onChange={(e) => setNote(e.target.value)}
               placeholder="Cash di, ya tankhwah ke sath…"
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:border-emerald-500 transition" />
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-emerald-500 transition" />
           </label>
 
-          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400">
             Ye sirf nishani hai ke aap ne de di — paisa khud kahin se nahi katta. Kharcha alag se
             darj karna ho to Expenses me likhein.
           </p>
 
           <div className="flex gap-2">
             <button onClick={onClose}
-              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-black transition">
+              className="flex-1 h-11 rounded-xl bg-slate-100 dark:bg-ink-800 text-slate-700 dark:text-ink-200 text-sm font-black transition">
               Rehne dein
             </button>
             <Button onClick={() => onConfirm(note.trim())} loading={saving}
@@ -845,7 +845,7 @@ function Teacher({ tone, onClose }: any) {
   return (
     <div className="fixed inset-0 z-[80] bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 shadow-2xl flex flex-col overflow-hidden">
+        className="w-full sm:max-w-lg max-h-[88vh] rounded-t-3xl sm:rounded-3xl bg-white dark:bg-ink-900 shadow-2xl flex flex-col overflow-hidden">
         <header className="p-5 bg-gradient-to-br from-amber-500 to-orange-600 text-white shrink-0 flex items-center justify-between gap-2">
           <div>
             <h3 className="text-lg font-black inline-flex items-center gap-2">
@@ -868,17 +868,17 @@ function Teacher({ tone, onClose }: any) {
             { i: CheckCircle2, t: 'Ada kar dein to likh dein', d: 'Paisa dene ke baad "Ada" dabayein. Ye sirf nishani hai — paisa khud kahin se nahi katta. Kharcha darj karna ho to Expenses me alag se likhein.' },
             { i: Layers, t: 'Har dukaan ke liye ek jaisa', d: 'Ye safha kirana, bakery, mobile, electronics — sab ke liye wohi hai. Rules server par mehfooz hote hain, is liye counter ki har machine par ek jaise milte hain.' },
           ].map((x, n) => (
-            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
+            <div key={n} className="flex gap-3 rounded-2xl bg-slate-50 dark:bg-ink-800/60 p-3">
               <span className={`h-9 w-9 rounded-xl bg-gradient-to-br ${tone.grad} text-white flex items-center justify-center shrink-0`}>
                 <x.i className="h-4 w-4" />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-black text-slate-900 dark:text-white">{x.t}</p>
-                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-slate-400 mt-0.5">{x.d}</p>
+                <p className="text-sm font-black text-slate-900 dark:text-ink-white">{x.t}</p>
+                <p className="text-[0.75rem] font-bold text-slate-600 dark:text-ink-400 mt-0.5">{x.d}</p>
               </div>
             </div>
           ))}
-          <div className="rounded-2xl bg-slate-900 dark:bg-slate-800 p-3">
+          <div className="rounded-2xl bg-slate-900 dark:bg-ink-800 p-3">
             <p className="text-[0.6875rem] font-black uppercase tracking-widest text-white/60 mb-2">Tez tareeqa</p>
             <div className="flex flex-wrap gap-2">
               {[['N', 'Naya rule'], ['G', 'Ye safha'], ['P', 'Print'], ['Esc', 'Band']].map(([k, l]) => (
@@ -889,7 +889,7 @@ function Teacher({ tone, onClose }: any) {
             </div>
           </div>
         </div>
-        <footer className="p-4 border-t-2 border-slate-100 dark:border-slate-800 shrink-0">
+        <footer className="p-4 border-t-2 border-slate-100 dark:border-ink-800 shrink-0">
           <Button onClick={onClose} className={`w-full bg-gradient-to-r ${tone.grad}`}>Samajh gaya</Button>
         </footer>
       </div>

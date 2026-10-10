@@ -84,7 +84,7 @@ export function RetailWizardStep3Stock({
       )}
 
       {/* Header guide */}
-      <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-white dark:from-sky-500/10 dark:to-slate-900 border-2 border-sky-200 dark:border-sky-500/40 p-4 flex items-start gap-3">
+      <div className="rounded-2xl bg-gradient-to-br from-sky-50 to-white dark:from-sky-500/10 dark:to-ink-900 border-2 border-sky-200 dark:border-sky-500/40 p-4 flex items-start gap-3">
         <div className="h-11 w-11 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-500/40 shrink-0">
           <ShoppingBag className="h-5 w-5" />
         </div>
@@ -101,28 +101,28 @@ export function RetailWizardStep3Stock({
       {/* Toggles */}
       <section className="grid sm:grid-cols-2 gap-3">
         <button type="button" onClick={() => onToggleVariants(!hasVariants)}
-          className={['rounded-2xl border-2 p-4 text-left transition', hasVariants ? 'border-violet-500 dark:border-violet-400 bg-violet-50 dark:bg-violet-500/10 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-violet-300 dark:hover:border-violet-500/50'].join(' ')}>
+          className={['rounded-2xl border-2 p-4 text-left transition', hasVariants ? 'border-violet-500 dark:border-violet-400 bg-violet-50 dark:bg-violet-500/10 shadow-md' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 hover:border-violet-300 dark:hover:border-violet-500/50'].join(' ')}>
           <div className="flex items-center gap-3">
             <div className={['h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition', hasVariants ? 'bg-violet-500 text-white' : 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300'].join(' ')}>
               <Boxes className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <div className="font-extrabold text-slate-900 dark:text-white text-sm">Variants (flavor/size)</div>
-              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">Chocolate/Vanilla, S/M/L</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Variants (flavor/size)</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">Chocolate/Vanilla, S/M/L</div>
             </div>
             {hasVariants ? <ToggleRight className="h-6 w-6 text-violet-600 dark:text-violet-400" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
         </button>
 
         <button type="button" onClick={() => onToggleBatches(!trackBatches)}
-          className={['rounded-2xl border-2 p-4 text-left transition', trackBatches ? 'border-amber-500 dark:border-amber-400 bg-amber-50 dark:bg-amber-500/10 shadow-md' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
+          className={['rounded-2xl border-2 p-4 text-left transition', trackBatches ? 'border-amber-500 dark:border-amber-400 bg-amber-50 dark:bg-amber-500/10 shadow-md' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 hover:border-amber-300 dark:hover:border-amber-500/50'].join(' ')}>
           <div className="flex items-center gap-3">
             <div className={['h-11 w-11 rounded-xl flex items-center justify-center shrink-0 transition', trackBatches ? 'bg-amber-500 text-white' : 'bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-300'].join(' ')}>
               <Calendar className="h-5 w-5" />
             </div>
             <div className="flex-1">
-              <div className="font-extrabold text-slate-900 dark:text-white text-sm">Batches / Expiry</div>
-              <div className="text-[0.6875rem] text-slate-600 dark:text-slate-400 font-semibold">Dawai, dairy, kharaab hone wale</div>
+              <div className="font-extrabold text-slate-900 dark:text-ink-white text-sm">Batches / Expiry</div>
+              <div className="text-[0.6875rem] text-slate-600 dark:text-ink-400 font-semibold">Dawai, dairy, kharaab hone wale</div>
             </div>
             {trackBatches ? <ToggleRight className="h-6 w-6 text-amber-600 dark:text-amber-400" /> : <ToggleLeft className="h-6 w-6 text-slate-400" />}
           </div>
@@ -131,7 +131,7 @@ export function RetailWizardStep3Stock({
 
       {/* SIMPLE STOCK */}
       {!hasVariants && !trackBatches && (
-        <section className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-emerald-300 dark:border-emerald-500/40 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-ink-900 p-5 space-y-4">
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/40">
               <Package className="h-5 w-5" />
@@ -143,24 +143,24 @@ export function RetailWizardStep3Stock({
           </div>
 
           <div>
-            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+            <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
               Abhi kitna maal hai? ({U})
             </label>
             <input
               type="number" step="0.01" inputMode="decimal"
               value={stock.currentStock}
               onChange={(e) => onUpdateStock({ currentStock: Number(e.target.value || 0) })}
-              className="h-16 w-full rounded-2xl border-2 border-emerald-400 dark:border-emerald-500/50 bg-white dark:bg-slate-800 px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
+              className="h-16 w-full rounded-2xl border-2 border-emerald-400 dark:border-emerald-500/50 bg-white dark:bg-ink-800 px-4 text-center text-3xl font-extrabold tabular-nums text-emerald-900 dark:text-emerald-200 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-200 dark:focus:ring-emerald-500/30 transition"
             />
             <div className="mt-2 flex flex-wrap gap-1.5">
               {QUICK_STOCK.map((q) => (
                 <button key={q} type="button" onClick={() => onUpdateStock({ currentStock: Number(stock.currentStock || 0) + q })}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 dark:hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition">
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border-2 border-emerald-200 dark:border-emerald-500/30 hover:border-emerald-400 dark:hover:border-emerald-400 text-emerald-800 dark:text-emerald-300 text-xs font-extrabold transition">
                   +{q}
                 </button>
               ))}
               <button type="button" onClick={() => onUpdateStock({ currentStock: 0 })}
-                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-xs font-extrabold transition">
+                className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-ink-700 hover:bg-slate-200 dark:hover:bg-ink-600 text-slate-600 dark:text-ink-300 text-xs font-extrabold transition">
                 Reset
               </button>
             </div>
@@ -168,23 +168,23 @@ export function RetailWizardStep3Stock({
 
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
                 Kam ka alert
               </label>
               <input type="number" step="1" value={stock.lowStockAlert}
                 onChange={(e) => onUpdateStock({ lowStockAlert: Number(e.target.value || 0) })}
-                className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
-              <p className="text-[0.6875rem] text-slate-500 dark:text-slate-400 font-bold mt-1">Neeche is se → warning</p>
+                className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
+              <p className="text-[0.6875rem] text-slate-500 dark:text-ink-400 font-bold mt-1">Neeche is se → warning</p>
             </div>
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1.5">
-                Rack / Location <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">(optional)</span>
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-600 dark:text-ink-300 mb-1.5">
+                Rack / Location <span className="text-slate-400 dark:text-ink-500 normal-case font-bold">(optional)</span>
               </label>
               <div className="relative">
                 <MapPin className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input value={stock.rackNumber} onChange={(e) => onUpdateStock({ rackNumber: e.target.value })}
                   placeholder="Rack-A, Shelf-3"
-                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 pl-10 pr-3 text-sm font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
+                  className="h-12 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
               </div>
             </div>
           </div>
@@ -193,7 +193,7 @@ export function RetailWizardStep3Stock({
 
       {/* VARIANTS */}
       {hasVariants && (
-        <section className="rounded-2xl border-2 border-violet-300 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-slate-900 p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-violet-300 dark:border-violet-500/40 bg-gradient-to-br from-violet-50 to-white dark:from-violet-500/10 dark:to-ink-900 p-5 space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="h-11 w-11 rounded-xl bg-violet-600 text-white flex items-center justify-center shadow-md shadow-violet-500/40">
               <Boxes className="h-5 w-5" />
@@ -208,19 +208,19 @@ export function RetailWizardStep3Stock({
           </div>
 
           {/* Presets */}
-          <div className="rounded-xl bg-white dark:bg-slate-800/60 border-2 border-violet-200 dark:border-violet-500/30 p-3 space-y-2">
+          <div className="rounded-xl bg-white dark:bg-ink-800/60 border-2 border-violet-200 dark:border-violet-500/30 p-3 space-y-2">
             <div className="text-[0.6875rem] uppercase tracking-wider font-extrabold text-violet-700 dark:text-violet-300 flex items-center gap-1">
               <Sparkles className="h-3 w-3 text-amber-500" /> Aam variants — click karke add
             </div>
             {VARIANT_PRESETS.map((grp) => (
               <div key={grp.group} className="flex items-center gap-2 flex-wrap">
-                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-slate-400 min-w-[45px]">{grp.group}:</span>
+                <span className="text-[0.6875rem] font-extrabold uppercase text-slate-500 dark:text-ink-400 min-w-[45px]">{grp.group}:</span>
                 {grp.items.map((it) => {
                   const ex = variants.some((v) => v.name.toLowerCase() === it.toLowerCase());
                   return (
                     <button key={it} type="button" disabled={ex} onClick={() => addVariant(it)}
                       className={['px-2.5 py-1 rounded-lg border-2 text-[0.6875rem] font-extrabold transition disabled:opacity-40 disabled:cursor-not-allowed',
-                        ex ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-violet-400 dark:hover:border-violet-500/50'].join(' ')}>
+                        ex ? 'border-emerald-300 dark:border-emerald-500/40 bg-emerald-50 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-700 dark:text-ink-200 hover:border-violet-400 dark:hover:border-violet-500/50'].join(' ')}>
                       {ex ? '✓ ' : '+ '}{it}
                     </button>
                   );
@@ -245,13 +245,13 @@ export function RetailWizardStep3Stock({
           {variants.length > 0 ? (
             <div className="space-y-2">
               {variants.map((v) => (
-                <div key={v.tempId} className="rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 p-3 space-y-2">
+                <div key={v.tempId} className="rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60 p-3 space-y-2">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-lg bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300 flex items-center justify-center shrink-0">
                       <Boxes className="h-5 w-5" />
                     </div>
                     <input value={v.name} onChange={(e) => onUpdateVariant(v.tempId, { name: e.target.value })}
-                      className="flex-1 min-w-0 text-sm font-extrabold text-slate-900 dark:text-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-slate-700 rounded px-1" />
+                      className="flex-1 min-w-0 text-sm font-extrabold text-slate-900 dark:text-ink-white bg-transparent focus:outline-none focus:bg-slate-50 dark:focus:bg-ink-700 rounded px-1" />
                     <button type="button" onClick={() => onRemoveVariant(v.tempId)}
                       className="h-9 w-9 rounded-xl bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 transition">
                       <Trash2 className="h-4 w-4" />
@@ -260,39 +260,39 @@ export function RetailWizardStep3Stock({
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Stock ({U})</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">Stock ({U})</label>
                       <input type="number" step="0.01" value={v.stock}
                         onChange={(e) => onUpdateVariant(v.tempId, { stock: Number(e.target.value || 0) })}
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-extrabold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-sky-500 transition" />
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-slate-900 dark:text-ink-white focus:outline-none focus:border-sky-500 transition" />
                     </div>
                     <div>
                       <label className="block text-[0.6875rem] font-extrabold text-emerald-700 dark:text-emerald-400 uppercase mb-1">Rate override</label>
                       <input type="number" step="0.01" value={v.priceOverride ?? ''}
                         onChange={(e) => onUpdateVariant(v.tempId, { priceOverride: e.target.value === '' ? undefined : Number(e.target.value) })}
                         placeholder={String(sale)}
-                        className="h-10 w-full rounded-lg border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-slate-800 px-2 text-sm font-bold tabular-nums text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
+                        className="h-10 w-full rounded-lg border-2 border-emerald-200 dark:border-emerald-500/40 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">SKU</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">SKU</label>
                       <input value={v.sku ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { sku: e.target.value })}
                         placeholder="Optional"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
                     </div>
                     <div>
-                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Barcode</label>
+                      <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">Barcode</label>
                       <input value={v.barcode ?? ''} onChange={(e) => onUpdateVariant(v.tempId, { barcode: e.target.value })}
                         placeholder="Optional"
-                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
+                        className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-mono font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-sky-500 transition" />
                     </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-500/40 bg-white dark:bg-slate-800/40 p-6 text-center">
+            <div className="rounded-xl border-2 border-dashed border-violet-300 dark:border-violet-500/40 bg-white dark:bg-ink-800/40 p-6 text-center">
               <Boxes className="h-10 w-10 text-violet-400 mx-auto mb-2" />
-              <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Abhi koi variant nahi</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">Upar se preset click karo ya custom likho</div>
+              <div className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Abhi koi variant nahi</div>
+              <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">Upar se preset click karo ya custom likho</div>
             </div>
           )}
         </section>
@@ -300,7 +300,7 @@ export function RetailWizardStep3Stock({
 
       {/* BATCHES */}
       {trackBatches && (
-        <section className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900 p-5 space-y-4">
+        <section className="rounded-2xl border-2 border-amber-300 dark:border-amber-500/40 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-ink-900 p-5 space-y-4">
           <div className="flex items-center gap-3 flex-wrap">
             <div className="h-11 w-11 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/40">
               <Calendar className="h-5 w-5" />
@@ -325,43 +325,43 @@ export function RetailWizardStep3Stock({
                   <div key={b.tempId} className={['rounded-xl border-2 p-3 space-y-2',
                     expired ? 'border-rose-300 dark:border-rose-500/40 bg-rose-50 dark:bg-rose-500/10'
                       : soon ? 'border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/10'
-                      : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60'].join(' ')}>
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800/60'].join(' ')}>
                     <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 items-end">
                       <div className="sm:col-span-2">
-                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Batch Number</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">Batch Number</label>
                         <input value={b.batchNumber} onChange={(e) => onUpdateBatch(b.tempId, { batchNumber: e.target.value })}
                           placeholder="BATCH-001"
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-mono font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition" />
+                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-mono font-bold text-slate-900 dark:text-ink-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 transition" />
                       </div>
                       <div>
-                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Mfg Date</label>
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">Mfg Date</label>
                         <input type="date" value={b.manufactureDate ?? ''}
                           onChange={(e) => onUpdateBatch(b.tempId, { manufactureDate: e.target.value })}
-                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition dark:[color-scheme:dark]" />
+                          className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-xs font-bold text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition dark:[color-scheme:dark]" />
                       </div>
                       <div>
-                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1 items-center gap-1">
+                        <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1 items-center gap-1">
                           Expiry {expired && <AlertTriangle className="h-3 w-3 text-rose-600 dark:text-rose-400 inline" />}
                         </label>
                         <input type="date" value={b.expiryDate ?? ''}
                           onChange={(e) => onUpdateBatch(b.tempId, { expiryDate: e.target.value })}
                           className={['h-10 w-full rounded-lg border-2 px-2 text-xs font-bold focus:outline-none transition dark:[color-scheme:dark]',
-                            expired ? 'border-rose-400 dark:border-rose-500/50 bg-white dark:bg-slate-800 text-rose-800 dark:text-rose-300 focus:border-rose-600'
-                              : soon ? 'border-amber-400 dark:border-amber-500/50 bg-white dark:bg-slate-800 text-amber-800 dark:text-amber-300 focus:border-amber-600'
-                              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:border-amber-500'].join(' ')} />
+                            expired ? 'border-rose-400 dark:border-rose-500/50 bg-white dark:bg-ink-800 text-rose-800 dark:text-rose-300 focus:border-rose-600'
+                              : soon ? 'border-amber-400 dark:border-amber-500/50 bg-white dark:bg-ink-800 text-amber-800 dark:text-amber-300 focus:border-amber-600'
+                              : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-900 dark:text-ink-white focus:border-amber-500'].join(' ')} />
                       </div>
                       <div className="grid grid-cols-2 gap-1 sm:col-span-5 sm:grid-cols-3">
                         <div>
-                          <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Qty ({U})</label>
+                          <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">Qty ({U})</label>
                           <input type="number" step="0.01" value={b.quantity}
                             onChange={(e) => onUpdateBatch(b.tempId, { quantity: Number(e.target.value || 0) })}
-                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-extrabold tabular-nums text-right text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-extrabold tabular-nums text-right text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                         </div>
                         <div>
-                          <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-slate-300 uppercase mb-1">Cost</label>
+                          <label className="block text-[0.6875rem] font-extrabold text-slate-600 dark:text-ink-300 uppercase mb-1">Cost</label>
                           <input type="number" step="0.01" value={b.costPrice}
                             onChange={(e) => onUpdateBatch(b.tempId, { costPrice: Number(e.target.value || 0) })}
-                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 text-sm font-bold tabular-nums text-right text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 transition" />
+                            className="h-10 w-full rounded-lg border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-2 text-sm font-bold tabular-nums text-right text-slate-900 dark:text-ink-white focus:outline-none focus:border-amber-500 transition" />
                         </div>
                         <div className="flex items-end">
                           <button type="button" onClick={() => onRemoveBatch(b.tempId)}
@@ -386,10 +386,10 @@ export function RetailWizardStep3Stock({
               })}
             </div>
           ) : (
-            <div className="rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-500/40 bg-white dark:bg-slate-800/40 p-6 text-center">
+            <div className="rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-500/40 bg-white dark:bg-ink-800/40 p-6 text-center">
               <Calendar className="h-10 w-10 text-amber-400 mx-auto mb-2" />
-              <div className="text-sm font-extrabold text-slate-700 dark:text-slate-200">Koi batch nahi</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400 font-semibold mt-1">"Batch Add" button dabao</div>
+              <div className="text-sm font-extrabold text-slate-700 dark:text-ink-200">Koi batch nahi</div>
+              <div className="text-xs text-slate-500 dark:text-ink-400 font-semibold mt-1">"Batch Add" button dabao</div>
             </div>
           )}
         </section>

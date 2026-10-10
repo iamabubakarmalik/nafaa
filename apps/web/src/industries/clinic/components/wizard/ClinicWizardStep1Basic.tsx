@@ -34,7 +34,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
         <SectionHeader icon={Package} title="Service Identity" desc="Clinical service details" />
 
         <Input
@@ -46,7 +46,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
         />
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-ink-300 mb-2">
             Service Category *
           </label>
           <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-2">
@@ -61,13 +61,13 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
                     'group px-2 py-2.5 rounded-xl border-2 transition-all flex flex-col items-center gap-1',
                     active
                       ? 'border-cyan-500 bg-gradient-to-br from-cyan-50 to-blue-50 shadow-md ring-2 ring-cyan-200'
-                      : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-cyan-300',
+                      : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-cyan-300',
                   ].join(' ')}
                 >
                   <span className="text-xl group-hover:scale-110 transition-transform">{c.emoji}</span>
                   <span className={[
                     'text-[0.625rem] font-extrabold text-center leading-tight',
-                    active ? 'text-cyan-800' : 'text-slate-700 dark:text-slate-300',
+                    active ? 'text-cyan-800' : 'text-slate-700 dark:text-ink-300',
                   ].join(' ')}>
                     {c.label}
                   </span>
@@ -99,19 +99,19 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
                 value={basic.durationMin}
                 onChange={(e) => onChange({ durationMin: e.target.value === '' ? '' : Number(e.target.value) })}
                 placeholder="15"
-                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500"
+                className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-bold tabular-nums focus:outline-none focus:border-cyan-500"
               />
             </div>
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+          <label className="block text-sm font-semibold text-slate-700 dark:text-ink-300 mb-1.5">
             Description
           </label>
           <textarea
             rows={3}
-            className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 resize-none"
+            className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm focus:outline-none focus:border-cyan-500 resize-none"
             value={basic.descriptionLong}
             onChange={(e) => onChange({ descriptionLong: e.target.value })}
             placeholder="Detailed clinical service description..."
@@ -122,7 +122,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Base Category</label>
             <select
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm focus:outline-none focus:border-cyan-500"
               value={basic.categoryId}
               onChange={(e) => onChange({ categoryId: e.target.value })}
             >
@@ -133,7 +133,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brand / Provider</label>
             <select
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm focus:outline-none focus:border-cyan-500"
               value={basic.brandId}
               onChange={(e) => onChange({ brandId: e.target.value })}
             >
@@ -151,7 +151,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
             <select
               value={basic.unit}
               onChange={(e) => onChange({ unit: e.target.value })}
-              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
+              className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-cyan-500"
             >
               <option value="service">Service</option>
               <option value="visit">Visit</option>
@@ -166,7 +166,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
       </section>
 
       {/* ─── PRICING TIERS ─── */}
-      <section className="rounded-3xl bg-gradient-to-br from-cyan-50 via-white to-blue-50 dark:from-cyan-950/30 dark:via-neutral-900 dark:to-blue-950/30 border-2 border-cyan-200 dark:border-cyan-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-gradient-to-br from-cyan-50 via-white to-blue-50 dark:from-cyan-950/30 dark:via-ink-900 dark:to-blue-950/30 border-2 border-cyan-200 dark:border-cyan-800 shadow-sm p-5 space-y-4">
         <SectionHeader
           icon={DollarSign}
           title="Pricing Tiers"
@@ -194,7 +194,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
       </section>
 
       {/* ─── IMAGES ─── */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
         <SectionHeader icon={ImageIcon} title="Service Images" desc="First image is primary" />
         <UploadDropzone
           purpose="product-image"
@@ -225,7 +225,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
       </section>
 
       {/* ─── FLAGS ─── */}
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-4">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-4">
         <SectionHeader icon={Sparkles} title="Visibility & Marketing" desc="Badges & flags" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
           <FlagCard active={basic.isActive} onToggle={(v: any) => onChange({ isActive: v })} icon={Eye} label="Active" desc="Visible" tone="emerald" />
@@ -237,7 +237,7 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
 
       {/* ─── TAGS ─── */}
       {allTags.length > 0 && (
-        <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-5 space-y-3">
+        <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-5 space-y-3">
           <SectionHeader icon={Tag} title="Tags" desc="For search & filtering" />
           <div className="flex flex-wrap gap-1.5">
             {allTags.map((t) => {
@@ -292,12 +292,12 @@ export function ClinicWizardStep1Basic({ basic, onChange, onNext, validation }: 
 
 function SectionHeader({ icon: Icon, title, desc }: any) {
   return (
-    <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-neutral-800">
+    <div className="flex items-center gap-3 pb-3 border-b-2 border-slate-100 dark:border-ink-800">
       <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white flex items-center justify-center shadow-md">
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <h3 className="font-extrabold text-slate-900 dark:text-white text-lg leading-tight">{title}</h3>
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white text-lg leading-tight">{title}</h3>
         <p className="text-[0.6875rem] text-slate-500 font-semibold">{desc}</p>
       </div>
     </div>
@@ -348,7 +348,7 @@ function FlagCard({ active, onToggle, icon: Icon, label, desc, tone }: any) {
       className={[
         'p-3 rounded-xl border-2 text-left transition-all',
         active ? 'bg-gradient-to-br ' + tones[tone] + ' text-white shadow-md'
-          : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:border-slate-300',
+          : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 hover:border-slate-300',
       ].join(' ')}
     >
       <div className="flex items-center gap-2">

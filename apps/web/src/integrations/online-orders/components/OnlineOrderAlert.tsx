@@ -145,7 +145,7 @@ export function OnlineOrderAlert() {
           <div
             key={o.id}
             className={cn(
-              'rounded-2xl border-2 border-emerald-400 bg-white shadow-2xl dark:bg-neutral-900 dark:border-emerald-500/60 overflow-hidden',
+              'rounded-2xl border-2 border-emerald-400 bg-white shadow-2xl dark:bg-ink-900 dark:border-emerald-500/60 overflow-hidden',
               idx === 0 && 'animate-[pulse_1.2s_ease-in-out_2]',
             )}
           >
@@ -160,12 +160,12 @@ export function OnlineOrderAlert() {
             <div className="p-3">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  <div className="text-xs font-bold text-slate-500 dark:text-ink-400">
                     #{o.externalOrderNumber ?? o.externalOrderId} · {timeAgo(o.receivedAt)}
                     {o.metadata?.test && <span className="ml-1 rounded bg-amber-100 px-1 text-amber-700">TEST</span>}
                   </div>
-                  <div className="truncate text-base font-black text-slate-900 dark:text-white">{o.customerName}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <div className="truncate text-base font-black text-slate-900 dark:text-ink-white">{o.customerName}</div>
+                  <div className="text-xs text-slate-500 dark:text-ink-400">
                     {o.itemCount} item{o.customerCity ? ` · ${o.customerCity}` : ''}
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export function OnlineOrderAlert() {
                 </button>
                 <button
                   onClick={() => { dismiss(o.id); navigate(`/online-orders?order=${o.id}`); }}
-                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-800 hover:bg-slate-50 dark:border-neutral-700 dark:text-slate-100 dark:hover:bg-neutral-800"
+                  className="flex h-10 items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-800 hover:bg-slate-50 dark:border-ink-700 dark:text-ink-100 dark:hover:bg-ink-800"
                 >
                   <Eye className="h-4 w-4" /> Dekho
                 </button>

@@ -67,7 +67,7 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
   if (total === 0) return null;
 
   return (
-    <section className="rounded-xl bg-gradient-to-r from-amber-50 via-white to-orange-50 dark:from-amber-950/20 dark:via-neutral-900 dark:to-orange-950/20 border border-amber-200 dark:border-amber-800 overflow-hidden">
+    <section className="rounded-xl bg-gradient-to-r from-amber-50 via-white to-orange-50 dark:from-amber-950/20 dark:via-ink-900 dark:to-orange-950/20 border border-amber-200 dark:border-amber-800 overflow-hidden">
       {/* Header — compact */}
       <button
         onClick={toggleCollapsed}
@@ -82,7 +82,7 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
             {total}
           </span>
           {collapsed && combos.length > 0 && (
-            <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-slate-400 truncate">
+            <span className="text-[0.6875rem] font-bold text-slate-500 dark:text-ink-400 truncate">
               {combos.length} combos • {keys.length} shortcuts
             </span>
           )}
@@ -110,11 +110,11 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
                   <button
                     key={combo.id}
                     onClick={() => onComboAdd(combo)}
-                    className="group shrink-0 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-neutral-900 px-2 py-1.5 hover:border-violet-500 hover:shadow-md transition text-left flex items-center gap-2"
+                    className="group shrink-0 rounded-lg border border-violet-200 dark:border-violet-800 bg-white dark:bg-ink-900 px-2 py-1.5 hover:border-violet-500 hover:shadow-md transition text-left flex items-center gap-2"
                   >
                     <div className="text-base">🎁</div>
                     <div className="min-w-0">
-                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white truncate max-w-[120px]">
+                      <div className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white truncate max-w-[120px]">
                         {combo.name}
                       </div>
                       <div className="flex items-center gap-1">
@@ -141,16 +141,16 @@ export function RetailQuickKeysBar({ onProductAdd, onComboAdd, shopId }: Props) 
                 <button
                   key={key.id}
                   onClick={() => handleKeyClick(key)}
-                  className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-2 py-1.5 hover:shadow-md hover:-translate-y-0.5 transition active:scale-95"
+                  className="shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-900 px-2 py-1.5 hover:shadow-md hover:-translate-y-0.5 transition active:scale-95"
                   style={{ borderColor: key.color || undefined }}
                   title={key.label + (key.hotkey ? ' [' + key.hotkey + ']' : '')}
                 >
                   <span className="text-base">{key.icon || '⚡'}</span>
-                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-white whitespace-nowrap">
+                  <span className="text-[0.6875rem] font-extrabold text-slate-900 dark:text-ink-white whitespace-nowrap">
                     {key.label}
                   </span>
                   {key.hotkey && (
-                    <span className="px-1 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[0.625rem] font-mono font-extrabold">
+                    <span className="px-1 rounded bg-slate-900 dark:bg-ink-white text-white dark:text-ink-900 text-[0.625rem] font-mono font-extrabold">
                       {key.hotkey}
                     </span>
                   )}

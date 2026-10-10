@@ -82,16 +82,16 @@ export default function AlterationsPage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white dark:bg-neutral-900 border border-slate-200 dark:border-neutral-800 shadow-sm p-4 space-y-3">
+      <section className="rounded-3xl bg-white dark:bg-ink-900 border border-slate-200 dark:border-ink-800 shadow-sm p-4 space-y-3">
         <div className="relative">
           <Search className="h-4 w-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search ticket, name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search ticket, name, phone..." className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 pl-10 pr-3 text-sm font-semibold focus:outline-none focus:border-amber-500" />
         </div>
         <div className="flex gap-1.5 overflow-x-auto pb-1">
           {['active', 'all', ...Object.keys(STATUS_CONFIG)].map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)} className={
               'shrink-0 px-3 py-1.5 rounded-lg text-xs font-extrabold ' +
-              (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-neutral-800 text-slate-700')
+              (statusFilter === s ? 'bg-amber-600 text-white shadow' : 'bg-slate-100 dark:bg-ink-800 text-slate-700')
             }>
               {s === 'active' ? '🔥 Active' : s === 'all' ? 'All' : STATUS_CONFIG[s as AlterationStatus]?.label || s}
             </button>
@@ -108,10 +108,10 @@ export default function AlterationsPage() {
 
       {isLoading ? (
         <div className="grid gap-3">
-          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-neutral-800 animate-pulse" />)}
+          {[1, 2, 3].map((i) => <div key={i} className="h-32 rounded-2xl bg-slate-100 dark:bg-ink-800 animate-pulse" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-dashed border-slate-200 dark:border-neutral-800 p-12 text-center">
+        <div className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-dashed border-slate-200 dark:border-ink-800 p-12 text-center">
           <Ruler className="h-16 w-16 text-slate-400 mx-auto mb-3" />
           <p className="font-extrabold text-slate-700">No alteration tickets</p>
         </div>
@@ -121,7 +121,7 @@ export default function AlterationsPage() {
             const cfg = STATUS_CONFIG[t.status];
             const daysLeft = t.promisedDate ? differenceInDays(new Date(t.promisedDate), new Date()) : null;
             return (
-              <div key={t.id} className="rounded-2xl bg-white dark:bg-neutral-900 border-2 border-slate-200 dark:border-neutral-800 shadow-sm p-4">
+              <div key={t.id} className="rounded-2xl bg-white dark:bg-ink-900 border-2 border-slate-200 dark:border-ink-800 shadow-sm p-4">
                 <div className="flex items-start justify-between gap-3 flex-wrap">
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white flex items-center justify-center shadow shrink-0">
@@ -129,7 +129,7 @@ export default function AlterationsPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-extrabold text-slate-900 dark:text-white">{t.ticketNumber}</span>
+                        <span className="font-extrabold text-slate-900 dark:text-ink-white">{t.ticketNumber}</span>
                         <span className={'px-2 py-0.5 rounded-full text-[0.625rem] font-extrabold uppercase text-white ' + cfg.color}>
                           {cfg.label}
                         </span>
@@ -141,7 +141,7 @@ export default function AlterationsPage() {
                         </span>
                       </div>
 
-                      <div className="mt-2 text-sm font-bold text-slate-900 dark:text-white">{t.garmentDescription}</div>
+                      <div className="mt-2 text-sm font-bold text-slate-900 dark:text-ink-white">{t.garmentDescription}</div>
                       <div className="text-xs font-extrabold text-amber-700">{t.alterationType}</div>
                       {t.alterationDetails && (
                         <p className="text-xs text-slate-600 italic mt-1 line-clamp-2">{t.alterationDetails}</p>
@@ -215,17 +215,17 @@ function AlterationForm({ onClose, onSaved }: any) {
   });
 
   return (
-    <section className="rounded-3xl bg-white dark:bg-neutral-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-100 dark:border-neutral-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-900 dark:text-white">New Alteration Ticket</h3>
+    <section className="rounded-3xl bg-white dark:bg-ink-900 border-2 border-amber-300 dark:border-amber-800 shadow-lg overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-100 dark:border-ink-800 bg-amber-50 dark:bg-amber-950/30 flex items-center justify-between">
+        <h3 className="font-extrabold text-slate-900 dark:text-ink-white">New Alteration Ticket</h3>
         <button onClick={onClose} className="h-8 w-8 rounded-lg hover:bg-white flex items-center justify-center">
           <X className="h-4 w-4" />
         </button>
       </div>
       <div className="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
         <div className="grid sm:grid-cols-2 gap-3">
-          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
-          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <input autoFocus value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} placeholder="Customer name" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+          <input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} placeholder="Phone" className="h-11 rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
         </div>
 
         <input value={form.garmentDescription} onChange={(e) => setForm({ ...form, garmentDescription: e.target.value })} placeholder="Garment description (e.g. Blue kurta, size L) *" className="h-11 w-full rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/30 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
@@ -236,13 +236,13 @@ function AlterationForm({ onClose, onSaved }: any) {
             {ALTERATION_TYPES.map((t) => (
               <button key={t} onClick={() => setForm({ ...form, alterationType: t })} className={
                 'px-2 py-1 rounded-lg text-xs font-extrabold border-2 ' +
-                (form.alterationType === t ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600 hover:border-amber-300')
+                (form.alterationType === t ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-700' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600 hover:border-amber-300')
               }>{t}</button>
             ))}
           </div>
         </div>
 
-        <textarea rows={2} value={form.alterationDetails} onChange={(e) => setForm({ ...form, alterationDetails: e.target.value })} placeholder="Specific details (e.g. shorten by 2 inches, take in waist 1 inch)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.alterationDetails} onChange={(e) => setForm({ ...form, alterationDetails: e.target.value })} placeholder="Specific details (e.g. shorten by 2 inches, take in waist 1 inch)..." className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
         <div className="grid sm:grid-cols-3 gap-3">
           <div>
@@ -251,14 +251,14 @@ function AlterationForm({ onClose, onSaved }: any) {
               {PRIORITIES.map((p) => (
                 <button key={p.value} onClick={() => setForm({ ...form, priority: p.value })} className={
                   'py-2 rounded-lg text-xs font-extrabold border-2 ' +
-                  (form.priority === p.value ? p.color + ' border-transparent text-white' : 'border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-slate-600')
+                  (form.priority === p.value ? p.color + ' border-transparent text-white' : 'border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 text-slate-600')
                 }>{p.label}</button>
               ))}
             </div>
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-slate-600 mb-1 block">Due Date</label>
-            <input type="date" value={form.promisedDate} onChange={(e) => setForm({ ...form, promisedDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
+            <input type="date" value={form.promisedDate} onChange={(e) => setForm({ ...form, promisedDate: e.target.value })} className="h-11 w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 text-sm font-bold focus:outline-none focus:border-amber-500" />
           </div>
           <div>
             <label className="text-[0.6875rem] uppercase font-extrabold text-emerald-700 mb-1 block">Charges (Rs)</label>
@@ -288,9 +288,9 @@ function AlterationForm({ onClose, onSaved }: any) {
           />
         </div>
 
-        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
+        <textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes" className="w-full rounded-xl border-2 border-slate-200 dark:border-ink-700 bg-white dark:bg-ink-800 px-3 py-2 text-sm font-semibold focus:outline-none focus:border-amber-500 resize-none" />
 
-        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-neutral-800">
+        <div className="flex gap-2 pt-2 border-t border-slate-100 dark:border-ink-800">
           <Button variant="secondary" className="flex-1" onClick={onClose}>Cancel</Button>
           <Button className="flex-1 bg-gradient-to-r from-amber-600 to-orange-700" onClick={() => saveMutation.mutate()} loading={saveMutation.isPending} disabled={!form.garmentDescription.trim()}>
             <Save className="h-4 w-4" />
