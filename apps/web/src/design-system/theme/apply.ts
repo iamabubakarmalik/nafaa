@@ -14,7 +14,7 @@ import { buildScale, readableOn, SCALE_STEPS, type ColorScale, type ScaleStep } 
 import DARK_RULES from '../tailwind/dark-rules.json';
 import { DENSITIES, RADII } from '../tokens/layout';
 import { CANVAS_TONES } from '../tokens/surfaces';
-import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES } from '../tokens/typography';
+import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES, type FontOption } from '../tokens/typography';
 import type { ResolvedAppearance } from './appearance';
 
 export const BOOT_CACHE_KEY = 'nafaa-appearance-boot';
@@ -80,6 +80,29 @@ export function themeVariables(a: ResolvedAppearance, dark = false): Record<stri
   vars['--radius-scale'] = String((RADII[a.radius] ?? RADII.default).scale);
 
   Object.assign(vars, surfaceVariables(a, scale, dark));
+  if (a.contrast === 'high') Object.assign(vars, highContrastVariables(dark));
+  return vars;
+}
+
+const GREY_FAMILIES = ['slate', 'gray', 'zinc', 'neutral', 'stone'];
+
+/**
+ * High contrast: secondary grey text moves one to two steps darker (lighter
+ * in dark mode) and hairlines become visible, for bright shops and weak
+ * eyesight. Overrides the same variables the palette uses (palette.cjs).
+ */
+function highContrastVariables(dark: boolean): Record<string, string> {
+  const text = dark
+    ? { 400: '170 183 201', 500: '203 213 225', 600: '226 232 240' }
+    : { 400: '71 85 105', 500: '51 65 85', 600: '30 41 59' };
+  const border = dark
+    ? { 100: '51 65 85', 200: '71 85 105', 300: '100 116 139' }
+    : { 100: '203 213 225', 200: '148 163 184', 300: '100 116 139' };
+  const vars: Record<string, string> = {};
+  for (const family of GREY_FAMILIES) {
+    for (const [step, value] of Object.entries(text)) vars[`--tx-${family}-${step}`] = value;
+    for (const [step, value] of Object.entries(border)) vars[`--bd-${family}-${step}`] = value;
+  }
   return vars;
 }
 
@@ -111,15 +134,35 @@ export function isDarkMode(a: ResolvedAppearance, systemPrefersDark: boolean): b
 
 const FONT_LINK_ATTR = 'data-ds-font';
 
-/** Adds a Google Fonts stylesheet once per font; unused fonts are never fetched. */
-export function ensureFont(family: string | null, id: string) {
-  if (!family || typeof document === 'undefined') return;
-  if (document.head.querySelector(`link[${FONT_LINK_ATTR}="${id}"]`)) return;
+/** Adds a font's stylesheet once; fonts that are never selected are never fetched. */
+export function ensureFont(font: FontOption) {
+  if (typeof document === 'undefined') return;
+  const href = font.href ?? (font.google ? `https://fonts.googleapis.com/css2?family=${font.google}&display=swap` : null);
+  if (!href || document.head.querySelector(`link[${FONT_LINK_ATTR}="${CSS.escape(font.id)}"]`)) return;
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = `https://fonts.googleapis.com/css2?family=${family}&display=swap`;
-  link.setAttribute(FONT_LINK_ATTR, id);
+  link.href = href;
+  link.setAttribute(FONT_LINK_ATTR, font.id);
   document.head.appendChild(link);
+}
+
+/**
+ * Loads a font and reports whether the browser could actually use it. A
+ * misspelt Google Font name loads an empty stylesheet, so this is how the
+ * picker tells "font not found" apart from "loaded".
+ */
+export async function verifyFont(font: FontOption): Promise<boolean> {
+  ensureFont(font);
+  const family = font.stack.split(',')[0].trim();
+  try {
+    const faces = await Promise.race([
+      document.fonts.load(`400 16px ${family}`),
+      new Promise<FontFace[]>((resolve) => setTimeout(() => resolve([]), 6000)),
+    ]);
+    return faces.length > 0;
+  } catch {
+    return false;
+  }
 }
 
 export function applyAppearance(a: ResolvedAppearance, systemPrefersDark: boolean): void {
@@ -143,12 +186,8 @@ export function applyAppearance(a: ResolvedAppearance, systemPrefersDark: boolea
   root.lang = lang;
   root.dir = dir;
 
-  const latin = findLatinFont(a.latinFont);
-  ensureFont(latin.google, latin.id);
-  if (a.language === 'ur') {
-    const urdu = findUrduFont(a.urduFont);
-    ensureFont(urdu.google, urdu.id);
-  }
+  ensureFont(findLatinFont(a.latinFont));
+  if (a.language === 'ur') ensureFont(findUrduFont(a.urduFont));
 
   updateThemeColorMeta(dark ? '#0b1220' : a.accentHex);
 

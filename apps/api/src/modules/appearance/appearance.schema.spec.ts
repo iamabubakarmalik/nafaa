@@ -10,6 +10,12 @@ describe('sanitizeLayer', () => {
     expect(sanitizeLayer({ mode: 'neon', brandColor: 'red', textScale: 'xxl', latinFont: '<script>', evil: 1, radius: null })).toEqual({});
   });
 
+  it('accepts Google Font names and the contrast option', () => {
+    expect(sanitizeLayer({ latinFont: 'gf:Open Sans', urduFont: 'gf:Amiri', contrast: 'high' }))
+      .toEqual({ latinFont: 'gf:Open Sans', urduFont: 'gf:Amiri', contrast: 'high' });
+    expect(sanitizeLayer({ latinFont: 'gf:Bad;Name' })).toEqual({});
+  });
+
   it('handles non-objects', () => {
     expect(sanitizeLayer(null)).toEqual({});
     expect(sanitizeLayer('dark')).toEqual({});

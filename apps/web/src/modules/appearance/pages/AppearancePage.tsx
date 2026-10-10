@@ -78,6 +78,24 @@ function DensityVisual({ density }: { density: Density }) {
   );
 }
 
+function ToggleRow({ title, text, checked, onChange }: { title: string; text: string; checked: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 p-3">
+      <span>
+        <span className="block text-[0.8125rem] font-semibold text-slate-900">{title}</span>
+        <span className="block text-[0.75rem] text-slate-500">{text}</span>
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition before:block before:h-4 before:w-4 before:translate-x-0.5 before:translate-y-0.5 before:rounded-full before:bg-white before:shadow before:transition checked:bg-brand-600 checked:before:translate-x-[1.125rem]"
+      />
+    </label>
+  );
+}
+
 /* ─── Page ─── */
 
 export default function AppearancePage() {
@@ -195,12 +213,12 @@ export default function AppearancePage() {
 
           <SettingCard title="Font" description="Poori app ka font — har ek apne asal andaaz me dikh raha hai" icon={<Type className="h-[1.125rem] w-[1.125rem]" />}
             source={ed.sourceOf('latinFont')} onReset={resetFor('latinFont')}>
-            <FontPicker label="Font" fonts={LATIN_FONTS} value={a.latinFont} sample="Nafaa POS · Rs 12,450" onChange={(v) => ed.set('latinFont', v)} />
+            <FontPicker kind="latin" label="Font" fonts={LATIN_FONTS} value={a.latinFont} sample="Nafaa POS · Rs 12,450" onChange={(v) => ed.set('latinFont', v)} />
           </SettingCard>
 
           <SettingCard title="Urdu font" description="Urdu likhai ke liye (receipts aur Urdu zabaan)" icon={<span className="text-[0.9375rem] font-bold">ا</span>}
             source={ed.sourceOf('urduFont')} onReset={resetFor('urduFont')}>
-            <FontPicker label="Urdu font" fonts={URDU_FONTS} value={a.urduFont} sample="نفع — آپ کا کاروبار" rtl onChange={(v) => ed.set('urduFont', v)} />
+            <FontPicker kind="urdu" label="Urdu font" fonts={URDU_FONTS} value={a.urduFont} sample="نفع — آپ کا کاروبار" onChange={(v) => ed.set('urduFont', v)} />
           </SettingCard>
 
           <SettingCard title="Text size" description="Poori app me likhai ka size" icon={<Type className="h-[1.125rem] w-[1.125rem]" />}
@@ -230,15 +248,21 @@ export default function AppearancePage() {
           </div>
 
           <SettingCard title="Accessibility" description="Aankhon aur aaram ke liye" icon={<Accessibility className="h-[1.125rem] w-[1.125rem]" />}
-            source={ed.sourceOf('reduceMotion')} onReset={resetFor('reduceMotion')}>
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 p-3">
-              <span>
-                <span className="block text-[0.8125rem] font-semibold text-slate-900">Reduce motion</span>
-                <span className="block text-[0.75rem] text-slate-500">Animations aur hilti cheezein band — tez aur pur-sukoon</span>
-              </span>
-              <input type="checkbox" checked={a.reduceMotion} onChange={(e) => ed.set('reduceMotion', e.target.checked)}
-                className="h-5 w-9 cursor-pointer appearance-none rounded-full bg-slate-300 transition before:block before:h-4 before:w-4 before:translate-x-0.5 before:rounded-full before:bg-white before:shadow before:transition checked:bg-brand-600 checked:before:translate-x-[1.125rem]" />
-            </label>
+            onReset={ed.isSet('contrast') || ed.isSet('reduceMotion') ? () => { ed.reset('contrast'); ed.reset('reduceMotion'); } : undefined}>
+            <div className="space-y-2">
+              <ToggleRow
+                title="High contrast"
+                text="Halka grey text aur lines gehre — dhoop me ya kamzor nazar ke liye"
+                checked={a.contrast === 'high'}
+                onChange={(on) => ed.set('contrast', on ? 'high' : 'normal')}
+              />
+              <ToggleRow
+                title="Reduce motion"
+                text="Animations aur hilti cheezein band — tez aur pur-sukoon"
+                checked={a.reduceMotion}
+                onChange={(on) => ed.set('reduceMotion', on)}
+              />
+            </div>
           </SettingCard>
         </div>
 

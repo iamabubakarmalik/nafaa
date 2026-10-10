@@ -18,8 +18,7 @@ export function AppearancePreview({ appearance, industryLabel }: { appearance: R
   const sidebarDark = appearance.sidebarStyle !== 'light';
 
   useEffect(() => {
-    const font = findLatinFont(appearance.latinFont);
-    ensureFont(font.google, font.id);
+    ensureFont(findLatinFont(appearance.latinFont));
   }, [appearance.latinFont]);
 
   return (

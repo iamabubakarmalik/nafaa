@@ -17,8 +17,36 @@ export interface FontOption {
   stack: string;
   /** Google Fonts `family=` value, or null for fonts that need no download. */
   google: string | null;
+  /** Full stylesheet URL; used for custom fonts instead of `google`. */
+  href?: string;
   /** Short sample shown in the font picker. */
   sample: string;
+}
+
+/**
+ * Any Google Font can be used by name. Its id is "gf:<Family Name>". The
+ * legacy css API is used because it returns whichever of the requested
+ * weights exist, while the css2 API rejects the whole request if one weight
+ * is missing (common for display fonts).
+ */
+export const CUSTOM_FONT_PREFIX = 'gf:';
+const CUSTOM_FONT_NAME = /^[A-Za-z0-9 ]{2,40}$/;
+
+export const isCustomFontId = (id: string | undefined): id is string => !!id && id.startsWith(CUSTOM_FONT_PREFIX);
+export const customFontId = (family: string) => `${CUSTOM_FONT_PREFIX}${family.trim().replace(/\s+/g, ' ')}`;
+export const isValidFontFamily = (family: string) => CUSTOM_FONT_NAME.test(family.trim());
+
+function customFont(id: string, fallback: string, sample: string): FontOption | null {
+  const family = id.slice(CUSTOM_FONT_PREFIX.length);
+  if (!isValidFontFamily(family)) return null;
+  return {
+    id,
+    label: family,
+    stack: `'${family}', ${fallback}`,
+    google: null,
+    href: `https://fonts.googleapis.com/css?family=${encodeURIComponent(family).replace(/%20/g, '+')}:400,500,600,700,800&display=swap`,
+    sample,
+  };
 }
 
 const LATIN_FALLBACK = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif";
@@ -46,8 +74,10 @@ export const MONO_STACK = "'JetBrains Mono', 'Cascadia Code', 'SF Mono', Consola
 export const DEFAULT_LATIN_FONT = 'inter';
 export const DEFAULT_URDU_FONT = 'naskh';
 
-export const findLatinFont = (id: string | undefined) => LATIN_FONTS.find((f) => f.id === id) ?? LATIN_FONTS[0];
-export const findUrduFont = (id: string | undefined) => URDU_FONTS.find((f) => f.id === id) ?? URDU_FONTS[0];
+export const findLatinFont = (id: string | undefined): FontOption =>
+  (isCustomFontId(id) && customFont(id, LATIN_FALLBACK, 'Aa 123')) || LATIN_FONTS.find((f) => f.id === id) || LATIN_FONTS[0];
+export const findUrduFont = (id: string | undefined): FontOption =>
+  (isCustomFontId(id) && customFont(id, URDU_FALLBACK, 'نفع')) || URDU_FONTS.find((f) => f.id === id) || URDU_FONTS[0];
 
 /**
  * Text size scales the root font size. All type in the app is expressed in

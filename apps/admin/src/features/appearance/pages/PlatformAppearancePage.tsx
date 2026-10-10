@@ -28,7 +28,11 @@ const OPTIONS: { key: Field; label: string; help: string; values: [string, strin
   { key: 'textScale', label: 'Text size', help: 'Default text size', values: [['sm', 'Small'], ['md', 'Normal'], ['lg', 'Large'], ['xl', 'Extra large']] },
   { key: 'density', label: 'Density', help: 'Spacing between elements', values: [['comfortable', 'Comfortable'], ['compact', 'Compact']] },
   { key: 'radius', label: 'Corners', help: 'Button and card corners', values: [['default', 'Rounded'], ['sharp', 'Sharp'], ['round', 'Extra round']] },
+  { key: 'contrast', label: 'Contrast', help: 'High darkens secondary text and lines', values: [['normal', 'Normal'], ['high', 'High']] },
 ];
+
+/** Any Google Font is stored as "gf:<Family Name>" (same format as the web app). */
+const GOOGLE_FONT_PREFIX = 'gf:';
 
 export default function PlatformAppearancePage() {
   const qc = useQueryClient();
@@ -108,6 +112,20 @@ export default function PlatformAppearancePage() {
               {draft.brandColor && <button type="button" onClick={() => set('brandColor', undefined)} className="text-xs font-semibold text-slate-500 hover:text-slate-900">Clear</button>}
             </div>
           </div>
+
+          <label className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <span className="block text-sm font-semibold text-slate-900">Any Google Font</span>
+            <span className="block text-xs text-slate-500">Overrides the font above, e.g. Montserrat (exact name from fonts.google.com)</span>
+            <input
+              value={draft.latinFont?.startsWith(GOOGLE_FONT_PREFIX) ? draft.latinFont.slice(GOOGLE_FONT_PREFIX.length) : ''}
+              onChange={(e) => {
+                const name = e.target.value.replace(/[^A-Za-z0-9 ]/g, '');
+                set('latinFont', name.trim() ? `${GOOGLE_FONT_PREFIX}${name}` : undefined);
+              }}
+              placeholder="Font name"
+              className="mt-3 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm"
+            />
+          </label>
 
           <label className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <span>

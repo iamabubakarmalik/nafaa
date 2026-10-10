@@ -16,6 +16,7 @@ export type PlatformAppearance = Partial<{
   density: 'comfortable' | 'compact';
   radius: 'sharp' | 'default' | 'round';
   reduceMotion: boolean;
+  contrast: 'normal' | 'high';
 }>;
 
 const unwrap = <T>(res: { data: { data: T } }): T => res.data.data;

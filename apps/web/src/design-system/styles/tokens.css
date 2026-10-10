@@ -79,8 +79,12 @@
   color-scheme: light;
 }
 
-/* Urdu script uses its own font family and a taller line height. */
-:lang(ur) {
+/*
+ * Urdu script uses its own font family and a taller line height. Exact match
+ * on lang="ur": Roman Urdu is written "ur-Latn" and must keep the Latin font
+ * (a :lang(ur) selector would also match it).
+ */
+[lang='ur'] {
   font-family: var(--font-urdu);
 }
 html[lang='ur'] body {

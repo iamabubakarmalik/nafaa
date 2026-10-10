@@ -40,6 +40,8 @@ export interface Appearance {
   density: Density;
   radius: Radius;
   reduceMotion: boolean;
+  /** "high" darkens secondary text and lines for readability. */
+  contrast: 'normal' | 'high';
   language: Language;
 }
 
@@ -57,6 +59,7 @@ export const DEFAULT_APPEARANCE: Appearance = {
   density: 'comfortable',
   radius: 'default',
   reduceMotion: false,
+  contrast: 'normal',
   language: 'roman_ur',
 };
 

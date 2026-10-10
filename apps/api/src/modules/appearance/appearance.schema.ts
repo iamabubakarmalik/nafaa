@@ -18,6 +18,7 @@ export type AppearanceLayer = Partial<{
   density: 'comfortable' | 'compact';
   radius: 'sharp' | 'default' | 'round';
   reduceMotion: boolean;
+  contrast: 'normal' | 'high';
   language: 'en' | 'roman_ur' | 'ur';
 }>;
 
@@ -30,9 +31,11 @@ const ENUMS: Record<string, readonly string[]> = {
   density: ['comfortable', 'compact'],
   radius: ['sharp', 'default', 'round'],
   language: ['en', 'roman_ur', 'ur'],
+  contrast: ['normal', 'high'],
 };
 
-const FONT_ID = /^[a-z0-9-]{2,32}$/;
+/** Built-in font ids, or "gf:<Family Name>" for any Google Font. */
+const FONT_ID = /^([a-z0-9-]{2,32}|gf:[A-Za-z0-9 ]{2,40})$/;
 const HEX = /^#[0-9a-f]{6}$/i;
 
 /** Keeps valid fields only. `null` clears a field so the layer below shows through. */
