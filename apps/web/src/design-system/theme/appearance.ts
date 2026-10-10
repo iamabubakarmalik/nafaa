@@ -21,11 +21,19 @@ import type { Density, Radius } from '../tokens/layout';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'roman_ur' | 'ur';
+export type CanvasTone = 'soft' | 'white' | 'warm' | 'cool' | 'tinted';
+export type SidebarStyle = 'light' | 'dark' | 'brand';
+export type SidebarMode = 'auto' | 'expanded' | 'collapsed';
 
 export interface Appearance {
   mode: ThemeMode;
   /** Hex accent color, or null to follow the industry identity. */
   brandColor: string | null;
+  /** Page background behind cards. */
+  canvasTone: CanvasTone;
+  sidebarStyle: SidebarStyle;
+  /** Full sidebar, icon rail, or automatic by screen width. */
+  sidebarMode: SidebarMode;
   latinFont: string;
   urduFont: string;
   textScale: TextScale;
@@ -40,6 +48,9 @@ export type AppearanceLayer = Partial<Appearance>;
 export const DEFAULT_APPEARANCE: Appearance = {
   mode: 'system',
   brandColor: null,
+  canvasTone: 'soft',
+  sidebarStyle: 'light',
+  sidebarMode: 'auto',
   latinFont: DEFAULT_LATIN_FONT,
   urduFont: DEFAULT_URDU_FONT,
   textScale: 'md',

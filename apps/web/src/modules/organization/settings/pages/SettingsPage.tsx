@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Settings as SettingsIcon, Store, Building2, Bell, Shield, Palette,
+  Settings as SettingsIcon, Store, Building2, Bell, Shield,
   Receipt, ShoppingBag, Package, Users, Percent, Sparkles,
   Plug, Database, AlertTriangle, Search, X, ChevronRight,
   Loader2, CheckCircle2, Globe, MessageCircle,
@@ -21,14 +21,13 @@ import { CustomerSection } from '../sections/CustomerSection';
 import { NotificationsSection } from '../sections/NotificationsSection';
 import { WhatsappSection } from '../sections/WhatsappSection';
 import { SecuritySection } from '../sections/SecuritySection';
-import { AppearanceSection } from '../sections/AppearanceSection';
 import { IntegrationsSection } from '../sections/IntegrationsSection';
 import { BackupSection } from '../sections/BackupSection';
 import { DangerZoneSection } from '../sections/DangerZoneSection';
 
 type TabId =
   | 'business' | 'config' | 'localization' | 'tax' | 'receipt' | 'pos'
-  | 'inventory' | 'customer' | 'notifications' | 'whatsapp' | 'security' | 'appearance'
+  | 'inventory' | 'customer' | 'notifications' | 'whatsapp' | 'security'
   | 'integrations' | 'backup' | 'danger';
 
 interface TabDef {
@@ -61,7 +60,6 @@ const TABS: TabDef[] = [
 
   // ── System
   { id: 'security',     label: 'Security',          desc: 'PIN, 2FA, sessions, activity',        icon: Shield,      color: 'emerald', group: 'system',     keywords: ['security', 'pin', '2fa', 'password', 'sessions'] },
-  { id: 'appearance',   label: 'Appearance',        desc: 'Theme, colors, compact mode',         icon: Palette,     color: 'violet',  group: 'system',     keywords: ['theme', 'dark', 'light', 'color', 'brand'] },
   { id: 'integrations', label: 'Integrations',      desc: 'FBR, Daraz, WhatsApp, Stripe...',     icon: Plug,        color: 'orange',  group: 'system',     keywords: ['fbr', 'daraz', 'whatsapp', 'stripe', 'zapier', 'webhook', 'integration'] },
   { id: 'backup',       label: 'Backup & Export',   desc: 'Data export, backups',                icon: Database,    color: 'slate',   group: 'system',     keywords: ['backup', 'export', 'download', 'csv', 'json'] },
   { id: 'danger',       label: 'Danger Zone',       desc: 'Transfer ownership, delete account',  icon: AlertTriangle, color: 'rose',   group: 'system',     keywords: ['delete', 'danger', 'transfer', 'ownership'], danger: true },
@@ -273,7 +271,6 @@ export default function SettingsPage() {
               {activeTab === 'notifications' && <NotificationsSection settings={settings} />}
               {activeTab === 'whatsapp'      && <WhatsappSection settings={settings} />}
               {activeTab === 'security'      && <SecuritySection settings={settings} />}
-              {activeTab === 'appearance'    && <AppearanceSection settings={settings} />}
               {activeTab === 'integrations'  && <IntegrationsSection />}
               {activeTab === 'backup'        && <BackupSection />}
               {activeTab === 'danger'        && <DangerZoneSection />}

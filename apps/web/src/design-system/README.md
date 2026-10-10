@@ -10,14 +10,16 @@ design-system/
     color.ts               Builds a 50–950 scale from one hex (OKLCH), contrast helpers
     presets.ts             Accent colors offered in Settings → Appearance
     typography.ts          Latin and Urdu font options, text-size scale
-    layout.ts              Density and corner-radius options
+    layout.ts              Density and corner-radius scales
+    surfaces.ts            Page background tones and matching sidebar surfaces
   industries/
     identities.ts          Color, icon and label for each of the 31 industries
   theme/
     appearance.ts          Appearance model and how the layers are merged
     store.ts               Zustand store holding the layers (personal layer persisted)
     apply.ts               The only code that writes theme state to <html>
-    AppearanceProvider.tsx Applies the theme; bridges tenant settings and industry
+    AppearanceProvider.tsx Applies the theme; syncs layers with the server and the industry
+    appearance.api.ts      /appearance endpoints (platform, business, personal layers)
   tailwind/
     palette.cjs            Tailwind palettes with automatic dark-mode values
     dark-rules.json        Dark-mode rules shared by Tailwind and the runtime brand scale
@@ -45,6 +47,20 @@ a pharmacy.
 font size for the text-size preference, and caches everything for the boot
 script in `index.html`, which paints the saved theme before React loads.
 
+## Where layers are stored
+
+Layers are saved through `/appearance` (apps/api/src/modules/appearance) as
+SystemSetting rows: `appearance:platform`, `appearance:tenant:<id>` and
+`appearance:user:<id>`. The personal layer is also kept locally so the app
+paints instantly offline; the server copy wins on sign-in. Users edit their
+own and (with settings access) the business layer in Settings → Appearance;
+Nafaa staff edit the platform layer in the admin panel (Platform design).
+
+Density and corners work app-wide: Tailwind's spacing and border-radius
+scales are multiplied by `--density-scale` and `--radius-scale`. A "dark" or
+"brand" sidebar adds the `dark` class to the sidebar only; `.light` does the
+opposite for a region inside a dark page (used by the live preview).
+
 ## Using tokens in components
 
 Tailwind is wired to the variables (see `tailwind.config.js`):
@@ -54,7 +70,7 @@ Tailwind is wired to the variables (see `tailwind.config.js`):
 | Primary / accent color | `bg-brand-600`, `text-brand-700`, `ring-brand-500/30` |
 | Text on a brand background | `text-brand-fg` |
 | UI font / Urdu font / numbers | `font-sans`, `font-urdu`, `font-mono` |
-| Theme corner radius | `rounded-theme` |
+| Corner radius (follows the Corners setting) | any `rounded-*` |
 
 `emerald-*` is mapped to the brand scale as well, because existing screens use
 it as their primary color. New code should write `brand-*`.

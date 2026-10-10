@@ -22,6 +22,8 @@ interface AppearanceState extends Required<Pick<AppearanceLayers, 'platform' | '
   resolved: ResolvedAppearance;
 
   setPersonal: (patch: AppearanceLayer) => void;
+  /** Replaces the personal layer with the copy stored on the server. */
+  replacePersonal: (layer: AppearanceLayer) => void;
   resetPersonal: (keys?: (keyof AppearanceLayer)[]) => void;
   setBusiness: (layer: AppearanceLayer | null) => void;
   setPlatform: (layer: AppearanceLayer | null) => void;
@@ -65,6 +67,7 @@ export const useAppearanceStore = create<AppearanceState>()(
         resolved: resolveFrom(initialLayers),
 
         setPersonal: (patch) => update({ personal: { ...get().personal, ...patch } }),
+        replacePersonal: (layer) => update({ personal: { ...layer } }),
         resetPersonal: (keys) => {
           if (!keys) return update({ personal: {} });
           const personal = { ...get().personal };

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, Users, LogOut,
   Menu, X, ChevronRight, Sparkles, CreditCard, Gift, Activity,
   TrendingUp, Package, ShoppingCart, Receipt, Megaphone, Tag,
-  Mail, Settings as SettingsIcon, Heart, Layers, Download, Bell,
+  Mail, Settings as SettingsIcon, Heart, Layers, Download, Bell, Palette,
   Rocket,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -71,6 +71,7 @@ const navGroups = [
       { to: '/bulk-actions', label: 'Bulk Actions', icon: Layers },
       { to: '/exports', label: 'Exports', icon: Download },
       { to: '/settings', label: 'Settings', icon: SettingsIcon },
+      { to: '/appearance', label: 'Platform design', icon: Palette },
     ],
   },
 ];

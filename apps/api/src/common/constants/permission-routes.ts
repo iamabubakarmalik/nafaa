@@ -184,6 +184,7 @@ const ALWAYS_OPEN = [
   /^storage(\/|$)/,
   /^search(\/|$)/,
   /^notifications?(\/|$)/,
+  /^appearance(\/|$)/,
   /^health(\/|$)/,
   /^industries?(\/|$)/,
   /^onboarding(\/|$)/,

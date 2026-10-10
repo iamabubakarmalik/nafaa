@@ -4,7 +4,7 @@ import {
   Globe, Hash, Layers, LayoutDashboard, Megaphone, MessageCircle, Navigation, Package, PackagePlus, Percent,
   Plug, Receipt, RotateCcw, ScanLine, ScrollText, Settings, Shield, ShieldCheck, ShoppingBag, ShoppingCart,
   Sparkles, Star, Store, Tag, TrendingUp, Trophy, Truck, UserCircle, UserCog, Users, Wallet, Wallet2, Zap,
-  Landmark, Send, Printer, QrCode, Search, HandCoins,
+  Landmark, Send, Printer, QrCode, Search, HandCoins, Palette,
 } from 'lucide-react';
 import { PERMISSIONS as P, type PermissionKey } from '@core/lib/permissions';
 import type { IndustryNavGroup, IndustryNavItem } from '@industries/_shared/types/industry-pack';
@@ -311,6 +311,7 @@ export const SETTINGS_SECTIONS: { title: string; items: SettingsItem[] }[] = [
   {
     title: 'Account',
     items: [
+      { to: '/settings/appearance', label: 'Appearance', icon: Palette, desc: 'Colors, fonts, dark mode, text size, layout', keywords: 'theme dark light mode color colour brand font urdu text size compact density corners sidebar background' },
       { to: '/profile', label: 'My profile', icon: UserCircle, desc: 'Your name, password and PIN', keywords: 'password pin account' },
       { to: '/legal', label: 'Terms & privacy', icon: ScrollText, desc: 'Policies and legal' },
     ],

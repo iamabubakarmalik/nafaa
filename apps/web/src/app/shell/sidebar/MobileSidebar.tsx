@@ -10,8 +10,11 @@ import { Sidebar, type SidebarProps } from './Sidebar';
 type Props = Omit<SidebarProps, 'collapsed' | 'onToggleCollapse' | 'onItemClick' | 'onClose'> & {
   open: boolean;
   onClose: () => void;
+  /** Dark or brand sidebar style from Settings → Appearance. */
+  dark?: boolean;
+  surface?: React.CSSProperties;
 };
-export function MobileSidebar({ open, onClose, ...rest }: Props) {
+export function MobileSidebar({ open, onClose, dark, surface, ...rest }: Props) {
   const [drag, setDrag] = useState(0);
   const start = useRef<{ x: number; y: number; horizontal: boolean | null } | null>(null);
 
@@ -64,10 +67,11 @@ export function MobileSidebar({ open, onClose, ...rest }: Props) {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         style={{
+          ...surface,
           transform: open ? `translateX(${drag}px)` : 'translateX(-105%)',
           transition: drag ? 'none' : 'transform 320ms cubic-bezier(.32,.72,0,1)',
         }}
-        className="absolute inset-y-0 left-0 flex w-[86vw] max-w-[320px] flex-col bg-shell-sidebar pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] shadow-2xl"
+        className={cn('absolute inset-y-0 left-0 flex w-[86vw] max-w-[320px] flex-col bg-shell-sidebar pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)] text-[rgb(var(--fg))] shadow-2xl', dark && 'dark')}
       >
         <Sidebar {...rest} onItemClick={onClose} onClose={onClose} />
       </aside>

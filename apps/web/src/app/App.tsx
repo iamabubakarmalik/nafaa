@@ -18,6 +18,7 @@ import MarketplaceSettingsPage from '@modules/organization/marketplace-settings/
 import IntegrationHubPage from '@integrations/pages/IntegrationHubPage';
 import AccountingPage from '@integrations/accounting/AccountingPage';
 import HardwarePage from '@core/hardware/HardwarePage';
+import AppearancePage from '@modules/appearance/pages/AppearancePage';
 import DeveloperPage from '@integrations/developer/DeveloperPage';
 import PayQrPage from '@core/payments/PayQrPage';
 import GooglePage from '@integrations/google/GooglePage';
@@ -689,6 +690,8 @@ export default function App() {
                   <Route path="/online-store/foodpanda" element={secure(PERMISSIONS.SETTINGS_VIEW, <FoodpandaPage />)} />
                   <Route path="/settings/accounting" element={secure(PERMISSIONS.SETTINGS_VIEW, <AccountingPage />)} />
                   <Route path="/settings/hardware" element={secure(PERMISSIONS.POS_USE, <HardwarePage />)} />
+                  {/* Every signed-in user can change their own look; business defaults are checked inside. */}
+                  <Route path="/settings/appearance" element={<AppearancePage />} />
                   <Route path="/settings/developer" element={secure(PERMISSIONS.SETTINGS_VIEW, <DeveloperPage />)} />
                   <Route path="/settings/payment-qr" element={secure(PERMISSIONS.SETTINGS_VIEW, <PayQrPage />)} />
                   <Route path="/settings/google" element={secure(PERMISSIONS.SETTINGS_VIEW, <GooglePage />)} />

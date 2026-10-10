@@ -1,27 +1,16 @@
 /**
  * Sidebar open/collapsed state.
  *
- * The default is "auto": the full sidebar on wide screens (1280px and up) and
- * the icon rail below that, which is where most Windows laptops land once
- * display scaling is applied. Toggling with the button or Ctrl/⌘+B stores an
- * explicit choice that then wins on every screen size.
+ * Stored as `sidebarMode` in the user's appearance preferences, so the
+ * Settings → Appearance option, Ctrl/⌘+B and every device agree. "auto" shows
+ * the full sidebar from 1280px and the icon rail below that, which is where
+ * most Windows laptops land once display scaling is applied.
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useAppearanceStore } from '@/design-system';
 
-type SidebarMode = 'auto' | 'expanded' | 'collapsed';
-
-const STORAGE_KEY = 'nafaa-sidebar-mode';
 const WIDE_QUERY = '(min-width: 1280px)';
-
-function readMode(): SidebarMode {
-  try {
-    const value = localStorage.getItem(STORAGE_KEY);
-    return value === 'expanded' || value === 'collapsed' ? value : 'auto';
-  } catch {
-    return 'auto';
-  }
-}
 
 function useMediaQuery(query: string) {
   const [matches, setMatches] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
@@ -36,17 +25,14 @@ function useMediaQuery(query: string) {
 }
 
 export function useSidebarState() {
-  const [mode, setMode] = useState<SidebarMode>(readMode);
+  const mode = useAppearanceStore((s) => s.resolved.sidebarMode);
+  const setPersonal = useAppearanceStore((s) => s.setPersonal);
   const isWide = useMediaQuery(WIDE_QUERY);
   const collapsed = mode === 'auto' ? !isWide : mode === 'collapsed';
 
   const toggle = useCallback(() => {
-    setMode(() => {
-      const next: SidebarMode = collapsed ? 'expanded' : 'collapsed';
-      try { localStorage.setItem(STORAGE_KEY, next); } catch { /* storage unavailable */ }
-      return next;
-    });
-  }, [collapsed]);
+    setPersonal({ sidebarMode: collapsed ? 'expanded' : 'collapsed' });
+  }, [collapsed, setPersonal]);
 
   // Ctrl/⌘ + B toggles the sidebar.
   useEffect(() => {

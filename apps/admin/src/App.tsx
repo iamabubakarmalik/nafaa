@@ -20,6 +20,7 @@ import BroadcastPage from '@/features/broadcast/pages/BroadcastPage';
 import PlatformDiscountsPage from '@/features/platform-discounts/pages/PlatformDiscountsPage';
 import EmailTemplatesPage from '@/features/email-templates/pages/EmailTemplatesPage';
 import SettingsPage from '@/features/settings/pages/SettingsPage';
+import PlatformAppearancePage from '@/features/appearance/pages/PlatformAppearancePage';
 import HealthPage from '@/features/health/pages/HealthPage';
 import BulkActionsPage from '@/features/bulk-actions/pages/BulkActionsPage';
 import AdminExportsPage from '@/features/admin-exports/pages/AdminExportsPage';
@@ -95,6 +96,7 @@ export default function App() {
               <Route path="/bulk-actions" element={<BulkActionsPage />} />
               <Route path="/exports" element={<AdminExportsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/appearance" element={<PlatformAppearancePage />} />
             </Route>
 
             {/* Marketing Hub — dedicated layout with its own sidebar */}

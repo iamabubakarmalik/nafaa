@@ -13,6 +13,7 @@
 import { buildScale, readableOn, SCALE_STEPS, type ColorScale, type ScaleStep } from '../tokens/color';
 import DARK_RULES from '../tailwind/dark-rules.json';
 import { DENSITIES, RADII } from '../tokens/layout';
+import { CANVAS_TONES } from '../tokens/surfaces';
 import { findLatinFont, findUrduFont, MONO_STACK, TEXT_SCALES } from '../tokens/typography';
 import type { ResolvedAppearance } from './appearance';
 
@@ -75,10 +76,32 @@ export function themeVariables(a: ResolvedAppearance, dark = false): Record<stri
   vars['--font-urdu'] = findUrduFont(a.urduFont).stack;
   vars['--font-mono'] = MONO_STACK;
 
-  const density = DENSITIES[a.density] ?? DENSITIES.comfortable;
-  vars['--control-height'] = density.controlHeight;
-  vars['--layout-gap'] = density.gap;
-  vars['--radius-base'] = (RADII[a.radius] ?? RADII.default).base;
+  vars['--density-scale'] = String((DENSITIES[a.density] ?? DENSITIES.comfortable).scale);
+  vars['--radius-scale'] = String((RADII[a.radius] ?? RADII.default).scale);
+
+  Object.assign(vars, surfaceVariables(a, scale, dark));
+  return vars;
+}
+
+/**
+ * Page canvas and sidebar surfaces for the chosen tone. Set inline on <html>,
+ * so they must already be the right value for the current mode. A brand
+ * sidebar uses the deepest brand steps.
+ */
+function surfaceVariables(a: ResolvedAppearance, scale: ColorScale, dark: boolean): Record<string, string> {
+  const tone = CANVAS_TONES[a.canvasTone] ?? CANVAS_TONES.soft;
+  const mode = dark ? tone.dark : tone.light;
+  let canvas = mode.canvas.join(' ');
+  let sidebar = mode.sidebar.join(' ');
+  if (a.canvasTone === 'tinted') {
+    const accent = toRgb(scale[500]);
+    canvas = mix(accent, mode.canvas as Rgb, dark ? 0.07 : 0.045);
+    sidebar = mix(accent, mode.sidebar as Rgb, dark ? 0.1 : 0.08);
+  }
+  const vars: Record<string, string> = { '--shell-canvas': canvas, '--shell-sidebar': sidebar };
+  // Used by the sidebar when its style is "dark" or "brand" (AppShell scopes .dark to it).
+  vars['--shell-sidebar-dark'] = a.sidebarStyle === 'brand' ? scale[950] : (dark ? sidebar : '11 17 32');
+  vars['--shell-sidebar-dark-line'] = a.sidebarStyle === 'brand' ? scale[900] : '30 41 59';
   return vars;
 }
 
@@ -89,7 +112,7 @@ export function isDarkMode(a: ResolvedAppearance, systemPrefersDark: boolean): b
 const FONT_LINK_ATTR = 'data-ds-font';
 
 /** Adds a Google Fonts stylesheet once per font; unused fonts are never fetched. */
-function ensureFont(family: string | null, id: string) {
+export function ensureFont(family: string | null, id: string) {
   if (!family || typeof document === 'undefined') return;
   if (document.head.querySelector(`link[${FONT_LINK_ATTR}="${id}"]`)) return;
   const link = document.createElement('link');

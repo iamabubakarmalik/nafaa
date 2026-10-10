@@ -48,12 +48,11 @@
   --shell-line: 226 232 240;
 
   /* Shape and spacing */
-  --radius-base: 0.75rem;
-  --control-height: 2.5rem;
-  --layout-gap: 1rem;
+  --radius-scale: 1;
+  --density-scale: 1;
 }
 
-html.dark {
+.dark {
   --surface: 17 25 43;
   --surface-muted: 27 37 56;
   --fg: 241 245 249;
@@ -66,6 +65,18 @@ html.dark {
   --shell-sidebar: 6 10 20;
   --shell-bar: 17 25 43;
   --shell-line: 30 41 59;
+}
+
+/* A light region inside a dark page (for example a light-mode preview). */
+.light {
+  --surface: 255 255 255;
+  --surface-muted: 241 245 249;
+  --fg: 15 23 42;
+  --fg-subtle: 148 163 184;
+  --line: 226 232 240;
+  --shell-bar: 255 255 255;
+  --shell-line: 226 232 240;
+  color-scheme: light;
 }
 
 /* Urdu script uses its own font family and a taller line height. */
@@ -100,10 +111,12 @@ html[data-motion='reduce'] *::after {
 
 /*
  * Printed output (receipts, labels, invoices) is sized for fixed paper widths.
- * The on-screen text-size preference must not change it.
+ * On-screen text size, density and corner preferences must not change it.
  */
 @media print {
   html {
     font-size: 100% !important;
+    --density-scale: 1 !important;
+    --radius-scale: 1 !important;
   }
 }

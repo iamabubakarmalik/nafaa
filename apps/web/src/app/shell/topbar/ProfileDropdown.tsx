@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bell, Building2, ChevronDown, ChevronRight, CreditCard, Crown, HelpCircle, LogOut, Monitor, Moon,
-  ScrollText, Settings, Shield, Store, Sun, User,
+  Palette, ScrollText, Settings, Shield, Store, Sun, User,
 } from 'lucide-react';
 import { useAppearanceStore } from '@/design-system';
 import { cn } from '@core/lib/cn';
@@ -99,6 +99,7 @@ export function ProfileDropdown({ user, tenant, onLogout }: Props) {
 
           <div className="py-1.5">
             <Row to="/profile" icon={User} label="My profile" onClick={close} />
+            <Row to="/settings/appearance" icon={Palette} label="Appearance" onClick={close} />
             <Row to="/notifications" icon={Bell} label="Notifications" onClick={close} />
             <Row to="/settings" icon={Settings} label="Settings" onClick={close} />
             <Row to="/billing" icon={CreditCard} label="Billing & plan" onClick={close} />

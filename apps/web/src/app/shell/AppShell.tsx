@@ -21,6 +21,7 @@ import { ErrorBoundary } from '@core/components/ErrorBoundary';
 import { PageLockGate } from '@core/security/PageLockGate';
 import { OnlineOrderAlert } from '@integrations/online-orders/components/OnlineOrderAlert';
 import { cn } from '@core/lib/cn';
+import { useAppearance } from '@/design-system';
 import { isSettingsPath, LAST_APP_PATH_KEY } from './navigation/nav-config';
 import { Sidebar } from './sidebar/Sidebar';
 import { MobileSidebar } from './sidebar/MobileSidebar';
@@ -36,6 +37,12 @@ export default function AppShell() {
   const location = useLocation();
   const { user, tenant, refreshToken, logout } = useAuthStore();
   const { collapsed, toggle } = useSidebarState();
+  const { sidebarStyle } = useAppearance();
+  // "Dark" and "Brand" sidebars scope dark mode to the sidebar alone.
+  const sidebarDark = sidebarStyle !== 'light';
+  const sidebarSurface = sidebarDark
+    ? ({ '--shell-sidebar': 'var(--shell-sidebar-dark)', '--shell-line': 'var(--shell-sidebar-dark-line)' } as React.CSSProperties)
+    : undefined;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Settings remember the page the user came from, so closing them returns there.
@@ -85,12 +92,15 @@ export default function AppShell() {
         )}
       >
         {!settingsMode && (
-          <aside className="hidden h-screen-dvh flex-col overflow-hidden border-r border-shell-line bg-shell-sidebar lg:flex print:hidden">
+          <aside
+            className={cn('hidden h-screen-dvh flex-col overflow-hidden border-r border-shell-line bg-shell-sidebar text-[rgb(var(--fg))] lg:flex print:hidden', sidebarDark && 'dark')}
+            style={sidebarSurface}
+          >
             <Sidebar {...tenantProps} collapsed={collapsed} onToggleCollapse={toggle} />
           </aside>
         )}
 
-        <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} {...tenantProps} />
+        <MobileSidebar open={mobileOpen} onClose={() => setMobileOpen(false)} dark={sidebarDark} surface={sidebarSurface} {...tenantProps} />
 
         <div className="flex h-screen-dvh min-w-0 flex-col overflow-hidden">
           <Topbar user={user} tenant={tenant} onOpenMobileSidebar={() => setMobileOpen(true)} onLogout={handleLogout} />

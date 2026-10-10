@@ -11,6 +11,7 @@
  */
 
 const tw = require('tailwindcss/colors');
+const defaultTheme = require('tailwindcss/defaultTheme');
 const plugin = require('tailwindcss/plugin');
 const { buildPalettes, brandPalettes } = require('./src/design-system/tailwind/palette.cjs');
 
@@ -23,11 +24,19 @@ const brand = brandPalettes();
 /** Per-usage palettes: hue and grey families plus brand (emerald is the legacy name for brand). */
 const forUsage = (kind, extra = {}) => ({ ...palettes[kind], brand: { ...brand[kind], ...extra }, emerald: brand[kind] });
 
+/** Multiplies rem values by a runtime CSS variable (density, corner radius). */
+const scaled = (scale, variable) => Object.fromEntries(
+  Object.entries(scale).map(([key, value]) => [key, /rem$/.test(value) ? `calc(${value} * var(${variable}, 1))` : value]),
+);
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
+    // Settings → Appearance: "Density" scales spacing, "Corners" scales radius.
+    spacing: scaled(defaultTheme.spacing, '--density-scale'),
+    borderRadius: scaled({ ...defaultTheme.borderRadius, xs: '0.25rem', '4xl': '2rem', '5xl': '2.5rem' }, '--radius-scale'),
     extend: {
       colors: {
         ...SEMANTIC,
@@ -84,12 +93,6 @@ module.exports = {
         'purple-gradient': 'linear-gradient(135deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%)',
         'mesh-emerald':    'radial-gradient(at 20% 20%, rgb(var(--brand-500)) 0px, transparent 50%), radial-gradient(at 80% 80%, #f59e0b 0px, transparent 50%)',
       },
-      borderRadius: {
-        'xs':  '0.25rem',
-        'theme': 'var(--radius-base)',
-        '4xl': '2rem',
-        '5xl': '2.5rem',
-      },
       animation: {
         'fade-in':    'fadeIn 0.2s ease-out',
         'slide-up':   'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -116,7 +119,12 @@ module.exports = {
   },
   plugins: [
     require('tailwindcss-animate'),
-    // Dark values for every color step that changes in dark mode.
-    plugin(({ addBase }) => addBase({ 'html.dark': darkVars })),
+    // Dark values for every color step that changes in dark mode. `.dark` (not
+    // only html.dark) so a single region, such as a dark sidebar, can opt in;
+    // `.light` resets a region to light values inside a dark page (previews).
+    plugin(({ addBase }) => addBase({
+      '.dark': darkVars,
+      '.light': Object.fromEntries(Object.keys(darkVars).map((name) => [name, 'initial'])),
+    })),
   ],
 };
